@@ -25,6 +25,10 @@ class slvr_common : public
   bool relax_th_rv;
   blitz::Array<real_t, 2> &th_eq, &rv_eq;
   blitz::Array<real_t, 2> &th_ref, &rhod;
+
+  // surface precip stuff
+  real_t prec_vol;
+  std::ofstream f_prec;
   
   // spinup stuff
   virtual bool get_rain() = 0;
@@ -59,6 +63,10 @@ class slvr_common : public
     }
 
     parent_t::hook_ante_loop(nt); 
+
+    // open file for output of precitpitation volume
+    f_prec.open(this->outdir+"/prec_vol.dat");
+    prec_vol = 0.;
   }
 
   void hook_ante_step()
@@ -126,6 +134,18 @@ class slvr_common : public
     }
 
     parent_t::hook_ante_step(); 
+  }
+
+  void hook_post_step()
+  {
+    parent_t::hook_post_step(); 
+
+    // recording total precipitation volume through the lower boundary
+    if(this->rank==0)
+    {
+      f_prec << this->timestep << " "  << prec_vol << "\n";
+      prec_vol = 0.;
+    }
   }
 
 
