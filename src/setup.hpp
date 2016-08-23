@@ -192,7 +192,6 @@ namespace setup
       nx = solver.advectee().extent(x), 
       nz = solver.advectee().extent(z); 
     real_t 
-      dx = (X / si::metres) / (nx-1), 
       dz = (Z / si::metres) / (nz-1); 
 
     // initial potential temperature & water vapour mixing ratio profiles
