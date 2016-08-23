@@ -22,8 +22,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
-  typename parent_t::arr_t w_LS, hgt_fctr_sclr, hgt_fctr_vctr; // TODO: store them in rt_params, here only reference thread's subarrays; also they are just 1D profiles, no need to store whole 3D arrays
-
   blitz::Array<real_t, 1> k_i; // TODO: make it's size in x direction smaller to match thread's domain
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
@@ -206,7 +204,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     {
       F(i, ji) = - pow(setup::u_fric,2) * this->state(ix::vip_i)(i, 0) / sqrt(
                           pow2(this->state(ix::vip_i)(i, 0)))
-                          * hgt_fctr_vctr(i, ji);
+                          * (*params.hgt_fctr_vctr)(i, ji);
     }
 
     // du/dt = sum of kinematic momentum fluxes * dt
@@ -459,25 +457,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   {
     int nx = this->mem->grid_size[0].length();
     int nz = this->mem->grid_size[1].length();
-    w_LS.resize(nx,nz);
-    hgt_fctr_sclr.resize(nx,nz);
-    hgt_fctr_vctr.resize(nx,nz);
     k_i.resize(nx);
     r_l = 0.;
-
-    blitz::secondIndex k;
-
-    // prescribed large-scale vertical wind
-    w_LS = setup::w_LS_fctr()(k * params.dz);
-
-    // exponential decay with height to distribute constant surface fluxes
-    // used to get flux through the bottom of the cell, z=0 at k=1/2
-    real_t z_0 = setup::z_rlx_vctr / si::metres;
-    hgt_fctr_vctr = exp(- (k-0.5) * params.dz / z_0);
-    hgt_fctr_vctr(blitz::Range::all(),0) = 1;
-    z_0 = params.z_rlx_sclr;
-    hgt_fctr_sclr = exp(- (k-0.5) * params.dz / z_0);
-    hgt_fctr_sclr(blitz::Range::all(),0) = 1;
 
     // delaying any initialisation to ante_loop as rank() does not function within ctor! // TODO: not anymore!!!
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block

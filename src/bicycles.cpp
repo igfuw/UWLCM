@@ -28,20 +28,39 @@ void run(int nx, int nz, int nt, setup::real_t dt, const std::string &outdir, co
   p.relax_th_rv = relax_th_rv;
   p.prs_tol=1e-6;
   p.dt = dt;
-  p.z_rlx_sclr = z_rlx_sclr;
   setopts_micro<solver_t>(p, nx, nz, nt, gccn, onishi, pristine, eps, ReL);
   //std::cout << "params.rhod po setopts micro " << p.rhod << " "  << *p.rhod << std::endl;
   setup::setopts(p, nx, nz);
 
-  // global arrays storing env profiles of th and rv (for buoyancy)
+  // --------
+  // reference profiles init, they will be passed to solvers through rt_params_t
+  blitz::secondIndex k;
+  // env profiles of th and rv (for buoyancy)
   blitz::Array<setup::real_t, 2> th_e(nx, nz), rv_e(nx, nz), th_ref(nx, nz), rhod(nx, nz);
   setup::env_prof(th_e, rv_e, th_ref, rhod, nz);
-  // pass them to params
   p.th_e = new blitz::Array<setup::real_t, 2>(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
   p.rv_e = new blitz::Array<setup::real_t, 2>(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
   p.th_ref = new blitz::Array<setup::real_t, 2>(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
   p.rhod = new blitz::Array<setup::real_t, 2>(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
+  // subsidence rate
+  blitz::Array<setup::real_t, 2> w_LS(nx, nz);
+  w_LS = setup::w_LS_fctr()(k * p.dz);
+  p.w_LS = new blitz::Array<setup::real_t, 2>(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
+  // surface sources relaxation factors
+  // for vectors
+  blitz::Array<setup::real_t, 2> hgt_fctr_vctr(nx, nz);
+  setup::real_t z_0 = setup::z_rlx_vctr / si::metres;
+  hgt_fctr_vctr = exp(- (k-0.5) * p.dz / z_0); // z=0 at k=1/2
+  hgt_fctr_vctr(blitz::Range::all(),0) = 1;
+  p.hgt_fctr_vctr = new blitz::Array<setup::real_t, 2>(hgt_fctr_vctr.dataFirst(), hgt_fctr_vctr.shape(), blitz::neverDeleteData);
+  // for scalars
+  blitz::Array<setup::real_t, 2> hgt_fctr_sclr(nx, nz);
+  z_0 = z_rlx_sclr;
+  hgt_fctr_sclr = exp(- (k-0.5) * p.dz / z_0);
+  hgt_fctr_sclr(blitz::Range::all(),0) = 1;
+  p.hgt_fctr_sclr = new blitz::Array<setup::real_t, 2>(hgt_fctr_sclr.dataFirst(), hgt_fctr_sclr.shape(), blitz::neverDeleteData);
 
+  // --------
   // solver instantiation
   std::unique_ptr<
     concurr::any<
