@@ -18,7 +18,6 @@ class slvr_common : public
 
   protected:
 
-  real_t dx, dz; // 0->dx, 1->dy ! TODO
   int spinup; // number of timesteps
 
   // relaxation stuff
@@ -85,8 +84,6 @@ class slvr_common : public
     const rt_params_t &p
   ) : 
     parent_t(args, p),
-    dx(p.dx),
-    dz(p.dz),
     spinup(p.spinup),
     relax_th_rv(p.relax_th_rv)
   {
