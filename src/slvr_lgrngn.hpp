@@ -22,6 +22,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
+  // processes flags
   bool coal, sedi;
 
   typename parent_t::arr_t w_LS, hgt_fctr_sclr, hgt_fctr_vctr; // TODO: store them in rt_params, here only reference thread's subarrays; also they are just 1D profiles, no need to store whole 3D arrays
@@ -191,7 +192,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 	prtcls->init(
 	  make_arrinfo(this->mem->advectee(ix::th)),
 	  make_arrinfo(this->mem->advectee(ix::rv)),
-	  make_arrinfo(this->rhod)
+	  make_arrinfo(*params.rhod)
 	); 
 
       // writing diagnostic data for the initial condition
@@ -338,7 +339,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       rl = blitz::Array<real_t,2>(prtcls->outbuf(), blitz::shape(nx, nz), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
       // in radiation parametrization we integrate mixing ratio * this->rhod
-      rl = rl * this->rhod;
+      rl = rl * (*params.rhod);
       rl = rl * setup::heating_kappa;
 
       {
@@ -357,17 +358,17 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {
           blitz::Range all = blitz::Range::all();
-          Cx(blitz::Range(1,nx), all)/= this->rhod;
-          Cz(all, blitz::Range(1,nz))/= this->rhod;
-          Cx(0, all) /= this->rhod(0, all);
-          Cz(all, 0) /= this->rhod(all, 0);
+          Cx(blitz::Range(1,nx), all) /= *params.rhod;
+          Cz(all, blitz::Range(1,nz)) /= *params.rhod;
+          Cx(0, all) /= (*params.rhod)(0, all);
+          Cz(all, 0) /= (*params.rhod)(all, 0);
         }
         // running synchronous stuff
         prtcls->step_sync(
           params.cloudph_opts,
           make_arrinfo(this->mem->advectee(ix::th)),
           make_arrinfo(this->mem->advectee(ix::rv)),
-          make_arrinfo(this->rhod),
+          make_arrinfo(*params.rhod),
           make_arrinfo(Cx), // ix::u ?
           libcloudphxx::lgrngn::arrinfo_t<real_t>(),
           make_arrinfo(Cz) // ix:w ?
