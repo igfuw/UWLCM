@@ -23,7 +23,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
   // processes flags
-  bool coal, sedi;
+  bool coal;
 
   typename parent_t::arr_t w_LS, hgt_fctr_sclr, hgt_fctr_vctr; // TODO: store them in rt_params, here only reference thread's subarrays; also they are just 1D profiles, no need to store whole 3D arrays
 
@@ -148,11 +148,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
   protected:
 
-  bool get_rain() { return params.cloudph_opts.coal && params.cloudph_opts.sedi; }
+  bool get_rain() { return params.cloudph_opts.coal; }
   void set_rain(bool val) 
   { 
     params.cloudph_opts.coal = val ? coal : false;
-//    params.cloudph_opts.sedi = val ? sedi : false; 
     params.cloudph_opts.RH_max = val ? 44 : 1.06; // 0.5% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
 
@@ -160,7 +159,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   void hook_ante_loop(int nt)
   {
     coal = params.cloudph_opts.coal;
-    sedi = params.cloudph_opts.sedi;
 
     parent_t::hook_ante_loop(nt); 
 
