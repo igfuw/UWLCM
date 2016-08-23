@@ -197,28 +197,22 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   void vip_rhs_expl_calc()
   {
     parent_t::vip_rhs_expl_calc();
-    const auto &i = this->i;
-    const auto &j = this->j;
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
     for (int ji = this->j.first(); ji <= this->j.last(); ++ji)
     {
-      F(i, ji) = - pow(setup::u_fric,2) * this->state(ix::vip_i)(i, 0) / sqrt(
-                          pow2(this->state(ix::vip_i)(i, 0)))
-                          * (*params.hgt_fctr_vctr)(i, ji);
+      F(this->i, ji) = - pow(setup::u_fric,2) * this->state(ix::vip_i)(this->i, 0) / sqrt(
+                          pow2(this->state(ix::vip_i)(this->i, 0)))
+                          * (*params.hgt_fctr_vctr)(this->i, ji);
     }
 
     // du/dt = sum of kinematic momentum fluxes * dt
     int nz = this->mem->grid_size[1].length(); //76
     blitz::Range notop(0, nz-2);
-    this->vip_rhs[0](i, notop) = (F(i, notop) - F(i, notop+1)) / this->dj * this->dt;
-    this->vip_rhs[0](i, this->j.last()) = (F(i, this->j.last())) / this->dj * this->dt;
-/*
-    this->xchng_sclr(F, i, j);
-    this->vip_rhs[0](i, j) = (F(i, j) - F(i, j+1)) / this->dj * this->dt;
-*/
+    this->vip_rhs[0](this->i, notop) = (F(this->i, notop) - F(this->i, notop+1)) / this->dj * this->dt;
+    this->vip_rhs[0](this->i, this->j.last()) = (F(this->i, this->j.last())) / this->dj * this->dt;
     // top and bottom cells are two times lower
-    this->vip_rhs[0](i, 0) *= 2; 
-    this->vip_rhs[0](i, this->j.last()) *= 2; 
+    this->vip_rhs[0](this->i, 0) *= 2; 
+    this->vip_rhs[0](this->i, this->j.last()) *= 2; 
   }
 
   void buoyancy(const blitz::Array<real_t, 2> &th, const blitz::Array<real_t, 2> &rv);
@@ -456,17 +450,15 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     F(args.mem->tmp[__FILE__][0][1])
   {
     int nx = this->mem->grid_size[0].length();
-    int nz = this->mem->grid_size[1].length();
     k_i.resize(nx);
     r_l = 0.;
 
-    // delaying any initialisation to ante_loop as rank() does not function within ctor! // TODO: not anymore!!!
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 5); // tmp1, r_l, alpha, beta, F
   }
 };
