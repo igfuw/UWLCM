@@ -22,9 +22,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
-  // processes flags
-  bool coal;
-
   typename parent_t::arr_t w_LS, hgt_fctr_sclr, hgt_fctr_vctr; // TODO: store them in rt_params, here only reference thread's subarrays; also they are just 1D profiles, no need to store whole 3D arrays
 
   blitz::Array<real_t, 1> k_i; // TODO: make it's size in x direction smaller to match thread's domain
@@ -151,14 +148,14 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   bool get_rain() { return params.cloudph_opts.coal; }
   void set_rain(bool val) 
   { 
-    params.cloudph_opts.coal = val ? coal : false;
+    params.cloudph_opts.coal = val ? params.flag_coal : false;
     params.cloudph_opts.RH_max = val ? 44 : 1.06; // 0.5% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
-    coal = params.cloudph_opts.coal;
+    params.flag_coal = params.cloudph_opts.coal;
 
     parent_t::hook_ante_loop(nt); 
 
@@ -437,6 +434,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
     outmom_t<real_t> out_dry, out_wet;
+    bool flag_coal; // do we want coal after spinup
   };
 
   private:
