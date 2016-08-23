@@ -55,7 +55,7 @@ int main(int ac, char** av)
   for (auto &opts_m : opts_micro)
   {
     ostringstream cmd;
-    cmd << av[1] << "/src/icicle " << opts_common << " " << opts_m;  
+    cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m;  
     notice_macro("about to call: " << cmd.str())
 
     if (EXIT_SUCCESS != system(cmd.str().c_str()))
