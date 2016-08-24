@@ -38,31 +38,32 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   // --------
   // reference profiles init, they will be passed to solvers through rt_params_t
-  blitz::secondIndex k;
+  blitz::firstIndex k;
   // env profiles of th and rv (for buoyancy)
   setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz);
   setup::env_prof(th_e, rv_e, th_ref, rhod, nz);
-  p.th_e = new typename setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
-  p.rv_e = new typename setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
-  p.th_ref = new typename setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
-  p.rhod = new typename setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
   // subsidence rate
-  typename setup::arr_1D_t w_LS(nz);
+  setup::arr_1D_t w_LS(nz);
   w_LS = setup::w_LS_fctr()(k * p.dz);
-  p.w_LS = new typename setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
   // surface sources relaxation factors
   // for vectors
-  typename setup::arr_1D_t hgt_fctr_vctr(nz);
+  setup::arr_1D_t hgt_fctr_vctr(nz);
   setup::real_t z_0 = setup::z_rlx_vctr / si::metres;
   hgt_fctr_vctr = exp(- (k-0.5) * p.dz / z_0); // z=0 at k=1/2
   hgt_fctr_vctr(blitz::Range::all(),0) = 1;
-  p.hgt_fctr_vctr = new typename setup::arr_1D_t(hgt_fctr_vctr.dataFirst(), hgt_fctr_vctr.shape(), blitz::neverDeleteData);
   // for scalars
-  typename setup::arr_1D_t hgt_fctr_sclr(nz);
+  setup::arr_1D_t hgt_fctr_sclr(nz);
   z_0 = z_rlx_sclr;
   hgt_fctr_sclr = exp(- (k-0.5) * p.dz / z_0);
   hgt_fctr_sclr(blitz::Range::all(),0) = 1;
-  p.hgt_fctr_sclr = new typename setup::arr_1D_t(hgt_fctr_sclr.dataFirst(), hgt_fctr_sclr.shape(), blitz::neverDeleteData);
+
+  p.th_e = new setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
+  p.rv_e = new setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
+  p.th_ref = new setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
+  p.hgt_fctr_vctr = new setup::arr_1D_t(hgt_fctr_vctr.dataFirst(), hgt_fctr_vctr.shape(), blitz::neverDeleteData);
+  p.w_LS = new setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
+  p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
+  p.hgt_fctr_sclr = new setup::arr_1D_t(hgt_fctr_sclr.dataFirst(), hgt_fctr_sclr.shape(), blitz::neverDeleteData);
 
   // --------
   // solver instantiation
@@ -176,6 +177,11 @@ int main(int argc, char** argv)
  
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();
+    if(user_params.rng_seed < 0) //if negative, get random seed
+    {
+      std::random_device rd; 
+      user_params.rng_seed = rd();
+    }
    
     //handling timestep length
     user_params.dt = vm["dt"].as<setup::real_t>();

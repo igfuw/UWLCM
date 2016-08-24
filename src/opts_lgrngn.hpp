@@ -134,6 +134,8 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
 
+  rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
+
   // coalescence kernel choice
   if(!onishi)
     rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
