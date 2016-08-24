@@ -1,7 +1,7 @@
 #pragma once
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::buoyancy(const blitz::Array<real_t, 2> &th, const blitz::Array<real_t, 2> &rv)
+void slvr_lgrngn<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
 {
   const auto &ijk = this->ijk;
   const auto &i = this->i;
@@ -19,7 +19,7 @@ void slvr_lgrngn<ct_params_t>::buoyancy(const blitz::Array<real_t, 2> &th, const
 }
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::radiation(const blitz::Array<real_t, 2> &rv)
+void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 // calc upward radiative flux through the bottom of the cells
 {
   const auto &ijk = this->ijk;

@@ -38,7 +38,7 @@ void slvr_lgrngn<ct_params_t>::rv_src()
 
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::th_src(const blitz::Array<real_t, 2> &rv)
+void slvr_lgrngn<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 {
   const auto &ijk = this->ijk;
   const auto &i = this->i;
@@ -89,7 +89,7 @@ void slvr_lgrngn<ct_params_t>::th_src(const blitz::Array<real_t, 2> &rv)
 }
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::w_src(const blitz::Array<real_t, 2> &th, const blitz::Array<real_t, 2> &rv)
+void slvr_lgrngn<ct_params_t>::w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
 {
   const auto &ijk = this->ijk;
   // buoyancy
