@@ -19,10 +19,10 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 // simulation and output parameters for micro=lgrngn
-template <class solver_t>
+template <class solver_t, class user_params_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
-  int nx, int nz, int nt, bool gccn, bool onishi, bool pristine, setup::real_t eps, setup::real_t ReL,
+  int nx, int nz, const user_params_t &user_params,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::lgrngn::opts_t<typename solver_t::real_t>
@@ -54,6 +54,12 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
+    ("onishi", po::value<bool>()->default_value(false) , "use the turbulent onishi kernel")
+    ("pristine", po::value<bool>()->default_value(false) , "pristine conditions")
+    ("eps", po::value<setup::real_t>()->default_value(0.01) , "turb dissip rate (for onishi kernel) [m^2/s^3]")
+    ("ReL", po::value<setup::real_t>()->default_value(5000) , "taylor-microscale reynolds number (onishi kernel)")
+
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -66,6 +72,11 @@ void setopts_micro(
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
 
   rt_params.async = vm["async"].as<bool>();
+  bool gccn = vm["gccn"].as<bool>();
+  bool onishi = vm["onishi"].as<bool>();
+  bool pristine = vm["pristine"].as<bool>();
+  setup::real_t eps = vm["eps"].as<setup::real_t>();
+  setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
  

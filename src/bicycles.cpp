@@ -13,48 +13,52 @@
 #include "opts_lgrngn.hpp"
 #include "panic.hpp"
 
+// simulation parameters container
+// TODO: write them to rt_params directly in main()
+struct user_params_t
+{
+  int nt, outfreq, spinup, rng_seed;
+  setup::real_t dt, z_rlx_sclr;
+  std::string outdir;
+  bool serial, relax_th_rv;
+};
+
 // model run logic - the same for any microphysics
 template <class solver_t>
-void run(int nx, int nz, int nt, setup::real_t dt, const std::string &outdir, const int &outfreq, int spinup, bool serial, bool relax_th_rv, bool gccn, bool onishi, bool pristine, setup::real_t eps, setup::real_t ReL, setup::real_t z_rlx_sclr, int rng_seed)
+void run(int nx, int nz, const user_params_t &user_params)
 {
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
 
   // output and simulation parameters
   p.grid_size = {nx, nz};
-  p.outdir = outdir;
-  p.outfreq = outfreq;
-  p.spinup = spinup;
-  p.relax_th_rv = relax_th_rv;
-  p.prs_tol=1e-6;
-  p.dt = dt;
-  setopts_micro<solver_t>(p, nx, nz, nt, gccn, onishi, pristine, eps, ReL);
-  //std::cout << "params.rhod po setopts micro " << p.rhod << " "  << *p.rhod << std::endl;
-  setup::setopts(p, nx, nz);
+
+  setup::setopts(p, nx, nz, user_params);
+  setopts_micro<solver_t>(p, nx, nz);
 
   // --------
   // reference profiles init, they will be passed to solvers through rt_params_t
   blitz::secondIndex k;
   // env profiles of th and rv (for buoyancy)
-  setup::arr_1D_t th_e(nx, nz), rv_e(nx, nz), th_ref(nx, nz), rhod(nx, nz);
+  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz);
   setup::env_prof(th_e, rv_e, th_ref, rhod, nz);
   p.th_e = new typename setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
   p.rv_e = new typename setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
   p.th_ref = new typename setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
   p.rhod = new typename setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
   // subsidence rate
-  typename setup::arr_1D_t w_LS(nx, nz);
+  typename setup::arr_1D_t w_LS(nz);
   w_LS = setup::w_LS_fctr()(k * p.dz);
   p.w_LS = new typename setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
   // surface sources relaxation factors
   // for vectors
-  typename setup::arr_1D_t hgt_fctr_vctr(nx, nz);
+  typename setup::arr_1D_t hgt_fctr_vctr(nz);
   setup::real_t z_0 = setup::z_rlx_vctr / si::metres;
   hgt_fctr_vctr = exp(- (k-0.5) * p.dz / z_0); // z=0 at k=1/2
   hgt_fctr_vctr(blitz::Range::all(),0) = 1;
   p.hgt_fctr_vctr = new typename setup::arr_1D_t(hgt_fctr_vctr.dataFirst(), hgt_fctr_vctr.shape(), blitz::neverDeleteData);
   // for scalars
-  typename setup::arr_1D_t hgt_fctr_sclr(nx, nz);
+  typename setup::arr_1D_t hgt_fctr_sclr(nz);
   z_0 = z_rlx_sclr;
   hgt_fctr_sclr = exp(- (k-0.5) * p.dz / z_0);
   hgt_fctr_sclr(blitz::Range::all(),0) = 1;
@@ -68,7 +72,7 @@ void run(int nx, int nz, int nt, setup::real_t dt, const std::string &outdir, co
       solver_t::n_dims
     >
   > slv;
-  if (serial)
+  if (user_params.serial)
   {
     using concurr_t = concurr::serial<
       solver_t, 
@@ -92,7 +96,6 @@ void run(int nx, int nz, int nt, setup::real_t dt, const std::string &outdir, co
     // initial condition
     setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, rng_seed);
   }
-
 
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
@@ -137,11 +140,6 @@ int main(int argc, char** argv)
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
       ("adv_serial", po::value<bool>()->default_value(false), "force advection to be computed on single thread")
       ("relax_th_rv", po::value<bool>()->default_value(true) , "relaxation of th and rv")
-      ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
-      ("onishi", po::value<bool>()->default_value(false) , "use the turbulent onishi kernel")
-      ("pristine", po::value<bool>()->default_value(false) , "pristine conditions")
-      ("eps", po::value<setup::real_t>()->default_value(0.01) , "turb dissip rate (for onishi kernel) [m^2/s^3]")
-      ("ReL", po::value<setup::real_t>()->default_value(5000) , "taylor-microscale reynolds number (onishi kernel)")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;
@@ -156,55 +154,40 @@ int main(int argc, char** argv)
 
     // checking if all required options present
     po::notify(vm); 
+
+    // instantiating user params container
+    user_params_t user_params;
     
-    // handling outdir && outfreq
-    std::string outdir; 
-    int outfreq;
     if (!vm.count("help"))
     {
       if (!vm.count("outdir")) throw po::required_option("outdir");
       if (!vm.count("outfreq")) throw po::required_option("outfreq");
-      outdir = vm["outdir"].as<std::string>();
-      outfreq = vm["outfreq"].as<int>();
+      user_params.outdir = vm["outdir"].as<std::string>();
+      user_params.outfreq = vm["outfreq"].as<int>();
     }
 
-    // handling nx, nz, nt options
     int 
       nx = vm["nx"].as<int>(),
       ny = vm["ny"].as<int>(),
-      nz = vm["nz"].as<int>(),
-      nt = vm["nt"].as<int>(),
-      spinup = vm["spinup"].as<int>();
+      nz = vm["nz"].as<int>();
+
+    user_params.nt = vm["nt"].as<int>(),
+    user_params.spinup = vm["spinup"].as<int>();
  
     // handling rng_seed
-    int rng_seed = vm["rng_seed"].as<int>();
+    user_params.rng_seed = vm["rng_seed"].as<int>();
    
     //handling timestep length
-    setup::real_t dt = vm["dt"].as<setup::real_t>();
+    user_params.dt = vm["dt"].as<setup::real_t>();
 
     //handling z_rlx_sclr
-    setup::real_t z_rlx_sclr = vm["z_rlx_sclr"].as<setup::real_t>();
+    user_params.z_rlx_sclr = vm["z_rlx_sclr"].as<setup::real_t>();
 
     // handling serial-advection-forcing flag
-    bool adv_serial = vm["adv_serial"].as<bool>();
+    user_params.adv_serial = vm["adv_serial"].as<bool>();
 
     // handling relaxation flag
-    bool relax_th_rv = vm["relax_th_rv"].as<bool>();
-
-    // handling GCCN flag
-    bool gccn = vm["gccn"].as<bool>();
-
-    // handling pristine flag
-    bool pristine = vm["pristine"].as<bool>();
-
-    // handling onishi flag
-    bool onishi = vm["onishi"].as<bool>();
-   
-    //handling epsilon
-    setup::real_t eps = vm["eps"].as<setup::real_t>();
-   
-    //handling Re lambda
-    setup::real_t ReL = vm["ReL"].as<setup::real_t>();
+    user_params.relax_th_rv = vm["relax_th_rv"].as<bool>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
@@ -220,7 +203,7 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=w, vip_den=-1
         }; };
       };
-      run<slvr_lgrngn<ct_params_t>>(nx, nz, nt, dt, outdir, outfreq, spinup, adv_serial, relax_th_rv, gccn, onishi, pristine, eps, ReL, z_rlx_sclr, rng_seed);
+      run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
     }
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
     {
@@ -233,7 +216,7 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
-      run<slvr_lgrngn<ct_params_t>>(nx, nz, nt, dt, outdir, outfreq, spinup, adv_serial, relax_th_rv, gccn, onishi, pristine, eps, ReL, z_rlx_sclr, rng_seed);
+      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
     }
     else throw
       po::validation_error(

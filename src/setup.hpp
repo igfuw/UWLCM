@@ -169,9 +169,16 @@ namespace setup
 
 
   // function expecting a libmpdata solver parameters struct as argument
-  template <class T>
-  void setopts(T &params, int nx, int nz)
+  template <class T, class U>
+  void setopts(T &params, int nx, int nz, const U &user_params)
   {
+    params.outdir = user_params.outdir;
+    params.outfreq = user_params.outfreq;
+    params.spinup = user_params.spinup;
+    params.relax_th_rv = user_params.relax_th_rv;
+    params.prs_tol=1e-6;
+    params.dt = user_params.dt;
+
     params.di = (X / si::metres) / (nx-1); 
     params.dj = (Z / si::metres) / (nz-1);
     params.dz = params.dj;
