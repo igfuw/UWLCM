@@ -72,10 +72,10 @@ class slvr_common : public
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
-    typename ct_params_t::real_t dx = 0, dz = 0;
     int spinup = 0; // number of timesteps during which autoconversion is to be turned off
     bool relax_th_rv = true;
     typename parent_t::arr_t *th_e, *rv_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
+    typename ct_params_t::real_t dz; // vertical grid size
   };
 
   // ctor
@@ -86,8 +86,5 @@ class slvr_common : public
     parent_t(args, p),
     spinup(p.spinup),
     relax_th_rv(p.relax_th_rv)
-  {
-    assert(dx != 0);
-    assert(dz != 0);
-  }  
+    {}  
 };

@@ -171,10 +171,9 @@ namespace setup
   template <class T>
   void setopts(T &params, int nx, int nz)
   {
-    params.dx = (X / si::metres) / (nx-1); 
-    params.dz = (Z / si::metres) / (nz-1);
-    params.di = params.dx;
-    params.dj = params.dz;
+    params.di = (X / si::metres) / (nx-1); 
+    params.dj = (Z / si::metres) / (nz-1);
+    params.dz = params.dj;
   }
 
   // function expecting a libmpdata++ solver as argument

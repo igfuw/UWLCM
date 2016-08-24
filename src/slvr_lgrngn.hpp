@@ -22,7 +22,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
-  blitz::Array<real_t, 1> k_i; // TODO: make it's size in x direction smaller to match thread's domain
+  blitz::Array<real_t, parent_t::n_dims-1> k_i; // TODO: make it's size in x direction smaller to match thread's domain
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -167,15 +167,39 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       if (params.backend != libcloudphxx::lgrngn::CUDA && params.backend != libcloudphxx::lgrngn::multi_CUDA) params.async = false;
 
       params.cloudph_opts_init.dt = params.dt; // advection timestep = microphysics timestep
-      params.cloudph_opts_init.dx = params.dx;
-      params.cloudph_opts_init.dz = params.dz;
 
+      params.cloudph_opts_init.nx = this->mem->grid_size[0].length();
+      params.cloudph_opts_init.dx = this->di;
+      params.cloudph_opts_init.x0 = this->di / 2;
+      params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
 
-      // libmpdata++'s grid interpretation
-      params.cloudph_opts_init.x0 = params.dx / 2;
-      params.cloudph_opts_init.z0 = params.dz / 2;
-      params.cloudph_opts_init.x1 = (this->mem->grid_size[0].length() - .5) * params.dx;
-      params.cloudph_opts_init.z1 = (this->mem->grid_size[1].length() - .5) * params.dz;
+      if(parent_t::n_dims == 2) // 2D
+      {
+        params.cloudph_opts_init.nz = this->mem->grid_size[1].length();
+        params.cloudph_opts_init.dz = this->dj;
+        params.cloudph_opts_init.z0 = this->dj / 2;
+        params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * this->dj;
+
+        params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
+        if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
+          params.cloudph_opts_init.n_sd_max *= 1.5; // more space for copied SDs
+      }
+      else // 3D
+      {
+        params.cloudph_opts_init.ny = this->mem->grid_size[1].length();
+        params.cloudph_opts_init.dy = this->dj;
+        params.cloudph_opts_init.y0 = this->dj / 2;
+        params.cloudph_opts_init.y1 = (params.cloudph_opts_init.ny - .5) * this->dj;
+
+        params.cloudph_opts_init.nz = this->mem->grid_size[2].length();
+        params.cloudph_opts_init.dz = this->dk;
+        params.cloudph_opts_init.z0 = this->dk / 2;
+        params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * this->dk;
+
+        params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
+        if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
+          params.cloudph_opts_init.n_sd_max *= 1.5; // more space for copied SDs
+      }
 
       prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
         (libcloudphxx::lgrngn::backend_t)params.backend, 

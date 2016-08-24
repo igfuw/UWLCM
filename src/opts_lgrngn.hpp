@@ -68,12 +68,6 @@ void setopts_micro(
   rt_params.async = vm["async"].as<bool>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
-  rt_params.cloudph_opts_init.nx = nx;
-  rt_params.cloudph_opts_init.nz = nz;
-  if (backend_str == "multi_CUDA")
-    rt_params.cloudph_opts_init.n_sd_max = 1.5 * nx *  nz * rt_params.cloudph_opts_init.sd_conc;
-  else
-    rt_params.cloudph_opts_init.n_sd_max = nx *  nz * rt_params.cloudph_opts_init.sd_conc;
  
   if(!pristine)
     boost::assign::ptr_map_insert<
