@@ -19,6 +19,7 @@
 namespace setup 
 {
   using real_t = float;
+  using arr_1D_t = blitz::Array<setup::real_t, 1>;
 
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
   namespace theta_std = libcloudphxx::common::theta_std;
@@ -178,7 +179,7 @@ namespace setup
 
   // function expecting a libmpdata++ solver as argument
   template <class concurr_t>
-  void intcond(concurr_t &solver, blitz::Array<setup::real_t, 2> &rhod, int rng_seed)
+  void intcond(concurr_t &solver, arr_1D_t &rhod, int rng_seed)
   {
     using ix = typename concurr_t::solver_t::ix;
 
@@ -288,7 +289,7 @@ namespace setup
 
   // calculate the initial environmental theta and rv profiles
   // like in Wojtek's BabyEulag
-  void env_prof(blitz::Array<setup::real_t, 2> &th_e, blitz::Array<setup::real_t, 2> &rv_e, blitz::Array<setup::real_t, 2> &th_ref, blitz::Array<setup::real_t, 2> &rhod, int nz)
+  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &rhod, int nz)
   {
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
     using libcloudphxx::common::moist_air::c_pd;
@@ -296,19 +297,18 @@ namespace setup
     using libcloudphxx::common::const_cp::l_tri;
     using libcloudphxx::common::theta_std::p_1000;
 
-    blitz::Range all(blitz::Range::all());
     // pressure profile
-    blitz::Array<setup::real_t, 1> pre(nz);
+    arr_1D_t pre(nz);
     // temperature profile
-    blitz::Array<setup::real_t, 1> T(nz);
+    arr_1D_t T(nz);
     setup::real_t dz = (Z / si::metres) / (nz-1);
 
 
     r_t rt;
     T(0) = th_l(0.) / si::kelvins *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
     pre(0) = setup::p_0 / si::pascals;
-    th_e(all, 0) = th_l(0.) / si::kelvins;
-    rv_e(all, 0) = rt(0.);
+    th_e(0) = th_l(0.) / si::kelvins;
+    rv_e(0) = rt(0.);
 
     setup::real_t tt0 = 273.17;
     setup::real_t rv = 461;
@@ -333,8 +333,8 @@ namespace setup
       cf1 *= c * d * pre(k) / (pre(k) - ees);
       setup::real_t delta = (rt(k*dz) - qvs) / (1 + qvs * cf1);
       if(delta < 0.) delta = 0.;
-      rv_e(all, k) = rt(k*dz) - delta;
-      th_e(all, k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
+      rv_e(k) = rt(k*dz) - delta;
+      th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
       T(k) = th_e(0, k) * pow(pre(k) / (p_1000<setup::real_t>() / si::pascals),  f);
     }
 
@@ -342,20 +342,20 @@ namespace setup
     blitz::secondIndex k;
     // calculate average stability
     blitz::Range notopbot(1, nz-2);
-    blitz::Array<setup::real_t, 1> st(nz);
+    arr_1D_t st(nz);
     st=0;
-    st(notopbot) = (th_e(0, notopbot+1) - th_e(0, notopbot-1)) / th_e(0, notopbot);
+    st(notopbot) = (th_e(notopbot+1) - th_e(notopbot-1)) / th_e(notopbot);
     setup::real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
     // reference theta
-    th_ref = th_e(0,0) * exp(st_avg * k * dz);
+    th_ref = th_e(0) * exp(st_avg * k * dz);
     // virtual temp at surface
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
     using libcloudphxx::common::moist_air::c_pd;
     using libcloudphxx::common::moist_air::R_d;
     using libcloudphxx::common::theta_std::p_1000;
 
-    setup::real_t T_surf = th_e(0, 0) *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
-    setup::real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0, 0));
+    setup::real_t T_surf = th_e(0) *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
+    setup::real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0));
     setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
     setup::real_t cs = 9.81 / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
     // rhod profile

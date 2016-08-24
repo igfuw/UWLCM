@@ -36,29 +36,29 @@ void run(int nx, int nz, int nt, setup::real_t dt, const std::string &outdir, co
   // reference profiles init, they will be passed to solvers through rt_params_t
   blitz::secondIndex k;
   // env profiles of th and rv (for buoyancy)
-  blitz::Array<setup::real_t, 2> th_e(nx, nz), rv_e(nx, nz), th_ref(nx, nz), rhod(nx, nz);
+  setup::arr_1D_t th_e(nx, nz), rv_e(nx, nz), th_ref(nx, nz), rhod(nx, nz);
   setup::env_prof(th_e, rv_e, th_ref, rhod, nz);
-  p.th_e = new blitz::Array<setup::real_t, 2>(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
-  p.rv_e = new blitz::Array<setup::real_t, 2>(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
-  p.th_ref = new blitz::Array<setup::real_t, 2>(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
-  p.rhod = new blitz::Array<setup::real_t, 2>(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
+  p.th_e = new typename setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
+  p.rv_e = new typename setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
+  p.th_ref = new typename setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
+  p.rhod = new typename setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
   // subsidence rate
-  blitz::Array<setup::real_t, 2> w_LS(nx, nz);
+  typename setup::arr_1D_t w_LS(nx, nz);
   w_LS = setup::w_LS_fctr()(k * p.dz);
-  p.w_LS = new blitz::Array<setup::real_t, 2>(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
+  p.w_LS = new typename setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
   // surface sources relaxation factors
   // for vectors
-  blitz::Array<setup::real_t, 2> hgt_fctr_vctr(nx, nz);
+  typename setup::arr_1D_t hgt_fctr_vctr(nx, nz);
   setup::real_t z_0 = setup::z_rlx_vctr / si::metres;
   hgt_fctr_vctr = exp(- (k-0.5) * p.dz / z_0); // z=0 at k=1/2
   hgt_fctr_vctr(blitz::Range::all(),0) = 1;
-  p.hgt_fctr_vctr = new blitz::Array<setup::real_t, 2>(hgt_fctr_vctr.dataFirst(), hgt_fctr_vctr.shape(), blitz::neverDeleteData);
+  p.hgt_fctr_vctr = new typename setup::arr_1D_t(hgt_fctr_vctr.dataFirst(), hgt_fctr_vctr.shape(), blitz::neverDeleteData);
   // for scalars
-  blitz::Array<setup::real_t, 2> hgt_fctr_sclr(nx, nz);
+  typename setup::arr_1D_t hgt_fctr_sclr(nx, nz);
   z_0 = z_rlx_sclr;
   hgt_fctr_sclr = exp(- (k-0.5) * p.dz / z_0);
   hgt_fctr_sclr(blitz::Range::all(),0) = 1;
-  p.hgt_fctr_sclr = new blitz::Array<setup::real_t, 2>(hgt_fctr_sclr.dataFirst(), hgt_fctr_sclr.shape(), blitz::neverDeleteData);
+  p.hgt_fctr_sclr = new typename setup::arr_1D_t(hgt_fctr_sclr.dataFirst(), hgt_fctr_sclr.shape(), blitz::neverDeleteData);
 
   // --------
   // solver instantiation
@@ -107,7 +107,6 @@ void run(int nx, int nz, int nt, setup::real_t dt, const std::string &outdir, co
 struct ct_params_common : ct_params_default_t
 {
   using real_t = setup::real_t;
-  enum { n_dims = 2 };
   enum { opts = opts::nug | opts::iga | opts::fct };  // TODO: reenable nug once it works in 3D
   enum { rhs_scheme = solvers::trapez }; 
   enum { prs_scheme = solvers::cr };
@@ -127,6 +126,7 @@ int main(int argc, char** argv)
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
       ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
+      ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
       ("nt", po::value<int>()->default_value(3600) , "timestep count")
       ("rng_seed", po::value<int>()->default_value(-1) , "rng seed, negative for random")
@@ -171,6 +171,7 @@ int main(int argc, char** argv)
     // handling nx, nz, nt options
     int 
       nx = vm["nx"].as<int>(),
+      ny = vm["ny"].as<int>(),
       nz = vm["nz"].as<int>(),
       nt = vm["nt"].as<int>(),
       spinup = vm["spinup"].as<int>();
@@ -208,14 +209,28 @@ int main(int argc, char** argv)
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
 
-    if (micro == "lgrngn")
+    if (micro == "lgrngn" && ny == 0) // 2D super-droplet
     {
       struct ct_params_t : ct_params_common
       {
+        enum { n_dims = 2 };
     	enum { n_eqns = 4 };
         struct ix { enum {
           u, w, th, rv, 
           vip_i=u, vip_j=w, vip_den=-1
+        }; };
+      };
+      run<slvr_lgrngn<ct_params_t>>(nx, nz, nt, dt, outdir, outfreq, spinup, adv_serial, relax_th_rv, gccn, onishi, pristine, eps, ReL, z_rlx_sclr, rng_seed);
+    }
+    else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+    {
+      struct ct_params_t : ct_params_common
+      {
+        enum { n_dims = 3 };
+    	enum { n_eqns = 5 };
+        struct ix { enum {
+          u, v, w, th, rv, 
+          vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
       run<slvr_lgrngn<ct_params_t>>(nx, nz, nt, dt, outdir, outfreq, spinup, adv_serial, relax_th_rv, gccn, onishi, pristine, eps, ReL, z_rlx_sclr, rng_seed);

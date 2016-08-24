@@ -74,7 +74,7 @@ class slvr_common : public
   { 
     int spinup = 0; // number of timesteps during which autoconversion is to be turned off
     bool relax_th_rv = true;
-    typename parent_t::arr_t *th_e, *rv_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
+    setup::arr_1D_t *th_e, *rv_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
   };
 
