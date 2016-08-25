@@ -199,7 +199,7 @@ namespace setup
 
 
   template <class concurr_t, class index_t>
-  void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, index_t index)
+  void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
   {
     using ix = typename concurr_t::solver_t::ix;
     int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
@@ -217,32 +217,34 @@ namespace setup
     // density profile
     solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
 
-    // dx, dy ensuring 1500x1500 domain
-    int nx = solver.advectee().extent(0);
-
     // initial potential temperature
     solver.advectee(ix::th) = th_dry_fctr()(index * dz); 
     // randomly prtrb tht
-/*
     std::mt19937 gen(rng_seed);
     std::uniform_real_distribution<> dis(-0.1, 0.1);
+    auto rand = std::bind(dis, gen);
 
-    blitz::Array<real_t, 2> prtrb(nx, nz);
-    for (int ii = 0; ii < nx; ++ii)
-    {
-      for (int kk = 0; kk < nz; ++kk)
-      {
-         prtrb(ii, kk) = dis(gen);
-      }
-    }
-    auto i_r = blitz::Range(0, nx - 1);
-    auto k_r = blitz::Range(0, nz - 1);
+    decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
+    std::generate(solver.advectee(ix::th).begin(), solver.advectee(ix::th).end(), rand); // fill it, TODO: is it officialy stl compatible?
+    solver.advectee(ix::th) += prtrb;
+  }
 
-    // enforce cyclic perturbation
-    prtrb(nx - 1, k_r) = prtrb(0, k_r);
+  // function enforcing cyclic values in horizontal directions
+  // 2D version
+  template<int nd, class arr_t>
+  void make_cyclic(arr_t arr,
+    typename std::enable_if<nd == 2>::type* = 0)
+  { arr(arr.extent(0) - 1, blitz::Range::all()) = arr(0, blitz::Range::all()); }
 
-    solver.advectee(ix::th)(i_r, k_r) += prtrb(i_r, k_r);
-*/
+  // 3D version
+  template<int nd, class arr_t>
+  void make_cyclic(arr_t arr,
+    typename std::enable_if<nd == 3>::type* = 0)
+  { 
+    arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) = 
+      arr(0, blitz::Range::all(), blitz::Range::all()); 
+    arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) = 
+      arr(blitz::Range::all(), 0, blitz::Range::all());
   }
 
   // function expecting a libmpdata++ solver as argument
@@ -253,7 +255,9 @@ namespace setup
   )
   {
     blitz::secondIndex k;
-    intcond_hlpr(solver, rhod, k);
+    intcond_hlpr(solver, rhod, rng_seed, k);
+    using ix = typename concurr_t::solver_t::ix;
+    make_cyclic<2>(solver.advectee(ix::th));
   }
 
   // 3D version
@@ -263,9 +267,10 @@ namespace setup
   )
   {
     blitz::thirdIndex k;
-    intcond_hlpr(solver, rhod, k);
-
+    intcond_hlpr(solver, rhod, rng_seed, k);
     using ix = typename concurr_t::solver_t::ix;
+    make_cyclic<3>(solver.advectee(ix::th));
+
     int nz = solver.advectee().extent(ix::w);
     real_t dz = (Z / si::metres) / (nz-1); 
 
