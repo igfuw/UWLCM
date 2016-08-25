@@ -35,7 +35,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   p.grid_size = {nx, nz};
 
   setup::setopts(p, nx, nz, user_params);
-  setopts_micro<solver_t>(p, nx, nz, user_params);
+  setopts_micro<solver_t>(p, user_params);
 
   // reference profiles shared among threads
   setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
@@ -89,7 +89,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   slv->advance(user_params.nt);
 }
 
-// 3D model run logic - the same for any microphysics
+// 3D model run logic - the same for any microphysics; TODO: still a lot of common code with 2D run
 template <class solver_t>
 void run(int nx, int ny, int nz, const user_params_t &user_params)
 {
@@ -100,7 +100,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   p.grid_size = {nx, ny, nz};
 
   setup::setopts(p, nx, ny, nz, user_params);
-  setopts_micro<solver_t>(p, nx, ny, nz, user_params);
+  setopts_micro<solver_t>(p, user_params);
 
   // reference profiles shared among threads
   setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
