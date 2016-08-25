@@ -26,7 +26,6 @@ namespace setup
   namespace theta_dry = libcloudphxx::common::theta_dry;
   namespace lognormal = libcloudphxx::common::lognormal;
 
-  enum {x, z}; // dimensions
   const quantity<si::pressure, real_t> 
     p_0 = 101780 * si::pascals;
   const quantity<si::length, real_t> 
@@ -198,26 +197,33 @@ namespace setup
     params.dz = params.dk;
   }
 
-  // function expecting a libmpdata++ solver as argument
-  template <class concurr_t>
-  void intcond(concurr_t &solver, arr_1D_t &rhod, int rng_seed)
+
+  template <class concurr_t, class index_t>
+  void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, index_t index)
   {
     using ix = typename concurr_t::solver_t::ix;
+    int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+    real_t dz = (Z / si::metres) / (nz-1); 
 
-    // helper ondex placeholders
-    blitz::firstIndex i;
-    blitz::secondIndex k;
+    solver.advectee(ix::rv) = r_t()(index * dz); 
+    solver.advectee(ix::u)= setup::u()(index * dz);
+    solver.advectee(ix::w) = 0;  
+   
+    // absorbers
+    solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+    solver.vab_relaxed_state(0) = solver.advectee(ix::u);
+    solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+
+    // density profile
+    solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
 
     // dx, dy ensuring 1500x1500 domain
-    int 
-      nx = solver.advectee().extent(x), 
-      nz = solver.advectee().extent(z); 
-    real_t 
-      dz = (Z / si::metres) / (nz-1); 
+    int nx = solver.advectee().extent(0);
 
-    // initial potential temperature & water vapour mixing ratio profiles
-    solver.advectee(ix::th) = th_dry_fctr()(k * dz); 
+    // initial potential temperature
+    solver.advectee(ix::th) = th_dry_fctr()(index * dz); 
     // randomly prtrb tht
+/*
     std::mt19937 gen(rng_seed);
     std::uniform_real_distribution<> dis(-0.1, 0.1);
 
@@ -236,21 +242,35 @@ namespace setup
     prtrb(nx - 1, k_r) = prtrb(0, k_r);
 
     solver.advectee(ix::th)(i_r, k_r) += prtrb(i_r, k_r);
+*/
+  }
 
-    solver.advectee(ix::rv) = r_t()(k * dz); 
+  // function expecting a libmpdata++ solver as argument
+  // 2D version
+  template <int nd, class concurr_t>
+  void intcond(concurr_t &solver, arr_1D_t &rhod, int rng_seed,
+    typename std::enable_if<nd == 2>::type* = 0
+  )
+  {
+    blitz::secondIndex k;
+    intcond_hlpr(solver, rhod, k);
+  }
 
-    solver.advectee(ix::u) = 0;
-    solver.advectee(ix::u)(i_r, k_r)= setup::u()(k * dz);
-    solver.advectee(ix::w) = 0;  
-   
-    // absorbers
-    solver.vab_coefficient() = where(k * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (k * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+  // 3D version
+  template <int nd, class concurr_t>
+  void intcond(concurr_t &solver, arr_1D_t &rhod, int rng_seed,
+    typename std::enable_if<nd == 3>::type* = 0
+  )
+  {
+    blitz::thirdIndex k;
+    intcond_hlpr(solver, rhod, k);
 
-    solver.vab_relaxed_state(0) = solver.advectee(ix::u);
-    solver.vab_relaxed_state(1) = 0;
+    using ix = typename concurr_t::solver_t::ix;
+    int nz = solver.advectee().extent(ix::w);
+    real_t dz = (Z / si::metres) / (nz-1); 
 
-    // density profile
-    solver.g_factor() = rhod; 
+    solver.advectee(ix::v)= setup::v()(k * dz);
+    solver.vab_relaxed_state(1) = solver.advectee(ix::v);
   }
 
   // lognormal aerosol distribution
