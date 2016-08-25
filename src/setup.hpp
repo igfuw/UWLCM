@@ -168,9 +168,8 @@ namespace setup
   const quantity<si::length, real_t> z_rlx_vctr = 1 * si::metres;
 
 
-  // function expecting a libmpdata solver parameters struct as argument
   template <class T, class U>
-  void setopts(T &params, int nx, int nz, const U &user_params)
+  void setopts_hlpr(T &params, const U &user_params)
   {
     params.outdir = user_params.outdir;
     params.outfreq = user_params.outfreq;
@@ -178,10 +177,25 @@ namespace setup
     params.relax_th_rv = user_params.relax_th_rv;
     params.prs_tol=1e-6;
     params.dt = user_params.dt;
+  }
 
+  // function expecting a libmpdata solver parameters struct as argument
+  template <class T, class U>
+  void setopts(T &params, int nx, int nz, const U &user_params)
+  {
+    setopts_hlpr(params, user_params);
     params.di = (X / si::metres) / (nx-1); 
     params.dj = (Z / si::metres) / (nz-1);
     params.dz = params.dj;
+  }
+  template <class T, class U>
+  void setopts(T &params, int nx, int ny, int nz, const U &user_params)
+  {
+    setopts_hlpr(params, user_params);
+    params.di = (X / si::metres) / (nx-1); 
+    params.dj = (Y / si::metres) / (ny-1);
+    params.dk = (Z / si::metres) / (nz-1);
+    params.dz = params.dk;
   }
 
   // function expecting a libmpdata++ solver as argument
