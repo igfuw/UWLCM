@@ -291,8 +291,10 @@ namespace setup
 
 
   // calculate the initial environmental theta and rv profiles
+  // alse set w_LS and hgt_fctrs
   // like in Wojtek's BabyEulag
-  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &rhod, int nz)
+  template<class user_params_t>
+  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   {
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
     using libcloudphxx::common::moist_air::c_pd;
@@ -305,7 +307,6 @@ namespace setup
     // temperature profile
     arr_1D_t T(nz);
     setup::real_t dz = (Z / si::metres) / (nz-1);
-
 
     r_t rt;
     T(0) = th_l(0.) / si::kelvins *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
@@ -342,7 +343,7 @@ namespace setup
     }
 
     // compute reference state theta and rhod
-    blitz::secondIndex k;
+    blitz::firstIndex k;
     // calculate average stability
     blitz::Range notopbot(1, nz-2);
     arr_1D_t st(nz);
@@ -364,5 +365,18 @@ namespace setup
     // rhod profile
     rhod = rho_surf * exp(- st_avg * k * dz) * pow(
              1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
+
+    // subsidence rate
+    w_LS = setup::w_LS_fctr()(k * dz);
+
+    // surface sources relaxation factors
+    // for vectors
+    real_t z_0 = setup::z_rlx_vctr / si::metres;
+    hgt_fctr_vctr = exp(- (k-0.5) * dz / z_0); // z=0 at k=1/2
+    hgt_fctr_vctr(0) = 1;
+    // for scalars
+    z_0 = user_params.z_rlx_sclr;
+    hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
+    hgt_fctr_sclr(0) = 1;
   }
 };

@@ -12,6 +12,7 @@
 #include "setup.hpp"
 #include "opts_lgrngn.hpp"
 #include "panic.hpp"
+#include <map>
 
 // simulation parameters container
 // TODO: write them to rt_params directly in main()
@@ -23,7 +24,7 @@ struct user_params_t
   bool serial, relax_th_rv;
 };
 
-// model run logic - the same for any microphysics
+// 2D model run logic - the same for any microphysics
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
 {
@@ -34,38 +35,20 @@ void run(int nx, int nz, const user_params_t &user_params)
   p.grid_size = {nx, nz};
 
   setup::setopts(p, nx, nz, user_params);
-  setopts_micro<solver_t>(p, nx, nz);
+  setopts_micro<solver_t>(p, nx, nz, user_params);
 
-  // --------
-  // reference profiles init, they will be passed to solvers through rt_params_t
-  blitz::firstIndex k;
-  // env profiles of th and rv (for buoyancy)
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz);
-  setup::env_prof(th_e, rv_e, th_ref, rhod, nz);
-  // subsidence rate
-  setup::arr_1D_t w_LS(nz);
-  w_LS = setup::w_LS_fctr()(k * p.dz);
-  // surface sources relaxation factors
-  // for vectors
-  setup::arr_1D_t hgt_fctr_vctr(nz);
-  setup::real_t z_0 = setup::z_rlx_vctr / si::metres;
-  hgt_fctr_vctr = exp(- (k-0.5) * p.dz / z_0); // z=0 at k=1/2
-  hgt_fctr_vctr(blitz::Range::all(),0) = 1;
-  // for scalars
-  setup::arr_1D_t hgt_fctr_sclr(nz);
-  z_0 = z_rlx_sclr;
-  hgt_fctr_sclr = exp(- (k-0.5) * p.dz / z_0);
-  hgt_fctr_sclr(blitz::Range::all(),0) = 1;
+  // reference profiles shared among threads
+  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
+  // assign their values
+  setup::env_prof(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  // pass them to rt_params
+  std::unordered_map<setup::arr_1D_t *, setup::arr_1D_t *> map = {
+    {&th_e, p.th_e}, {&rv_e, p.rv_e}, {&th_ref, p.th_ref}, {&w_LS, p.w_LS},
+    {&rhod, p.rhod}, {&hgt_fctr_sclr, p.hgt_fctr_sclr}, {&hgt_fctr_vctr, p.hgt_fctr_vctr}
+  };
+  for(auto &iter : map)
+    iter.second = new setup::arr_1D_t((*iter.first).dataFirst(), (*iter.first).shape(), blitz::neverDeleteData);
 
-  p.th_e = new setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
-  p.rv_e = new setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
-  p.th_ref = new setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
-  p.hgt_fctr_vctr = new setup::arr_1D_t(hgt_fctr_vctr.dataFirst(), hgt_fctr_vctr.shape(), blitz::neverDeleteData);
-  p.w_LS = new setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
-  p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
-  p.hgt_fctr_sclr = new setup::arr_1D_t(hgt_fctr_sclr.dataFirst(), hgt_fctr_sclr.shape(), blitz::neverDeleteData);
-
-  // --------
   // solver instantiation
   std::unique_ptr<
     concurr::any<
@@ -83,7 +66,7 @@ void run(int nx, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, rng_seed);
+    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
   }
   else
   {
@@ -95,7 +78,7 @@ void run(int nx, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, rng_seed);
+    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -103,9 +86,75 @@ void run(int nx, int nz, const user_params_t &user_params)
   set_sigaction();
  
   // timestepping
-  slv->advance(nt);
+  slv->advance(user_params.nt);
 }
 
+// 3D model run logic - the same for any microphysics
+template <class solver_t>
+void run(int nx, int ny, int nz, const user_params_t &user_params)
+{
+  // instantiation of structure containing simulation parameters
+  typename solver_t::rt_params_t p;
+
+  // output and simulation parameters
+  p.grid_size = {nx, ny, nz};
+
+  setup::setopts(p, nx, ny, nz, user_params);
+  setopts_micro<solver_t>(p, nx, ny, nz, user_params);
+
+  // reference profiles shared among threads
+  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
+  // assign their values
+  setup::env_prof(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  // pass them to rt_params
+  std::unordered_map<setup::arr_1D_t *, setup::arr_1D_t *> map = {
+    {&th_e, p.th_e}, {&rv_e, p.rv_e}, {&th_ref, p.th_ref}, {&w_LS, p.w_LS},
+    {&rhod, p.rhod}, {&hgt_fctr_sclr, p.hgt_fctr_sclr}, {&hgt_fctr_vctr, p.hgt_fctr_vctr}
+  };
+  for(auto &iter : map)
+    iter.second = new setup::arr_1D_t((*iter.first).dataFirst(), (*iter.first).shape(), blitz::neverDeleteData);
+
+  // solver instantiation
+  std::unique_ptr<
+    concurr::any<
+      typename solver_t::real_t, 
+      solver_t::n_dims
+    >
+  > slv;
+  if (user_params.serial)
+  {
+    using concurr_t = concurr::serial<
+      solver_t, 
+      bcond::cyclic, bcond::cyclic,
+      bcond::cyclic, bcond::cyclic,
+      bcond::rigid,  bcond::rigid 
+    >;
+    slv.reset(new concurr_t(p));
+
+    // initial condition
+    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+  }
+  else
+  {
+    using concurr_t = concurr::boost_thread<
+      solver_t, 
+      bcond::cyclic, bcond::cyclic,
+      bcond::cyclic, bcond::cyclic,
+      bcond::rigid,  bcond::rigid 
+    >;
+    slv.reset(new concurr_t(p));
+
+    // initial condition
+    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+  }
+
+  // setup panic pointer and the signal handler
+  panic = slv->panic_ptr();
+  set_sigaction();
+ 
+  // timestepping
+  slv->advance(user_params.nt);
+}
 
 // libmpdata++'s compile-time parameters
 struct ct_params_common : ct_params_default_t
@@ -190,7 +239,7 @@ int main(int argc, char** argv)
     user_params.z_rlx_sclr = vm["z_rlx_sclr"].as<setup::real_t>();
 
     // handling serial-advection-forcing flag
-    user_params.adv_serial = vm["adv_serial"].as<bool>();
+    user_params.serial = vm["adv_serial"].as<bool>();
 
     // handling relaxation flag
     user_params.relax_th_rv = vm["relax_th_rv"].as<bool>();
