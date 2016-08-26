@@ -35,7 +35,6 @@ class slvr_common : public
   {
     if (spinup > 0)
     {
-      blitz::secondIndex k;
       set_rain(false);
     }
 
