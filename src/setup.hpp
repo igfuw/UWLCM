@@ -364,7 +364,7 @@ namespace setup
 
     for(int k=1; k<nz; ++k)
     {
-      setup::real_t bottom = R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(0, k-1));
+      setup::real_t bottom = R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(k-1));
       setup::real_t rho1 = pre(k-1) / bottom;
       pre(k) = pre(k-1) - rho1 * 9.81 * dz;
       setup::real_t thetme = pow(p_1000<setup::real_t>() / si::pascals / pre(k), f);
@@ -378,7 +378,7 @@ namespace setup
       if(delta < 0.) delta = 0.;
       rv_e(k) = rt(k*dz) - delta;
       th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
-      T(k) = th_e(0, k) * pow(pre(k) / (p_1000<setup::real_t>() / si::pascals),  f);
+      T(k) = th_e(k) * pow(pre(k) / (p_1000<setup::real_t>() / si::pascals),  f);
     }
 
     // compute reference state theta and rhod
