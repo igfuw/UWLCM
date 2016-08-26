@@ -353,7 +353,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       rl = typename parent_t::arr_t(prtcls->outbuf(), blitz::shape(nx, nz), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
       // in radiation parametrization we integrate mixing ratio * this->rhod
-      rl = rl * (*params.rhod);
+      rl = rl * (*params.rhod)(blitz::tensor::j);
       rl = rl * setup::heating_kappa;
 
       {
@@ -372,10 +372,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {
           blitz::Range all = blitz::Range::all();
-          Cx(blitz::Range(1,nx), all) /= *params.rhod;
-          Cz(all, blitz::Range(1,nz)) /= *params.rhod;
-          Cx(0, all) /= (*params.rhod)(0, all);
-          Cz(all, 0) /= (*params.rhod)(all, 0);
+          Cx(blitz::Range(1,nx), all) /= (*params.rhod)(blitz::tensor::j);
+          Cz(all, blitz::Range(1,nz)) /= (*params.rhod)(blitz::tensor::j);
+          Cx(0, all) /= (*params.rhod)(all);
+          Cz(all, 0) /= (*params.rhod)(0);
         }
         // running synchronous stuff
         prtcls->step_sync(
