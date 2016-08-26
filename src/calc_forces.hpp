@@ -24,13 +24,13 @@ void slvr_lgrngn<ct_params_t>::rv_src()
     alpha(i, 0) *= 2; 
     alpha(i, this->j.last()) *= 2; 
     // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
-    alpha(ijk)/=(libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(ijk);
+    alpha(ijk)/=(libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(blitz::tensor::j);
   }
   // large-scale vertical wind
   subsidence(ix::rv);
   alpha(ijk) += F(ijk);
   // absorber
-  alpha(ijk) += (*this->mem->vab_coeff)(ijk) * (*params.rv_e)(ijk);
+  alpha(ijk) += (*this->mem->vab_coeff)(ijk) * (*params.rv_e)(blitz::tensor::j);
   // TODO: add nudging to alpha
   beta(ijk) = - (*this->mem->vab_coeff)(ijk);
   // TODO: add nudging to beta
@@ -73,16 +73,16 @@ void slvr_lgrngn<ct_params_t>::th_src(typename parent_t::arr_t &rv)
   {
       for(int z = j.first() ; z <= j.last(); ++z)
       {
-        alpha(x, z) = alpha(x, z) * this->state(ix::th)(x, z) / (*params.rhod)(x, z) /
+        alpha(x, z) = alpha(x, z) * this->state(ix::th)(x, z) / (*params.rhod)(z) /
                      (libcloudphxx::common::moist_air::c_p<real_t>(rv(x, z)) * si::kilograms * si::kelvins / si::joules) /
-                     (libcloudphxx::common::theta_dry::T<real_t>(this->state(ix::th)(x, z) * si::kelvins, (*params.rhod)(x, z) * si::kilograms / si::metres  / si::metres / si::metres) / si::kelvins);
+                     (libcloudphxx::common::theta_dry::T<real_t>(this->state(ix::th)(x, z) * si::kelvins, (*params.rhod)(z) * si::kilograms / si::metres  / si::metres / si::metres) / si::kelvins);
       }
   }
   // large-scale vertical wind
   subsidence(ix::th);
   alpha(ijk) += F(ijk);
   // absorber
-  alpha(ijk) += (*this->mem->vab_coeff)(ijk) * (*params.th_e)(ijk);
+  alpha(ijk) += (*this->mem->vab_coeff)(ijk) * (*params.th_e)(blitz::tensor::j);
   // TODO: add nudging to alpha
   beta(ijk) = - (*this->mem->vab_coeff)(ijk);
   // TODO: add nudging to beta
