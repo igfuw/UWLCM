@@ -24,6 +24,20 @@ struct user_params_t
   bool serial, relax_th_rv;
 };
 
+// copy external profiles into rt_parameters
+// TODO: more elegant way
+template<class params_t>
+void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p)
+{
+  p.hgt_fctr_sclr = new setup::arr_1D_t(hgt_s.dataFirst(), hgt_s.shape(), blitz::neverDeleteData);
+  p.hgt_fctr_vctr = new setup::arr_1D_t(hgt_v.dataFirst(), hgt_v.shape(), blitz::neverDeleteData);
+  p.th_e = new setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
+  p.rv_e = new setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
+  p.th_ref = new setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
+  p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
+  p.w_LS = new setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
+}
+
 // 2D model run logic - the same for any microphysics
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
@@ -42,12 +56,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   // assign their values
   setup::env_prof(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
-  std::unordered_map<setup::arr_1D_t *, setup::arr_1D_t *> map = {
-    {&th_e, p.th_e}, {&rv_e, p.rv_e}, {&th_ref, p.th_ref}, {&w_LS, p.w_LS},
-    {&rhod, p.rhod}, {&hgt_fctr_sclr, p.hgt_fctr_sclr}, {&hgt_fctr_vctr, p.hgt_fctr_vctr}
-  };
-  for(auto &iter : map)
-    iter.second = new setup::arr_1D_t((*iter.first).dataFirst(), (*iter.first).shape(), blitz::neverDeleteData);
+  copy_profiles(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // solver instantiation
   std::unique_ptr<
@@ -107,12 +116,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // assign their values
   setup::env_prof(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
-  std::unordered_map<setup::arr_1D_t *, setup::arr_1D_t *> map = {
-    {&th_e, p.th_e}, {&rv_e, p.rv_e}, {&th_ref, p.th_ref}, {&w_LS, p.w_LS},
-    {&rhod, p.rhod}, {&hgt_fctr_sclr, p.hgt_fctr_sclr}, {&hgt_fctr_vctr, p.hgt_fctr_vctr}
-  };
-  for(auto &iter : map)
-    iter.second = new setup::arr_1D_t((*iter.first).dataFirst(), (*iter.first).shape(), blitz::neverDeleteData);
+  copy_profiles(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // solver instantiation
   std::unique_ptr<
