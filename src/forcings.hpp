@@ -11,7 +11,7 @@ void slvr_lgrngn<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename p
 
   namespace moist_air = libcloudphxx::common::moist_air;
   const real_t eps = moist_air::R_v<real_t>() / moist_air::R_d<real_t>() - 1.;
-  tmp1(ijk) = g * ((th(ijk) - (*params.th_e)(ijk)) / (*params.th_ref)(ijk)) + eps * (rv(ijk) - (*params.rv_e)(ijk)) - r_l(ijk);
+  tmp1(ijk) = g * ((th(ijk) - (*params.th_e)(blitz::tensor::j)) / (*params.th_ref)(blitz::tensor::j)) + eps * (rv(ijk) - (*params.rv_e)(blitz::tensor::j)) - r_l(ijk);
 
 // smoothing
   this->xchng_sclr(tmp1, i, j); 
@@ -69,7 +69,7 @@ template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::surf_sens()
 {
   const auto &ijk = this->ijk;
-  F(ijk) = setup::F_sens * (*params.hgt_fctr_sclr)(ijk);
+  F(ijk) = setup::F_sens * (*params.hgt_fctr_sclr)(blitz::tensor::j);
 // smoothing
   const auto &i = this->i;
   const auto &j = this->j;
@@ -82,7 +82,7 @@ template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::surf_latent()
 {
   const auto &ijk = this->ijk;
-  F(ijk) =  setup::F_lat * (*params.hgt_fctr_sclr)(ijk); 
+  F(ijk) =  setup::F_lat * (*params.hgt_fctr_sclr)(blitz::tensor::j); 
 // smoothing
   const auto &i = this->i;
   const auto &j = this->j;
@@ -99,7 +99,7 @@ void slvr_lgrngn<ct_params_t>::subsidence(const int &type) // large-scale vertic
   const auto &j = this->j;
   tmp1(ijk) = this->state(type)(ijk);
   this->xchng_sclr(tmp1, i, j);
-  F(i, j) = - (*params.w_LS)(i, j) * (tmp1(i, j + 1) - tmp1(i, j - 1)) / (2. * this->dj); 
+  F(i, j) = - (*params.w_LS)(blitz::tensor::j) * (tmp1(i, j + 1) - tmp1(i, j - 1)) / (2. * this->dj); 
 // smoothing
   tmp1(ijk)=F(ijk);
   this->xchng_sclr(tmp1, i, j); 
