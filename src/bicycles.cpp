@@ -271,7 +271,7 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
-      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+//      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
     }
     else throw
       po::validation_error(

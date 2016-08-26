@@ -150,7 +150,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     params.cloudph_opts.RH_max = val ? 44 : 1.06; // 0.5% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
 
-  // deals with initial supersaturation
+  // deals with nitial supersaturation
   void hook_ante_loop(int nt)
   {
     params.flag_coal = params.cloudph_opts.coal;
@@ -206,10 +206,15 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         params.cloudph_opts_init
       ));
 
+      // temporary array of densities - prtcls cant be init'd with 1D profile
+      typename parent_t::arr_t rhod(this->mem->advectee(ix::th).shape());
+      rhod = (*params.rhod)(blitz::tensor::j);
+      std::cout << rhod << std::endl;
+
 	prtcls->init(
 	  make_arrinfo(this->mem->advectee(ix::th)),
 	  make_arrinfo(this->mem->advectee(ix::rv)),
-	  make_arrinfo(*params.rhod)
+	  make_arrinfo(rhod)
 	); 
 
       // writing diagnostic data for the initial condition
@@ -222,7 +227,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   {
     parent_t::vip_rhs_expl_calc();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
-    F(this->i, this->j) = 
+    F(this->ijk) = 
       -pow(setup::u_fric,2) * this->state(ix::vip_i)(this->i, 0)(blitz::tensor::i) / // u_i at z=0
       sqrt(pow2(this->state(ix::vip_i)(this->i, 0)(blitz::tensor::i))) *             // |U| at z=0
       (*params.hgt_fctr_vctr)(blitz::tensor::j);                                     // hgt_fctr
@@ -377,7 +382,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           params.cloudph_opts,
           make_arrinfo(this->mem->advectee(ix::th)),
           make_arrinfo(this->mem->advectee(ix::rv)),
-          make_arrinfo(*params.rhod),
+          libcloudphxx::lgrngn::arrinfo_t<real_t>(),
           make_arrinfo(Cx), // ix::u ?
           libcloudphxx::lgrngn::arrinfo_t<real_t>(),
           make_arrinfo(Cz) // ix:w ?
