@@ -222,12 +222,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   {
     parent_t::vip_rhs_expl_calc();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
-    for (int ji = this->j.first(); ji <= this->j.last(); ++ji)
-    {
-      F(this->i, ji) = - pow(setup::u_fric,2) * this->state(ix::vip_i)(this->i, 0) / sqrt(
-                          pow2(this->state(ix::vip_i)(this->i, 0)))
-                          * (*params.hgt_fctr_vctr)(this->i, ji);
-    }
+    F(this->i, this->j) = 
+      -pow(setup::u_fric,2) * this->state(ix::vip_i)(this->i, 0)(blitz::tensor::i) / // u_i at z=0
+      sqrt(pow2(this->state(ix::vip_i)(this->i, 0)(blitz::tensor::i))) *             // |U| at z=0
+      (*params.hgt_fctr_vctr)(blitz::tensor::j);                                     // hgt_fctr
 
     // du/dt = sum of kinematic momentum fluxes * dt
     int nz = this->mem->grid_size[1].length(); //76
