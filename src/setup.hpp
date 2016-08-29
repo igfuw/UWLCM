@@ -225,7 +225,7 @@ namespace setup
     auto rand = std::bind(dis, gen);
 
     decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
-    std::generate(solver.advectee(ix::th).begin(), solver.advectee(ix::th).end(), rand); // fill it, TODO: is it officialy stl compatible?
+    std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
     solver.advectee(ix::th) += prtrb;
   }
 
