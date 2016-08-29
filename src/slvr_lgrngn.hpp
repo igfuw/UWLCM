@@ -227,10 +227,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   {
     parent_t::vip_rhs_expl_calc();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
-    F(this->ijk) = 
-      -pow(setup::u_fric,2) * this->state(ix::vip_i)(this->i, 0)(blitz::tensor::i) / // u_i at z=0
-      sqrt(pow2(this->state(ix::vip_i)(this->i, 0)(blitz::tensor::i))) *             // |U| at z=0
-      (*params.hgt_fctr_vctr)(blitz::tensor::j);                                     // hgt_fctr
+    F(this->ijk).reindex({0,0}) = 
+      -pow(setup::u_fric,2) * 
+      this->state(ix::vip_i)(this->i, 0).reindex({0})(blitz::tensor::i) /              // u_i at z=0
+      sqrt(pow2(this->state(ix::vip_i)(this->i, 0).reindex({0})(blitz::tensor::i))) *  // |U| at z=0
+      (*params.hgt_fctr_vctr)(blitz::tensor::j);                                       // hgt_fctr
 
     // du/dt = sum of kinematic momentum fluxes * dt
     int nz = this->mem->grid_size[1].length(); //76
@@ -353,7 +354,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       rl = typename parent_t::arr_t(prtcls->outbuf(), blitz::shape(nx, nz), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
       // in radiation parametrization we integrate mixing ratio * this->rhod
-      rl = rl * (*params.rhod)(blitz::tensor::j);
+      rl.reindex({0,0}) *= (*params.rhod)(blitz::tensor::j);
       rl = rl * setup::heating_kappa;
 
       {
@@ -372,8 +373,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {
           blitz::Range all = blitz::Range::all();
-          Cx(blitz::Range(1,nx), all) /= (*params.rhod)(blitz::tensor::j);
-          Cz(all, blitz::Range(1,nz)) /= (*params.rhod)(blitz::tensor::j);
+          Cx(blitz::Range(1,nx), all).reindex({0,0}) /= (*params.rhod)(blitz::tensor::j);
+          Cz(all, blitz::Range(1,nz)).reindex({0,0}) /= (*params.rhod)(blitz::tensor::j);
           Cx(0, all) /= (*params.rhod)(all);
           Cz(all, 0) /= (*params.rhod)(0);
         }
