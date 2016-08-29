@@ -82,10 +82,6 @@ template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::surf_latent()
 {
   const auto &ijk = this->ijk;
-  std::cout << ijk[0] << std::endl;
-  std::cout << ijk[1] << std::endl;
-  std::cout << F << std::endl;
-  std::cout << (*params.hgt_fctr_sclr) << std::endl;
   F(ijk).reindex({0,0}) =  setup::F_lat * (*params.hgt_fctr_sclr)(blitz::tensor::j); // we need to use a reindexed view, because the profile's base is 0
 // smoothing
   const auto &i = this->i;

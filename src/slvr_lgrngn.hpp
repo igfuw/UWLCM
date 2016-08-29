@@ -209,7 +209,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       // temporary array of densities - prtcls cant be init'd with 1D profile
       typename parent_t::arr_t rhod(this->mem->advectee(ix::th).shape());
       rhod = (*params.rhod)(blitz::tensor::j);
-      std::cout << rhod << std::endl;
 
 	prtcls->init(
 	  make_arrinfo(this->mem->advectee(ix::th)),
