@@ -13,12 +13,12 @@ void slvr_lgrngn<ct_params_t>::rv_src()
     // sum of rv flux
     int nz = this->mem->grid_size[1].length();
     blitz::Range notop(0, nz-2);
-    alpha(i, notop) = (F(i, notop) - F(i, notop+1)) / this->dj;
-    alpha(i, j.last()) = F(i, j.last()) / this->dj;
+    alpha(i, notop) = (F(i, notop) - F(i, notop+1)) / params.dz;
+    alpha(i, j.last()) = F(i, j.last()) / params.dz;
 
 /*  
     this->xchng_sclr(F, i, j);
-    alpha(i, j) = ( F(i, j) - F(i, j+1)) / this->dj;
+    alpha(i, j) = ( F(i, j) - F(i, j+1)) / params.dz;
 */  
     // top and bottom cells are two times lower
     alpha(i, 0) *= 2; 
@@ -57,12 +57,12 @@ void slvr_lgrngn<ct_params_t>::th_src(typename parent_t::arr_t &rv)
   int nz = this->mem->grid_size[1].length(); //76
   // sum of th flux
   blitz::Range notop(0, nz-2);
-  alpha(i, notop) = (F(i, notop) - F(i, notop+1)) / this->dj;
-  alpha(i, j.last()) = F(i, j.last()) / this->dj;
+  alpha(i, notop) = (F(i, notop) - F(i, notop+1)) / params.dz;
+  alpha(i, j.last()) = F(i, j.last()) / params.dz;
 
 /*
   this->xchng_sclr(F, i, j);
-  alpha(i, j) = ( F(i, j) - F(i, j+1)) /  this->dj;
+  alpha(i, j) = ( F(i, j) - F(i, j+1)) /  params.dz;
 */
   // top and bottom cells are two times lower
   alpha(i, 0) *= 2; 

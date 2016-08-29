@@ -176,9 +176,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       if(parent_t::n_dims == 2) // 2D
       {
         params.cloudph_opts_init.nz = this->mem->grid_size[1].length();
-        params.cloudph_opts_init.dz = this->dj;
-        params.cloudph_opts_init.z0 = this->dj / 2;
-        params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * this->dj;
+        params.cloudph_opts_init.dz = params.dz;
+        params.cloudph_opts_init.z0 = params.dz / 2;
+        params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * params.dz;
 
         params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
         if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
@@ -187,9 +187,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       else // 3D
       {
         params.cloudph_opts_init.ny = this->mem->grid_size[1].length();
-        params.cloudph_opts_init.dy = this->dj;
-        params.cloudph_opts_init.y0 = this->dj / 2;
-        params.cloudph_opts_init.y1 = (params.cloudph_opts_init.ny - .5) * this->dj;
+        params.cloudph_opts_init.dy = params.dz;
+        params.cloudph_opts_init.y0 = params.dz / 2;
+        params.cloudph_opts_init.y1 = (params.cloudph_opts_init.ny - .5) * params.dz;
 
         params.cloudph_opts_init.nz = this->mem->grid_size[2].length();
         params.cloudph_opts_init.dz = this->dk;
@@ -235,8 +235,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     // du/dt = sum of kinematic momentum fluxes * dt
     int nz = this->mem->grid_size[1].length(); //76
     blitz::Range notop(0, nz-2);
-    this->vip_rhs[0](this->i, notop) = (F(this->i, notop) - F(this->i, notop+1)) / this->dj * this->dt;
-    this->vip_rhs[0](this->i, this->j.last()) = (F(this->i, this->j.last())) / this->dj * this->dt;
+    this->vip_rhs[0](this->i, notop) = (F(this->i, notop) - F(this->i, notop+1)) / params.dz * this->dt;
+    this->vip_rhs[0](this->i, this->j.last()) = (F(this->i, this->j.last())) / params.dz * this->dt;
     // top and bottom cells are two times lower
     this->vip_rhs[0](this->i, 0) *= 2; 
     this->vip_rhs[0](this->i, this->j.last()) *= 2; 
