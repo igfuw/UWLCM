@@ -235,6 +235,7 @@ int main(int argc, char** argv)
       std::random_device rd; 
       user_params.rng_seed = rd();
     }
+    std::cout << "rng seed: " << user_params.rng_seed << std::endl;
    
     //handling timestep length
     user_params.dt = vm["dt"].as<setup::real_t>();
