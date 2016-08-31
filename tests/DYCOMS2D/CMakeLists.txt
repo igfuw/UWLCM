@@ -34,6 +34,8 @@ target_link_libraries(plot_lgrngn_prof ${HDF5_LIBRARIES})
 target_include_directories(plot_lgrngn_prof PUBLIC ${HDF5_INCLUDE_DIRS})
 target_link_libraries(plot_lgrngn_prof ${Boost_LIBRARIES})
 target_include_directories(plot_lgrngn_prof PUBLIC ${Boost_INCLUDE_DIRS})
+target_include_directories(plot_lgrngn_prof PUBLIC ${libcloudphxx_INCLUDE_DIRS})
+
 
 add_executable(plot_lgrngn_series plot_lgrngn_series.cpp)
 add_test(plot_lgrngn_series plot_lgrngn_series ${OUT_LGRNGN_DIR})

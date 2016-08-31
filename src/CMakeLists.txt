@@ -1,10 +1,3 @@
-# search for libcloudphxx
-find_library(libcloudphxx_LIBRARIES cloudphxx_lgrngn)
-if (NOT libcloudphxx_LIBRARIES)
-  message(FATAL_ERROR "libclouphxx++ not found")
-endif()
-
-
 # search for libmpdata
 find_package(libmpdata++)
 if (NOT libmpdataxx_FOUND)
@@ -32,9 +25,10 @@ add_executable(bicycles bicycles.cpp)
 target_link_libraries(bicycles ${libmpdataxx_LIBRARIES})
 target_include_directories(bicycles PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 
+target_link_libraries(bicycles ${libcloudphxx_LIBRARIES})
+target_include_directories(bicycles PUBLIC ${libcloudphxx_INCLUDE_DIRS})
+
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
 target_link_libraries(bicycles ${Boost_LIBRARIES})
-
-target_link_libraries(bicycles ${libcloudphxx_LIBRARIES})
 
 install(TARGETS bicycles DESTINATION bin)
