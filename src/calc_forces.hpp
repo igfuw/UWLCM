@@ -30,7 +30,7 @@ void slvr_lgrngn<ct_params_t>::rv_src()
   subsidence(ix::rv);
   alpha(ijk) += F(ijk);
   // absorber
-  alpha(ijk).reindex({0,0}) += (*this->mem->vab_coeff)(ijk).reindex({0,0}) * (*params.rv_e)(blitz::tensor::j);
+  alpha(ijk).reindex({0,0}) += (*this->mem->vab_coeff)(ijk).reindex({0,0}) * (*params.rv_e)(blitz::tensor::j); // TODO: its a constant, cache it
   // TODO: add nudging to alpha
   beta(ijk) = - (*this->mem->vab_coeff)(ijk);
   // TODO: add nudging to beta
