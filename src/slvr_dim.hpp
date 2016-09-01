@@ -5,6 +5,8 @@ template <class ct_params_t, class enableif = void>
 class slvr_dim
 {};
 
+using libmpdataxx::arakawa_c::h;
+
 // 2D version - inject dimension-independent ranges
 template <class ct_params_t>
 class slvr_dim<
@@ -14,17 +16,15 @@ class slvr_dim<
 {
   using parent_t = slvr_common<ct_params_t>;
 
-  private:
-  int nx = this->mem->grid_size[0].length();
-  int nz = this->mem->grid_size[1].length();
-
   protected:
-  blitz::RectDomain<2> domain = blitz::RectDomain<2>({blitz::Range(0,nx-1), blitz::Range(0,nz-1)});
-  blitz::RectDomain<2> Cx_domain = 
-    blitz::RectDomain<2>({this->mem->grid_size[0]^libmpdataxx::arakawa_c::h, this->mem->grid_size[1]});
-  blitz::RectDomain<2> Cz_domain = 
-    blitz::RectDomain<2>({this->mem->grid_size[0], this->mem->grid_size[1]^libmpdataxx::arakawa_c::h});
-  blitz::TinyVector<float, 2> domain_size = {nx, nz};
+  idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
+  idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
+  idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
+
+  blitz::TinyVector<float, 2> domain_size = {
+    this->mem->grid_size[0].length(),
+    this->mem->grid_size[1].length()
+  }; // TODO: could be replaced by mpdata's rt_params::grid_size ?
 
   // ctor
   slvr_dim(
@@ -44,14 +44,17 @@ class slvr_dim<
 {
   using parent_t = slvr_common<ct_params_t>;
 
-  private: 
-  int nx = this->mem->grid_size[0].length();
-  int ny = this->mem->grid_size[1].length();
-  int nz = this->mem->grid_size[2].length();
-
   protected:
-  blitz::RectDomain<3> domain = blitz::RectDomain<3>({blitz::Range(0,nx-1), blitz::Range(0,ny-1), blitz::Range(0,nz-1)});
-  blitz::TinyVector<float, 3> domain_size = {nx, ny, nz};
+  idx_t<3> domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]});
+  idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^h, this->mem->grid_size[1], this->mem->grid_size[2]});
+  idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1]^h, this->mem->grid_size[2]});
+  idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
+
+  blitz::TinyVector<float, 3> domain_size = {
+    this->mem->grid_size[0].length(),
+    this->mem->grid_size[1].length(),
+    this->mem->grid_size[2].length()
+  }; // TODO: could be replaced by mpdata's rt_params::grid_size ?
 
   // ctor
   slvr_dim(
