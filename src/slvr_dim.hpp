@@ -20,6 +20,10 @@ class slvr_dim<
 
   protected:
   blitz::RectDomain<2> domain = blitz::RectDomain<2>({blitz::Range(0,nx-1), blitz::Range(0,nz-1)});
+  blitz::RectDomain<2> Cx_domain = 
+    blitz::RectDomain<2>({this->mem->grid_size[0]^libmpdataxx::arakawa_c::h, this->mem->grid_size[1]});
+  blitz::RectDomain<2> Cz_domain = 
+    blitz::RectDomain<2>({this->mem->grid_size[0], this->mem->grid_size[1]^libmpdataxx::arakawa_c::h});
   blitz::TinyVector<float, 2> domain_size = {nx, nz};
 
   // ctor

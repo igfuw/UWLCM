@@ -384,14 +384,8 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         using libmpdataxx::arakawa_c::h;
         // temporarily Cx & Cz are multiplied by this->rhod ...
         auto 
-          Cx = this->mem->GC[0](
-            this->mem->grid_size[0]^h, 
-            this->mem->grid_size[1]
-          ).reindex({0,0}).copy(),
-          Cz = this->mem->GC[1](
-            this->mem->grid_size[0], 
-            this->mem->grid_size[1]^h
-          ).reindex({0,0}).copy();
+          Cx = this->mem->GC[0](this->Cx_domain).reindex({0,0}).copy(),
+          Cz = this->mem->GC[1](this->Cz_domain).reindex({0,0}).copy();
 
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {
