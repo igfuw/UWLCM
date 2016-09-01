@@ -7,7 +7,7 @@ class slvr_dim
 
 using libmpdataxx::arakawa_c::h;
 
-// 2D version - inject dimension-independent ranges
+// 2D version 
 template <class ct_params_t>
 class slvr_dim<
   ct_params_t,
@@ -17,11 +17,21 @@ class slvr_dim<
   using parent_t = slvr_common<ct_params_t>;
 
   protected:
+  // inject dimension-independent ranges
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   rng_t horizontal_domain = this->mem->grid_size[0];
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
   idx_t<2> Cy_domain;
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
+
+  void vert_grad(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  {
+    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+    out(this->i, this->j) = ( in(this->i, this->j) - in(this->i, this->j+1)) / dz;
+    // top and bottom cells are two times lower
+    out(this->i, 0) *= 2; 
+    out(this->i, this->j.last()) *= 2; 
+  }
 
   enum {vert_dim = 1};
 
@@ -34,7 +44,7 @@ class slvr_dim<
   {}
 };
 
-// 3D version - inject dimension-independent ranges
+// 3D version
 template <class ct_params_t>
 class slvr_dim<
   ct_params_t,
@@ -44,6 +54,7 @@ class slvr_dim<
   using parent_t = slvr_common<ct_params_t>;
 
   protected:
+  // inject dimension-independent ranges
   idx_t<3> domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]});
   idx_t<2> horizontal_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^h, this->mem->grid_size[1], this->mem->grid_size[2]});
