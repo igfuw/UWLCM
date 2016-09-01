@@ -1,6 +1,6 @@
 #pragma once
 #include <chrono>
-#include "slvr_common.hpp"
+#include "slvr_dim.hpp"
 #include "outmom.hpp"
 
 #include <libcloudph++/lgrngn/factory.hpp>
@@ -10,9 +10,9 @@
 #endif
 
 template <class ct_params_t>
-class slvr_lgrngn : public slvr_common<ct_params_t>
+class slvr_lgrngn : public slvr_dim<ct_params_t>
 {
-  using parent_t = slvr_common<ct_params_t>; 
+  using parent_t = slvr_dim<ct_params_t>; 
   using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
 
   public:
@@ -373,8 +373,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       int nz = this->mem->grid_size[1].length(); //76
       prtcls->diag_all();
       prtcls->diag_wet_mom(3);
-      auto rl = r_l(blitz::Range(0,nx-1), blitz::Range(0,nz-1)); 
-      rl = typename parent_t::arr_t(prtcls->outbuf(), blitz::shape(nx, nz), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+      auto rl = r_l(this->domain); 
+      rl = typename parent_t::arr_t(prtcls->outbuf(), this->domain_size, blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
       // in radiation parametrization we integrate mixing ratio * this->rhod
       rl.reindex({0,0}) *= (*params.rhod)(blitz::tensor::j);
