@@ -1,5 +1,5 @@
 #pragma once
-
+#include <chrono>
 #include "slvr_common.hpp"
 #include "outmom.hpp"
 
@@ -13,6 +13,7 @@ template <class ct_params_t>
 class slvr_lgrngn : public slvr_common<ct_params_t>
 {
   using parent_t = slvr_common<ct_params_t>; 
+  using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
 
   public:
   using ix = typename ct_params_t::ix;
@@ -22,6 +23,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
+  // timing fields
+  clock::time_point tbeg, tend, tbeg1, tend1, tbeg_loop;
+  std::chrono::milliseconds tdiag, tupdate, tsync, tasync_wait, tloop, tpost_step_custom, tpost_step_base;
+
+  // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i; // TODO: make it's size in x direction smaller to match thread's domain
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
@@ -34,6 +40,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   void diag()
   {
     assert(this->rank == 0);
+    tbeg = clock::now();
 
     // recording super-droplet concentration per grid cell 
     prtcls->diag_sd_conc();
@@ -119,6 +126,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         rng_num++;
       }
     }
+    tend = clock::now();
+    tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
   } 
 
   libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(
@@ -218,6 +227,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
       // writing diagnostic data for the initial condition
       diag();
+      tbeg_loop = clock::now();
     }
     // TODO: barrier?
   }
@@ -258,6 +268,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   )   
   {   
     parent_t::update_rhs(rhs, dt, at);
+    this->mem->barrier();
+    if(this->rank == 0)
+      tbeg = clock::now();
+
     using ix = typename ct_params_t::ix;
 
     const auto &ijk = this->ijk;
@@ -319,6 +333,12 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         break;
       }
     }  
+    this->mem->barrier();
+    if(this->rank == 0)
+    {
+      tend = clock::now();
+      tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+    }
   }
 
 
@@ -332,6 +352,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->mem->barrier();
     if (this->rank == 0) 
     {
+      tbeg1 = clock::now();
       // assuring previous async step finished ...
 #if defined(STD_FUTURE_WORKS)
       if (
@@ -340,7 +361,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         ((this->timestep ) % this->outfreq != 0) // ... and not after diag call, note: timestep is updated after ante_step
       ) {
         assert(ftr.valid());
+        tbeg = clock::now();
         this->prec_vol += ftr.get();
+        tend = clock::now();
+        tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
       } else assert(!ftr.valid()); 
 #endif
 
@@ -378,6 +402,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           Cz(all, 0) /= (*params.rhod)(0);
         }
         // running synchronous stuff
+        tbeg = clock::now();
         prtcls->step_sync(
           params.cloudph_opts,
           make_arrinfo(this->mem->advectee(ix::th)),
@@ -387,8 +412,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           libcloudphxx::lgrngn::arrinfo_t<real_t>(),
           make_arrinfo(Cz) // ix:w ?
         );
-        // artificially remove negative rv...
-        // this->mem->advectee(ix::rv) = where(this->mem->advectee(ix::rv) < 0., 0., this->mem->advectee(ix::rv));
+        tend = clock::now();
+        tsync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
       } 
       // running asynchronous stuff
       {
@@ -439,6 +464,22 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         }
 #endif
         diag();
+      }
+      tend1 = clock::now();
+      tpost_step_custom += std::chrono::duration_cast<std::chrono::milliseconds>( tend1 - tbeg1 );
+      // there's no hook_post_loop, so we imitate it here to write out computation times
+      if(this->timestep == params.nt-1)
+      {
+        tend = clock::now();
+        tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg_loop );
+        std::cout <<  "wall time in milliseconds: " << std::endl
+          << "loop: " << tloop.count() << std::endl
+          << "update: " << tupdate.count() << " ("<< setup::real_t(tupdate.count())/tloop.count()*100 <<"%)" << std::endl
+          << "custom_post_step: " << tpost_step_custom.count() << " ("<< setup::real_t(tpost_step_custom.count())/tloop.count()*100 <<"%)" << std::endl
+          << "base_post_step: " << tpost_step_base.count() << " ("<< setup::real_t(tpost_step_base.count())/tloop.count()*100 <<"%)" << std::endl
+          << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
+          << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
+          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
       }
     }
     this->mem->barrier();

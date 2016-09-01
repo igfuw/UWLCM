@@ -176,6 +176,7 @@ namespace setup
     params.relax_th_rv = user_params.relax_th_rv;
     params.prs_tol=1e-6;
     params.dt = user_params.dt;
+    params.nt = user_params.nt;
   }
 
   // function expecting a libmpdata solver parameters struct as argument

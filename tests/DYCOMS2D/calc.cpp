@@ -37,11 +37,11 @@ int main(int ac, char** av)
   std::cout << "output directory: " << outdir << std::endl;
 */
   string opts_common = 
-    "--outfreq=300 --nt=310 --spinup=7200 --nx=129 --nz=301 --dt=1 --relax_th_rv=false"; // DYCOMS: 128x300 ; 600 21600 3600
+    "--outfreq=600 --nt=25200 --spinup=7200 --nx=129 --nz=301 --dt=1 --relax_th_rv=false"; // DYCOMS: 128x300 ; 600 21600 3600
   set<string> opts_micro({
 //    "--micro=blk_1m --outdir=out_blk_1m",
 //    "--micro=blk_2m --outdir=out_blk_2m",
-    "--adv_serial=true --async=true --micro=lgrngn --outdir=out_lgrngn --backend=CUDA --sd_conc=128 --sstp_cond=1 --z_rlx_sclr=100 --sstp_coal=1"  
+    "--adv_serial=false --async=true --micro=lgrngn --outdir=out_lgrngn --backend=CUDA --sd_conc=128 --sstp_cond=20 --z_rlx_sclr=100 --sstp_coal=1"  
       " --out_wet=\""
         ".5e-6:25e-6|0,1,2,3;" // FSSP
         "25e-6:1|0,3;"         // "rain"

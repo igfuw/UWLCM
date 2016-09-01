@@ -71,7 +71,8 @@ class slvr_common : public
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
-    int spinup = 0; // number of timesteps during which autoconversion is to be turned off
+    int spinup = 0, // number of timesteps during which autoconversion is to be turned off
+        nt;         // total number of timesteps
     bool relax_th_rv = true;
     setup::arr_1D_t *th_e, *rv_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
