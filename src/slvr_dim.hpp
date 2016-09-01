@@ -19,12 +19,15 @@ class slvr_dim<
   protected:
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
+  idx_t<2> Cy_domain;
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
 
   blitz::TinyVector<float, 2> domain_size = {
     this->mem->grid_size[0].length(),
     this->mem->grid_size[1].length()
   }; // TODO: could be replaced by mpdata's rt_params::grid_size ?
+
+  enum {vert_dim = 1};
 
   // ctor
   slvr_dim(

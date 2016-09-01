@@ -381,11 +381,15 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       rl = rl * setup::heating_kappa;
 
       {
-        using libmpdataxx::arakawa_c::h;
         // temporarily Cx & Cz are multiplied by this->rhod ...
         auto 
           Cx = this->mem->GC[0](this->Cx_domain).reindex({0,0}).copy(),
-          Cz = this->mem->GC[1](this->Cz_domain).reindex({0,0}).copy();
+          Cy = this->mem->GC[1](this->Cy_domain).reindex({0,0}).copy(),
+          Cz = this->mem->GC[this->vert_dim](this->Cz_domain).reindex({0,0}).copy();
+
+        auto Cy_arrinfo = this->n_dims == 2 ? 
+          libcloudphxx::lgrngn::arrinfo_t<real_t>() : // empty for 2D run
+          make_arrinfo(Cy);
 
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {
@@ -402,9 +406,9 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
           make_arrinfo(this->mem->advectee(ix::th)),
           make_arrinfo(this->mem->advectee(ix::rv)),
           libcloudphxx::lgrngn::arrinfo_t<real_t>(),
-          make_arrinfo(Cx), // ix::u ?
-          libcloudphxx::lgrngn::arrinfo_t<real_t>(),
-          make_arrinfo(Cz) // ix:w ?
+          make_arrinfo(Cx),
+          Cy_arrinfo,
+          make_arrinfo(Cz)
         );
         tend = clock::now();
         tsync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
