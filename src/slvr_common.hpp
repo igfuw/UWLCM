@@ -69,7 +69,8 @@ class slvr_common : public
 
   // get shape from a rng_t or an idx_t
   inline int shape(const rng_t &rng) { return rng.length();}
-  inline blitz::TinyVector<int, parent_t::n_dims> shape(const idx_t<parent_t::n_dims> &rng) { return rng.ubound() - rng.lbound() + 1;}
+  template<int n_dims>
+  blitz::TinyVector<int, n_dims> shape(const idx_t<n_dims> &rng) { return rng.ubound() - rng.lbound() + 1;}
 
   public:
 
