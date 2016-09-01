@@ -387,18 +387,18 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
           Cy = this->mem->GC[1](this->Cy_domain).reindex({0,0}).copy(),
           Cz = this->mem->GC[this->vert_dim](this->Cz_domain).reindex({0,0}).copy();
 
+        // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
+        {
+          blitz::Range all = blitz::Range::all();
+          Cx.reindex({0,0}) /= (*params.rhod)(blitz::tensor::j);
+          Cy.reindex({0,0}) /= (*params.rhod)(blitz::tensor::j);
+          Cz.reindex({0,0}) /= (*params.rhod)(blitz::tensor::j); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
+        }
+
         auto Cy_arrinfo = this->n_dims == 2 ? 
           libcloudphxx::lgrngn::arrinfo_t<real_t>() : // empty for 2D run
           make_arrinfo(Cy);
 
-        // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
-        {
-          blitz::Range all = blitz::Range::all();
-          Cx(blitz::Range(1,nx), all).reindex({0,0}) /= (*params.rhod)(blitz::tensor::j);
-          Cz(all, blitz::Range(1,nz)).reindex({0,0}) /= (*params.rhod)(blitz::tensor::j);
-          Cx(0, all) /= (*params.rhod)(all);
-          Cz(all, 0) /= (*params.rhod)(0);
-        }
         // running synchronous stuff
         tbeg = clock::now();
         prtcls->step_sync(

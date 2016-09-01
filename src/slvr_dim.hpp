@@ -59,6 +59,8 @@ class slvr_dim<
     this->mem->grid_size[2].length()
   }; // TODO: could be replaced by mpdata's rt_params::grid_size ?
 
+  enum {vert_dim = 2};
+
   // ctor
   slvr_dim(
     typename parent_t::ctor_args_t args, 
