@@ -195,7 +195,7 @@ int main(int argc, char** argv)
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
       ("adv_serial", po::value<bool>()->default_value(false), "force advection to be computed on single thread")
-      ("relax_th_rv", po::value<bool>()->default_value(true) , "relaxation of th and rv")
+      ("relax_th_rv", po::value<bool>()->default_value(false) , "relaxation of th and rv")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;

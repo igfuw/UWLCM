@@ -28,7 +28,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   std::chrono::milliseconds tdiag, tupdate, tsync, tasync_wait, tloop, tpost_step_custom, tpost_step_base;
 
   // array with index of inversion
-  blitz::Array<real_t, parent_t::n_dims-1> k_i; // TODO: make it's size in x direction smaller to match thread's domain
+  blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -374,7 +374,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       prtcls->diag_all();
       prtcls->diag_wet_mom(3);
       auto rl = r_l(this->domain); 
-      rl = typename parent_t::arr_t(prtcls->outbuf(), this->domain_size, blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+      rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
       // in radiation parametrization we integrate mixing ratio * this->rhod
       rl.reindex({0,0}) *= (*params.rhod)(blitz::tensor::j);
@@ -515,8 +515,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
     beta(args.mem->tmp[__FILE__][0][4]),
     F(args.mem->tmp[__FILE__][0][1])
   {
-    int nx = this->mem->grid_size[0].length();
-    k_i.resize(nx);
+    k_i.resize(this->shape(this->horizontal_domain));
     r_l = 0.;
 
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block

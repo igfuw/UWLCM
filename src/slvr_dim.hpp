@@ -18,14 +18,10 @@ class slvr_dim<
 
   protected:
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
+  rng_t horizontal_domain = this->mem->grid_size[0];
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
   idx_t<2> Cy_domain;
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
-
-  blitz::TinyVector<float, 2> domain_size = {
-    this->mem->grid_size[0].length(),
-    this->mem->grid_size[1].length()
-  }; // TODO: could be replaced by mpdata's rt_params::grid_size ?
 
   enum {vert_dim = 1};
 
@@ -49,15 +45,10 @@ class slvr_dim<
 
   protected:
   idx_t<3> domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]});
+  idx_t<2> horizontal_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^h, this->mem->grid_size[1], this->mem->grid_size[2]});
   idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1]^h, this->mem->grid_size[2]});
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
-
-  blitz::TinyVector<float, 3> domain_size = {
-    this->mem->grid_size[0].length(),
-    this->mem->grid_size[1].length(),
-    this->mem->grid_size[2].length()
-  }; // TODO: could be replaced by mpdata's rt_params::grid_size ?
 
   enum {vert_dim = 2};
 
