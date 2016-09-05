@@ -389,7 +389,6 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {
-          blitz::Range all = blitz::Range::all();
           Cx.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
           Cy.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
           Cz.reindex(this->zero) /= (*params.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
@@ -515,7 +514,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
     beta(args.mem->tmp[__FILE__][0][4]),
     F(args.mem->tmp[__FILE__][0][1])
   {
-    k_i.resize(this->shape(this->horizontal_domain));
+    k_i.resize(this->shape(this->hrzntl_domain));
     r_l = 0.;
 
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block

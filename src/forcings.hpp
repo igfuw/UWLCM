@@ -20,39 +20,37 @@ void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 // calc upward radiative flux through the bottom of the cells
 {
   const auto &ijk = this->ijk;
-  const auto &i = this->i;
-  const auto &j = this->j;
-
-  int nz = this->mem->grid_size[1].length(); //76
+  int nz = this->mem->grid_size[this->vert_dim].length(); 
+  namespace idxperm = libmpdataxx::idxperm;
 
   // index of first cell above inversion
   tmp1(ijk)  = rv(ijk) + r_l(ijk);
-  k_i(this->horizontal_subdomain) = blitz::first( tmp1 < setup::q_i, this->vert_idx); 
-  F(ijk) = 0;
+  k_i(this->hrzntl_subdomain) = blitz::first( tmp1 < setup::q_i, this->vert_idx); 
 
   // calc Eqs. 5 and 6 from Ackerman et al 2009
-  auto sum = tmp1(this->horizontal_subdomain, 0); // alias for a 1D/2D temp array
-  for(int z = 0 ; z < nz; ++z)
-  {
-    sum = blitz::sum(r_l(this->horizontal_subdomain, blitz::Range(z, nz-1)), this->vert_idx);
-    if(z==0)
-      F(this->horizontal_subdomain, z) += setup::F_0 * exp(- (nz - z - 1) * params.dz * sum); 
-    else
-      F(this->horizontal_subdomain, z) += setup::F_0 * exp(- (nz - z - 0.5) * params.dz * sum); 
+  const int perm_no = this->vert_dim;
+  // calc sum of r_l above certain level and store it in tmp1
+  tmp1(ijk) = r_l(ijk);
+  for(int z = nz-2 ; z >= 0; --z)
+    tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z+1, this->hrzntl_subdomain));
+  auto ground = idxperm::pi<perm_no>(0, this->hrzntl_subdomain);
+  auto noground = idxperm::pi<perm_no>(rng_t(1, nz-1), this->hrzntl_subdomain);
+  auto notop = idxperm::pi<perm_no>(rng_t(0, nz-2), this->hrzntl_subdomain);
+  F(noground) = setup::F_0 * exp(- (nz - z - 0.5) * params.dz * tmp1(noground)); 
+  F(ground) = setup::F_0 * exp(- (nz - z - 1) * params.dz * tmp1(ground));
 
-    if(z > 0)
-    {
-      sum = blitz::sum(r_l(this->horizontal_subdomain, blitz::Range(0, z-1)), this->vert_idx);
-      F(this->horizontal_subdomain, z) += setup::F_1 * exp(- (z - 0.5) * params.dz * sum);
-    }
+  // calc sum of r_l below certain level and store it in tmp1
+  tmp1 = r_l;
+  for(int z = 1 ; z < nz-1; ++z)
+    tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z-1, this->hrzntl_subdomain));
+  F(noground) += setup::F_1 * exp(- (z - 0.5) * params.dz * tmp1(notop));
 
-    F(this->horizontal_subdomain, z) += where(z > k_i(this->horizontal_subdomain), 
+  F(ijk).reindex(this->zero) += where(this->vert_idx > k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j),  // works even in 2D ?!?!
       setup::c_p * setup::rho_i * setup::D *
-      (0.25 * pow((z - 0.5) * params.dz - (k_i(this->horizontal_subdomain) - .5) * params.dz, 4./3) +
-      (k_i(this->horizontal_subdomain) - .5) * params.dz * pow((z - 0.5) * params.dz - (k_i(this->horizontal_subdomain) - .5) * params.dz, 1./3))
+      (0.25 * pow((z - 0.5) * params.dz - (k_i(this->hrzntl_subdomain) - .5) * params.dz, 4./3) +
+      (k_i(this->hrzntl_subdomain) - .5) * params.dz * pow((z - 0.5) * params.dz - (k_i(this->hrzntl_subdomain) - .5) * params.dz, 1./3))
       , 0);
   }
-
   tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   this->smooth(tmp1, F);
 }

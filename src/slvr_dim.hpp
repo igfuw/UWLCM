@@ -1,6 +1,19 @@
 #pragma once
 #include "slvr_common.hpp"
 
+// custom 3D idxperm that accepts idx_t; todo: make it part of libmpdata?
+namespace libmpdataxx
+{
+  namespace idxperm
+  {
+    template<int d>
+    inline idx_t<3> pi(const rng_t &rng, const idx_t<2> &idx) { return pi<d>(rng, idx[0], idx[1]); }
+
+    template<int d>
+    inline idx_t<3> pi(const int &i, const idx_t<2> &idx) { return pi<d>(rng_t(i,i), idx); }
+  };
+};
+
 template <class ct_params_t, class enableif = void>
 class slvr_dim
 {};
@@ -19,8 +32,8 @@ class slvr_dim<
   protected:
   // inject dimension-independent ranges
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
-  rng_t horizontal_domain = this->mem->grid_size[0];
-  rng_t horizontal_subdomain = this->i;
+  rng_t hrzntl_domain = this->mem->grid_size[0];
+  rng_t hrzntl_subdomain = this->i;
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
   idx_t<2> Cy_domain;
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
@@ -74,7 +87,8 @@ class slvr_dim<
   protected:
   // inject dimension-independent ranges
   idx_t<3> domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]});
-  idx_t<2> horizontal_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
+  idx_t<2> hrzntl_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
+  idx_t<2> hrzntl_subdomain = idx_t<2>({this->i, this->j});
   idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^h, this->mem->grid_size[1], this->mem->grid_size[2]});
   idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1]^h, this->mem->grid_size[2]});
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
@@ -86,7 +100,7 @@ class slvr_dim<
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
     for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
-    out(this->i, this->j, this-k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k)) / dz;
+    out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k)) / dz;
     // top and bottom cells are two times lower
     out(this->i, this->j, 0) *= 2; 
     out(this->i, this->j, this->k.last()) *= 2; 
@@ -95,7 +109,7 @@ class slvr_dim<
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
     for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
-    out(this->i, this->j, this-k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k-1)) / 2./ dz;
+    out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, this->j, 0) *= 2; 
     out(this->i, this->j, this->k.last()) *= 2; 
