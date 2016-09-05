@@ -217,7 +217,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
       // temporary array of densities - prtcls cant be init'd with 1D profile
       typename parent_t::arr_t rhod(this->mem->advectee(ix::th).shape());
-      rhod = (*params.rhod)(blitz::tensor::j);
+      rhod = (*params.rhod)(this->vert_idx);
 
 	prtcls->init(
 	  make_arrinfo(this->mem->advectee(ix::th)),
@@ -236,11 +236,11 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   {
     parent_t::vip_rhs_expl_calc();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
-    F(this->ijk).reindex({0,0}) = 
+    F(this->ijk).reindex(this->zero) = 
       -pow(setup::u_fric,2) * 
       this->state(ix::vip_i)(this->i, 0).reindex({0})(blitz::tensor::i) /              // u_i at z=0
       sqrt(pow2(this->state(ix::vip_i)(this->i, 0).reindex({0})(blitz::tensor::i))) *  // |U| at z=0
-      (*params.hgt_fctr_vctr)(blitz::tensor::j);                                       // hgt_fctr
+      (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
 
     // du/dt = sum of kinematic momentum fluxes * dt
     int nz = this->mem->grid_size[1].length(); //76
@@ -377,22 +377,22 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
       // in radiation parametrization we integrate mixing ratio * this->rhod
-      rl.reindex({0,0}) *= (*params.rhod)(blitz::tensor::j);
+      rl.reindex(this->zero) *= (*params.rhod)(this->vert_idx);
       rl = rl * setup::heating_kappa;
 
       {
         // temporarily Cx & Cz are multiplied by this->rhod ...
         auto 
-          Cx = this->mem->GC[0](this->Cx_domain).reindex({0,0}).copy(),
-          Cy = this->mem->GC[1](this->Cy_domain).reindex({0,0}).copy(),
-          Cz = this->mem->GC[this->vert_dim](this->Cz_domain).reindex({0,0}).copy();
+          Cx = this->mem->GC[0](this->Cx_domain).reindex(this->zero).copy(),
+          Cy = this->mem->GC[1](this->Cy_domain).reindex(this->zero).copy(),
+          Cz = this->mem->GC[this->vert_dim](this->Cz_domain).reindex(this->zero).copy();
 
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {
           blitz::Range all = blitz::Range::all();
-          Cx.reindex({0,0}) /= (*params.rhod)(blitz::tensor::j);
-          Cy.reindex({0,0}) /= (*params.rhod)(blitz::tensor::j);
-          Cz.reindex({0,0}) /= (*params.rhod)(blitz::tensor::j); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
+          Cx.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
+          Cy.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
+          Cz.reindex(this->zero) /= (*params.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
         }
 
         auto Cy_arrinfo = this->n_dims == 2 ? 

@@ -20,20 +20,38 @@ class slvr_dim<
   // inject dimension-independent ranges
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   rng_t horizontal_domain = this->mem->grid_size[0];
+  rng_t horizontal_subdomain = this->i;
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
   idx_t<2> Cy_domain;
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
 
-  void vert_grad(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  enum {vert_dim = 1};
+  blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
+  blitz::secondIndex vert_idx;
+
+  void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
     for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
-    out(this->i, this->j) = ( in(this->i, this->j) - in(this->i, this->j+1)) / dz;
+    out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j)) / dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
     out(this->i, this->j.last()) *= 2; 
   }
 
-  enum {vert_dim = 1};
+  void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  {
+    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+    out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j-1)) / 2./ dz;
+    // top and bottom cells are two times lower
+    out(this->i, 0) *= 2; 
+    out(this->i, this->j.last()) *= 2; 
+  }
+
+  void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
+  {
+    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+    out(this->i, this->j) = 0.25 * (in(this->i, this->j + 1) + 2 * in(this->i, this->j) + in(this->i, this->j - 1));
+  }
 
   // ctor
   slvr_dim(
@@ -62,6 +80,32 @@ class slvr_dim<
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
 
   enum {vert_dim = 2};
+  blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
+  blitz::thirdIndex vert_idx;
+
+  void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  {
+    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+    out(this->i, this->j, this-k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k)) / dz;
+    // top and bottom cells are two times lower
+    out(this->i, this->j, 0) *= 2; 
+    out(this->i, this->j, this->k.last()) *= 2; 
+  }
+
+  void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  {
+    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+    out(this->i, this->j, this-k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k-1)) / 2./ dz;
+    // top and bottom cells are two times lower
+    out(this->i, this->j, 0) *= 2; 
+    out(this->i, this->j, this->k.last()) *= 2; 
+  }
+
+  void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
+  {
+    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+    out(this->i, this->j, this->k) = 0.25 * (in(this->i, this->j, this->k + 1) + 2 * in(this->i, this->j, this->k) + in(this->i, this->j, this->k - 1));
+  }
 
   // ctor
   slvr_dim(
