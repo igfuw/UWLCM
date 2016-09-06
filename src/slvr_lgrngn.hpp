@@ -226,8 +226,8 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 	); 
 
       // writing diagnostic data for the initial condition
-      diag();
       tbeg_loop = clock::now();
+      diag();
     }
     // TODO: barrier?
   }
