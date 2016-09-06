@@ -25,7 +25,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
   // timing fields
   clock::time_point tbeg, tend, tbeg1, tend1, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tasync_wait, tloop, tpost_step_custom, tpost_step_base;
+  std::chrono::milliseconds tdiag, tupdate, tsync, tasync_wait, tloop; 
 
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
@@ -465,7 +465,6 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         diag();
       }
       tend1 = clock::now();
-      tpost_step_custom += std::chrono::duration_cast<std::chrono::milliseconds>( tend1 - tbeg1 );
       // there's no hook_post_loop, so we imitate it here to write out computation times
       if(this->timestep == params.nt-1)
       {
@@ -474,8 +473,6 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         std::cout <<  "wall time in milliseconds: " << std::endl
           << "loop: " << tloop.count() << std::endl
           << "update: " << tupdate.count() << " ("<< setup::real_t(tupdate.count())/tloop.count()*100 <<"%)" << std::endl
-          << "custom_post_step: " << tpost_step_custom.count() << " ("<< setup::real_t(tpost_step_custom.count())/tloop.count()*100 <<"%)" << std::endl
-          << "base_post_step: " << tpost_step_base.count() << " ("<< setup::real_t(tpost_step_base.count())/tloop.count()*100 <<"%)" << std::endl
           << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
           << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
           << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
