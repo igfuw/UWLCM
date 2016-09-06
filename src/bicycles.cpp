@@ -10,6 +10,7 @@
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include <libmpdata++/concurr/serial.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include "setup.hpp"
+#include "DYCOMS98.hpp"
 #include "opts_lgrngn.hpp"
 #include "panic.hpp"
 #include <map>
