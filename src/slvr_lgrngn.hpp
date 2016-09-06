@@ -185,9 +185,9 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       if(parent_t::n_dims == 2) // 2D
       {
         params.cloudph_opts_init.nz = this->mem->grid_size[1].length();
-        params.cloudph_opts_init.dz = params.dz;
-        params.cloudph_opts_init.z0 = params.dz / 2;
-        params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * params.dz;
+        params.cloudph_opts_init.dz = this->dj;
+        params.cloudph_opts_init.z0 = this->dj / 2;
+        params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * this->dj;
 
         params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
         if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
@@ -196,9 +196,9 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       else // 3D
       {
         params.cloudph_opts_init.ny = this->mem->grid_size[1].length();
-        params.cloudph_opts_init.dy = params.dz;
-        params.cloudph_opts_init.y0 = params.dz / 2;
-        params.cloudph_opts_init.y1 = (params.cloudph_opts_init.ny - .5) * params.dz;
+        params.cloudph_opts_init.dy = this->dj;
+        params.cloudph_opts_init.y0 = this->dj / 2;
+        params.cloudph_opts_init.y1 = (params.cloudph_opts_init.ny - .5) * this->dj;
 
         params.cloudph_opts_init.nz = this->mem->grid_size[2].length();
         params.cloudph_opts_init.dz = this->dk;
@@ -236,10 +236,12 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   {
     parent_t::vip_rhs_expl_calc();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
+    auto ground = idxperm::pi<this->vert_dim>(0, this->hrzntl_subdomain); //lowermost cells
+
     F(this->ijk).reindex(this->zero) = 
-      -pow(setup::u_fric,2) * 
-      this->state(ix::vip_i)(this->i, 0).reindex({0})(blitz::tensor::i) /              // u_i at z=0
-      sqrt(pow2(this->state(ix::vip_i)(this->i, 0).reindex({0})(blitz::tensor::i))) *  // |U| at z=0
+      -pow(setup::u_fric,2) *  // const, cache it
+      this->state(ix::vip_i)(ground).reindex(this->zero)(blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+      sqrt(pow2(this->state(ix::vip_i)(ground).reindex(this->zero)(blitz::tensor::i, blitz::tensor::j))) *  // |U| at z=0
       (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
 
     // du/dt = sum of kinematic momentum fluxes * dt
