@@ -50,6 +50,7 @@ void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
       (0.25 * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 4./3) +
       (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 1./3))
       , 0);
+
   tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   this->smooth(tmp1, F);
 }
