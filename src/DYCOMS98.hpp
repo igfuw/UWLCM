@@ -138,6 +138,8 @@ namespace setup
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
     n1_stp_pristine = real_t(125e6 * 2 * 0.5) / si::cubic_metres, // 125 || 31
     n2_stp_pristine = real_t(65e6 * 2 * 0.5) / si::cubic_metres;  // 65 || 16
+  const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
+    n_unit_test = real_t(1) / si::cubic_metres;
 
   //aerosol lognormal dist. for GCCN from Jorgen Jensen
   const quantity<si::length, real_t>
@@ -286,6 +288,22 @@ namespace setup
 
     log_dry_radii *do_clone() const 
     { return new log_dry_radii( *this ); }
+  };
+
+  // unit test lognormal aerosol distribution
+  template <typename T>
+  struct log_dry_radii_unit_test : public libcloudphxx::common::unary_function<T>
+  {
+    T funval(const T lnrd) const
+    {
+      return T((
+          lognormal::n_e(mean_rd1, sdev_rd1, n_unit_test, quantity<si::dimensionless, real_t>(lnrd)) 
+        ) * si::cubic_metres
+      );
+    }
+
+    log_dry_radii_unit_test *do_clone() const 
+    { return new log_dry_radii_unit_test( *this ); }
   };
 
   // pristine lognormal aerosol distribution

@@ -57,6 +57,7 @@ void setopts_micro(
     ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
     ("onishi", po::value<bool>()->default_value(false) , "use the turbulent onishi kernel")
     ("pristine", po::value<bool>()->default_value(false) , "pristine conditions")
+    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("eps", po::value<setup::real_t>()->default_value(0.01) , "turb dissip rate (for onishi kernel) [m^2/s^3]")
     ("ReL", po::value<setup::real_t>()->default_value(5000) , "taylor-microscale reynolds number (onishi kernel)")
 
@@ -75,12 +76,13 @@ void setopts_micro(
   bool gccn = vm["gccn"].as<bool>();
   bool onishi = vm["onishi"].as<bool>();
   bool pristine = vm["pristine"].as<bool>();
+  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t eps = vm["eps"].as<setup::real_t>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
  
-  if(!pristine)
+  if(!pristine && !unit_test)
     boost::assign::ptr_map_insert<
       setup::log_dry_radii<thrust_real_t> // value type
     >(
@@ -88,9 +90,17 @@ void setopts_micro(
     )(
       setup::kappa // key
     );
-  else
+  else if(pristine)
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_pristine<thrust_real_t> // value type
+    >(
+      rt_params.cloudph_opts_init.dry_distros // map
+    )(
+      setup::kappa // key
+    );
+  else if(unit_test)
+    boost::assign::ptr_map_insert<
+      setup::log_dry_radii_unit_test<thrust_real_t> // value type
     >(
       rt_params.cloudph_opts_init.dry_distros // map
     )(

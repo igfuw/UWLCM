@@ -17,7 +17,7 @@ int main(int ac, char** av)
   string opts_common = 
     "--outfreq=1000 --nt=2 --spinup=1 --nx=4 --ny=4 --nz=4 --dt=1";
   set<string> opts_micro({
-    "--adv_serial=true --async=false --micro=lgrngn --outdir=out_lgrngn --backend=OpenMP --sd_conc=8 z_rlx_sclr=100"  
+    "--adv_serial=true --async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 z_rlx_sclr=100 --unit_test=true"  
   });
 
   for (auto &opts_m : opts_micro)
