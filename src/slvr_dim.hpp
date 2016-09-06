@@ -28,6 +28,7 @@ class slvr_dim<
 > : public slvr_common<ct_params_t>
 {
   using parent_t = slvr_common<ct_params_t>;
+  using ix = typename ct_params_t::ix;
 
   protected:
   // inject dimension-independent ranges
@@ -41,6 +42,7 @@ class slvr_dim<
   enum {vert_dim = 1};
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
   blitz::secondIndex vert_idx;
+  std::map<int, int> vip_map = std::map<int, int>{{0, ix::vip_i}};
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -66,6 +68,11 @@ class slvr_dim<
     out(this->i, this->j) = 0.25 * (in(this->i, this->j + 1) + 2 * in(this->i, this->j) + in(this->i, this->j - 1));
   }
 
+  auto calc_U() 
+    return_macro(,
+    abs(this->state(ix::vip_i))
+  )
+
   // ctor
   slvr_dim(
     typename parent_t::ctor_args_t args,
@@ -83,6 +90,7 @@ class slvr_dim<
 > : public slvr_common<ct_params_t>
 {
   using parent_t = slvr_common<ct_params_t>;
+  using ix = typename ct_params_t::ix;
 
   protected:
   // inject dimension-independent ranges
@@ -96,6 +104,7 @@ class slvr_dim<
   enum {vert_dim = 2};
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
   blitz::thirdIndex vert_idx;
+  std::map<int, int> vip_map = std::map<int, int>{{0, ix::vip_i}, {1, ix::vip_j}};
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -120,6 +129,11 @@ class slvr_dim<
     for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
     out(this->i, this->j, this->k) = 0.25 * (in(this->i, this->j, this->k + 1) + 2 * in(this->i, this->j, this->k) + in(this->i, this->j, this->k - 1));
   }
+
+  auto calc_U() 
+    return_macro(,
+    sqrt(pow2(this->state(ix::vip_i)) + pow2(this->state(ix::vip_j)))
+  )
 
   // ctor
   slvr_dim(

@@ -237,21 +237,21 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
     parent_t::vip_rhs_expl_calc();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
     auto ground = idxperm::pi<this->vert_dim>(0, this->hrzntl_subdomain); //lowermost cells
+    tmp1(ground) = this->calc_U()(ground); // TODO: overkill - we calc U everywere, on ground would suffice
 
-    F(this->ijk).reindex(this->zero) = 
-      -pow(setup::u_fric,2) *  // const, cache it
-      this->state(ix::vip_i)(ground).reindex(this->zero)(blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-      sqrt(pow2(this->state(ix::vip_i)(ground).reindex(this->zero)(blitz::tensor::i, blitz::tensor::j))) *  // |U| at z=0
-      (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
+    // loop over horizontal dimensions
+    for(auto const &it: this->vip_map)
+    {
+      F(this->ijk).reindex(this->zero) = 
+        -pow(setup::u_fric,2) *  // const, cache it
+        this->state(it.second)(ground).reindex(this->zero)(blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+        tmp1(ground).reindex(this->zero)(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+        (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
 
-    // du/dt = sum of kinematic momentum fluxes * dt
-    int nz = this->mem->grid_size[1].length(); //76
-    blitz::Range notop(0, nz-2);
-    this->vip_rhs[0](this->i, notop) = (F(this->i, notop) - F(this->i, notop+1)) / params.dz * this->dt;
-    this->vip_rhs[0](this->i, this->j.last()) = (F(this->i, this->j.last())) / params.dz * this->dt;
-    // top and bottom cells are two times lower
-    this->vip_rhs[0](this->i, 0) *= 2; 
-    this->vip_rhs[0](this->i, this->j.last()) *= 2; 
+      // du/dt = sum of kinematic momentum fluxes * dt
+      this->vert_grad_cnt(F, this->vip_rhs[it.first], params.dz);
+      this->vip_rhs[it.first] *= params.dt;
+    }
   }
 
   void buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv);
