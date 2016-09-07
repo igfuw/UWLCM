@@ -236,21 +236,21 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   {
     parent_t::vip_rhs_expl_calc();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
-    auto ground = idxperm::pi<this->vert_dim>(0, this->hrzntl_subdomain); //lowermost cells
-    tmp1(ground) = this->calc_U()(ground); // TODO: overkill - we calc U everywere, on ground would suffice
+    typename parent_t::arr_sub_t U_ground(this->shape(this->hrzntl_subdomain));
+    U_ground = this->calc_U_ground();
 
     // loop over horizontal dimensions
-    for(auto const &it: this->vip_map)
+    for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
       F(this->ijk).reindex(this->zero) = 
         -pow(setup::u_fric,2) *  // const, cache it
-        this->state(it.second)(ground).reindex(this->zero)(blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-        tmp1(ground).reindex(this->zero)(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+        this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+        U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
         (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
 
       // du/dt = sum of kinematic momentum fluxes * dt
-      this->vert_grad_cnt(F, this->vip_rhs[it.first], params.dz);
-      this->vip_rhs[it.first] *= params.dt;
+      this->vert_grad_cnt(F, this->vip_rhs[it], params.dz);
+      this->vip_rhs[it] *= params.dt;
     }
   }
 
