@@ -20,9 +20,6 @@ class slvr_common : public
 
   int spinup; // number of timesteps
 
-  // relaxation stuff
-  bool relax_th_rv;
-
   // surface precip stuff
   real_t prec_vol;
   std::ofstream f_prec;
@@ -78,7 +75,7 @@ class slvr_common : public
   { 
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
-    bool relax_th_rv = true;
+    bool relax_th_rv, rv_src, th_src, uv_src, w_src;
     setup::arr_1D_t *th_e, *rv_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
   };
@@ -89,7 +86,6 @@ class slvr_common : public
     const rt_params_t &p
   ) : 
     parent_t(args, p),
-    spinup(p.spinup),
-    relax_th_rv(p.relax_th_rv)
+    spinup(p.spinup)
     {}  
 };

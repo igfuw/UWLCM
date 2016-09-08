@@ -22,7 +22,7 @@ struct user_params_t
   int nt, outfreq, spinup, rng_seed;
   setup::real_t dt, z_rlx_sclr;
   std::string outdir;
-  bool serial, relax_th_rv;
+  bool serial, relax_th_rv, th_src, rv_src, uv_src, w_src;
 };
 
 // copy external profiles into rt_parameters
@@ -197,6 +197,10 @@ int main(int argc, char** argv)
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
       ("adv_serial", po::value<bool>()->default_value(false), "force advection to be computed on single thread")
       ("relax_th_rv", po::value<bool>()->default_value(false) , "relaxation of th and rv")
+      ("th_src", po::value<bool>()->default_value(true) , "temp src")
+      ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
+      ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
+      ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;
@@ -252,6 +256,12 @@ int main(int argc, char** argv)
     // handling relaxation flag
     user_params.relax_th_rv = vm["relax_th_rv"].as<bool>();
 
+    // handling sources flags
+    user_params.th_src = vm["th_src"].as<bool>();
+    user_params.rv_src = vm["rv_src"].as<bool>();
+    user_params.uv_src = vm["uv_src"].as<bool>();
+    user_params.w_src = vm["w_src"].as<bool>();
+
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
 
@@ -279,7 +289,7 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
-      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+//      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
     }
     else throw
       po::validation_error(

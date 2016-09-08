@@ -285,23 +285,35 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       case (0): 
       {   
         // ---- water vapor sources ----
-        rv_src();
-        rhs.at(ix::rv)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk); 
+        if(params.rv_src)
+        {
+          rv_src();
+          rhs.at(ix::rv)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk); 
+        }
 
         // ---- potential temp sources ----
-        th_src(this->state(ix::rv));
-        rhs.at(ix::th)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk); 
+        if(params.th_src)
+        {
+          th_src(this->state(ix::rv));
+          rhs.at(ix::th)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk); 
+        }
 
         // vertical velocity sources
-        w_src(this->state(ix::th), this->state(ix::rv));
-        rhs.at(ix::w)(ijk) += alpha(ijk);
+        if(params.w_src)
+        {
+          w_src(this->state(ix::th), this->state(ix::rv));
+          rhs.at(ix::w)(ijk) += alpha(ijk);
+        }
 
         // horizontal velocity sources 
         // large-scale vertical wind
-        for(auto type : this->hori_vel)
+        if(params.uv_src)
         {
-          subsidence(type);
-          rhs.at(type)(ijk) += F(ijk);
+          for(auto type : this->hori_vel)
+          {
+            subsidence(type);
+            rhs.at(type)(ijk) += F(ijk);
+          }
         }
         break;
       }   
@@ -309,28 +321,40 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       // trapezoidal rhs^n+1
       {   
         // ---- water vapor sources ----
-        rv_src();
-        rhs.at(ix::rv)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
+        if(params.rv_src)
+        {
+          rv_src();
+          rhs.at(ix::rv)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
+        }
   
         // ---- potential temp sources ----
-        beta(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
-        th_src(beta);
-        rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
+        if(params.th_src)
+        {
+          beta(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+          th_src(beta);
+          rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
+        }
 
         // vertical velocity sources
         // temporarily use beta to store the th^n+1 estimate
-        beta(ijk) = this->state(ix::th)(ijk) + 0.5 * this->dt * rhs.at(ix::th)(ijk);
-        // temporarily use F to store the rv^n+1 estimate
-        F(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
-        w_src(beta, F);
-        rhs.at(ix::w)(ijk) += alpha(ijk);
+        if(params.w_src)
+        {
+          beta(ijk) = this->state(ix::th)(ijk) + 0.5 * this->dt * rhs.at(ix::th)(ijk);
+          // temporarily use F to store the rv^n+1 estimate
+          F(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+          w_src(beta, F);
+          rhs.at(ix::w)(ijk) += alpha(ijk);
+        }
 
         // horizontal velocity sources 
         // large-scale vertical wind
-        for(auto type : this->hori_vel)
+        if(params.uv_src)
         {
-          subsidence(type);
-          rhs.at(type)(ijk) += F(ijk);
+          for(auto type : this->hori_vel)
+          {
+            subsidence(type);
+            rhs.at(type)(ijk) += F(ijk);
+          }
         }
         break;
       }
