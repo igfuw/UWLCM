@@ -287,7 +287,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         // ---- water vapor sources ----
         rv_src();
         rhs.at(ix::rv)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk); 
-        
+
         // ---- potential temp sources ----
         th_src(this->state(ix::rv));
         rhs.at(ix::th)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk); 
@@ -298,7 +298,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
         // horizontal velocity sources 
         // large-scale vertical wind
-        for(auto type : std::set<int>{ix::u})
+        for(auto type : this->hori_vel)
         {
           subsidence(type);
           rhs.at(type)(ijk) += F(ijk);
@@ -311,7 +311,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         // ---- water vapor sources ----
         rv_src();
         rhs.at(ix::rv)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
-        
+  
         // ---- potential temp sources ----
         beta(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
         th_src(beta);
@@ -327,7 +327,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
         // horizontal velocity sources 
         // large-scale vertical wind
-        for(auto type : std::set<int>{ix::u})
+        for(auto type : this->hori_vel)
         {
           subsidence(type);
           rhs.at(type)(ijk) += F(ijk);
