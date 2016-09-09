@@ -25,7 +25,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
   // timing fields
   clock::time_point tbeg, tend, tbeg1, tend1, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tasync_wait, tloop; 
+  std::chrono::milliseconds tdiag, tupdate, tsync, tasync_wait, tloop, tvip_rhs; 
 
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
@@ -235,6 +235,9 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   void vip_rhs_expl_calc()
   {
     parent_t::vip_rhs_expl_calc();
+    this->mem->barrier();
+    if(this->rank == 0)
+      tbeg = clock::now();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
     typename parent_t::arr_sub_t U_ground(this->shape(this->hrzntl_subdomain));
     U_ground = this->calc_U_ground();
@@ -250,7 +253,13 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
       // du/dt = sum of kinematic momentum fluxes * dt
       this->vert_grad_cnt(F, this->vip_rhs[it], params.dz);
-      this->vip_rhs[it] *= params.dt;
+      this->vip_rhs[it](this->ijk) *= params.dt;
+    }
+    this->mem->barrier();
+    if(this->rank == 0)
+    {
+      tend = clock::now();
+      tvip_rhs += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
   }
 
@@ -494,7 +503,8 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg_loop );
         std::cout <<  "wall time in milliseconds: " << std::endl
           << "loop: " << tloop.count() << std::endl
-          << "update: " << tupdate.count() << " ("<< setup::real_t(tupdate.count())/tloop.count()*100 <<"%)" << std::endl
+          << "custom rhs update: " << tupdate.count() << " ("<< setup::real_t(tupdate.count())/tloop.count()*100 <<"%)" << std::endl
+          << "custom vip_rhs: " << tvip_rhs.count() << " ("<< setup::real_t(tvip_rhs.count())/tloop.count()*100 <<"%)" << std::endl
           << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
           << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
           << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
