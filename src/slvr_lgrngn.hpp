@@ -395,8 +395,6 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 #endif
 
       // store liquid water content to be used in update_rhs (if done in update_rhs, it fails on async runs)
-      int nx = this->mem->grid_size[0].length(); //76
-      int nz = this->mem->grid_size[1].length(); //76
       prtcls->diag_all();
       prtcls->diag_wet_mom(3);
       auto rl = r_l(this->domain); 
