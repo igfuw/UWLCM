@@ -25,7 +25,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
   // timing fields
   clock::time_point tbeg, tend, tbeg1, tend1, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tasync_wait, tloop, tvip_rhs; 
+  std::chrono::milliseconds tdiag, tupdate, tsync, tasync, tasync_wait, tloop, tvip_rhs; 
 
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
@@ -450,6 +450,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         using libcloudphxx::lgrngn::particles_t;
         using libcloudphxx::lgrngn::CUDA;
         using libcloudphxx::lgrngn::multi_CUDA;
+        tbeg = clock::now();
 #if defined(STD_FUTURE_WORKS)
         if (params.async)
         {
@@ -472,6 +473,8 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         } else 
 #endif
           this->prec_vol += prtcls->step_async(params.cloudph_opts);
+        tend = clock::now();
+        tasync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
       }
     }
   }
@@ -507,6 +510,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
           << "custom vip_rhs: " << tvip_rhs.count() << " ("<< setup::real_t(tvip_rhs.count())/tloop.count()*100 <<"%)" << std::endl
           << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
           << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
+          << "async: " << tasync.count() << " ("<< setup::real_t(tasync.count())/tloop.count()*100 <<"%)" << std::endl
           << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
       }
     }
