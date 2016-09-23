@@ -1,0 +1,6 @@
+add_executable(plot_series plot_series.cpp)
+#add_test(plot_series plot_series ${OUT_LGRNGN_DIR})
+target_link_libraries(plot_series ${HDF5_LIBRARIES})
+target_include_directories(plot_series PUBLIC ${HDF5_INCLUDE_DIRS})
+target_link_libraries(plot_series ${Boost_LIBRARIES})
+target_include_directories(plot_series PUBLIC ${Boost_INCLUDE_DIRS})

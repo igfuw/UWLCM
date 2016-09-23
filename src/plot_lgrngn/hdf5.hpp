@@ -67,20 +67,9 @@ std::map<std::string, double> h5n(
   return map;
 }
 
-auto h5load_timestep(
-  const string &file, 
-  const string &dataset,
-  int at
-) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
-{
-  string timestep_file = file + "/timestep" + zeropad(at, 10) + ".h5";
-  return h5load(timestep_file, dataset, at);
-}
-
 auto h5load(
   const string &file, 
-  const string &dataset,
-  int at
+  const string &dataset
 ) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
  {
   notice_macro("about to open file: " << file)
@@ -111,4 +100,14 @@ auto h5load(
   h5d.read(tmp.data(), H5::PredType::NATIVE_FLOAT, H5::DataSpace(2, ext), h5s);
 
   return blitz::safeToReturn(tmp + 0);
+}
+
+auto h5load_timestep(
+  const string &file, 
+  const string &dataset,
+  int at
+) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
+{
+  string timestep_file = file + "/timestep" + zeropad(at, 10) + ".h5";
+  return h5load(timestep_file, dataset);
 }

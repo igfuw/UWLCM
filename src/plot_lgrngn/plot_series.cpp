@@ -31,35 +31,8 @@ int main(int ac, char** av)
   std::ofstream oprof_file(prof_file);
 
   // read density
-  blitz::Array<float, 2> rhod;
-  {
-    notice_macro("about to open file: " << h5)
-    H5::H5File h5f(h5 + "/const.h5", H5F_ACC_RDONLY);
-  
-    notice_macro("about to read dataset: G")
-    H5::DataSet h5d = h5f.openDataSet("G");
-    H5::DataSpace h5s = h5d.getSpace();
-  
-    if (h5s.getSimpleExtentNdims() != 2)  
-      error_macro("need 2 dimensions")
-  
-    hsize_t n[2];
-    enum {x, z}; 
-    h5s.getSimpleExtentDims(n, NULL);
-  
-    rhod.resize(n[x], n[z]);
-  
-    hsize_t 
-      cnt[3] = { n[x], n[z] },  
-      off[3] = { 0,    0    };  
-    h5s.selectHyperslab( H5S_SELECT_SET, cnt, off);
-  
-    hsize_t ext[2] = { 
-      hsize_t(rhod.extent(0)), 
-      hsize_t(rhod.extent(1)) 
-    };  
-    h5d.read(rhod.data(), H5::PredType::NATIVE_FLOAT, H5::DataSpace(2, ext), h5s);
-  }
+  blitz::Array<float, 2> rhod(n["x"], n["z"]);
+  rhod = h5load(h5 + "/const.h5", "G");
 
   blitz::firstIndex i;
   blitz::secondIndex j;
