@@ -15,6 +15,8 @@ int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: dir containing out_lgrngn")
 
+  std::set<std::string> plots({"wvarmax", "clfrac", "lwp", "er", "surf_precip", "mass_dry", "acc_precip", "cl_nc"});
+
   std::string
     dir = string(av[1]),
     h5  = dir + "out_lgrngn";
@@ -31,18 +33,15 @@ int main(int ac, char** av)
   std::ofstream oprof_file(prof_file);
 
   // read density
-  blitz::Array<float, 2> rhod(n["x"], n["z"]);
+  Array<float, 2> rhod(n["x"], n["z"]);
   rhod = h5load(h5 + "/const.h5", "G");
 
-  blitz::firstIndex i;
-  blitz::secondIndex j;
-  blitz::Array<float, 1> res_prof(n["t"]);
-  blitz::Array<float, 1> res_pos(n["t"]);
-  blitz::Array<int, 1> k_i(n["x"]); // index of the inversion cell
-  blitz::Array<float, 2> rtot(n["x"],  n["z"]); 
-  blitz::Range all = blitz::Range::all();
+  Array<float, 1> res_prof(n["t"]);
+  Array<float, 1> res_pos(n["t"]);
+  Array<int, 1> k_i(n["x"]); // index of the inversion cell
+  Array<float, 2> rtot(n["x"],  n["z"]); 
 
-  for (auto &plt : std::set<std::string>({"wvarmax", "clfrac", "lwp", "er", "surf_precip", "mass_dry", "acc_precip", "cl_nc"}))
+  for (auto &plt : plots)
   {
     res_prof = 0;
     res_pos = 0;
@@ -63,7 +62,7 @@ int main(int ac, char** av)
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
           auto tmp = h5load_timestep(h5, "rw_rng000_mom0", at * n["outfreq"]);
-          blitz::Array<float, 2> snap(tmp);
+          Array<float, 2> snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
           snap = iscloudy(snap);
@@ -77,7 +76,7 @@ int main(int ac, char** av)
         try
         {
           auto tmp = h5load_timestep(h5, "rw_rng000_mom0", at * n["outfreq"]);
-          blitz::Array<float, 2> snap(tmp);
+          Array<float, 2> snap(tmp);
           snap /= 1e6; // per cm^3
           snap *= rhod; // b4 it was per milligram
           res_prof(at) = blitz::mean(snap); 
@@ -91,10 +90,10 @@ int main(int ac, char** av)
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
           auto tmp = h5load_timestep(h5, "rw_rng000_mom0", at * n["outfreq"]);
-          blitz::Array<float, 2> snap(tmp);
+          Array<float, 2> snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
-          blitz::Array<float, 2> snap2;
+          Array<float, 2> snap2;
           snap2.resize(snap.shape());
           snap2=snap;
           snap = iscloudy(snap); // cloudiness mask
@@ -113,7 +112,7 @@ int main(int ac, char** av)
         try
         {
           auto tmp = h5load_timestep(h5, "rd_rng000_mom3", at * n["outfreq"]) * 4./3. * 3.14 * rho_dry * 1e3;
-          blitz::Array<float, 2> snap(tmp);
+          Array<float, 2> snap(tmp);
           snap *= rhod * n["dx"] * n["dz"]; // turn mixing ratio in g/kg to total mass in g
           res_prof(at) = blitz::sum(snap); 
         }
@@ -147,13 +146,13 @@ int main(int ac, char** av)
         {
           {
             auto tmp = h5load_timestep(h5, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            blitz::Array<float, 2> snap(tmp); // cloud water mixing ratio [g/kg]
+            Array<float, 2> snap(tmp); // cloud water mixing ratio [g/kg]
             snap *= rhod; // cloud water per cubic metre (should be wet density...)
             res_prof(at) = blitz::mean(snap); 
           }
           {
             auto tmp = h5load_timestep(h5, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            blitz::Array<float, 2> snap(tmp); // rain water mixing ratio [g/kg]
+            Array<float, 2> snap(tmp); // rain water mixing ratio [g/kg]
             snap *= rhod; // rain water per cubic metre (should be wet density...)
             res_prof(at) += blitz::mean(snap); 
           }
@@ -168,21 +167,21 @@ int main(int ac, char** av)
         {
           {
             auto tmp = h5load_timestep(h5, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            blitz::Array<float, 2> snap(tmp); // cloud water mixing ratio [g/kg]
+            Array<float, 2> snap(tmp); // cloud water mixing ratio [g/kg]
             rtot = snap;
           }
           {
             auto tmp = h5load_timestep(h5, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            blitz::Array<float, 2> snap(tmp); // rain water mixing ratio [g/kg]
+            Array<float, 2> snap(tmp); // rain water mixing ratio [g/kg]
             rtot += snap;
           }
           {
             auto tmp = h5load_timestep(h5, "rv", at * n["outfreq"]) * 1e3;
-            blitz::Array<float, 2> snap(tmp); // vapor mixing ratio [g/kg]
+            Array<float, 2> snap(tmp); // vapor mixing ratio [g/kg]
             rtot += snap;
           }
           k_i = 0;
-          k_i = blitz::first((rtot < 8.), j); 
+          k_i = blitz::first((rtot < 8.), tensor::j); 
           res_prof(at) = blitz::mean(k_i);
         }
         catch (...) {;}
@@ -193,11 +192,11 @@ int main(int ac, char** av)
         try
         {
           auto tmp = h5load_timestep(h5, "w", at * n["outfreq"]);
-          blitz::Array<float, 2> snap(tmp);
-          blitz::Array<float, 1> mean(n["z"]);
+          Array<float, 2> snap(tmp);
+          Array<float, 1> mean(n["z"]);
           snap = snap * snap; // 2nd power, w_mean = 0
           // mean variance of w in horizontal
-          mean = blitz::mean(snap(j, i), j); // mean over x and y
+          mean = blitz::mean(snap(tensor::j, tensor::i), tensor::j); // mean over x and y
           res_prof(at) = blitz::max(mean); // the max value
         }
         catch(...) {;}
@@ -230,7 +229,7 @@ int main(int ac, char** av)
     else if (plt == "er")
     {
       // forward difference, in cm
-      blitz::Range nolast = blitz::Range(0, n["t"]-2);
+      Range nolast = Range(0, n["t"]-2);
       res_prof(nolast) = (res_prof(nolast+1) - res_prof(nolast)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"]) + D * (res_prof(nolast) - 0.5) * n["dz"] * 1e2;
       res_prof(n["t"]-1) = 0.;
       gp << "set title 'entrainment rate [cm / s]'\n";
