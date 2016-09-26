@@ -28,14 +28,17 @@ void plot_series(Plotter_t plotter)
   string prof_file = plotter.file + "_series.dat";
   std::ofstream oprof_file(prof_file);
 
-/*
-
   Array<float, 1> res_prof(n["t"]);
   Array<float, 1> res_pos(n["t"]);
-  Array<int, 1> k_i(n["x"]); // index of the inversion cell
-  Array<float, 2> rtot(n["x"],  n["z"]); 
+
+  // read in density
+  auto tmp = plotter.h5load(plotter.file + "/const.h5", "G");
+  typename Plotter_t::arr_t rhod(tmp);
+  std::cout << rhod;
+/*
 
   std::set<std::string> plots({"wvarmax", "clfrac", "lwp", "er", "surf_precip", "mass_dry", "acc_precip", "cl_nc"});
+
   for (auto &plt : plots)
   {
     res_prof = 0;
@@ -235,7 +238,7 @@ void plot_series(Plotter_t plotter)
     gp.send1d(boost::make_tuple(res_pos, res_prof));
 
     oprof_file << res_prof ;
-//    plot(gp, res);
+   // plot(gp, res);
   } // var loop
 */
 }

@@ -11,7 +11,7 @@ class Plotter_t<2> : public PlotterCommon
 {
   public:
   using arr_t = blitz::Array<float,2>;
-  arr_t rhod;
+  blitz::Array<int, 1> k_i;
 
   protected:
   using parent_t = PlotterCommon;
@@ -66,7 +66,8 @@ class Plotter_t<2> : public PlotterCommon
     this->map["x"] = n[0]-1;
     this->map["z"] = n[1]-1;
     tmp.resize(n[0], n[1]);
-
+    k_i.resize(n[0]-1);
+ 
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");
     this->map["dx"] = tmp(1,0) - tmp(0,0);
@@ -75,9 +76,6 @@ class Plotter_t<2> : public PlotterCommon
 
     // other dataset are of the size x*z, resize tmp
     tmp.resize(n[0]-1, n[1]-1);
-    // read rhod
-    rhod.resize(n[0]-1, n[1]-1);
-    rhod = h5load(file + "/const.h5", "G");
   }
 };
 

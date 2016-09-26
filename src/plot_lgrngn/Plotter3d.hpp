@@ -7,7 +7,6 @@ class Plotter_t<3> : public PlotterCommon
 {
   public:
   using arr_t = blitz::Array<float, 3>;
-  arr_t rhod;
 
   protected:
   using parent_t = PlotterCommon;
@@ -75,9 +74,6 @@ class Plotter_t<3> : public PlotterCommon
 
     // other dataset are of the size x*z, resize tmp
     tmp.resize(n[0]-1, n[1]-1, n[2]-1);
-    // read rhod
-    rhod.resize(n[0]-1, n[1]-1, n[2]-1);
-    rhod = h5load(file + "/const.h5", "G");
   }
 };
 
