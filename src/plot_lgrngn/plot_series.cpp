@@ -3,9 +3,7 @@
 #include "Plotter3d.hpp"
 #include <boost/tuple/tuple.hpp>
 
-// helper type displayer
-template<typename T>
-class TD;
+const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
 
 using namespace blitz;
 
@@ -23,27 +21,7 @@ void plot_series(const Plotter_t &plotter)
   {
      std::cout << elem.first << " " << elem.second << std::endl;
   }
-}
-
-int main(int ac, char** av)
-{
-  if (ac != 2) error_macro("expecting 1 argument: dir containing out_lgrngn")
-
-  std::string
-    dir = string(av[1]),
-    h5  = dir + "out_lgrngn";
-
-  int n_dims = 2;
-
-  if(n_dims == 2)
-    plot_series(Plotter_t<2>(h5));
-  else if(n_dims == 3)
-    plot_series(Plotter_t<3>(h5));
-
-return 0;
 /*
-  const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
-
   Gnuplot gp;
   string file = h5 + "_series.svg";
   init_prof(gp, file, 3, 3); 
@@ -52,7 +30,7 @@ return 0;
   std::ofstream oprof_file(prof_file);
 
   // read density
-  Array<float, 2> rhod(n["x"], n["z"]);
+  plotter::arr_t rhod(n["x"], n["z"]);
   rhod = h5load(h5 + "/const.h5", "G");
 
   Array<float, 1> res_prof(n["t"]);
@@ -263,4 +241,22 @@ return 0;
 //    plot(gp, res);
   } // var loop
 */
+}
+
+int main(int ac, char** av)
+{
+  if (ac != 2) error_macro("expecting 1 argument: dir containing out_lgrngn")
+
+  std::string
+    dir = string(av[1]),
+    h5  = dir + "out_lgrngn";
+
+  int n_dims = 2;
+
+  if(n_dims == 2)
+    plot_series(Plotter_t<2>(h5));
+  else if(n_dims == 3)
+    plot_series(Plotter_t<3>(h5));
+
+return 0;
 } // main

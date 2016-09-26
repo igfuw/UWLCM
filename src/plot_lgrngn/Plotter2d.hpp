@@ -11,16 +11,17 @@ class Plotter_t<2> : public PlotterCommon
 {
   protected:
   using parent_t = PlotterCommon;
+  using arr_t = blitz::Array<float,2>;
   hsize_t n[2];
   enum {x, z};
-  blitz::Array<float, 2> tmp;
+  arr_t tmp;
 
   public:
 
   auto h5load(
     const string &file, 
     const string &dataset
-  ) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
+  ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     parent_t::h5load(file, dataset);
     this->h5s.getSimpleExtentDims(n, NULL);
@@ -43,7 +44,7 @@ class Plotter_t<2> : public PlotterCommon
     const string &file, 
     const string &dataset,
     int at
-  ) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
+  ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     string timestep_file = file + "/timestep" + zeropad(at, 10) + ".h5";
     return h5load(timestep_file, dataset);
