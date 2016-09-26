@@ -110,7 +110,7 @@ void plot_series(Plotter_t plotter)
         {
           auto tmp = plotter.h5load_timestep(plotter.file, "rd_rng000_mom3", at * n["outfreq"]) * 4./3. * 3.14 * rho_dry * 1e3;
           typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod * n["dx"] * n["dz"]; // turn mixing ratio in g/kg to total mass in g
+          snap *= rhod * plotter.CellVol; // turn mixing ratio in g/kg to total mass in g
           res_prof(at) = blitz::sum(snap); 
         }
         catch(...) {;}
@@ -130,9 +130,9 @@ void plot_series(Plotter_t plotter)
         try
         {
           if(at==0)
-            res_prof(at) = prec_vol / (double(n["dx"]) * rhod.extent(0)) * 1e3; 
+            res_prof(at) = prec_vol / plotter.DomainSurf * 1e3; 
           else
-            res_prof(at) = res_prof(at-1) + prec_vol / (double(n["dx"]) * rhod.extent(0)) * 1e3; 
+            res_prof(at) = res_prof(at-1) + prec_vol / plotter.DomainSurf * 1e3; 
         }
         catch(...) {;}
       }
@@ -253,8 +253,8 @@ int main(int ac, char** av)
 
   if(n_dims == 2)
     plot_series(Plotter_t<2>(h5));
-//  else if(n_dims == 3)
-  //  plot_series(Plotter_t<3>(h5));
+  else if(n_dims == 3)
+    plot_series(Plotter_t<3>(h5));
 
 return 0;
 } // main

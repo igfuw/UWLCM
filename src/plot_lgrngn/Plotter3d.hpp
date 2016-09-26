@@ -7,6 +7,7 @@ class Plotter_t<3> : public PlotterCommon
 {
   public:
   using arr_t = blitz::Array<float, 3>;
+  blitz::Array<int, 2> k_i;
 
   protected:
   using parent_t = PlotterCommon;
@@ -63,6 +64,7 @@ class Plotter_t<3> : public PlotterCommon
     this->map["y"] = n[1]-1;
     this->map["z"] = n[2]-1;
     tmp.resize(n[0], n[1], n[2]);
+    k_i.resize(n[0]-1, n[1]-1);
 
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");
@@ -71,6 +73,9 @@ class Plotter_t<3> : public PlotterCommon
     this->map["dy"] = tmp(0,1,0) - tmp(0,0,0);
     h5load(file + "/const.h5", "Z");
     this->map["dz"] = tmp(0,0,1) - tmp(0,0,0);
+    this->CellVol = this->map["dx"] * this->map["dy"] * this->map["dz"];
+    this->DomainSurf = this->map["dx"] * this->map["dy"] * this->map["x"] * this->map["y"];
+
 
     // other dataset are of the size x*z, resize tmp
     tmp.resize(n[0]-1, n[1]-1, n[2]-1);

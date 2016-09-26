@@ -10,6 +10,7 @@ class PlotterCommon
   public:
   std::map<std::string, double> map;
   const string file;
+  double CellVol, DomainSurf;
 
   protected:
   H5::H5File h5f;
