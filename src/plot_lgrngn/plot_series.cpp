@@ -1,6 +1,6 @@
 #include "common.hpp"
 #include "gnuplot.hpp"
-#include "hdf5.hpp"
+#include "Plotter3d.hpp"
 #include <boost/tuple/tuple.hpp>
 
 // helper type displayer
@@ -37,8 +37,8 @@ int main(int ac, char** av)
 
   if(n_dims == 2)
     plot_series(Plotter_t<2>(h5));
-//  else if(n_dims == 3)
-//    plot_series(Plotter_t<3>(h5));
+  else if(n_dims == 3)
+    plot_series(Plotter_t<3>(h5));
 
 return 0;
 /*
