@@ -178,7 +178,7 @@ void plot_series(Plotter_t plotter)
             rtot += snap;
           }
           plotter.k_i = 0;
-          plotter.k_i = blitz::first((rtot < 8.), tensor::j); 
+          plotter.k_i = blitz::first((rtot < 8.), plotter.LastIndex); 
           res_prof(at) = blitz::mean(plotter.k_i);
         }
         catch (...) {;}
@@ -190,10 +190,11 @@ void plot_series(Plotter_t plotter)
         {
           auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
-          Array<float, 1> mean(n["z"]);
+    //      Array<float, 1> mean(n["z"]);
           snap = snap * snap; // 2nd power, w_mean = 0
           // mean variance of w in horizontal
-          mean = blitz::mean(snap(tensor::j, tensor::i), tensor::j); // mean over x and y
+//          mean = blitz::mean(snap(tensor::j, tensor::i), tensor::j); // mean over x and y
+          auto mean = plotter.horizontal_mean(snap);
           res_prof(at) = blitz::max(mean); // the max value
         }
         catch(...) {;}
@@ -249,7 +250,7 @@ int main(int ac, char** av)
     dir = string(av[1]),
     h5  = dir + "out_lgrngn";
 
-  int n_dims = 2;
+  int n_dims = 3;
 
   if(n_dims == 2)
     plot_series(Plotter_t<2>(h5));

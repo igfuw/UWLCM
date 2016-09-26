@@ -8,6 +8,7 @@ class Plotter_t<3> : public PlotterCommon
   public:
   using arr_t = blitz::Array<float, 3>;
   blitz::Array<int, 2> k_i;
+  blitz::thirdIndex LastIndex;
 
   protected:
   using parent_t = PlotterCommon;
@@ -49,6 +50,19 @@ class Plotter_t<3> : public PlotterCommon
     string timestep_file = file + "/timestep" + zeropad(at, 10) + ".h5";
     return h5load(timestep_file, dataset);
   }
+
+  auto horizontal_mean(
+    const arr_t &data
+  ) -> decltype(blitz::safeToReturn(blitz::Array<float, 1>() + 0))
+  {
+    using namespace blitz::tensor;
+    auto tmp = blitz::mean(data(i,k,j), k);
+    blitz::Array<float, 2> mean2d(tmp);
+    auto tmp2 = blitz::mean(mean2d(j,i), j);
+    blitz::Array<float, 1> mean(tmp2);
+    return blitz::safeToReturn(mean + 0);
+  }
+
 
   //ctor
   Plotter_t(const string &file):
