@@ -34,8 +34,7 @@ void plot_series(Plotter_t plotter)
   // read in density
   auto tmp = plotter.h5load(plotter.file + "/const.h5", "G");
   typename Plotter_t::arr_t rhod(tmp);
-  std::cout << rhod;
-/*
+  typename Plotter_t::arr_t rtot(rhod.shape());
 
   std::set<std::string> plots({"wvarmax", "clfrac", "lwp", "er", "surf_precip", "mass_dry", "acc_precip", "cl_nc"});
 
@@ -44,7 +43,7 @@ void plot_series(Plotter_t plotter)
     res_prof = 0;
     res_pos = 0;
 
-    std::ifstream f_precip(h5 + "/prec_vol.dat");
+    std::ifstream f_precip(plotter.file + "/prec_vol.dat");
     std::string row;
     double prec_vol;
 
@@ -59,8 +58,8 @@ void plot_series(Plotter_t plotter)
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = h5load_timestep(h5, "rw_rng000_mom0", at * n["outfreq"]);
-          Array<float, 2> snap(tmp);
+          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
           snap = iscloudy(snap);
@@ -73,8 +72,8 @@ void plot_series(Plotter_t plotter)
 	// cloud droplet (0.5um < r < 25 um) concentration
         try
         {
-          auto tmp = h5load_timestep(h5, "rw_rng000_mom0", at * n["outfreq"]);
-          Array<float, 2> snap(tmp);
+          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
           snap /= 1e6; // per cm^3
           snap *= rhod; // b4 it was per milligram
           res_prof(at) = blitz::mean(snap); 
@@ -87,11 +86,11 @@ void plot_series(Plotter_t plotter)
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = h5load_timestep(h5, "rw_rng000_mom0", at * n["outfreq"]);
-          Array<float, 2> snap(tmp);
+          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
-          Array<float, 2> snap2;
+          typename Plotter_t::arr_t snap2;
           snap2.resize(snap.shape());
           snap2=snap;
           snap = iscloudy(snap); // cloudiness mask
@@ -109,8 +108,8 @@ void plot_series(Plotter_t plotter)
         double rho_dry = 1769; //[kg/m^3] - density of ammonium sulfate from wikipedia
         try
         {
-          auto tmp = h5load_timestep(h5, "rd_rng000_mom3", at * n["outfreq"]) * 4./3. * 3.14 * rho_dry * 1e3;
-          Array<float, 2> snap(tmp);
+          auto tmp = plotter.h5load_timestep(plotter.file, "rd_rng000_mom3", at * n["outfreq"]) * 4./3. * 3.14 * rho_dry * 1e3;
+          typename Plotter_t::arr_t snap(tmp);
           snap *= rhod * n["dx"] * n["dz"]; // turn mixing ratio in g/kg to total mass in g
           res_prof(at) = blitz::sum(snap); 
         }
@@ -143,14 +142,14 @@ void plot_series(Plotter_t plotter)
         try
         {
           {
-            auto tmp = h5load_timestep(h5, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            Array<float, 2> snap(tmp); // cloud water mixing ratio [g/kg]
+            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+            typename Plotter_t::arr_t snap(tmp); // cloud water mixing ratio [g/kg]
             snap *= rhod; // cloud water per cubic metre (should be wet density...)
             res_prof(at) = blitz::mean(snap); 
           }
           {
-            auto tmp = h5load_timestep(h5, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            Array<float, 2> snap(tmp); // rain water mixing ratio [g/kg]
+            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+            typename Plotter_t::arr_t snap(tmp); // rain water mixing ratio [g/kg]
             snap *= rhod; // rain water per cubic metre (should be wet density...)
             res_prof(at) += blitz::mean(snap); 
           }
@@ -164,23 +163,23 @@ void plot_series(Plotter_t plotter)
         try
         {
           {
-            auto tmp = h5load_timestep(h5, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            Array<float, 2> snap(tmp); // cloud water mixing ratio [g/kg]
+            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+            typename Plotter_t::arr_t snap(tmp); // cloud water mixing ratio [g/kg]
             rtot = snap;
           }
           {
-            auto tmp = h5load_timestep(h5, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            Array<float, 2> snap(tmp); // rain water mixing ratio [g/kg]
+            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+            typename Plotter_t::arr_t snap(tmp); // rain water mixing ratio [g/kg]
             rtot += snap;
           }
           {
-            auto tmp = h5load_timestep(h5, "rv", at * n["outfreq"]) * 1e3;
-            Array<float, 2> snap(tmp); // vapor mixing ratio [g/kg]
+            auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]) * 1e3;
+            typename Plotter_t::arr_t snap(tmp); // vapor mixing ratio [g/kg]
             rtot += snap;
           }
-          k_i = 0;
-          k_i = blitz::first((rtot < 8.), tensor::j); 
-          res_prof(at) = blitz::mean(k_i);
+          plotter.k_i = 0;
+          plotter.k_i = blitz::first((rtot < 8.), tensor::j); 
+          res_prof(at) = blitz::mean(plotter.k_i);
         }
         catch (...) {;}
       }
@@ -189,8 +188,8 @@ void plot_series(Plotter_t plotter)
         // maximum variance of vertical velocity
         try
         {
-          auto tmp = h5load_timestep(h5, "w", at * n["outfreq"]);
-          Array<float, 2> snap(tmp);
+          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
           Array<float, 1> mean(n["z"]);
           snap = snap * snap; // 2nd power, w_mean = 0
           // mean variance of w in horizontal
@@ -198,7 +197,7 @@ void plot_series(Plotter_t plotter)
           res_prof(at) = blitz::max(mean); // the max value
         }
         catch(...) {;}
-      }  
+      }
       else assert(false);
     } // time loop
 
@@ -240,7 +239,6 @@ void plot_series(Plotter_t plotter)
     oprof_file << res_prof ;
    // plot(gp, res);
   } // var loop
-*/
 }
 
 int main(int ac, char** av)
@@ -255,8 +253,8 @@ int main(int ac, char** av)
 
   if(n_dims == 2)
     plot_series(Plotter_t<2>(h5));
-  else if(n_dims == 3)
-    plot_series(Plotter_t<3>(h5));
+//  else if(n_dims == 3)
+  //  plot_series(Plotter_t<3>(h5));
 
 return 0;
 } // main
