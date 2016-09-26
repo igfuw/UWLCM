@@ -14,24 +14,21 @@ double iscloudy(double x)
 BZ_DECLARE_FUNCTION(iscloudy)
 
 template<class Plotter_t>
-void plot_series(const Plotter_t &plotter)
+void plot_series(Plotter_t plotter)
 {
   auto& n = plotter.map;
   for(auto elem : n)
   {
      std::cout << elem.first << " " << elem.second << std::endl;
   }
-/*
   Gnuplot gp;
-  string file = h5 + "_series.svg";
+  string file = plotter.file + "_series.svg";
   init_prof(gp, file, 3, 3); 
 
-  string prof_file = h5 + "_series.dat";
+  string prof_file = plotter.file + "_series.dat";
   std::ofstream oprof_file(prof_file);
 
-  // read density
-  plotter::arr_t rhod(n["x"], n["z"]);
-  rhod = h5load(h5 + "/const.h5", "G");
+/*
 
   Array<float, 1> res_prof(n["t"]);
   Array<float, 1> res_pos(n["t"]);

@@ -9,6 +9,7 @@ class PlotterCommon
 {
   public:
   std::map<std::string, double> map;
+  const string file;
 
   protected:
   H5::H5File h5f;
@@ -29,7 +30,8 @@ class PlotterCommon
   }
 
   //ctor
-  PlotterCommon(const string &file)
+  PlotterCommon(const string &file):
+    file(file)
   {
     // init dt and outfreq
     {

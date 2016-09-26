@@ -5,9 +5,12 @@
 template<>
 class Plotter_t<3> : public PlotterCommon 
 {
+  public:
+  using arr_t = blitz::Array<float, 3>;
+  arr_t rhod;
+
   protected:
   using parent_t = PlotterCommon;
-  using arr_t = blitz::Array<float, 3>;
   hsize_t n[3];
   enum {x, y, z};
   arr_t tmp;
@@ -69,6 +72,12 @@ class Plotter_t<3> : public PlotterCommon
     this->map["dy"] = tmp(0,1,0) - tmp(0,0,0);
     h5load(file + "/const.h5", "Z");
     this->map["dz"] = tmp(0,0,1) - tmp(0,0,0);
+
+    // other dataset are of the size x*z, resize tmp
+    tmp.resize(n[0]-1, n[1]-1, n[2]-1);
+    // read rhod
+    rhod.resize(n[0]-1, n[1]-1, n[2]-1);
+    rhod = h5load(file + "/const.h5", "G");
   }
 };
 
