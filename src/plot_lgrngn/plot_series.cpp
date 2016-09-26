@@ -3,6 +3,10 @@
 #include "hdf5.hpp"
 #include <boost/tuple/tuple.hpp>
 
+// helper type displayer
+template<typename T>
+class TD;
+
 using namespace blitz;
 
 double iscloudy(double x)
@@ -11,18 +15,33 @@ double iscloudy(double x)
 }
 BZ_DECLARE_FUNCTION(iscloudy)
 
+template<class Plotter_t>
+void plot_series(const Plotter_t &plotter)
+{
+  auto& n = plotter.map;
+  for(auto elem : n)
+  {
+     std::cout << elem.first << " " << elem.second << std::endl;
+  }
+}
+
 int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: dir containing out_lgrngn")
-
-  std::set<std::string> plots({"wvarmax", "clfrac", "lwp", "er", "surf_precip", "mass_dry", "acc_precip", "cl_nc"});
 
   std::string
     dir = string(av[1]),
     h5  = dir + "out_lgrngn";
 
-  auto n = h5n(h5);
+  int n_dims = 2;
 
+  if(n_dims == 2)
+    plot_series(Plotter_t<2>(h5));
+//  else if(n_dims == 3)
+//    plot_series(Plotter_t<3>(h5));
+
+return 0;
+/*
   const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
 
   Gnuplot gp;
@@ -41,6 +60,7 @@ int main(int ac, char** av)
   Array<int, 1> k_i(n["x"]); // index of the inversion cell
   Array<float, 2> rtot(n["x"],  n["z"]); 
 
+  std::set<std::string> plots({"wvarmax", "clfrac", "lwp", "er", "surf_precip", "mass_dry", "acc_precip", "cl_nc"});
   for (auto &plt : plots)
   {
     res_prof = 0;
@@ -242,4 +262,5 @@ int main(int ac, char** av)
     oprof_file << res_prof ;
 //    plot(gp, res);
   } // var loop
+*/
 } // main
