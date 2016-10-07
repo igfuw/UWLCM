@@ -143,6 +143,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_cond = vm["sstp_cond"].as<int>();
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
+  rt_params.cloudph_opts_init.exact_sstp_cond = true;
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
 
