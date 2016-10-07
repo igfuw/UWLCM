@@ -252,8 +252,8 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
 
       // du/dt = sum of kinematic momentum fluxes * dt
-      this->vert_grad_cnt(F, this->vip_rhs[it], params.dz);
-      this->vip_rhs[it](this->ijk) *= params.dt;
+      this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
+      this->vip_rhs[it](this->ijk) *= -params.dt;
     }
     this->mem->barrier();
     if(this->rank == 0)
