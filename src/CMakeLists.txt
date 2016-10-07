@@ -32,5 +32,3 @@ find_package(Boost COMPONENTS thread iostreams system timer program_options file
 target_link_libraries(bicycles ${Boost_LIBRARIES})
 
 install(TARGETS bicycles DESTINATION bin)
-
-add_subdirectory(plot_lgrngn)
