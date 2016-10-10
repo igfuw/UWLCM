@@ -2,6 +2,7 @@
 
 //TODO: make these functions return arrays
 
+// Grabowski & Smolarkiewicz 1996 eq. (2)
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
 {
