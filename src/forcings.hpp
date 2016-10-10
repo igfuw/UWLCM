@@ -25,7 +25,7 @@ void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 
   // index of first cell above inversion
   tmp1(ijk)  = rv(ijk) + r_l(ijk);
-  k_i(this->hrzntl_subdomain) = blitz::first( tmp1 < setup::q_i, this->vert_idx); 
+  k_i(this->hrzntl_subdomain) = blitz::first( tmp1(ijk).reindex(this->zero) < setup::q_i, this->vert_idx); 
 
   // calc Eqs. 5 and 6 from Ackerman et al 2009
   const int perm_no = this->vert_dim;
@@ -45,6 +45,7 @@ void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z-1, this->hrzntl_subdomain));
   F(noground) += setup::F_1 * exp(- (this->vert_idx - 0.5) * params.dz * tmp1(notop));
 
+  // free atmosphere part
   F(ijk).reindex(this->zero) += where(this->vert_idx > k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j),  // works even in 2D ?!?!
       setup::c_p * setup::rho_i * setup::D *
       (0.25 * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 4./3) +

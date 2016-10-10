@@ -32,6 +32,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
+                           &tmp2,
                            &r_l,
                            &F,       // forcings helper
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
@@ -339,8 +340,8 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         // ---- potential temp sources ----
         if(params.th_src)
         {
-          beta(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
-          th_src(beta);
+          tmp2(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+          th_src(tmp2);
           rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
         }
 
@@ -406,7 +407,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       // store liquid water content to be used in update_rhs (if done in update_rhs, it fails on async runs)
       prtcls->diag_all();
       prtcls->diag_wet_mom(3);
-      auto rl = r_l(this->domain); 
+      auto rl = r_l(this->domain); // rl refrences subdomain of r_l
       rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
       // in radiation parametrization we integrate mixing ratio * this->rhod
@@ -544,6 +545,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
     parent_t(args, p),
     params(p),
     tmp1(args.mem->tmp[__FILE__][0][0]),
+    tmp2(args.mem->tmp[__FILE__][0][5]),
     r_l(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
@@ -558,6 +560,6 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 5); // tmp1, r_l, alpha, beta, F
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
   }
 };
