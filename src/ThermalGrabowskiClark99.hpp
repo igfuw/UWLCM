@@ -25,13 +25,17 @@ namespace setup
   {
     return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
   }
-  // theta std to temperature
-  template <class real_t>
-  quantity<si::temperature, real_t> th2T(const quantity<si::temperature, real_t> &th, const quantity<si::pressure, real_t> &p) constexpr
-  {
-    quantity<si::temperature, real_t> T = th * pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
-    return T;
-  }
+
+  // non-const global :)
+  arr_1D_t gpre_ref;
+
+    using libcloudphxx::common::theta_std::p_1000;
+    using libcloudphxx::common::moist_air::R_d_over_c_pd;
+    using libcloudphxx::common::moist_air::c_pd;
+    using libcloudphxx::common::moist_air::R_d;
+    using libcloudphxx::common::const_cp::l_tri;
+    using libcloudphxx::common::theta_std::p_1000;
+  const real_t dz = 1.; // hardcode dz :)
 
   const real_t env_RH = 0.2;
   const real_t prtrb_RH = 1.00;
@@ -66,6 +70,14 @@ namespace setup
   const real_t F_lat = 93; //W/m^2, latent heat flux
   const real_t u_fric = 0.25; // m/s, friction velocity
 
+  // theta std to temperature
+  template <class real_t>
+  quantity<si::temperature, real_t> th2T(const quantity<si::temperature, real_t> &th, const quantity<si::pressure, real_t> &p)
+  {
+    quantity<si::temperature, real_t> T = th * pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
+    return T;
+  }
+
   // standard potential temperature at height z
   quantity<si::temperature, real_t> th_std(const real_t &z)
   {
@@ -75,16 +87,16 @@ namespace setup
     return ret;
   }
 
-
   struct env_rv
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &z) const
     {
-      return RH_to_rv(env_RH, th2T(th(z), p(z)), p(z));
+      return RH_to_rv(env_RH, th2T(th_std(z), gpre_ref(z/dz) * si::pascals), gpre_ref(z/dz) * si::pascals);
     }
   BZ_DECLARE_FUNCTOR(env_rv);
   };
 
+/*
   struct prtrb_rv
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &z) const
@@ -93,9 +105,11 @@ namespace setup
     }
   BZ_DECLARE_FUNCTOR(prtrb_rv);
   };
+*/
 
 
   // water mixing ratio at height z
+  /*
   struct r_t
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &z) const
@@ -107,13 +121,13 @@ namespace setup
     }
     BZ_DECLARE_FUNCTOR(r_t);
   };
-
+*/
   // initial dry air potential temp at height z, assuming theta_std = theta_l (spinup needed)
   struct th_dry_fctr
   {
     real_t operator()(const real_t &z) const
     {
-      return theta_dry::std2dry<real_t>(th_std(z), r_t()(z)) / si::kelvins;
+      return theta_dry::std2dry<real_t>(th_std(z), env_rv()(z)) / si::kelvins;
     }
     BZ_DECLARE_FUNCTOR(th_dry_fctr);
   };
@@ -150,6 +164,7 @@ namespace setup
 
   // density profile as a function of altitude
   // hydrostatic and assuming constant theta (not used now)
+   /*
   struct rhod_fctr
   {
     real_t operator()(real_t z) const
@@ -168,7 +183,7 @@ namespace setup
     // to make the rhod() functor accept Blitz arrays as arguments
     BZ_DECLARE_FUNCTOR(rhod_fctr);
   };
-
+*/
 
   //aerosol bimodal lognormal dist. 
   const quantity<si::length, real_t>
@@ -249,7 +264,7 @@ namespace setup
     int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
     real_t dz = (Z / si::metres) / (nz-1); 
 
-    solver.advectee(ix::rv) = r_t()(index * dz); 
+    solver.advectee(ix::rv) = env_rv()(index * dz); 
     solver.advectee(ix::u)= setup::u()(index * dz);
     solver.advectee(ix::w) = 0;  
    
@@ -393,7 +408,7 @@ namespace setup
   // alse set w_LS and hgt_fctrs
   // like in Wojtek's BabyEulag
   template<class user_params_t>
-  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   {
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
     using libcloudphxx::common::moist_air::c_pd;
@@ -401,16 +416,16 @@ namespace setup
     using libcloudphxx::common::const_cp::l_tri;
     using libcloudphxx::common::theta_std::p_1000;
 
-    // pressure profile
-    arr_1D_t pre(nz);
+    gpre_ref.resize(pre_ref.shape());
     // temperature profile
     arr_1D_t T(nz);
     setup::real_t dz = (Z / si::metres) / (nz-1);
 
-    r_t rt;
-    T(0) = th_l(0.) / si::kelvins *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
-    pre(0) = setup::p_0 / si::pascals;
-    th_e(0) = th_l(0.) / si::kelvins;
+    env_rv rt;
+    pre_ref(0) = setup::p_0 / si::pascals;
+    gpre_ref(0) = pre_ref(0);
+    T(0) = th_std(0.) / si::kelvins *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>()); // but th_std needs pre_ref !!
+    th_e(0) = th_std(0.) / si::kelvins;
     rv_e(0) = rt(0.);
 
     setup::real_t tt0 = 273.17;
@@ -425,20 +440,21 @@ namespace setup
     for(int k=1; k<nz; ++k)
     {
       setup::real_t bottom = R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(k-1));
-      setup::real_t rho1 = pre(k-1) / bottom;
-      pre(k) = pre(k-1) - rho1 * 9.81 * dz;
-      setup::real_t thetme = pow(p_1000<setup::real_t>() / si::pascals / pre(k), f);
-      setup::real_t thi = 1. / (th_l(k * dz) / si::kelvins);
+      setup::real_t rho1 = pre_ref(k-1) / bottom;
+      pre_ref(k) = pre_ref(k-1) - rho1 * 9.81 * dz;
+      gpre_ref(k) = pre_ref(k);
+      setup::real_t thetme = pow(p_1000<setup::real_t>() / si::pascals / pre_ref(k), f);
+      setup::real_t thi = 1. / (th_std(k * dz) / si::kelvins);
       setup::real_t y = b * thetme * tt0 * thi; 
       setup::real_t ees = ee0 * exp(b-y);
-      setup::real_t qvs = a * ees / (pre(k) - ees); 
+      setup::real_t qvs = a * ees / (pre_ref(k) - ees); 
       setup::real_t cf1 = thetme*thetme*thi*thi;
-      cf1 *= c * d * pre(k) / (pre(k) - ees);
+      cf1 *= c * d * pre_ref(k) / (pre_ref(k) - ees);
       setup::real_t delta = (rt(k*dz) - qvs) / (1 + qvs * cf1);
       if(delta < 0.) delta = 0.;
       rv_e(k) = rt(k*dz) - delta;
-      th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
-      T(k) = th_e(k) * pow(pre(k) / (p_1000<setup::real_t>() / si::pascals),  f);
+      th_e(k) = th_std(k*dz) / si::kelvins + c * thetme * delta;
+      T(k) = th_e(k) * pow(pre_ref(k) / (p_1000<setup::real_t>() / si::pascals),  f);
     }
 
     // compute reference state theta and rhod
