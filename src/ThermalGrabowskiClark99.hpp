@@ -58,7 +58,8 @@ namespace setup
     z_0  = 0    * si::metres,
     Z    = 2400 * si::metres, // DYCOMS: 1500
     X    = 3600 * si::metres, // DYCOMS: 6400
-    Y    = 3600 * si::metres; // DYCOMS: 6400
+    Y    = 3600 * si::metres, // DYCOMS: 6400
+    z_prtrb = 800 * si::metres;
   const real_t z_i  = 795; //initial inversion height
   const real_t heating_kappa = 85; // m^2/kg
   const real_t F_0 = 70; // w/m^2
@@ -108,30 +109,38 @@ namespace setup
     return ret;
   }
 
+  real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th, const real_t &rhod)
+  {
+    real_t T = theta_dry::T(th * si::kelvins, (rhod * si::kilograms / si::cubic_metres)) / si::kelvins; // shouldnt we use theta_dry here?
+    return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
+  }
 
   struct env_rv
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &z) const
     {
-//      return RH_to_rv(env_RH, th2T(th_std(z), gpre_ref(z/dz) * si::pascals), gpre_ref(z/dz) * si::pascals); 
-    
-      real_t T = theta_dry::T(th_std(z), (rhod_fctr()(z) * si::kilograms / si::cubic_metres)) / si::kelvins; // shouldnt we use theta_dry here?
-//    rv = p_vs * RH / (rho_d * R_v * T)
-      return (p_vs(T * si::kelvins) / si::pascals) * env_RH / (rhod_fctr()(z) * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
+      return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
     }
   BZ_DECLARE_FUNCTOR(env_rv);
   };
 
-/*
   struct prtrb_rv
   {
-    quantity<si::dimensionless, real_t> operator()(const real_t &z) const
+    quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
     {
-      return RH_to_rv(prtrb_RH, th2T(th(z), p(z)), p(z));
+      real_t r = sqrt( pow( x - (X / si::metres / 2.), 2) + pow( z - (z_prtrb / si::metres / 2.), 2));
+      if(r <= 200.)
+        return RH_th_rhod_to_rv(prtrb_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
+      else if(r >= 300.)
+        return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
+      else // transition layer
+      {
+        real_t RH = env_RH + (prtrb_RH - env_RH) * pow( cos(boost::math::constants::pi<real_t>() / 2. * (r - 200) / 100.), 2);
+        return RH_th_rhod_to_rv(RH, th_std(z) / si::kelvins, rhod_fctr()(z));
+      }
     }
-  BZ_DECLARE_FUNCTOR(prtrb_rv);
+  BZ_DECLARE_FUNCTOR2(prtrb_rv);
   };
-*/
 
   // initial dry air potential temp at height z, assuming theta_std = theta_l (spinup needed)
   struct th_dry_fctr
@@ -220,8 +229,10 @@ namespace setup
     using ix = typename concurr_t::solver_t::ix;
     int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
     real_t dz = (Z / si::metres) / (nz-1); 
+    int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
+    real_t dx = (X / si::metres) / (nx-1); 
 
-    solver.advectee(ix::rv) = env_rv()(index * dz); 
+    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
     solver.advectee(ix::u) = 0;
     solver.advectee(ix::w) = 0;  
    

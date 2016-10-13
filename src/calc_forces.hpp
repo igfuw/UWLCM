@@ -80,8 +80,8 @@ void slvr_lgrngn<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
   buoyancy(th, rv);
   alpha(ijk) = F(ijk);
   // large-scale vertical wind
-  subsidence(ix::w);
-  alpha(ijk) += F(ijk);
+//  subsidence(ix::w);
+  //alpha(ijk) += F(ijk);
 }
 
 
