@@ -183,6 +183,11 @@ int main(int argc, char** argv)
   ac = argc;
   av = argv;
 
+    std::cout << "rv_0: " << setup::rv_0 << std::endl;
+    std::cout << "th_0: " << setup::th_0 << std::endl;
+    std::cout << "th_0_dry: " << setup::th_0_dry << std::endl;
+    std::cout << "rho_surf: " << setup::rho_surf << std::endl;
+
   {
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()

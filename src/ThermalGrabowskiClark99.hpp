@@ -27,8 +27,11 @@ namespace setup
   }
 
   // non-const global :)
-//  arr_1D_t gpre_ref;
-
+   /*
+  arr_1D_t gpre_ref;
+  arr_1D_t gT;
+  real_t gdz;
+*/
     using libcloudphxx::common::theta_std::p_1000;
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
     using libcloudphxx::common::moist_air::c_pd;
@@ -81,7 +84,7 @@ namespace setup
   template <class real_t>
   quantity<si::temperature, real_t> th2T(const quantity<si::temperature, real_t> &th, const quantity<si::pressure, real_t> &p)
   {
-    quantity<si::temperature, real_t> T = th * pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
+    quantity<si::temperature, real_t> T = th * pow(p / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
     return T;
   }
   // some more constants copied from env_prof, todo
@@ -104,16 +107,28 @@ namespace setup
   quantity<si::temperature, real_t> th_std(const real_t &z)
   {
     quantity<si::temperature, real_t> ret;
-    ret = th_0 * exp(stab * z);
+    ret = th_0 * real_t(exp(stab * z));
 
     return ret;
   }
 
+  // rv(RH, th_dry, rhod)
   real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th, const real_t &rhod)
   {
     real_t T = theta_dry::T(th * si::kelvins, (rhod * si::kilograms / si::cubic_metres)) / si::kelvins; // shouldnt we use theta_dry here?
     return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
   }
+
+/*
+  struct env_rv
+  {
+    quantity<si::dimensionless, real_t> operator()(const int &k) const
+    {
+      return RH_to_rv(env_RH, gT(k) * si::kelvins, gpre_ref(k) * si::pascals);
+    }
+  BZ_DECLARE_FUNCTOR(env_rv);
+  };
+*/
 
   struct env_rv
   {
@@ -123,6 +138,7 @@ namespace setup
     }
   BZ_DECLARE_FUNCTOR(env_rv);
   };
+
 
   struct prtrb_rv
   {
@@ -358,15 +374,13 @@ namespace setup
     using libcloudphxx::common::const_cp::l_tri;
     using libcloudphxx::common::theta_std::p_1000;
 
-//    gpre_ref.resize(pre_ref.shape());
     // temperature profile
     arr_1D_t T(nz);
     setup::real_t dz = (Z / si::metres) / (nz-1);
 
     env_rv rt;
     pre_ref(0) = setup::p_0 / si::pascals;
-//    gpre_ref(0) = pre_ref(0);
-    T(0) = th_std(0.) / si::kelvins *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>()); // but th_std needs pre_ref !!
+    T(0) = th_std(0.) / si::kelvins *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>()); 
     th_e(0) = th_std(0.) / si::kelvins;
     rv_e(0) = rt(0.);
 
@@ -384,7 +398,6 @@ namespace setup
       setup::real_t bottom = R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(k-1));
       setup::real_t rho1 = pre_ref(k-1) / bottom;
       pre_ref(k) = pre_ref(k-1) - rho1 * 9.81 * dz;
-//      gpre_ref(k) = pre_ref(k);
       setup::real_t thetme = pow(p_1000<setup::real_t>() / si::pascals / pre_ref(k), f);
       setup::real_t thi = 1. / (th_std(k * dz) / si::kelvins);
       setup::real_t y = b * thetme * tt0 * thi; 
@@ -420,6 +433,7 @@ namespace setup
     setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
     setup::real_t cs = 9.81 / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
     // rhod profile
+    std::cout << "env prof average stability:" << st_avg << std::endl;
     rhod = rho_surf * exp(- st_avg * k * dz) * pow(
              1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
 

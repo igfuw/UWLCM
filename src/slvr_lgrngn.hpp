@@ -236,6 +236,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   void vip_rhs_expl_calc()
   {
     parent_t::vip_rhs_expl_calc();
+/*
     this->mem->barrier();
     if(this->rank == 0)
       tbeg = clock::now();
@@ -262,6 +263,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       tend = clock::now();
       tvip_rhs += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
+*/
   }
 
   void buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv);
