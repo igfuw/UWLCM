@@ -184,9 +184,13 @@ int main(int argc, char** argv)
   av = argv;
 
     std::cout << "rv_0: " << setup::rv_0 << std::endl;
+    std::cout << "env_rv rv_0: " << setup::env_rv()(0.) << std::endl;
     std::cout << "th_0: " << setup::th_0 << std::endl;
     std::cout << "th_0_dry: " << setup::th_0_dry << std::endl;
     std::cout << "rho_surf: " << setup::rho_surf << std::endl;
+    std::cout << "T(0): " << setup::T(0.) << std::endl;
+    std::cout << "T(th_dry, rhod)(0): " << libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_dry_fctr()(0.) * si::kelvins, setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres) << std::endl;
+    std::cout << "T(th_std, rhod)(0): " << libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_std(0.), setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres) << std::endl;
 
   {
     // note: all options should have default values here to make "--micro=? --help" work

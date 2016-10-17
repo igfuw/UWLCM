@@ -20,11 +20,6 @@ namespace setup
   namespace moist_air = libcloudphxx::common::moist_air;
   namespace const_cp = libcloudphxx::common::const_cp;
 
-  // RH T and p to rv
-  quantity<si::dimensionless, real_t> RH_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
-  {
-    return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
-  }
 
   // non-const global :)
    /*
@@ -32,30 +27,34 @@ namespace setup
   arr_1D_t gT;
   real_t gdz;
 */
-    using libcloudphxx::common::theta_std::p_1000;
-    using libcloudphxx::common::moist_air::R_d_over_c_pd;
-    using libcloudphxx::common::moist_air::c_pd;
-    using libcloudphxx::common::moist_air::R_d;
-    using libcloudphxx::common::moist_air::R_v;
-    using libcloudphxx::common::const_cp::l_tri;
-    using libcloudphxx::common::const_cp::p_vs;
-    using libcloudphxx::common::theta_std::p_1000;
-    namespace theta_dry = libcloudphxx::common::theta_dry;
-    
+  using libcloudphxx::common::theta_std::p_1000;
+  using libcloudphxx::common::moist_air::R_d_over_c_pd;
+  using libcloudphxx::common::moist_air::c_pd;
+  using libcloudphxx::common::moist_air::R_d;
+  using libcloudphxx::common::moist_air::R_v;
+  using libcloudphxx::common::const_cp::l_tri;
+  using libcloudphxx::common::const_cp::p_vs;
+  using libcloudphxx::common::theta_std::p_1000;
+  namespace theta_dry = libcloudphxx::common::theta_dry;
 
-
-  const real_t env_RH = 0.2;
-  const real_t prtrb_RH = 1.00;
+  // RH T and p to rv
+  quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
+  {
+    //return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
+    return RH * const_cp::r_vs<real_t>(T, p);
+  }
 
   const quantity<si::temperature, real_t>
     T_0(283. * si::kelvins);  // surface temperature
   const quantity<si::pressure, real_t> 
     p_0 = 85000 * si::pascals;
-  const quantity<si::dimensionless, real_t> rv_0(RH_to_rv(env_RH, T_0, p_0));
+  const real_t stab = 1.3e-5; // stability, 1/m
+  const real_t env_RH = 0.2;
+  const real_t prtrb_RH = 1.00;
   // theta (std) at surface
   const quantity<si::temperature, real_t> th_0 = T_0 / pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
+  const quantity<si::dimensionless, real_t> rv_0(RH_T_p_to_rv(env_RH, T_0, p_0));
   const quantity<si::temperature, real_t> th_0_dry = theta_dry::std2dry<real_t>(th_0, rv_0);
-  const real_t stab = 1.3e-5; // stability, 1/m
 
   const quantity<si::length, real_t> 
     z_0  = 0    * si::metres,
@@ -79,7 +78,6 @@ namespace setup
   const real_t F_lat = 93; //W/m^2, latent heat flux
   const real_t u_fric = 0.25; // m/s, friction velocity
 
-
   // T(th_std, p)
   template <class real_t>
   quantity<si::temperature, real_t> th2T(const quantity<si::temperature, real_t> &th, const quantity<si::pressure, real_t> &p)
@@ -87,21 +85,38 @@ namespace setup
     quantity<si::temperature, real_t> T = th * pow(p / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
     return T;
   }
+
   // some more constants copied from env_prof, todo
   const setup::real_t T_surf = th2T(th_0, p_0) / si::kelvins;
   const setup::real_t T_virt_surf = T_surf * (1. + 0.608 * rv_0);
   const setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
   const setup::real_t cs = 9.81 / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / T_surf;
 
+    
+
+  // T profile
+  real_t T(const real_t &z)
+  {
+    // T profile, c.f. babyeulag
+    return (T_0 / si::kelvins) / exp(- stab * z) * (
+             1. - cs * (1 - exp(- stab * z)));
+  }
+
+
+
+
+
   struct rhod_fctr
   {
-    real_t operator()(const real_t &z)
+    real_t operator()(const real_t &z) const
     {
       // rhod profile
       return rho_surf * exp(- stab * z) * pow(
                1. - cs * (1 - exp(- stab * z)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
     }
+    BZ_DECLARE_FUNCTOR(rhod_fctr);
   };
+
 
   // standard potential temperature at height z
   quantity<si::temperature, real_t> th_std(const real_t &z)
@@ -112,6 +127,12 @@ namespace setup
     return ret;
   }
 
+  real_t p(const real_t &z)
+  {
+    // p profile, c.f. babyeulag
+    return p_0 / si::pascals * pow((th_std(z) / si::kelvins) / T(z), - 1. / R_d_over_c_pd<setup::real_t>() );
+  }
+
   // rv(RH, th_dry, rhod)
   real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th, const real_t &rhod)
   {
@@ -119,22 +140,19 @@ namespace setup
     return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
   }
 
-/*
-  struct env_rv
+  // rv(RH, T, rhod)
+  real_t RH_T_rhod_to_rv(const real_t &RH, const real_t &T, const real_t &rhod)
   {
-    quantity<si::dimensionless, real_t> operator()(const int &k) const
-    {
-      return RH_to_rv(env_RH, gT(k) * si::kelvins, gpre_ref(k) * si::pascals);
-    }
-  BZ_DECLARE_FUNCTOR(env_rv);
-  };
-*/
+    return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
+  }
 
   struct env_rv
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &z) const
     {
-      return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
+      return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
+      //return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
+      //return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
     }
   BZ_DECLARE_FUNCTOR(env_rv);
   };
@@ -249,6 +267,8 @@ namespace setup
     real_t dx = (X / si::metres) / (nx-1); 
 
     solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
+//solver.advectee(ix::rv)(0,0) = rv_0;
+//    solver.advectee(ix::rv) = env_rv()(blitz::tensor::j * dz); 
     solver.advectee(ix::u) = 0;
     solver.advectee(ix::w) = 0;  
    
@@ -258,10 +278,12 @@ namespace setup
     solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
 
     // density profile
-    solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
+//    solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
+    solver.g_factor() = rhod_fctr()(blitz::tensor::j * dz);
 
     // initial potential temperature
     solver.advectee(ix::th) = th_dry_fctr()(index * dz); 
+//solver.advectee(ix::th)(0,0) = th_0_dry / si::kelvins;  
   }
 
   // function expecting a libmpdata++ solver as argument
