@@ -162,7 +162,7 @@ namespace setup
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
     {
-      real_t r = sqrt( pow( x - (X / si::metres / 2.), 2) + pow( z - (z_prtrb / si::metres / 2.), 2));
+      real_t r = sqrt( pow( x - (X / si::metres / 2.), 2) + pow( z - (z_prtrb / si::metres), 2));
       if(r <= 200.)
         return RH_th_rhod_to_rv(prtrb_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
       else if(r >= 300.)
@@ -278,8 +278,8 @@ namespace setup
     solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
 
     // density profile
-//    solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
-    solver.g_factor() = rhod_fctr()(blitz::tensor::j * dz);
+    solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
+//    solver.g_factor() = rhod_fctr()(blitz::tensor::j * dz);
 
     // initial potential temperature
     solver.advectee(ix::th) = th_dry_fctr()(index * dz); 
@@ -390,6 +390,8 @@ namespace setup
   template<class user_params_t>
   void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   {
+    setup::real_t dz = (Z / si::metres) / (nz-1);
+/*
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
     using libcloudphxx::common::moist_air::c_pd;
     using libcloudphxx::common::moist_air::R_d;
@@ -398,7 +400,6 @@ namespace setup
 
     // temperature profile
     arr_1D_t T(nz);
-    setup::real_t dz = (Z / si::metres) / (nz-1);
 
     env_rv rt;
     pre_ref(0) = setup::p_0 / si::pascals;
@@ -458,7 +459,12 @@ namespace setup
     std::cout << "env prof average stability:" << st_avg << std::endl;
     rhod = rho_surf * exp(- st_avg * k * dz) * pow(
              1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
-
+*/
+    blitz::firstIndex k;
+    th_e = th_dry_fctr()(k * dz);
+    th_ref = th_e;
+    rv_e = env_rv()(k * dz);
+    rhod = rhod_fctr()(k * dz);
     // subsidence rate
     //w_LS = setup::w_LS_fctr()(k * dz);
 
