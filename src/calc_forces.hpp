@@ -22,17 +22,23 @@ template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::rv_src()
 {
   const auto &ijk = this->ijk;
-  // surface flux
-  surf_latent();
-  // sum of rv flux
-  this->vert_grad_fwd(F, alpha, params.dz);
+  if(params.rv_src)
+  {
+    // surface flux
+    surf_latent();
+    // sum of rv flux
+    this->vert_grad_fwd(F, alpha, params.dz);
 
-  // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
-  alpha(ijk).reindex(this->zero) /= - (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
+    // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
+    alpha(ijk).reindex(this->zero) /= - (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
 
-  // large-scale vertical wind
-  subsidence(ix::rv);
-  alpha(ijk) += F(ijk);
+    // large-scale vertical wind
+    subsidence(ix::rv);
+    alpha(ijk) += F(ijk);
+  }
+  else
+    alpha(ijk) = 0.;
+
   // absorber
   alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
   // TODO: add nudging to alpha
@@ -44,27 +50,33 @@ template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 {
   const auto &ijk = this->ijk;
-  // -- heating --
-  // surface flux
-  surf_sens();
-  // beta as tmp storage
-  beta(ijk) = F(ijk);
-  // radiation
-  radiation(rv);
-  // add fluxes from radiation and surface
-  F(ijk) += beta(ijk);
-  // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
-  this->vert_grad_fwd(F, alpha, params.dz);
+  if(params.th_src)
+  {
+    // -- heating --
+    // surface flux
+    surf_sens();
+    // beta as tmp storage
+    beta(ijk) = F(ijk);
+    // radiation
+    radiation(rv);
+    // add fluxes from radiation and surface
+    F(ijk) += beta(ijk);
+    // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
+    this->vert_grad_fwd(F, alpha, params.dz);
+  
+    // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
+    alpha(ijk).reindex(this->zero) *= - this->state(ix::th)(ijk).reindex(this->zero) / 
+      calc_c_p()(rv(ijk).reindex(this->zero)) / 
+      calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
+      (*params.rhod)(this->vert_idx);
+  
+    // large-scale vertical wind
+    subsidence(ix::th);
+    alpha(ijk) += F(ijk);
+  }
+  else
+    alpha(ijk) = 0.;
 
-  // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
-  alpha(ijk).reindex(this->zero) *= - this->state(ix::th)(ijk).reindex(this->zero) / 
-    calc_c_p()(rv(ijk).reindex(this->zero)) / 
-    calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
-    (*params.rhod)(this->vert_idx);
-
-  // large-scale vertical wind
-  subsidence(ix::th);
-  alpha(ijk) += F(ijk);
   // absorber
   alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.th_e)(this->vert_idx);
   // TODO: add nudging to alpha
