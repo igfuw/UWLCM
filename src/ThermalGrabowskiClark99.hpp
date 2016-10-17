@@ -69,7 +69,7 @@ namespace setup
   const real_t q_i = 8e-3; // kg/kg
 
   const real_t c_p = 1004; // J / kg / K
-  const real_t z_abs = 1250; // [m] height above which absorber works
+  const real_t z_abs = 125000; // [m] height above which absorber works, no absorber
 
   const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s]
   const real_t rho_i = 1.12; // kg/m^3
@@ -273,7 +273,7 @@ namespace setup
     solver.advectee(ix::w) = 0;  
    
     // absorbers
-    solver.vab_coefficient() = 0; // no absorbers
+    solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
     solver.vab_relaxed_state(0) = 0;
     solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
 
