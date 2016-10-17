@@ -297,18 +297,12 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       case (0): 
       {   
         // ---- water vapor sources ----
-        if(params.rv_src)
-        {
-          rv_src();
-          rhs.at(ix::rv)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk); 
-        }
+        rv_src();
+        rhs.at(ix::rv)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk); 
 
         // ---- potential temp sources ----
-        if(params.th_src)
-        {
-          th_src(this->state(ix::rv));
-          rhs.at(ix::th)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk); 
-        }
+        th_src(this->state(ix::rv));
+        rhs.at(ix::th)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk); 
 
         // vertical velocity sources
         if(params.w_src)
@@ -333,24 +327,18 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       // trapezoidal rhs^n+1
       {   
         // ---- water vapor sources ----
-        if(params.rv_src)
-        {
-          rv_src();
-          rhs.at(ix::rv)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
-        }
+        rv_src();
+        rhs.at(ix::rv)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
   
         // ---- potential temp sources ----
-        if(params.th_src)
-        {
-          tmp2(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
-          th_src(tmp2);
-          rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
-        }
+        tmp2(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+        th_src(tmp2);
+        rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
 
         // vertical velocity sources
-        // temporarily use beta to store the th^n+1 estimate
         if(params.w_src)
         {
+          // temporarily use beta to store the th^n+1 estimate
           beta(ijk) = this->state(ix::th)(ijk) + 0.5 * this->dt * rhs.at(ix::th)(ijk);
           // temporarily use F to store the rv^n+1 estimate
           F(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
