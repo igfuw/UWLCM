@@ -189,11 +189,8 @@ namespace setup
     sdev_rd1 = real_t(1.2),
     sdev_rd2 = real_t(1.7);
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
-    n1_stp = real_t(125e6*2) / si::cubic_metres, // 125 || 31
-    n2_stp = real_t(65e6*2) / si::cubic_metres;  // 65 || 16
-  const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
-    n1_stp_pristine = real_t(125e6 * 2 * 0.5) / si::cubic_metres, // 125 || 31
-    n2_stp_pristine = real_t(65e6 * 2 * 0.5) / si::cubic_metres;  // 65 || 16
+    n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
+    n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
     n_unit_test = real_t(1) / si::cubic_metres;
 
@@ -343,23 +340,6 @@ namespace setup
 
     log_dry_radii_unit_test *do_clone() const 
     { return new log_dry_radii_unit_test( *this ); }
-  };
-
-  // pristine lognormal aerosol distribution
-  template <typename T>
-  struct log_dry_radii_pristine : public libcloudphxx::common::unary_function<T>
-  {
-    T funval(const T lnrd) const
-    {
-      return T((
-          lognormal::n_e(mean_rd1, sdev_rd1, n1_stp_pristine, quantity<si::dimensionless, real_t>(lnrd)) +
-          lognormal::n_e(mean_rd2, sdev_rd2, n2_stp_pristine, quantity<si::dimensionless, real_t>(lnrd)) 
-        ) * si::cubic_metres
-      );
-    }
-
-    log_dry_radii_pristine *do_clone() const 
-    { return new log_dry_radii_pristine( *this ); }
   };
 
   // lognormal aerosol distribution with GCCN

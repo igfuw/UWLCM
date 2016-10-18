@@ -156,6 +156,8 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   bool get_rain() { return params.cloudph_opts.coal; }
   void set_rain(bool val) 
   { 
+    //params.cloudph_opts.adve = val;
+    params.w_src = val;
     params.cloudph_opts.coal = val ? params.flag_coal : false;
     params.cloudph_opts.RH_max = val ? 44 : 1.06; // 0.5% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
