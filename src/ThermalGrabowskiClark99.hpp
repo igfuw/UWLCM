@@ -261,9 +261,9 @@ namespace setup
     int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
     real_t dx = (X / si::metres) / (nx-1); 
 
-//    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
+    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
 //solver.advectee(ix::rv)(0,0) = rv_0;
-    solver.advectee(ix::rv) = env_rv()(blitz::tensor::j * dz); 
+//    solver.advectee(ix::rv) = env_rv()(blitz::tensor::j * dz); 
     solver.advectee(ix::u) = 0;
     solver.advectee(ix::w) = 0;  
    
