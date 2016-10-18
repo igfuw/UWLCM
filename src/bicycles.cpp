@@ -189,8 +189,15 @@ int main(int argc, char** argv)
     std::cout << "th_0_dry: " << setup::th_0_dry << std::endl;
     std::cout << "rho_surf: " << setup::rho_surf << std::endl;
     std::cout << "T(0): " << setup::T(0.) << std::endl;
+    std::cout << "p(0): " << setup::p(0.) << std::endl;
     std::cout << "T(th_dry, rhod)(0): " << libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_dry_fctr()(0.) * si::kelvins, setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres) << std::endl;
     std::cout << "T(th_std, rhod)(0): " << libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_std(0.), setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres) << std::endl;
+
+    using namespace setup;
+    std::cout << "rv 0 from rv(RH, T, rhod) " << RH_T_rhod_to_rv(env_RH, T(0.), rhod_fctr()(0.)) << std::endl;
+    std::cout << "rv 0 from rv(RH, th_std, rhod) " << RH_th_rhod_to_rv(env_RH, th_std(0.) / si::kelvins, rhod_fctr()(0.)) << std::endl;
+    std::cout << "rv 0 from rv(RH, T, p) " << RH_T_p_to_rv(env_RH, T(0.) * si::kelvins, p(0.) * si::pascals) << std::endl;
+
 
   {
     // note: all options should have default values here to make "--micro=? --help" work

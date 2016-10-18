@@ -87,38 +87,13 @@ namespace setup
   }
 
   // some more constants copied from env_prof, todo
-  const setup::real_t T_surf = th2T(th_0, p_0) / si::kelvins;
-  const setup::real_t T_virt_surf = T_surf * (1. + 0.608 * rv_0);
+//  const setup::real_t T_surf = th2T(th_0, p_0) / si::kelvins;
+  const setup::real_t T_virt_surf = (T_0 / si::kelvins) * (1. + 0.608 * rv_0);
   const setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
-  const setup::real_t cs = 9.81 / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / T_surf;
+  const setup::real_t cs = 9.81 / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
 
     
-
-  // T profile
-  real_t T(const real_t &z)
-  {
-    // T profile, c.f. babyeulag
-    return (T_0 / si::kelvins) / exp(- stab * z) * (
-             1. - cs * (1 - exp(- stab * z)));
-  }
-
-
-
-
-
-  struct rhod_fctr
-  {
-    real_t operator()(const real_t &z) const
-    {
-      // rhod profile
-      return rho_surf * exp(- stab * z) * pow(
-               1. - cs * (1 - exp(- stab * z)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
-    }
-    BZ_DECLARE_FUNCTOR(rhod_fctr);
-  };
-
-
-  // standard potential temperature at height z
+  // standard potential temperature (constant stab profile, Clark Farley 1984)
   quantity<si::temperature, real_t> th_std(const real_t &z)
   {
     quantity<si::temperature, real_t> ret;
@@ -127,11 +102,31 @@ namespace setup
     return ret;
   }
 
+  real_t T(const real_t &z)
+  {
+    return (T_0 / si::kelvins) / exp(- stab * z) * (
+             1. - cs * (1 - exp(- stab * z)));
+
+  // temperature profile (constant stability atmosphere, Clark Farley 1984)
+//    return (th_std(z) / si::kelvins) * (1. - cs * (1 - exp(- stab * z)));
+  }
+
   real_t p(const real_t &z)
   {
-    // p profile, c.f. babyeulag
-    return p_0 / si::pascals * pow((th_std(z) / si::kelvins) / T(z), - 1. / R_d_over_c_pd<setup::real_t>() );
+  // pressure profile (constant stability atmosphere, Clark Farley 1984)
+    return p_0 / si::pascals * pow( 1. - cs * (1 - exp(- stab * z)), 1. / R_d_over_c_pd<setup::real_t>() );
   }
+
+  // density profile (constant stability atmosphere, Clark Farley 1984)
+  struct rhod_fctr
+  {
+    real_t operator()(const real_t &z) const
+    {
+      return rho_surf * exp(- stab * z) * pow(
+               1. - cs * (1 - exp(- stab * z)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
+    }
+    BZ_DECLARE_FUNCTOR(rhod_fctr);
+  };
 
   // rv(RH, th_dry, rhod)
   real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th, const real_t &rhod)
@@ -150,9 +145,9 @@ namespace setup
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &z) const
     {
-      return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
+  //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
       //return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
-      //return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
+      return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
     }
   BZ_DECLARE_FUNCTOR(env_rv);
   };
@@ -164,13 +159,13 @@ namespace setup
     {
       real_t r = sqrt( pow( x - (X / si::metres / 2.), 2) + pow( z - (z_prtrb / si::metres), 2));
       if(r <= 200.)
-        return RH_th_rhod_to_rv(prtrb_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
+        return RH_T_p_to_rv(prtrb_RH, T(z) * si::kelvins, p(z) * si::pascals);
       else if(r >= 300.)
-        return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
+        return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
       else // transition layer
       {
         real_t RH = env_RH + (prtrb_RH - env_RH) * pow( cos(boost::math::constants::pi<real_t>() / 2. * (r - 200) / 100.), 2);
-        return RH_th_rhod_to_rv(RH, th_std(z) / si::kelvins, rhod_fctr()(z));
+        return RH_T_p_to_rv(RH, T(z) * si::kelvins, p(z) * si::pascals);
       }
     }
   BZ_DECLARE_FUNCTOR2(prtrb_rv);
@@ -266,9 +261,9 @@ namespace setup
     int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
     real_t dx = (X / si::metres) / (nx-1); 
 
-    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
+//    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
 //solver.advectee(ix::rv)(0,0) = rv_0;
-//    solver.advectee(ix::rv) = env_rv()(blitz::tensor::j * dz); 
+    solver.advectee(ix::rv) = env_rv()(blitz::tensor::j * dz); 
     solver.advectee(ix::u) = 0;
     solver.advectee(ix::w) = 0;  
    
