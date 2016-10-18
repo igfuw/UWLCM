@@ -32,6 +32,7 @@ void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
   const int perm_no = this->vert_dim;
   // calc sum of r_l above certain level and store it in tmp1
   tmp1(ijk) = r_l(ijk);
+  tmp1(ijk).reindex(this->zero) *= setup::heating_kappa * (*params.rhod)(this->vert_idx);
   for(int z = nz-2 ; z >= 0; --z)
     tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z+1, this->hrzntl_subdomain));
   auto ground = idxperm::pi<perm_no>(0, this->hrzntl_subdomain);
@@ -42,6 +43,7 @@ void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 
   // calc sum of r_l below certain level and store it in tmp1
   tmp1(ijk) = r_l(ijk);
+  tmp1(ijk).reindex(this->zero) *= setup::heating_kappa * (*params.rhod)(this->vert_idx);
   for(int z = 1 ; z < nz-1; ++z)
     tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z-1, this->hrzntl_subdomain));
   F(noground) += setup::F_1 * exp(- (this->vert_idx - 0.5) * params.dz * tmp1(notop));

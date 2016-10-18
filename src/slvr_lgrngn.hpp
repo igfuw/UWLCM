@@ -401,10 +401,6 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
       auto rl = r_l(this->domain); // rl refrences subdomain of r_l
       rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
-      // in radiation parametrization we integrate mixing ratio * this->rhod
-      rl.reindex(this->zero) *= (*params.rhod)(this->vert_idx);
-      rl = rl * setup::heating_kappa;
-
       {
         // temporarily Cx & Cz are multiplied by this->rhod ...
         auto 
