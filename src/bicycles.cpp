@@ -207,6 +207,7 @@ int main(int argc, char** argv)
 
     std::cout << "rv 0 from rv(RH, T, rhod) " << RH_T_rhod_to_rv(env_RH, T(0.), rhod_fctr()(0.)) << std::endl;
     std::cout << "rv 0 from rv(RH, th_std, rhod) " << RH_th_rhod_to_rv(env_RH, th_std(0.) / si::kelvins, rhod_fctr()(0.)) << std::endl;
+    std::cout << "rv 0 from rv(RH, th_0_dry, rhod) " << RH_th_rhod_to_rv(env_RH, th_0_dry / si::kelvins, rhod_fctr()(0.)) << std::endl;
     std::cout << "rv 0 from rv(RH, T, p) " << RH_T_p_to_rv(env_RH, T(0.) * si::kelvins, p(0.) * si::pascals) << std::endl;
 
 

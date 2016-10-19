@@ -40,8 +40,7 @@ namespace setup
   // RH T and p to rv
   quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
   {
-    //return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
-    return RH * const_cp::r_vs<real_t>(T, p);
+    return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
   }
 
   const quantity<si::temperature, real_t>
@@ -130,9 +129,9 @@ namespace setup
 
 
   // rv(RH, th_dry, rhod)
-  real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th, const real_t &rhod)
+  real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th_dry, const real_t &rhod)
   {
-    real_t T = theta_dry::T(th * si::kelvins, (rhod * si::kilograms / si::cubic_metres)) / si::kelvins; // shouldnt we use theta_dry here?
+    real_t T = theta_dry::T(th_dry * si::kelvins, (rhod * si::kilograms / si::cubic_metres)) / si::kelvins;
     return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
   }
 
