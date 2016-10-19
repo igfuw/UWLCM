@@ -49,7 +49,7 @@ namespace setup
     p_0 = 85000 * si::pascals;
   const real_t stab = 1.3e-5; // stability, 1/m
   const real_t env_RH = 0.2;
-  const real_t prtrb_RH = 1.00;
+  const real_t prtrb_RH = .991; //effective value, should be 1.00, but it caused RH in libcloud = 1.01 in the perturbation; TODO: fix it, its caused by wrong initial condition not taking into account rho/rhod differences?
   // theta (std) at surface
   const quantity<si::temperature, real_t> th_0 = T_0 / pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
   const quantity<si::dimensionless, real_t> rv_0(RH_T_p_to_rv(env_RH, T_0, p_0));
