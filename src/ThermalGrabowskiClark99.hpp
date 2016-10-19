@@ -68,7 +68,6 @@ namespace setup
   const real_t F_1 = 22; // w/m^2
   const real_t q_i = 8e-3; // kg/kg
 
-  const real_t c_p = 1004; // J / kg / K
   const real_t z_abs = 125000; // [m] height above which absorber works, no absorber
 
   const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s]
@@ -88,9 +87,10 @@ namespace setup
 
   // some more constants copied from env_prof, todo
 //  const setup::real_t T_surf = th2T(th_0, p_0) / si::kelvins;
-  const setup::real_t T_virt_surf = (T_0 / si::kelvins) * (1. + 0.608 * rv_0);
-  const setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
-  const setup::real_t cs = 9.81 / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
+  const setup::real_t rhod_surf = (setup::p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms + rv_0 * R_v<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
+  const setup::real_t T_virt_surf = (T_0 / si::kelvins) * (1. + 0.608 * (rv_0 / 1. + rv_0)); // T_virt, i.e. with specific humudity
+  const setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / (R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms); 
+  const setup::real_t cs = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
 
     
   // standard potential temperature (constant stab profile, Clark Farley 1984)
@@ -117,16 +117,17 @@ namespace setup
     return p_0 / si::pascals * pow( 1. - cs * (1 - exp(- stab * z)), 1. / R_d_over_c_pd<setup::real_t>() );
   }
 
-  // density profile (constant stability atmosphere, Clark Farley 1984)
-  struct rhod_fctr
+  // moist air density profile (constant stability atmosphere, Clark Farley 1984)
+  struct rho_fctr
   {
     real_t operator()(const real_t &z) const
     {
       return rho_surf * exp(- stab * z) * pow(
                1. - cs * (1 - exp(- stab * z)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
     }
-    BZ_DECLARE_FUNCTOR(rhod_fctr);
+    BZ_DECLARE_FUNCTOR(rho_fctr);
   };
+
 
   // rv(RH, th_dry, rhod)
   real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th, const real_t &rhod)
@@ -152,6 +153,16 @@ namespace setup
   BZ_DECLARE_FUNCTOR(env_rv);
   };
 
+
+  // dry air density profile 
+  struct rhod_fctr
+  {
+    real_t operator()(const real_t &z) const
+    {
+      return libcloudphxx::common::theta_std::rhod<real_t>(p(z) * si::pascals, th_std(z), env_rv()(z)) / si::kilograms * si::cubic_metres;
+    }
+    BZ_DECLARE_FUNCTOR(rhod_fctr);
+  };
 
   struct prtrb_rv
   {
