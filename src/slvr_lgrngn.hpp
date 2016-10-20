@@ -333,6 +333,7 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   
         // ---- potential temp sources ----
         tmp2(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+        // todo: once rv_src beta!=0 (e.g. nudging), rv^n+1 estimate should be implicit here
         th_src(tmp2);
         rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk));
         // TODO: alpha should also take (possibly impolicit) estimate of th^n+1 too
@@ -343,8 +344,12 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         {
           // temporarily use beta to store the th^n+1 estimate
           beta(ijk) = this->state(ix::th)(ijk) + 0.5 * this->dt * rhs.at(ix::th)(ijk);
+          // todo: oncethv_src beta!=0 (e.g. nudging), th^n+1 estimate should be implicit here
+
           // temporarily use F to store the rv^n+1 estimate
           F(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+          // todo: once rv_src beta!=0 (e.g. nudging), rv^n+1 estimate should be implicit here
+
           w_src(beta, F);
           rhs.at(ix::w)(ijk) += alpha(ijk);
         }
