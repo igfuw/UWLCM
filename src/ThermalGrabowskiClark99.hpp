@@ -49,11 +49,11 @@ namespace setup
     p_0 = 85000 * si::pascals;
   const real_t stab = 1.3e-5; // stability, 1/m
   const real_t env_RH = 0.2;
-  const real_t prtrb_RH = .991; //effective value, should be 1.00, but it caused RH in libcloud = 1.01 in the perturbation; TODO: fix it, its caused by wrong initial condition not taking into account rho/rhod differences?
+  const real_t prtrb_RH = 1.; //effective value, should be 1.00, but it caused RH in libcloud = 1.01 in the perturbation; TODO: fix it, its caused by wrong initial condition not taking into account rho/rhod differences?
   // theta (std) at surface
   const quantity<si::temperature, real_t> th_0 = T_0 / pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
   const quantity<si::dimensionless, real_t> rv_0(RH_T_p_to_rv(env_RH, T_0, p_0));
-  const quantity<si::temperature, real_t> th_0_dry = theta_dry::std2dry<real_t>(th_0, rv_0);
+//  const quantity<si::temperature, real_t> th_0_dry = theta_dry::std2dry<real_t>(th_0, rv_0);
 
   const quantity<si::length, real_t> 
     z_0  = 0    * si::metres,
@@ -77,22 +77,23 @@ namespace setup
   const real_t u_fric = 0.25; // m/s, friction velocity
 
   // T(th_std, p)
+  /*
   template <class real_t>
   quantity<si::temperature, real_t> th2T(const quantity<si::temperature, real_t> &th, const quantity<si::pressure, real_t> &p)
   {
     quantity<si::temperature, real_t> T = th * pow(p / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
     return T;
   }
-
+*/
   // some more constants copied from env_prof, todo
 //  const setup::real_t T_surf = th2T(th_0, p_0) / si::kelvins;
   const setup::real_t rhod_surf = (setup::p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms + rv_0 * R_v<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
-  const setup::real_t T_virt_surf = (T_0 / si::kelvins) * (1. + 0.608 * (rv_0 / 1. + rv_0)); // T_virt, i.e. with specific humudity
-  const setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / (R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms); 
+//  const setup::real_t T_virt_surf = (T_0 / si::kelvins) * (1. + 0.608 * (rv_0 / 1. + rv_0)); // T_virt, i.e. with specific humudity
+  //const setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / (R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms); 
   const setup::real_t cs = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
 
     
-  // standard potential temperature (constant stab profile, Clark Farley 1984)
+  // standard potential temperature (constant stab profile, Clark Farley 1984), its in fact th_dry...
   quantity<si::temperature, real_t> th_std(const real_t &z)
   {
     quantity<si::temperature, real_t> ret;
@@ -101,27 +102,36 @@ namespace setup
     return ret;
   }
 
+  struct th_std_fctr
+  {
+    real_t operator()(const real_t &z) const
+    {
+      return th_std(z) / si::kelvins;
+    }
+    BZ_DECLARE_FUNCTOR(th_std_fctr);
+  };
+
+  // temperature profile (constant stability atmosphere, Clark Farley 1984)
   real_t T(const real_t &z)
   {
     return (T_0 / si::kelvins) / exp(- stab * z) * (
              1. - cs * (1 - exp(- stab * z)));
 
-  // temperature profile (constant stability atmosphere, Clark Farley 1984)
 //    return (th_std(z) / si::kelvins) * (1. - cs * (1 - exp(- stab * z)));
   }
 
+  // pressure profile (constant stability atmosphere, Clark Farley 1984), dry...
   real_t p(const real_t &z)
   {
-  // pressure profile (constant stability atmosphere, Clark Farley 1984)
     return p_0 / si::pascals * pow( 1. - cs * (1 - exp(- stab * z)), 1. / R_d_over_c_pd<setup::real_t>() );
   }
 
-  // moist air density profile (constant stability atmosphere, Clark Farley 1984)
+  // air density profile (constant stability atmosphere, Clark Farley 1984), dry...
   struct rho_fctr
   {
     real_t operator()(const real_t &z) const
     {
-      return rho_surf * exp(- stab * z) * pow(
+      return rhod_surf * exp(- stab * z) * pow(
                1. - cs * (1 - exp(- stab * z)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
     }
     BZ_DECLARE_FUNCTOR(rho_fctr);
@@ -141,19 +151,46 @@ namespace setup
     return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
   }
 
+  struct RH
+  {
+    quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
+    {
+      real_t r = sqrt( pow( x - (X / si::metres / 2.), 2) + pow( z - (z_prtrb / si::metres), 2));
+      if(r <= 200.)
+        return prtrb_RH;
+      else if(r >= 300.)
+        return env_RH;
+      else // transition layer
+        return env_RH + (prtrb_RH - env_RH) * pow( cos(boost::math::constants::pi<real_t>() / 2. * (r - 200) / 100.), 2);
+    }
+  BZ_DECLARE_FUNCTOR2(RH);
+  };
+
   struct env_rv
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &z) const
     {
   //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
-      //return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rhod_fctr()(z));
-      return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
+      return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rho_fctr()(z));
+  //    return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
     }
   BZ_DECLARE_FUNCTOR(env_rv);
   };
 
+  struct prtrb_rv
+  {
+    quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
+    {
+  //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
+      return RH_th_rhod_to_rv(RH()(x,z), th_std(z) / si::kelvins, rho_fctr()(z));
+  //    return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
+    }
+  BZ_DECLARE_FUNCTOR2(prtrb_rv);
+  };
+
 
   // dry air density profile 
+  /*
   struct rhod_fctr
   {
     real_t operator()(const real_t &z) const
@@ -162,7 +199,9 @@ namespace setup
     }
     BZ_DECLARE_FUNCTOR(rhod_fctr);
   };
+*/
 
+/*
   struct prtrb_rv
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
@@ -180,8 +219,10 @@ namespace setup
     }
   BZ_DECLARE_FUNCTOR2(prtrb_rv);
   };
+*/
 
   // initial dry air potential temp at height z, assuming theta_std = theta_l (spinup needed)
+  /*
   struct th_dry_fctr
   {
     real_t operator()(const real_t &z) const
@@ -190,6 +231,7 @@ namespace setup
     }
     BZ_DECLARE_FUNCTOR(th_dry_fctr);
   };
+*/
 
   //aerosol bimodal lognormal dist. 
   const quantity<si::length, real_t>
@@ -284,7 +326,7 @@ namespace setup
 //    solver.g_factor() = rhod_fctr()(blitz::tensor::j * dz);
 
     // initial potential temperature
-    solver.advectee(ix::th) = th_dry_fctr()(index * dz); 
+    solver.advectee(ix::th) = th_std_fctr()(index * dz); 
 //solver.advectee(ix::th)(0,0) = th_0_dry / si::kelvins;  
   }
 
@@ -446,10 +488,10 @@ namespace setup
              1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
 */
     blitz::firstIndex k;
-    th_e = th_dry_fctr()(k * dz);
+    th_e = th_std_fctr()(k * dz);
     th_ref = th_e;
     rv_e = env_rv()(k * dz);
-    rhod = rhod_fctr()(k * dz);
+    rhod = rho_fctr()(k * dz);
     // subsidence rate
     //w_LS = setup::w_LS_fctr()(k * dz);
 

@@ -189,26 +189,26 @@ int main(int argc, char** argv)
 
     std::cout << "rv_0: " << setup::rv_0 << std::endl;
     std::cout << "env_rv(0): " << setup::env_rv()(0.) << std::endl;
-    std::cout << "prtrb_rv(0,0): " << setup::prtrb_rv()(0., 0.) << std::endl;
+//    std::cout << "prtrb_rv(0,0): " << setup::prtrb_rv()(0., 0.) << std::endl;
     std::cout << "th_0: " << setup::th_0 << std::endl;
     std::cout << "th_std(0): " << th_std(0) << std::endl;
-    std::cout << "th_0_dry: " << setup::th_0_dry << std::endl;
-    std::cout << "th_dry_fctr(0): " << th_dry_fctr()(0) << std::endl;
-    std::cout << "rho_surf: " << setup::rho_surf << std::endl;
+//    std::cout << "th_0_dry: " << setup::th_0_dry << std::endl;
+//    std::cout << "th_dry_fctr(0): " << th_dry_fctr()(0) << std::endl;
+//    std::cout << "rho_surf: " << setup::rho_surf << std::endl;
     std::cout << "rhod_surf: " << setup::rhod_surf << std::endl;
     std::cout << "theta::std::rhod(p, th_std, rv)(0): " << libcloudphxx::common::theta_std::rhod<real_t>(p_0, th_0, rv_0) << std::endl;
     std::cout << "T(0): " << setup::T(0.) << std::endl;
     std::cout << "p(0): " << setup::p(0.) << std::endl;
     std::cout << "p_dry(0): " << rhod_surf * T(0.) * R_d<real_t>() << std::endl;
     std::cout << "p_rv(0): " << rhod_surf * rv_0 * T(0.) * R_v<real_t>() << std::endl;
-    std::cout << "T(th_dry, rhod)(0): " << libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_dry_fctr()(0.) * si::kelvins, setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres) << std::endl;
-    std::cout << "p(rhod, prtrb_rv, T(th_dry, rhod))(0): " << libcloudphxx::common::theta_dry::p<setup::real_t>(setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres, prtrb_rv()(0,0), 
-      libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_dry_fctr()(0.) * si::kelvins, setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres)) << std::endl;
+  //  std::cout << "T(th_dry, rhod)(0): " << libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_dry_fctr()(0.) * si::kelvins, setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres) << std::endl;
+//    std::cout << "p(rhod, prtrb_rv, T(th_dry, rhod))(0): " << libcloudphxx::common::theta_dry::p<setup::real_t>(setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres, prtrb_rv()(0,0), 
+   //   libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_dry_fctr()(0.) * si::kelvins, setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres)) << std::endl;
 
-    std::cout << "rv 0 from rv(RH, T, rhod) " << RH_T_rhod_to_rv(env_RH, T(0.), rhod_fctr()(0.)) << std::endl;
-    std::cout << "rv 0 from rv(RH, th_std, rhod) " << RH_th_rhod_to_rv(env_RH, th_std(0.) / si::kelvins, rhod_fctr()(0.)) << std::endl;
-    std::cout << "rv 0 from rv(RH, th_0_dry, rhod) " << RH_th_rhod_to_rv(env_RH, th_0_dry / si::kelvins, rhod_fctr()(0.)) << std::endl;
-    std::cout << "rv 0 from rv(RH, T, p) " << RH_T_p_to_rv(env_RH, T(0.) * si::kelvins, p(0.) * si::pascals) << std::endl;
+//    std::cout << "rv 0 from rv(RH, T, rhod) " << RH_T_rhod_to_rv(env_RH, T(0.), rhod_fctr()(0.)) << std::endl;
+  //  std::cout << "rv 0 from rv(RH, th_std, rhod) " << RH_th_rhod_to_rv(env_RH, th_std(0.) / si::kelvins, rhod_fctr()(0.)) << std::endl;
+    //std::cout << "rv 0 from rv(RH, th_0_dry, rhod) " << RH_th_rhod_to_rv(env_RH, th_0_dry / si::kelvins, rhod_fctr()(0.)) << std::endl;
+    //std::cout << "rv 0 from rv(RH, T, p) " << RH_T_p_to_rv(env_RH, T(0.) * si::kelvins, p(0.) * si::pascals) << std::endl;
 
 
   {
