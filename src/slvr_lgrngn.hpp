@@ -331,19 +331,29 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         // ---- water vapor sources ----
         rv_src();
         rhs.at(ix::rv)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
+        // TODO: alpha should also take (possibly impolicit) estimate of rv^n+1 too
+        //       becomes important when nudging is introduced?
+                                                                                                                                            
   
         // ---- potential temp sources ----
         tmp2(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+        // todo: once rv_src beta!=0 (e.g. nudging), rv^n+1 estimate should be implicit here
         th_src(tmp2);
-        rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk)); 
+        rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk));
+        // TODO: alpha should also take (possibly impolicit) estimate of th^n+1 too
+        //       becomes important when nudging is introduced?
 
         // vertical velocity sources
         if(params.w_src)
         {
           // temporarily use beta to store the th^n+1 estimate
           beta(ijk) = this->state(ix::th)(ijk) + 0.5 * this->dt * rhs.at(ix::th)(ijk);
+          // todo: oncethv_src beta!=0 (e.g. nudging), th^n+1 estimate should be implicit here
+
           // temporarily use F to store the rv^n+1 estimate
           F(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+          // todo: once rv_src beta!=0 (e.g. nudging), rv^n+1 estimate should be implicit here
+
           w_src(beta, F);
           rhs.at(ix::w)(ijk) += alpha(ijk);
         }
@@ -354,7 +364,9 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
         {
           for(auto type : this->hori_vel)
           {
-            subsidence(type);
+            subsidence(type); // TODO: in case 1 type here should be in step n+1, calc it explicitly as type + 0.5 * dt * rhs(type);
+                              //       could also be calculated implicitly, but we would need implicit type^n+1 in other cells
+                              //       also include absorber in type^n+1 estimate...
             rhs.at(type)(ijk) += F(ijk);
           }
         }

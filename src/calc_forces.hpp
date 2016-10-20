@@ -33,17 +33,18 @@ void slvr_lgrngn<ct_params_t>::rv_src()
     alpha(ijk).reindex(this->zero) /= - (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
 
     // large-scale vertical wind
-    subsidence(ix::rv);
+    subsidence(ix::rv); // TODO: in case 1, rv here should be in step n+1, calc it explicitly as rv + 0.5 * dt * rhs(rv); 
+                        // could also be calculated implicitly, but we would need implicit rv^n+1 in other cells
+    
     alpha(ijk) += F(ijk);
   }
   else
     alpha(ijk) = 0.;
 
-  // absorber
-  alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
-  // TODO: add nudging to alpha
-  beta(ijk) = - (*this->mem->vab_coeff)(ijk);
-  // TODO: add nudging to beta
+  beta(ijk) = 0.;
+  // nudging, todo: use some other coeff than vab_coeff
+//  alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
+//  beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
 template <class ct_params_t>
@@ -71,17 +72,18 @@ void slvr_lgrngn<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       (*params.rhod)(this->vert_idx);
   
     // large-scale vertical wind
-    subsidence(ix::th);
+    subsidence(ix::th); // TODO: in case 1 th here should be in step n+1, calc it explicitly as th + 0.5 * dt * rhs(th);
+                        //       could also be calculated implicitly, but we would need implicit th^n+1 in other cells
+
     alpha(ijk) += F(ijk);
   }
   else
     alpha(ijk) = 0.;
 
-  // absorber
-  alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.th_e)(this->vert_idx);
-  // TODO: add nudging to alpha
-  beta(ijk) = - (*this->mem->vab_coeff)(ijk);
-  // TODO: add nudging to beta
+  beta(ijk) = 0.;
+  // nudging, todo: use some other coeff than vab_coeff
+  //alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.th_e)(this->vert_idx);
+  //beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
 template <class ct_params_t>
@@ -92,7 +94,10 @@ void slvr_lgrngn<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
   buoyancy(th, rv);
   alpha(ijk) = F(ijk);
   // large-scale vertical wind
-//  subsidence(ix::w);
+  //subsidence(ix::w); // TODO: in case 1, w here should be in step n+1, calc it explicitly as w + 0.5 * dt * rhs(w); 
+                     //       could also be calculated implicitly, but we would need implicit w^n+1 in other cells;
+                     //       also include absorber in w^n+1 estimate...
+
   //alpha(ijk) += F(ijk);
 }
 
