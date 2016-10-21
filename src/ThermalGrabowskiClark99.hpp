@@ -88,25 +88,21 @@ namespace setup
   // some more constants copied from env_prof, todo
 //  const setup::real_t T_surf = th2T(th_0, p_0) / si::kelvins;
   const setup::real_t rhod_surf = (setup::p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms + rv_0 * R_v<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
+  const setup::real_t rhod_surfW = (setup::p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
 //  const setup::real_t T_virt_surf = (T_0 / si::kelvins) * (1. + 0.608 * (rv_0 / 1. + rv_0)); // T_virt, i.e. with specific humudity
   //const setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / (R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms); 
   const setup::real_t cs = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
 
-    
-  // standard potential temperature (constant stab profile, Clark Farley 1984), its in fact th_dry...
-  quantity<si::temperature, real_t> th_std(const real_t &z)
-  {
-    quantity<si::temperature, real_t> ret;
-    ret = th_0 * real_t(exp(stab * z));
-
-    return ret;
-  }
 
   struct th_std_fctr
   {
+    const real_t th_surf;
+    th_std_fctr(const real_t th = (th_0 / si::kelvins)) :
+      th_surf(th) {}
+
     real_t operator()(const real_t &z) const
     {
-      return th_std(z) / si::kelvins;
+      return (th_surf) * real_t(exp(stab * z));
     }
     BZ_DECLARE_FUNCTOR(th_std_fctr);
   };
@@ -129,9 +125,13 @@ namespace setup
   // air density profile (constant stability atmosphere, Clark Farley 1984), dry...
   struct rho_fctr
   {
+    const real_t rh_surf;
+    rho_fctr(const real_t rho = rhod_surf) :
+      rh_surf(rho) {}
+
     real_t operator()(const real_t &z) const
     {
-      return rhod_surf * exp(- stab * z) * pow(
+      return rh_surf * exp(- stab * z) * pow(
                1. - cs * (1 - exp(- stab * z)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
     }
     BZ_DECLARE_FUNCTOR(rho_fctr);
@@ -171,7 +171,7 @@ namespace setup
     quantity<si::dimensionless, real_t> operator()(const real_t &z) const
     {
   //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
-      return RH_th_rhod_to_rv(env_RH, th_std(z) / si::kelvins, rho_fctr()(z));
+      return RH_th_rhod_to_rv(env_RH, th_std_fctr()(z) , rho_fctr()(z));
   //    return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
     }
   BZ_DECLARE_FUNCTOR(env_rv);
@@ -182,7 +182,7 @@ namespace setup
     quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
     {
   //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
-      return RH_th_rhod_to_rv(RH()(x,z), th_std(z) / si::kelvins, rho_fctr()(z));
+      return RH_th_rhod_to_rv(RH()(x,z), th_std_fctr()(z) ,rho_fctr()(z));
   //    return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
     }
   BZ_DECLARE_FUNCTOR2(prtrb_rv);
@@ -411,87 +411,117 @@ namespace setup
   };
 
 
-  // calculate the initial environmental theta and rv profiles
-  // alse set w_LS and hgt_fctrs
-  // like in Wojtek's BabyEulag
+  // calculate the initial environmental theta and rv profiles as Wojtek does it
   template<class user_params_t>
-  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+  void env_profW(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   {
     setup::real_t dz = (Z / si::metres) / (nz-1);
-/*
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
     using libcloudphxx::common::moist_air::c_pd;
     using libcloudphxx::common::moist_air::R_d;
     using libcloudphxx::common::const_cp::l_tri;
     using libcloudphxx::common::theta_std::p_1000;
 
+    using setup::real_t;
+    blitz::firstIndex k;
     // temperature profile
     arr_1D_t T(nz);
-
-    env_rv rt;
-    pre_ref(0) = setup::p_0 / si::pascals;
-    T(0) = th_std(0.) / si::kelvins *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>()); 
-    th_e(0) = th_std(0.) / si::kelvins;
-    rv_e(0) = rt(0.);
 
     setup::real_t tt0 = 273.17;
     setup::real_t rv = 461;
     setup::real_t ee0 = 611.;
+    const real_t gg = 9.81;
+    real_t rg = R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms;
     setup::real_t a = R_d<setup::real_t>() / rv / si::joules * si::kelvins * si::kilograms;
-    setup::real_t b = l_tri<setup::real_t>() / si::joules * si::kilograms / rv / tt0;
+//    setup::real_t b = l_tri<setup::real_t>() / si::joules * si::kilograms / rv / tt0;
     setup::real_t c = l_tri<setup::real_t>() / c_pd<setup::real_t>() / si::kelvins;
     setup::real_t d = l_tri<setup::real_t>() / si::joules * si::kilograms / rv;
-    setup::real_t f = R_d_over_c_pd<setup::real_t>(); 
+    setup::real_t cap = R_d_over_c_pd<setup::real_t>(); 
+    real_t capi = 1./cap;
 
+    // surface data
+    
+    real_t tt = T_0 / si::kelvins;
+    real_t delt = (tt - tt0) / (tt * tt0); 
+    real_t esw = ee0*exp(d * delt);
+    real_t qvs = a * esw / ((p_0 / si::pascals) -esw);
+    rv_e(0) = env_RH * qvs;
+    real_t th_e_surf = th_0 / si::kelvins * (1 + a * rv_e(0));
+    
+    th_e = th_std_fctr(th_e_surf)(k * dz);
+    
+    pre_ref(0.) = p_0 / si::pascals;
+    T(0.) = T_0 / si::kelvins;
+    
     for(int k=1; k<nz; ++k)
     {
-      setup::real_t bottom = R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(k-1));
-      setup::real_t rho1 = pre_ref(k-1) / bottom;
-      pre_ref(k) = pre_ref(k-1) - rho1 * 9.81 * dz;
-      setup::real_t thetme = pow(p_1000<setup::real_t>() / si::pascals / pre_ref(k), f);
-      setup::real_t thi = 1. / (th_std(k * dz) / si::kelvins);
-      setup::real_t y = b * thetme * tt0 * thi; 
-      setup::real_t ees = ee0 * exp(b-y);
-      setup::real_t qvs = a * ees / (pre_ref(k) - ees); 
-      setup::real_t cf1 = thetme*thetme*thi*thi;
-      cf1 *= c * d * pre_ref(k) / (pre_ref(k) - ees);
-      setup::real_t delta = (rt(k*dz) - qvs) / (1 + qvs * cf1);
-      if(delta < 0.) delta = 0.;
-      rv_e(k) = rt(k*dz) - delta;
-      th_e(k) = th_std(k*dz) / si::kelvins + c * thetme * delta;
-      T(k) = th_e(k) * pow(pre_ref(k) / (p_1000<setup::real_t>() / si::pascals),  f);
+      real_t zz = k * dz;  
+      // predictor
+       real_t rhob=pre_ref(k-1) / rg / (T(k-1)*(1.+a*rv_e(k-1)));
+       pre_ref(k)=pre_ref(k-1) - gg*rhob*dz;
+// iteration for T and qv:
+       rv_e(k)=rv_e(k-1);
+       T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
+       T(k)=T(k)/(1.+a*rv_e(k));
+      
+      for(int iter=0; iter<4; ++iter)
+      {
+        tt=T(k);
+        delt=(tt-tt0)/(tt*tt0);
+        esw=ee0*exp(d * delt);
+        qvs=a * esw /(pre_ref(k)-esw);
+        rv_e(k)=env_RH*qvs;
+       T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
+        T(k)=T(k)/(1.+a*rv_e(k));
+      }
+
+      // corrector
+       real_t rhon=pre_ref(k) / rg / (T(k)*(1.+a*rv_e(k)));
+       pre_ref(k)=pre_ref(k-1) - gg*(rhob+rhon) / 2. *dz;
+// iteration for T and qv:
+       T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
+       T(k)=T(k)/(1.+a*rv_e(k));
+      
+      for(int iter=0; iter<4; ++iter)
+      {
+        tt=T(k);
+        delt=(tt-tt0)/(tt*tt0);
+        esw=ee0*exp(d * delt);
+        qvs=a * esw /(pre_ref(k)-esw);
+        rv_e(k)=env_RH*qvs;
+       T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
+        T(k)=T(k)/(1.+a*rv_e(k));
+      }
+
     }
 
-    // compute reference state theta and rhod
-    blitz::firstIndex k;
-    // calculate average stability
-    blitz::Range notopbot(1, nz-2);
-    arr_1D_t st(nz);
-    st=0;
-    st(notopbot) = (th_e(notopbot+1) - th_e(notopbot-1)) / th_e(notopbot);
-    setup::real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
-    // reference theta
-    th_ref = th_e(0) * exp(st_avg * k * dz);
-    // virtual temp at surface
-    using libcloudphxx::common::moist_air::R_d_over_c_pd;
-    using libcloudphxx::common::moist_air::c_pd;
-    using libcloudphxx::common::moist_air::R_d;
-    using libcloudphxx::common::theta_std::p_1000;
+    th_ref = th_std_fctr()(k * dz);
+    rhod = rho_fctr(rhod_surfW)(k * dz);
 
-    setup::real_t T_surf = th_e(0) *  pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
-    setup::real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0));
-    setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
-    setup::real_t cs = 9.81 / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
-    // rhod profile
-    std::cout << "env prof average stability:" << st_avg << std::endl;
-    rhod = rho_surf * exp(- st_avg * k * dz) * pow(
-             1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<setup::real_t>()) - 1);
-*/
+    std::cout << "th_e: " << th_e << std::endl;
+    std::cout << "rv_e: " << rv_e << std::endl;
+    std::cout << "T_e: " << T << std::endl;
+    std::cout << "th ref: " << th_ref << std::endl;
+    std::cout << "rho_ref: " << rhod << std::endl;
+
+  }
+
+  // calculate the initial environmental theta and rv profiles
+  template<class user_params_t>
+  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+  {
+    setup::real_t dz = (Z / si::metres) / (nz-1);
     blitz::firstIndex k;
-    th_e = th_std_fctr()(k * dz);
-    th_ref = th_e;
+    th_ref = th_std_fctr()(k * dz);
+    th_e = th_ref;
     rv_e = env_rv()(k * dz);
     rhod = rho_fctr()(k * dz);
+
+    std::cout << "th ref: " << th_ref << std::endl;
+    std::cout << "th e: " << th_e << std::endl;
+    std::cout << "rv e: " << rv_e << std::endl;
+    std::cout << "rho_ref: " << rhod << std::endl;
+
     // subsidence rate
     //w_LS = setup::w_LS_fctr()(k * dz);
 

@@ -59,7 +59,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  setup::env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  setup::env_profW(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
@@ -188,15 +188,16 @@ int main(int argc, char** argv)
     using libcloudphxx::common::moist_air::R_v;
 
     std::cout << "rv_0: " << setup::rv_0 << std::endl;
+    std::cout << "specific_humidity(rv_0): " << setup::rv_0 / (1 + setup::rv_0) << std::endl;
     std::cout << "env_rv(0): " << setup::env_rv()(0.) << std::endl;
 //    std::cout << "prtrb_rv(0,0): " << setup::prtrb_rv()(0., 0.) << std::endl;
     std::cout << "th_0: " << setup::th_0 << std::endl;
-    std::cout << "th_std(0): " << th_std(0) << std::endl;
+//    std::cout << "th_std(0): " << th_std(0) << std::endl;
 //    std::cout << "th_0_dry: " << setup::th_0_dry << std::endl;
 //    std::cout << "th_dry_fctr(0): " << th_dry_fctr()(0) << std::endl;
 //    std::cout << "rho_surf: " << setup::rho_surf << std::endl;
     std::cout << "rhod_surf: " << setup::rhod_surf << std::endl;
-    std::cout << "theta::std::rhod(p, th_std, rv)(0): " << libcloudphxx::common::theta_std::rhod<real_t>(p_0, th_0, rv_0) << std::endl;
+//    std::cout << "theta::std::rhod(p, th_std, rv)(0): " << libcloudphxx::common::theta_std::rhod<real_t>(p_0, th_0, rv_0) << std::endl;
     std::cout << "T(0): " << setup::T(0.) << std::endl;
     std::cout << "p(0): " << setup::p(0.) << std::endl;
     std::cout << "p_dry(0): " << rhod_surf * T(0.) * R_d<real_t>() << std::endl;
