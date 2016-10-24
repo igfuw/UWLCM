@@ -81,6 +81,11 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
     prtcls->diag_dry_mom(1);
     this->record_aux("actrw_rd_mom1", prtcls->outbuf());
 
+    // recording 3rd mom of rw of activated drops
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_wet_mom(3);
+    this->record_aux("actrw_rw_mom3", prtcls->outbuf());
+
     // recording 0th mom of rd of activated drops
     prtcls->diag_rw_ge_rc();
     prtcls->diag_dry_mom(0);
@@ -90,6 +95,11 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
     prtcls->diag_RH_ge_Sc();
     prtcls->diag_dry_mom(1);
     this->record_aux("actRH_rd_mom1", prtcls->outbuf());
+   
+    // recording 3rd mom of rw of activated drops
+    prtcls->diag_RH_ge_Sc();
+    prtcls->diag_wet_mom(3);
+    this->record_aux("actRH_rw_mom3", prtcls->outbuf());
 
     // recording 0th mom of rd of activated drops
     prtcls->diag_RH_ge_Sc();
