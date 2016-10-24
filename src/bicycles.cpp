@@ -13,9 +13,9 @@
 
 // setup choice, TODO: make it runtime
 #if defined DYCOMS
-  #include "DYCOMS98.hpp"
+  #include "cases/DYCOMS98.hpp"
 #elif defined MOIST_THERMAL
-  #include "ThermalGrabowskiClark99.hpp"
+  #include "cases/MoistThermalGrabowskiClark99.hpp"
 #else
   #error please select setup
 #endif
