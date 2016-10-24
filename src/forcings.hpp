@@ -4,7 +4,7 @@
 
 // Grabowski & Smolarkiewicz 1996 eq. (2)
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
+void slvr_common<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
 {
   const auto &ijk = this->ijk;
 
@@ -19,7 +19,7 @@ void slvr_lgrngn<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename p
 }
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
+void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 // calc upward radiative flux through the bottom of the cells
 {
   const auto &ijk = this->ijk;
@@ -61,7 +61,7 @@ void slvr_lgrngn<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 }
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::surf_sens()
+void slvr_common<ct_params_t>::surf_sens()
 {
   const auto &ijk = this->ijk;
   F(ijk).reindex(this->zero) = setup::F_sens * (*params.hgt_fctr_sclr)(this->vert_idx);
@@ -71,7 +71,7 @@ void slvr_lgrngn<ct_params_t>::surf_sens()
 }
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::surf_latent()
+void slvr_common<ct_params_t>::surf_latent()
 {
   const auto &ijk = this->ijk;
   F(ijk).reindex(this->zero) =  setup::F_lat * (*params.hgt_fctr_sclr)(this->vert_idx); // we need to use a reindexed view, because the profile's base is 0
@@ -81,7 +81,7 @@ void slvr_lgrngn<ct_params_t>::surf_latent()
 }
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::subsidence(const int &type) // large-scale vertical wind
+void slvr_common<ct_params_t>::subsidence(const int &type) // large-scale vertical wind
 {
   const auto &ijk = this->ijk;
   if(params.subsidence)

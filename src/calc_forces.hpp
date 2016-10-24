@@ -19,7 +19,7 @@ struct calc_T
 // forcing functions
 // TODO: make functions return blitz arrays to avoid unnecessary copies
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::rv_src()
+void slvr_common<ct_params_t>::rv_src()
 {
   const auto &ijk = this->ijk;
   if(params.rv_src)
@@ -48,7 +48,7 @@ void slvr_lgrngn<ct_params_t>::rv_src()
 }
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::th_src(typename parent_t::arr_t &rv)
+void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 {
   const auto &ijk = this->ijk;
   if(params.th_src)
@@ -87,7 +87,7 @@ void slvr_lgrngn<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 }
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
+void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
 {
   const auto &ijk = this->ijk;
   // buoyancy

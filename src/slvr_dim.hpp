@@ -1,5 +1,4 @@
 #pragma once
-#include "slvr_common.hpp"
 #include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
 #include <libmpdata++/output/hdf5_xdmf.hpp>
 
