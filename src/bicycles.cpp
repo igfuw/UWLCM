@@ -16,6 +16,8 @@
   #include "cases/DYCOMS98.hpp"
 #elif defined MOIST_THERMAL
   #include "cases/MoistThermalGrabowskiClark99.hpp"
+#elif defined DRY_THERMAL
+  #include "cases/DryThermalGMD2015.hpp"
 #else
   #error please select setup
 #endif
@@ -330,8 +332,8 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
-// moist_thermal doesnt work yet in 3d
-#if !defined MOIST_THERMAL
+// thermals dont work in 3d
+#if !defined MOIST_THERMAL && !defined DRY_THERMAL
       run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
 #endif
     }

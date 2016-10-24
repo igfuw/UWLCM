@@ -25,6 +25,8 @@ if(MODEL_CASE STREQUAL "DYCOMS")
   add_definitions(-DDYCOMS)
 elseif(MODEL_CASE STREQUAL "MOIST_THERMAL")
   add_definitions(-DMOIST_THERMAL)
+elseif(MODEL_CASE STREQUAL "DRY_THERMAL")
+  add_definitions(-DDRY_THERMAL)
 endif()
 
 add_executable(bicycles bicycles.cpp)
