@@ -74,7 +74,7 @@ namespace setup
 
   const real_t F_sens = 16; //W/m^2, sensible heat flux
   const real_t F_lat = 93; //W/m^2, latent heat flux
-  const real_t u_fric = 0.25; // m/s, friction velocity
+  const real_t u_fric = 0; // no surface friction
 
   // T(th_std, p)
   /*
@@ -279,6 +279,8 @@ namespace setup
     params.prs_tol=1e-6;
     params.dt = user_params.dt;
     params.nt = user_params.nt;
+    params.subsidence = false;
+    params.friction = false;
   }
 
   // function expecting a libmpdata solver parameters struct as argument
@@ -419,7 +421,7 @@ namespace setup
 
   // calculate the initial environmental theta and rv profiles as Wojtek does it
   template<class user_params_t>
-  void env_profW(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   {
     setup::real_t dz = (Z / si::metres) / (nz-1);
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -513,10 +515,10 @@ namespace setup
     // turn virtual potential temperature env profile into env profile of standard potential temp
     th_e = th_e / (1. + a * rv_e);
     std::cout << "th_e: " << th_e << std::endl;
-
   }
 
   // calculate the initial environmental theta and rv profiles
+   /*
   template<class user_params_t>
   void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   {
@@ -545,4 +547,5 @@ namespace setup
     hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
     hgt_fctr_sclr(0) = 1;
   }
+*/
 };

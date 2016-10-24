@@ -10,8 +10,16 @@
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include <libmpdata++/concurr/serial.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include "setup.hpp"
-//#include "DYCOMS98.hpp"
-#include "ThermalGrabowskiClark99.hpp"
+
+// setup choice, TODO: make it runtime
+#if defined DYCOMS
+  #include "DYCOMS98.hpp"
+#elif defined MOIST_THERMAL
+  #include "ThermalGrabowskiClark99.hpp"
+#else
+  #error please select setup
+#endif
+
 #include "opts_lgrngn.hpp"
 #include "panic.hpp"
 #include <map>
@@ -59,7 +67,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  setup::env_profW(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  setup::env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
@@ -183,6 +191,7 @@ int main(int argc, char** argv)
   ac = argc;
   av = argv;
 
+#if defined MOIST_THERMAL
     using namespace setup;
     using libcloudphxx::common::moist_air::R_d;
     using libcloudphxx::common::moist_air::R_v;
@@ -210,6 +219,7 @@ int main(int argc, char** argv)
   //  std::cout << "rv 0 from rv(RH, th_std, rhod) " << RH_th_rhod_to_rv(env_RH, th_std(0.) / si::kelvins, rhod_fctr()(0.)) << std::endl;
     //std::cout << "rv 0 from rv(RH, th_0_dry, rhod) " << RH_th_rhod_to_rv(env_RH, th_0_dry / si::kelvins, rhod_fctr()(0.)) << std::endl;
     //std::cout << "rv 0 from rv(RH, T, p) " << RH_T_p_to_rv(env_RH, T(0.) * si::kelvins, p(0.) * si::pascals) << std::endl;
+#endif
 
 
   {
@@ -320,7 +330,10 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
-//      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+// moist_thermal doesnt work yet in 3d
+#if !defined MOIST_THERMAL
+      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+#endif
     }
     else throw
       po::validation_error(

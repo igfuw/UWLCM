@@ -136,9 +136,6 @@ namespace setup
     n1_stp = real_t(125e6*2) / si::cubic_metres, // 125 || 31
     n2_stp = real_t(65e6*2) / si::cubic_metres;  // 65 || 16
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
-    n1_stp_pristine = real_t(125e6 * 2 * 0.5) / si::cubic_metres, // 125 || 31
-    n2_stp_pristine = real_t(65e6 * 2 * 0.5) / si::cubic_metres;  // 65 || 16
-  const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
     n_unit_test = real_t(1) / si::cubic_metres;
 
   //aerosol lognormal dist. for GCCN from Jorgen Jensen
@@ -175,6 +172,8 @@ namespace setup
     params.prs_tol=1e-6;
     params.dt = user_params.dt;
     params.nt = user_params.nt;
+    params.subsidence = true;
+    params.friction = true;
   }
 
   // function expecting a libmpdata solver parameters struct as argument
@@ -249,7 +248,7 @@ namespace setup
   // function expecting a libmpdata++ solver as argument
   // 2D version
   template <int nd, class concurr_t>
-  void intcond(concurr_t &solver, arr_1D_t &rhod, int rng_seed,
+  void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
     typename std::enable_if<nd == 2>::type* = 0
   )
   {
@@ -261,7 +260,7 @@ namespace setup
 
   // 3D version
   template <int nd, class concurr_t>
-  void intcond(concurr_t &solver, arr_1D_t &rhod, int rng_seed,
+  void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
     typename std::enable_if<nd == 3>::type* = 0
   )
   {
@@ -310,23 +309,6 @@ namespace setup
     { return new log_dry_radii_unit_test( *this ); }
   };
 
-  // pristine lognormal aerosol distribution
-  template <typename T>
-  struct log_dry_radii_pristine : public libcloudphxx::common::unary_function<T>
-  {
-    T funval(const T lnrd) const
-    {
-      return T((
-          lognormal::n_e(mean_rd1, sdev_rd1, n1_stp_pristine, quantity<si::dimensionless, real_t>(lnrd)) +
-          lognormal::n_e(mean_rd2, sdev_rd2, n2_stp_pristine, quantity<si::dimensionless, real_t>(lnrd)) 
-        ) * si::cubic_metres
-      );
-    }
-
-    log_dry_radii_pristine *do_clone() const 
-    { return new log_dry_radii_pristine( *this ); }
-  };
-
   // lognormal aerosol distribution with GCCN
   template <typename T>
   struct log_dry_radii_gccn : public libcloudphxx::common::unary_function<T>
@@ -348,7 +330,7 @@ namespace setup
   // alse set w_LS and hgt_fctrs
   // like in Wojtek's BabyEulag
   template<class user_params_t>
-  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   {
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
     using libcloudphxx::common::moist_air::c_pd;

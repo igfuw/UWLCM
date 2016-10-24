@@ -20,6 +20,13 @@ if(${STD_FUTURE_WORKS})
   add_definitions(-DSTD_FUTURE_WORKS)
 endif()
 
+# setup choice
+if(MODEL_CASE STREQUAL "DYCOMS")
+  add_definitions(-DDYCOMS)
+elseif(MODEL_CASE STREQUAL "MOIST_THERMAL")
+  add_definitions(-DMOIST_THERMAL)
+endif()
+
 add_executable(bicycles bicycles.cpp)
 
 target_link_libraries(bicycles ${libmpdataxx_LIBRARIES})
