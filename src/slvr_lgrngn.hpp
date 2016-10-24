@@ -1,6 +1,6 @@
 #pragma once
 #include <chrono>
-#include "slvr_dim.hpp"
+#include "slvr_common.hpp"
 #include "outmom.hpp"
 
 #include <libcloudph++/lgrngn/factory.hpp>
@@ -10,9 +10,9 @@
 #endif
 
 template <class ct_params_t>
-class slvr_lgrngn : public slvr_dim<ct_params_t>
+class slvr_lgrngn : public slvr_common<ct_params_t>
 {
-  using parent_t = slvr_dim<ct_params_t>; 
+  using parent_t = slvr_common<ct_params_t>; 
   using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
 
   public:

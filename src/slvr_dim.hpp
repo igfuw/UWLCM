@@ -1,5 +1,7 @@
 #pragma once
 #include "slvr_common.hpp"
+#include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
+#include <libmpdata++/output/hdf5_xdmf.hpp>
 
 // custom 3D idxperm that accepts idx_t; todo: make it part of libmpdata?
 namespace libmpdataxx
@@ -19,15 +21,21 @@ class slvr_dim
 {};
 
 using libmpdataxx::arakawa_c::h;
+using namespace libmpdataxx; // TODO: get rid of it?
 
 // 2D version 
 template <class ct_params_t>
 class slvr_dim<
   ct_params_t,
   typename std::enable_if<ct_params_t::n_dims == 2 >::type
-> : public slvr_common<ct_params_t>
+> : public 
+  output::hdf5_xdmf<
+    solvers::mpdata_rhs_vip_prs<ct_params_t>
+  >
 {
-  using parent_t = slvr_common<ct_params_t>;
+  using parent_t = output::hdf5_xdmf<
+    solvers::mpdata_rhs_vip_prs<ct_params_t>
+  >;
   using ix = typename ct_params_t::ix;
 
   protected:
@@ -91,9 +99,14 @@ template <class ct_params_t>
 class slvr_dim<
   ct_params_t,
   typename std::enable_if<ct_params_t::n_dims == 3 >::type
-> : public slvr_common<ct_params_t>
+> : public 
+  output::hdf5_xdmf<
+    solvers::mpdata_rhs_vip_prs<ct_params_t>
+  >
 {
-  using parent_t = slvr_common<ct_params_t>;
+  using parent_t = output::hdf5_xdmf<
+    solvers::mpdata_rhs_vip_prs<ct_params_t>
+  >;
   using ix = typename ct_params_t::ix;
 
   protected:

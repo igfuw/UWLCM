@@ -1,17 +1,11 @@
 #pragma once
+#include "slvr_dim.hpp"
 
-#include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
-#include <libmpdata++/output/hdf5_xdmf.hpp>
-
-using namespace libmpdataxx; // TODO: get rid of it?
 
 template <class ct_params_t>
-class slvr_common : public 
-  output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
-  >
+class slvr_common : public slvr_dim<ct_params_t>
 {
-  using parent_t = output::hdf5_xdmf<solvers::mpdata_rhs_vip_prs<ct_params_t>>;
+  using parent_t = slvr_dim<ct_params_t>;
 
   public:
   using real_t = typename ct_params_t::real_t;
