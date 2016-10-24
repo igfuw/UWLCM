@@ -85,7 +85,11 @@ void run(int nx, int nz, const user_params_t &user_params)
     using concurr_t = concurr::serial<
       solver_t, 
       bcond::cyclic, bcond::cyclic,
+#if defined DRY_THERMAL
+      bcond::cyclic, bcond::cyclic
+#else
       bcond::rigid,  bcond::rigid 
+#endif
     >;
     slv.reset(new concurr_t(p));
 
@@ -97,7 +101,11 @@ void run(int nx, int nz, const user_params_t &user_params)
     using concurr_t = concurr::boost_thread<
       solver_t, 
       bcond::cyclic, bcond::cyclic,
+#if defined DRY_THERMAL
+      bcond::cyclic, bcond::cyclic
+#else
       bcond::rigid,  bcond::rigid 
+#endif
     >;
     slv.reset(new concurr_t(p));
 

@@ -225,6 +225,7 @@ namespace setup
     params.prs_tol=1e-6;
     params.dt = user_params.dt;
     params.nt = user_params.nt;
+    params.buoyancy_wet = true;
     params.subsidence = false;
     params.friction = false;
   }
