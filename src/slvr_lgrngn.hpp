@@ -81,6 +81,11 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
     prtcls->diag_dry_mom(1);
     this->record_aux("actrw_rd_mom1", prtcls->outbuf());
 
+    // recording 3rd mom of rw of activated drops
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_wet_mom(3);
+    this->record_aux("actrw_rw_mom3", prtcls->outbuf());
+
     // recording 0th mom of rd of activated drops
     prtcls->diag_rw_ge_rc();
     prtcls->diag_dry_mom(0);
@@ -90,6 +95,11 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
     prtcls->diag_RH_ge_Sc();
     prtcls->diag_dry_mom(1);
     this->record_aux("actRH_rd_mom1", prtcls->outbuf());
+   
+    // recording 3rd mom of rw of activated drops
+    prtcls->diag_RH_ge_Sc();
+    prtcls->diag_wet_mom(3);
+    this->record_aux("actRH_rw_mom3", prtcls->outbuf());
 
     // recording 0th mom of rd of activated drops
     prtcls->diag_RH_ge_Sc();
@@ -156,6 +166,8 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   bool get_rain() { return params.cloudph_opts.coal; }
   void set_rain(bool val) 
   { 
+    //params.cloudph_opts.adve = val;
+    params.w_src = val;
     params.cloudph_opts.coal = val ? params.flag_coal : false;
     params.cloudph_opts.RH_max = val ? 44 : 1.06; // 0.5% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
@@ -236,6 +248,9 @@ class slvr_lgrngn : public slvr_dim<ct_params_t>
   void vip_rhs_expl_calc()
   {
     parent_t::vip_rhs_expl_calc();
+
+    if(!params.friction) return;
+  
     this->mem->barrier();
     if(this->rank == 0)
       tbeg = clock::now();

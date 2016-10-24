@@ -10,7 +10,16 @@
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include <libmpdata++/concurr/serial.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include "setup.hpp"
-#include "DYCOMS98.hpp"
+
+// setup choice, TODO: make it runtime
+#if defined DYCOMS
+  #include "DYCOMS98.hpp"
+#elif defined MOIST_THERMAL
+  #include "ThermalGrabowskiClark99.hpp"
+#else
+  #error please select setup
+#endif
+
 #include "opts_lgrngn.hpp"
 #include "panic.hpp"
 #include <map>
@@ -28,13 +37,14 @@ struct user_params_t
 // copy external profiles into rt_parameters
 // TODO: more elegant way
 template<class params_t>
-void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p)
+void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p)
 {
   p.hgt_fctr_sclr = new setup::arr_1D_t(hgt_s.dataFirst(), hgt_s.shape(), blitz::neverDeleteData);
   p.hgt_fctr_vctr = new setup::arr_1D_t(hgt_v.dataFirst(), hgt_v.shape(), blitz::neverDeleteData);
   p.th_e = new setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
   p.rv_e = new setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
   p.th_ref = new setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
+  p.pre_ref = new setup::arr_1D_t(pre_ref.dataFirst(), pre_ref.shape(), blitz::neverDeleteData);
   p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
   p.w_LS = new setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
 }
@@ -53,13 +63,13 @@ void run(int nx, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  setup::env_prof(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  setup::env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // solver instantiation
   std::unique_ptr<
@@ -78,7 +88,7 @@ void run(int nx, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
@@ -90,7 +100,7 @@ void run(int nx, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -115,11 +125,11 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
+  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
   // assign their values
-  setup::env_prof(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  setup::env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, rv_e, th_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // solver instantiation
   std::unique_ptr<
@@ -139,7 +149,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
@@ -152,7 +162,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -180,6 +190,37 @@ int main(int argc, char** argv)
   // making argc and argv global
   ac = argc;
   av = argv;
+
+#if defined MOIST_THERMAL
+    using namespace setup;
+    using libcloudphxx::common::moist_air::R_d;
+    using libcloudphxx::common::moist_air::R_v;
+
+    std::cout << "rv_0: " << setup::rv_0 << std::endl;
+    std::cout << "specific_humidity(rv_0): " << setup::rv_0 / (1 + setup::rv_0) << std::endl;
+    std::cout << "env_rv(0): " << setup::env_rv()(0.) << std::endl;
+//    std::cout << "prtrb_rv(0,0): " << setup::prtrb_rv()(0., 0.) << std::endl;
+    std::cout << "th_0: " << setup::th_0 << std::endl;
+//    std::cout << "th_std(0): " << th_std(0) << std::endl;
+//    std::cout << "th_0_dry: " << setup::th_0_dry << std::endl;
+//    std::cout << "th_dry_fctr(0): " << th_dry_fctr()(0) << std::endl;
+//    std::cout << "rho_surf: " << setup::rho_surf << std::endl;
+    std::cout << "rhod_surf: " << setup::rhod_surf << std::endl;
+//    std::cout << "theta::std::rhod(p, th_std, rv)(0): " << libcloudphxx::common::theta_std::rhod<real_t>(p_0, th_0, rv_0) << std::endl;
+    std::cout << "T(0): " << setup::T(0.) << std::endl;
+    std::cout << "p(0): " << setup::p(0.) << std::endl;
+    std::cout << "p_dry(0): " << rhod_surf * T(0.) * R_d<real_t>() << std::endl;
+    std::cout << "p_rv(0): " << rhod_surf * rv_0 * T(0.) * R_v<real_t>() << std::endl;
+  //  std::cout << "T(th_dry, rhod)(0): " << libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_dry_fctr()(0.) * si::kelvins, setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres) << std::endl;
+//    std::cout << "p(rhod, prtrb_rv, T(th_dry, rhod))(0): " << libcloudphxx::common::theta_dry::p<setup::real_t>(setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres, prtrb_rv()(0,0), 
+   //   libcloudphxx::common::theta_dry::T<setup::real_t>(setup::th_dry_fctr()(0.) * si::kelvins, setup::rhod_fctr()(0.) * si::kilograms / si::cubic_metres)) << std::endl;
+
+//    std::cout << "rv 0 from rv(RH, T, rhod) " << RH_T_rhod_to_rv(env_RH, T(0.), rhod_fctr()(0.)) << std::endl;
+  //  std::cout << "rv 0 from rv(RH, th_std, rhod) " << RH_th_rhod_to_rv(env_RH, th_std(0.) / si::kelvins, rhod_fctr()(0.)) << std::endl;
+    //std::cout << "rv 0 from rv(RH, th_0_dry, rhod) " << RH_th_rhod_to_rv(env_RH, th_0_dry / si::kelvins, rhod_fctr()(0.)) << std::endl;
+    //std::cout << "rv 0 from rv(RH, T, p) " << RH_T_p_to_rv(env_RH, T(0.) * si::kelvins, p(0.) * si::pascals) << std::endl;
+#endif
+
 
   {
     // note: all options should have default values here to make "--micro=? --help" work
@@ -289,7 +330,10 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
+// moist_thermal doesnt work yet in 3d
+#if !defined MOIST_THERMAL
       run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+#endif
     }
     else throw
       po::validation_error(
