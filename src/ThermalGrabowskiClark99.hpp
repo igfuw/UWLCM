@@ -302,7 +302,7 @@ namespace setup
 
 
   template <class concurr_t, class index_t>
-  void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+  void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed, index_t index)
   {
     using ix = typename concurr_t::solver_t::ix;
     int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
@@ -310,7 +310,12 @@ namespace setup
     int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
     real_t dx = (X / si::metres) / (nx-1); 
 
-    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
+//    solver.advectee(ix::rv) = rv_e(index);
+//    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
+    for(int x=0; x<nx; ++x)
+      for(int z=0; z<nz; ++z)
+         solver.advectee(ix::rv)(x,z) = RH_th_rhod_to_rv(RH()(x * dx, z * dz), th_e(z) ,rhod(z));
+    
 //solver.advectee(ix::rv)(0,0) = rv_0;
 //    solver.advectee(ix::rv) = env_rv()(blitz::tensor::j * dz); 
     solver.advectee(ix::u) = 0;
@@ -326,31 +331,32 @@ namespace setup
 //    solver.g_factor() = rhod_fctr()(blitz::tensor::j * dz);
 
     // initial potential temperature
-    solver.advectee(ix::th) = th_std_fctr()(index * dz); 
+//    solver.advectee(ix::th) = th_std_fctr()(index * dz); 
+    solver.advectee(ix::th) = th_e(index); 
 //solver.advectee(ix::th)(0,0) = th_0_dry / si::kelvins;  
   }
 
   // function expecting a libmpdata++ solver as argument
   // 2D version
   template <int nd, class concurr_t>
-  void intcond(concurr_t &solver, arr_1D_t &rhod, int rng_seed,
+  void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
     typename std::enable_if<nd == 2>::type* = 0
   )
   {
     blitz::secondIndex k;
-    intcond_hlpr(solver, rhod, rng_seed, k);
+    intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
     using ix = typename concurr_t::solver_t::ix;
 //    make_cyclic<2>(solver.advectee(ix::th));
   }
 
   // 3D version
   template <int nd, class concurr_t>
-  void intcond(concurr_t &solver, arr_1D_t &rhod, int rng_seed,
+  void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
     typename std::enable_if<nd == 3>::type* = 0
   )
   {
     blitz::thirdIndex k;
-    intcond_hlpr(solver, rhod, rng_seed, k);
+    intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
     using ix = typename concurr_t::solver_t::ix;
   //  make_cyclic<3>(solver.advectee(ix::th));
 
@@ -441,12 +447,12 @@ namespace setup
 
     // surface data
     
-    real_t tt = T_0 / si::kelvins;
+    real_t tt = T_0 / si::kelvins; // T(0)
     real_t delt = (tt - tt0) / (tt * tt0); 
     real_t esw = ee0*exp(d * delt);
     real_t qvs = a * esw / ((p_0 / si::pascals) -esw);
     rv_e(0) = env_RH * qvs;
-    real_t th_e_surf = th_0 / si::kelvins * (1 + a * rv_e(0));
+    real_t th_e_surf = th_0 / si::kelvins * (1 + a * rv_e(0)); // virtual potential temp
     
     th_e = th_std_fctr(th_e_surf)(k * dz);
     
@@ -498,11 +504,15 @@ namespace setup
     th_ref = th_std_fctr()(k * dz);
     rhod = rho_fctr(rhod_surfW)(k * dz);
 
-    std::cout << "th_e: " << th_e << std::endl;
+    std::cout << "th_v_e: " << th_e << std::endl;
     std::cout << "rv_e: " << rv_e << std::endl;
     std::cout << "T_e: " << T << std::endl;
     std::cout << "th ref: " << th_ref << std::endl;
     std::cout << "rho_ref: " << rhod << std::endl;
+
+    // turn virtual potential temperature env profile into env profile of standard potential temp
+    th_e = th_e / (1. + a * rv_e);
+    std::cout << "th_e: " << th_e << std::endl;
 
   }
 

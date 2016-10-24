@@ -80,7 +80,7 @@ void run(int nx, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
@@ -92,7 +92,7 @@ void run(int nx, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -141,7 +141,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
@@ -154,7 +154,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, user_params.rng_seed);
+    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
