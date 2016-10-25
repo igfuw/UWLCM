@@ -217,7 +217,6 @@ namespace setup
     params.outdir = user_params.outdir;
     params.outfreq = user_params.outfreq;
     params.spinup = user_params.spinup;
-    params.relax_th_rv = user_params.relax_th_rv;
     params.w_src = user_params.w_src;
     params.uv_src = user_params.uv_src;
     params.th_src = user_params.th_src;

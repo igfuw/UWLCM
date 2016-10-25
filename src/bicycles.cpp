@@ -342,6 +342,35 @@ int main(int argc, char** argv)
       run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
 #endif
     }
+    if (micro == "blk_1m" && ny == 0) // 2D one-moment
+    {
+      struct ct_params_t : ct_params_common
+      {
+        enum { n_dims = 2 };
+    	enum { n_eqns = 6 };
+        struct ix { enum {
+          u, w, th, rv, rc, rr,
+          vip_i=u, vip_j=w, vip_den=-1
+        }; };
+      };
+      run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
+    }
+    else if (micro == "blk_1m" && ny > 0) // 3D one-moment
+    {
+      struct ct_params_t : ct_params_common
+      {
+        enum { n_dims = 3 };
+    	enum { n_eqns = 7 };
+        struct ix { enum {
+          u, v, w, th, rv, rc, rr, 
+          vip_i=u, vip_j=v, vip_k=w, vip_den=-1
+        }; };
+      };
+// thermals dont work in 3d
+#if !defined MOIST_THERMAL && !defined DRY_THERMAL
+      run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
+#endif
+    }
     else throw
       po::validation_error(
         po::validation_error::invalid_option_value, micro, "micro" 
