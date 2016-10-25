@@ -388,9 +388,4 @@ if(!std::isfinite(sum(this->mem->advectee(ix::rv))))
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
 
-  static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
-  {
-    parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
-  }
 };

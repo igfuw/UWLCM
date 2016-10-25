@@ -16,7 +16,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
   // timing fields
-  clock::time_point tbeg, tend, tbeg1, tend1, tbeg_loop;
+  clock::time_point tbeg, tend, tbeg1, tbeg_loop;
   std::chrono::milliseconds tdiag, tupdate, tsync, tasync, tasync_wait, tloop, tvip_rhs;
 
   int spinup; // number of timesteps
@@ -225,12 +225,11 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     if (this->rank == 0) 
     {
-      tend1 = clock::now();
+      f_prec << this->timestep << " "  << prec_vol << "\n";
+      prec_vol = 0.;
       // there's no hook_post_loop, so we imitate it here to write out computation times
       if(this->timestep == params.nt-1)
       {
-        f_prec << this->timestep << " "  << prec_vol << "\n";
-        prec_vol = 0.;
         tend = clock::now();
         tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg_loop );
         std::cout <<  "wall time in milliseconds: " << std::endl
@@ -276,5 +275,11 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     k_i.resize(this->shape(this->hrzntl_domain));
     r_l = 0.;
+  }
+
+  static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
+  {
+    parent_t::alloc(mem, n_iters);
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
   }
 };
