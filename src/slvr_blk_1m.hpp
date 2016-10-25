@@ -59,6 +59,14 @@ class slvr_blk_1m : public slvr_common<ct_params_t>
     parent_t::hook_ante_loop(nt); // forcings after adjustments
   }
 
+  void hook_ante_step()
+  {
+    parent_t::hook_ante_step();
+    // store rl for buoyancy
+    auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
+    rl = this->state(ix::rc) + this->state(ix::rr);
+  }
+
   //
   void update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
@@ -86,7 +94,7 @@ class slvr_blk_1m : public slvr_common<ct_params_t>
       const auto 
         rhod   = (*this->mem->G)(i, this->j),
 	rr     = this->state(ix::rr)(i, this->j);
-      libcloudphxx::blk_1m::rhs_columnwise<real_t>(opts, dot_rr, rhod, rr, this->dz);
+      libcloudphxx::blk_1m::rhs_columnwise<real_t>(opts, dot_rr, rhod, rr, this->params.dz);
     }
   }
 

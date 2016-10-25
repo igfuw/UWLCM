@@ -313,6 +313,7 @@ int main(int argc, char** argv)
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
 
+    // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
     {
       struct ct_params_t : ct_params_common
@@ -342,7 +343,7 @@ int main(int argc, char** argv)
       run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
 #endif
     }
-    if (micro == "blk_1m" && ny == 0) // 2D one-moment
+    else if (micro == "blk_1m" && ny == 0) // 2D one-moment
     {
       struct ct_params_t : ct_params_common
       {
