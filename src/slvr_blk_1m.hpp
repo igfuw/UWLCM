@@ -6,9 +6,6 @@
 #include <libcloudph++/blk_1m/rhs_cellwise.hpp>
 #include <libcloudph++/blk_1m/rhs_columnwise.hpp>
 
-// @brief a minimalistic kinematic cloud model with bulk microphysics
-//        built on top of the mpdata_2d solver (by extending it with
-//        custom hook_ante_loop() and hook_post_step() methods)
 template <class ct_params_t>
 class slvr_blk_1m : public slvr_common<ct_params_t>
 {
