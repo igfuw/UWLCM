@@ -411,6 +411,12 @@ namespace setup
     // turn virtual potential temperature env profile into env profile of standard potential temp
     th_e = th_e / (1. + a * rv_e);
     std::cout << "th_e: " << th_e << std::endl;
+    // adjust rv_e according to prtrb_rv later...
+    /*
+    for(int z=0; z<nz; ++z)
+       rv_e(z) = RH_th_rhod_to_rv(env_RH, th_e(z) ,rhod(z));
+    std::cout << "rv_e: " << rv_e << std::endl;
+*/
   }
 
   // calculate the initial environmental theta and rv profiles
