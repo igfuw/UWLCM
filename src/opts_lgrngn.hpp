@@ -114,7 +114,6 @@ void setopts_micro(
     // <TODO>: make it common among all three micro?
     {solver_t::ix::th, {"th", "[K]"}},
     {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
-    {solver_t::ix::u, {"u", "[m/s]"}},
     {solver_t::ix::w, {"w", "[m/s]"}}
     // </TODO>
   };
