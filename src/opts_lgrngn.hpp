@@ -5,6 +5,8 @@
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 
+#pragma once
+
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
 
 #include "opts_common.hpp"

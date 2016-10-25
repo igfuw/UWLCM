@@ -229,8 +229,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     // TODO: barrier?
   }
 
-
-
 #if defined(STD_FUTURE_WORKS)
   std::future<real_t> ftr;
 #endif
