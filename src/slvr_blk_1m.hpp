@@ -60,8 +60,11 @@ class slvr_blk_1m : public slvr_common<ct_params_t>
   {
     parent_t::hook_ante_step();
     // store rl for buoyancy
-    auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
-    rl = this->state(ix::rc) + this->state(ix::rr);
+    if(this->rank==0) // TODO make each thread copy its part
+    {
+      auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
+      rl = this->state(ix::rc) + this->state(ix::rr);
+    }
   }
 
   //
