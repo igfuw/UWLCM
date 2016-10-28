@@ -318,6 +318,10 @@ namespace setup
   // calculate the initial environmental theta and rv profiles as Wojtek does it
   template<class user_params_t>
   void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+  // pre_ref - total pressure
+  // th_e - dry potential temp
+  // th_ref - dry potential temp refrence profile
+  // rhod - dry density profile
   {
     setup::real_t dz = (Z / si::metres) / (nz-1);
     using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -365,7 +369,7 @@ namespace setup
        pre_ref(k)=pre_ref(k-1) - gg*rhob*dz;
 // iteration for T and qv:
        rv_e(k)=rv_e(k-1);
-       T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
+       T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap); 
        T(k)=T(k)/(1.+a*rv_e(k));
       
       for(int iter=0; iter<4; ++iter)
@@ -400,7 +404,8 @@ namespace setup
     }
 
     th_ref = th_std_fctr()(k * dz);
-    rhod = rho_fctr(rhod_surfW)(k * dz);
+//    rhod = rho_fctr(rhod_surfW)(k * dz); // this way rhod is total density profile, not dry
+    rhod = rho_fctr(rhod_surf)(k * dz); // rhod is dry density profile?
 
     std::cout << "th_v_e: " << th_e << std::endl;
     std::cout << "rv_e: " << rv_e << std::endl;
@@ -411,6 +416,27 @@ namespace setup
     // turn virtual potential temperature env profile into env profile of standard potential temp
     th_e = th_e / (1. + a * rv_e);
     std::cout << "th_e: " << th_e << std::endl;
+
+
+    // calc rhod using our formulas...; gives the same rhod
+    /*
+    for(int k=1; k<nz; ++k)
+    {
+      quantity<si::dimensionless, real_t> si_rv_e = rv_e(k);
+      rhod(k) = libcloudphxx::common::theta_std::rhod(pre_ref(k) * si::pascals, th_e(k) * si::kelvins, si_rv_e) / si::kilograms * si::cubic_metres; 
+    }
+    std::cout << "rhod(p,th_std,rv_e): " << rhod << std::endl;
+    */
+
+    // turn standard potential temp into dry potential temp
+    for(int k=1; k<nz; ++k)
+    {
+      quantity<si::dimensionless, real_t> si_rv_e = rv_e(k);
+      th_e(k) = libcloudphxx::common::theta_dry::std2dry(th_e(k) * si::kelvins, si_rv_e) / si::kelvins; 
+    }
+    std::cout << "th_e_dry: " << th_e << std::endl;
+
+    
     // adjust rv_e according to prtrb_rv later...
     /*
     for(int z=0; z<nz; ++z)
