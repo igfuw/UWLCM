@@ -442,7 +442,7 @@ namespace setup
 
     th_ref = 300.;
     th_e = 300.;
-    rhod=1.;
+//    rhod=1.;
     rv_e = 0.;
     
     // adjust rv_e according to prtrb_rv later...
