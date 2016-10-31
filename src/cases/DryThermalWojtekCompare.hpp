@@ -440,7 +440,7 @@ namespace setup
     }
     std::cout << "th_e_dry: " << th_e << std::endl;
 
-    th_ref = 300.;
+ //   th_ref = 300.;
     th_e = 300.;
 //    rhod=1.;
     rv_e = 0.;
