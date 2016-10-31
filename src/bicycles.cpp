@@ -341,7 +341,7 @@ int main(int argc, char** argv)
         }; };
       };
 // thermals dont work in 3d
-#if !defined MOIST_THERMAL && !defined DRY_THERMAL
+#if !defined MOIST_THERMAL && !defined DRY_THERMAL && !defined DRY_THERMAL_COMPARE
       run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
 #endif
     }
@@ -370,7 +370,7 @@ int main(int argc, char** argv)
         }; };
       };
 // thermals dont work in 3d
-#if !defined MOIST_THERMAL && !defined DRY_THERMAL
+#if !defined MOIST_THERMAL && !defined DRY_THERMAL && !defined DRY_THERMAL_COMPARE
       run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
 #endif
     }
