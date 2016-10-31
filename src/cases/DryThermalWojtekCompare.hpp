@@ -1,6 +1,8 @@
 #pragma once
 #include "common.hpp"
 
+// started as a dry compare setup, ended up as the same as moist setup...
+
 namespace setup 
 {
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
