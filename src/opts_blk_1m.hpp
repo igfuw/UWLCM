@@ -41,6 +41,7 @@ void setopts_micro(
   rt_params.cloudph_opts.conv = vm["conv"].as<bool>();
   rt_params.cloudph_opts.accr = vm["accr"].as<bool>();
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
+  rt_params.cloudph_opts.r_eps = 1e-6;
 
   // output variables
   rt_params.outvars = {
