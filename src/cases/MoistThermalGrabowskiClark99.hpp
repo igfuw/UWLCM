@@ -227,6 +227,7 @@ namespace setup
     params.buoyancy_wet = true;
     params.subsidence = false;
     params.friction = false;
+//    params.n_iters=1;
   }
 
   // function expecting a libmpdata solver parameters struct as argument
@@ -259,11 +260,17 @@ namespace setup
     real_t dx = (X / si::metres) / (nx-1); 
 
 //    solver.advectee(ix::rv) = rv_e(index);
-//    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
+    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
+/*
     for(int x=0; x<nx; ++x)
       for(int z=0; z<nz; ++z)
-         solver.advectee(ix::rv)(x,z) = RH_th_rhod_to_rv(RH()(x * dx, z * dz), th_e(z) ,rhod(z));
-    
+      {
+         if(RH()(x * dx, z * dz) == env_RH)
+           solver.advectee(ix::rv)(x,z) = rv_e(z);
+         else
+           solver.advectee(ix::rv)(x,z) = RH_th_rhod_to_rv(RH()(x * dx, z * dz), th_e(z) ,rhod(z));
+      }
+  */  
 //solver.advectee(ix::rv)(0,0) = rv_0;
 //    solver.advectee(ix::rv) = env_rv()(blitz::tensor::j * dz); 
     solver.advectee(ix::u) = 0;
