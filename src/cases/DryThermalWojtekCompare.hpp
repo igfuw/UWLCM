@@ -129,6 +129,7 @@ namespace setup
     return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
   }
 
+
   struct RH
   {
     quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
@@ -136,8 +137,10 @@ namespace setup
       real_t r = sqrt( pow( x - (X / si::metres / 2.), 2) + pow( z - (z_prtrb / si::metres), 2));
       if(r <= 200.)
         return prtrb_RH;
-      else
+      else if(r >= 300.)
         return env_RH;
+      else // transition layer
+        return env_RH + (prtrb_RH - env_RH) * pow( cos(boost::math::constants::pi<real_t>() / 2. * (r - 200) / 100.), 2);
     }
   BZ_DECLARE_FUNCTOR2(RH);
   };
