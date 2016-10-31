@@ -38,7 +38,7 @@ namespace setup
   const quantity<si::pressure, real_t> 
     p_0 = 85000 * si::pascals;
   const real_t stab = 1.3e-5; // stability, 1/m
-  const real_t env_RH = 0.;
+  const real_t env_RH = 0.2;
   const real_t prtrb_RH = 1.; //effective value, should be 1.00, but it caused RH in libcloud = 1.01 in the perturbation; TODO: fix it, its caused by wrong initial condition not taking into account rho/rhod differences?
   // theta (std) at surface
   const quantity<si::temperature, real_t> th_0 = T_0 / pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
@@ -225,7 +225,7 @@ namespace setup
     params.prs_tol=1e-6;
     params.dt = user_params.dt;
     params.nt = user_params.nt;
-    params.buoyancy_wet = false;//true;
+    params.buoyancy_wet = true;
     params.subsidence = false;
     params.friction = false;
 //    params.n_iters=1;
@@ -261,14 +261,17 @@ namespace setup
     real_t dx = (X / si::metres) / (nx-1); 
 
 //    solver.advectee(ix::rv) = rv_e(index);
-//    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
-    for(int x=0; x<nx; ++x)
-      for(int z=0; z<nz; ++z)
-      {
-         solver.advectee(ix::th)(x,z) = 300. + 0.5 * RH()(x * dx, z * dz);
-      }
+//    solver.advectee(ix::rc) = 0.;
+    solver.advectee(ix::rv) = prtrb_rv()(blitz::tensor::i * dx, blitz::tensor::j * dz); 
+    solver.advectee(ix::th) = th_e(index);
+  //  for(int x=0; x<nx; ++x)
+//      for(int z=0; z<nz; ++z)
+//      {
+//         solver.advectee(ix::th)(x,z) = th_e(z) + 0.5 * RH()(x * dx, z * dz);
+//         solver.advectee(ix::rc)(x,z) = RH()(x * dx, z * dz) > 0.4 ?  RH()(x * dx, z * dz) * 1e-3 : 0;
+  //    }
     
-    solver.advectee(ix::rv)(0,0) = 0.;
+//    solver.advectee(ix::rv)(0,0) = 0.;
 //    solver.advectee(ix::rv) = env_rv()(blitz::tensor::j * dz); 
     solver.advectee(ix::u) = 0;
     solver.advectee(ix::w) = 0;  
@@ -441,9 +444,9 @@ namespace setup
     std::cout << "th_e_dry: " << th_e << std::endl;
 
  //   th_ref = 300.;
-    th_e = 300.;
+ //   th_e = 300.;
 //    rhod=1.;
-    rv_e = 0.;
+//    rv_e = 0.;
     
     // adjust rv_e according to prtrb_rv later...
     /*
