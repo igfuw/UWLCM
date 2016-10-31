@@ -18,6 +18,8 @@
   #include "cases/MoistThermalGrabowskiClark99.hpp"
 #elif defined DRY_THERMAL
   #include "cases/DryThermalGMD2015.hpp"
+#elif defined DRY_THERMAL_COMPARE
+  #include "cases/DryThermalWojtekCompare.hpp"
 #else
   #error please select setup
 #endif

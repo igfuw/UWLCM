@@ -27,6 +27,8 @@ elseif(MODEL_CASE STREQUAL "MOIST_THERMAL")
   add_definitions(-DMOIST_THERMAL)
 elseif(MODEL_CASE STREQUAL "DRY_THERMAL")
   add_definitions(-DDRY_THERMAL)
+elseif(MODEL_CASE STREQUAL "DRY_THERMAL_COMPARE")
+  add_definitions(-DDRY_THERMAL_COMPARE)
 endif()
 
 add_executable(bicycles bicycles.cpp)
