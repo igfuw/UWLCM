@@ -11,12 +11,6 @@ namespace setup
   namespace const_cp = libcloudphxx::common::const_cp;
 
 
-  // non-const global :)
-   /*
-  arr_1D_t gpre_ref;
-  arr_1D_t gT;
-  real_t gdz;
-*/
   using libcloudphxx::common::theta_std::p_1000;
   using libcloudphxx::common::moist_air::R_d_over_c_pd;
   using libcloudphxx::common::moist_air::c_pd;
