@@ -10,4 +10,5 @@ if (NOT libcloudph++_FOUND)
 endif()
 
 add_subdirectory(src) 
+add_subdirectory(drawbicyc)
 add_subdirectory(tests)
