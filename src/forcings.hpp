@@ -23,21 +23,6 @@ void slvr_common<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename p
         (th(ijk).reindex(this->zero) - (*params.th_e)(this->vert_idx)) / (*params.th_ref)(this->vert_idx)
       );
 
-/*
-    for(int j=0; j<121; ++j)
-  for(int i=0; i<181; ++i)
-     {
-    
-  std::cout << i << " " << j << " " << tmp1(i,j) << " " 
-<< th(i,j) << " "
-<< (*params.th_e)(j) << " "
-<< (*params.th_ref)(j) << " "
-<< rv(i,j) << " "
-<< (*params.rv_e)(j) << " "
-<< r_l(i,j) << " "
- << std::endl;
-      }
-*/
   this->smooth(tmp1, F);
 }
 
