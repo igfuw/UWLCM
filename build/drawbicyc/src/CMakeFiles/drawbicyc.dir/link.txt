@@ -1,1 +1,0 @@
-/home/plgdziekan/local_installs/gcc-4.9.3-install/bin/g++    -std=c++11 -O3 -DNDEBUG   CMakeFiles/drawbicyc.dir/drawbicyc.cpp.o  -o drawbicyc -rdynamic -lhdf5_cpp -lz -ldl -lm -lhdf5_hl -lhdf5 -lboost_thread-mt -lboost_iostreams-mt -lboost_system-mt -lboost_timer-mt -lboost_program_options-mt -lboost_filesystem-mt 
