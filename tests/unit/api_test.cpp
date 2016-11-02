@@ -17,8 +17,8 @@ int main(int ac, char** av)
   string opts_common = 
     "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --adv_serial=true";
   unordered_set<string> opts_dim({
-    "--nx=4 --nz=4",
-    "--nx=4 --ny=4 --nz=4"
+    "--nx=4 --ny=4 --nz=4",
+    "--nx=4 --nz=4"
   });
   unordered_set<string> opts_micro({
     "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100 --unit_test=true",
