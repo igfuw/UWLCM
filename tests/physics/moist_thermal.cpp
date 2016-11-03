@@ -24,8 +24,8 @@ int main(int ac, char** av)
   string opts_common = 
     "--outfreq=60 --nt=600 --spinup=1000 --dt=1 --nx=181 --nz=121 --th_src=false --uv_src=false --rv_src=false --w_src=true --adv_serial=true";
   unordered_map<string, string> opts_micro({
-    {"lgrngn", "--micro=lgrngn --outdir=tmp_out --cond=true --adve=true --sedi=false --coal=false --backend=OpenMP --sd_conc=16"},
-    {"blk_1m", "--micro=blk_1m --outdir=tmp_out --cond=true --cevp=true --revp=false --conv=false --accr=false --sedi=false"}
+    {"blk_1m", "--micro=blk_1m --outdir=tmp_out_blk_1m --cond=true --cevp=true --revp=false --conv=false --accr=false --sedi=false"},
+    {"lgrngn", "--micro=lgrngn --outdir=tmp_out_lgrngn --cond=true --adve=true --sedi=false --coal=false --backend=OpenMP --sd_conc=16"}
   });
 
   // expected results
@@ -41,6 +41,8 @@ int main(int ac, char** av)
   };
   // relative precision
   unordered_map<string, double> eps = { {"blk_1m", 1e-5}, {"lgrngn", 5e-2}};
+  // out dir
+  unordered_map<string, string> tmp_out = { {"blk_1m", "tmp_out_blk_1m"}, {"lgrngn", "tmp_out_lgrngn"}};
 
   for (auto &opts_m : opts_micro)
   {
@@ -54,7 +56,7 @@ int main(int ac, char** av)
  
     // instantiate plotter to read in output
     using Plotter_t = PlotterMicro_t<2>;
-    Plotter_t plotter("tmp_out", opts_m.first);
+    Plotter_t plotter(tmp_out[opts_m.first], opts_m.first);
     auto& n = plotter.map;
 
     blitz::Array<float, 1> result_com(n["t"]);
