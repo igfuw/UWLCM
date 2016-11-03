@@ -39,8 +39,11 @@ int main(int ac, char** av)
     {"blk_1m", {{0, 1.3249e-05, 0.00011178, 0.000275819, 0.000421079, 0.000552953, 0.000621904, 0.000583853, 0.00051231, 0.000448865, 0.000410936}}},
     {"lgrngn", {{0, 0,         0.000101064, 0.000268452, 0.000427039, 0.000546621, 0.000570856, 0.00055723, 0.000447908, 0.000374359, 0.000261464}}}
   };
-  // relative precision
-  unordered_map<string, double> eps = { {"blk_1m", 1e-5}, {"lgrngn", 5e-2}};
+  // relative precision at given timestep
+  unordered_map<string, std::array<float, 11>> eps = { 
+    {"blk_1m", {{1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5}} }, 
+    {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-1, 5e-1, 5e-1}} }   // during evaporation we get large fluctuations
+  };
   // out dir
   unordered_map<string, string> tmp_out = { {"blk_1m", "tmp_out_blk_1m"}, {"lgrngn", "tmp_out_lgrngn"}};
 
@@ -96,8 +99,9 @@ int main(int ac, char** av)
 
     // compare center of mass
     blitz::Array<float, 1> expected_result(data_com[opts_m.first].data(), 11, blitz::neverDeleteData);
-    rel_err = where(expected_result > 0, abs(result_com - expected_result) / expected_result, 0);
-    if(any(rel_err > eps[opts_m.first]))
+    blitz::Array<float, 1> epsilon(eps[opts_m.first].data(), 11, blitz::neverDeleteData);
+    rel_err = where(expected_result > 0, abs(result_com - expected_result) / expected_result - epsilon, 0);
+    if(any(rel_err > 0.))
     {
       std::cerr << rel_err;
       error_macro("cloud droplets center of mass discrepancy");
@@ -105,8 +109,8 @@ int main(int ac, char** av)
 
     // compare avg rc
     expected_result = blitz::Array<float, 1>(data_avg[opts_m.first].data(), 11, blitz::neverDeleteData);
-    rel_err = where(expected_result > 0, abs(result_avg - expected_result) / expected_result, 0);
-    if(any(rel_err > eps[opts_m.first]))
+    rel_err = where(expected_result > 0, abs(result_avg - expected_result) / expected_result - epsilon, 0);
+    if(any(rel_err > 0.))
     {
       std::cerr << rel_err;
       error_macro("average cloud water mixing ratio discrepancy");
