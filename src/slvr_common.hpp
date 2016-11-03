@@ -112,7 +112,8 @@ class slvr_common : public slvr_dim<ct_params_t>
         if(params.w_src)
         {
           w_src(this->state(ix::th), this->state(ix::rv));
-          rhs.at(ix::w)(ijk) += alpha(ijk);
+          auto ix_w = this->vip_ixs[ct_params_t::n_dims - 1];
+          rhs.at(ix_w)(ijk) += alpha(ijk);
         }
 
         // horizontal velocity sources 

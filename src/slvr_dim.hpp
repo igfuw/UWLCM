@@ -51,7 +51,7 @@ class slvr_dim<
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
   blitz::secondIndex vert_idx;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
-  std::set<int> hori_vel = std::set<int>{ix::u};
+  std::set<int> hori_vel = std::set<int>{ix::vip_i};
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -122,7 +122,7 @@ class slvr_dim<
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
   blitz::thirdIndex vert_idx;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
-  std::set<int> hori_vel = std::set<int>{ix::u, ix::v};
+  std::set<int> hori_vel = std::set<int>{ix::vip_i, ix::vip_j};
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
