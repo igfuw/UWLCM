@@ -60,3 +60,5 @@ script:
   - cmake .. -DCMAKE_BUILD_TYPE=Release -DMODEL_CASE="MOIST_THERMAL"
   - make
   - make test
+  
+  # TODO: run the dry thermal test
