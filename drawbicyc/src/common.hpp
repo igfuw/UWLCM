@@ -7,6 +7,7 @@
 #include <sstream>
 #include <vector>
 #include "gnuplot.hpp"
+#include "common_filters.hpp"
 #include <boost/units/systems/si.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -67,36 +68,5 @@ string zeropad(int n, int w=3)
   return tmp.str();
 }
 
-using namespace blitz;
-
-double iscloudy_rc(double x)
-{
-  return x > 1.e-5 ? 1. : 0.; 
-}
-BZ_DECLARE_FUNCTION(iscloudy_rc)
-
-double is_th_prtrb(double x)
-{
-  return x > 300.1 ? 1. : 0.; 
-}
-BZ_DECLARE_FUNCTION(is_th_prtrb)
-
-double iscloudy(double x)
-{
-  return x > 20. ? 1. : 0.; 
-}
-BZ_DECLARE_FUNCTION(iscloudy)
-
-double isdowndraught(double x)
-{
-  return  x < -0.2 ? 1. : 0.; 
-}
-BZ_DECLARE_FUNCTION(isdowndraught)
-
-double isupdraught(double x)
-{
-  return  x > 0.2 ? 1. : 0.; 
-}
-BZ_DECLARE_FUNCTION(isupdraught)
 
 
