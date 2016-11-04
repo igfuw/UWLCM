@@ -287,9 +287,9 @@ namespace setup
 
   // function expecting a libmpdata++ solver as argument
   // 2D version
-  template <int nd, class concurr_t>
+  template <class concurr_t>
   void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
-    typename std::enable_if<nd == 2>::type* = 0
+    typename std::enable_if<concurr_t::solver_t::n_dims == 2>::type* = 0
   )
   {
     blitz::secondIndex k;
@@ -299,9 +299,9 @@ namespace setup
   }
 
   // 3D version
-  template <int nd, class concurr_t>
+  template <class concurr_t>
   void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
-    typename std::enable_if<nd == 3>::type* = 0
+    typename std::enable_if<concurr_t::solver_t::n_dims == 3>::type* = 0
   )
   {
     blitz::thirdIndex k;
