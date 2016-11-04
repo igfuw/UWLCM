@@ -29,16 +29,6 @@
 #include "panic.hpp"
 #include <map>
 
-// simulation parameters container
-// TODO: write them to rt_params directly in main()
-struct user_params_t
-{
-  int nt, outfreq, spinup, rng_seed;
-  setup::real_t dt, z_rlx_sclr;
-  std::string outdir;
-  bool serial, th_src, rv_src, uv_src, w_src;
-};
-
 // copy external profiles into rt_parameters
 // TODO: more elegant way
 template<class params_t>

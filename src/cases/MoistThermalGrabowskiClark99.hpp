@@ -205,8 +205,8 @@ namespace setup
   };
 */
 
-  template <class T, class U>
-  void setopts_hlpr(T &params, const U &user_params)
+  template <class T>
+  void setopts_hlpr(T &params, const user_params_t &user_params)
   {
     params.outdir = user_params.outdir;
     params.outfreq = user_params.outfreq;
@@ -225,16 +225,16 @@ namespace setup
   }
 
   // function expecting a libmpdata solver parameters struct as argument
-  template <class T, class U>
-  void setopts(T &params, int nx, int nz, const U &user_params)
+  template <class T>
+  void setopts(T &params, int nx, int nz, const user_params_t &user_params)
   {
     setopts_hlpr(params, user_params);
     params.di = (X / si::metres) / (nx-1); 
     params.dj = (Z / si::metres) / (nz-1);
     params.dz = params.dj;
   }
-  template <class T, class U>
-  void setopts(T &params, int nx, int ny, int nz, const U &user_params)
+  template <class T>
+  void setopts(T &params, int nx, int ny, int nz, const user_params_t &user_params)
   {
     setopts_hlpr(params, user_params);
     params.di = (X / si::metres) / (nx-1); 
