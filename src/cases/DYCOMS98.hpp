@@ -180,7 +180,7 @@ namespace setup
     blitz::secondIndex k;
     intcond_hlpr(solver, rhod, rng_seed, k);
     using ix = typename concurr_t::solver_t::ix;
-    make_cyclic<2>(solver.advectee(ix::th));
+    make_cyclic(solver.advectee(ix::th));
   }
 
   // 3D version
@@ -192,7 +192,7 @@ namespace setup
     blitz::thirdIndex k;
     intcond_hlpr(solver, rhod, rng_seed, k);
     using ix = typename concurr_t::solver_t::ix;
-    make_cyclic<3>(solver.advectee(ix::th));
+    make_cyclic(solver.advectee(ix::th));
 
     int nz = solver.advectee().extent(ix::w);
     real_t dz = (Z / si::metres) / (nz-1); 

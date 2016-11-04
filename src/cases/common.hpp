@@ -78,22 +78,21 @@ namespace setup
 
   // function enforcing cyclic values in horizontal directions
   // 2D version
-  template<int nd, class arr_t>
+  template<class arr_t>
   void make_cyclic(arr_t arr,
-    typename std::enable_if<nd == 2>::type* = 0)
+    typename std::enable_if<arr_t::rank_ == 2>::type* = 0)
   { arr(arr.extent(0) - 1, blitz::Range::all()) = arr(0, blitz::Range::all()); }
 
   // 3D version
-  template<int nd, class arr_t>
+  template<class arr_t>
   void make_cyclic(arr_t arr,
-    typename std::enable_if<nd == 3>::type* = 0)
+    typename std::enable_if<arr_t::rank_ == 3>::type* = 0)
   { 
     arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) = 
       arr(0, blitz::Range::all(), blitz::Range::all()); 
     arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) = 
       arr(blitz::Range::all(), 0, blitz::Range::all());
   }
-
 
   // lognormal aerosol distribution
   template <typename T>
