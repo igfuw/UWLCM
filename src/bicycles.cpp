@@ -8,7 +8,6 @@
 #include <libmpdata++/bcond/cyclic_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
-#include <libmpdata++/concurr/serial.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include "setup.hpp"
 
 // setup choice, TODO: make it runtime
@@ -48,6 +47,28 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
 {
+  using concurr_boost_t = concurr::boost_thread<
+    solver_t, 
+    bcond::cyclic, bcond::cyclic,
+#if defined DRY_THERMAL
+    bcond::cyclic, bcond::cyclic
+#else
+    bcond::rigid,  bcond::rigid 
+#endif
+  >;
+
+  std::unique_ptr<
+    setup::CasesCommon<
+      concurr_any_t
+    >
+  > case_ptr; 
+
+  if (user_params.serial)
+  {
+//    case_ptr.reset(new setup::MoistThermalGrabowskiClark99<concurr_serial_t>); 
+    case_ptr.reset(new setup::CasesCommon<concurr_serial_t>()); 
+  }
+
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
 
@@ -67,44 +88,10 @@ void run(int nx, int nz, const user_params_t &user_params)
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // solver instantiation
-  std::unique_ptr<
-    concurr::any<
-      typename solver_t::real_t, 
-      solver_t::n_dims
-    >
-  > slv;
-  if (user_params.serial)
-  {
-    using concurr_t = concurr::serial<
-      solver_t, 
-      bcond::cyclic, bcond::cyclic,
-#if defined DRY_THERMAL
-      bcond::cyclic, bcond::cyclic
-#else
-      bcond::rigid,  bcond::rigid 
-#endif
-    >;
-    slv.reset(new concurr_t(p));
+  std::unique_ptr<concurr_any_t> slv;
 
-    // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
-  }
-  else
-  {
-    using concurr_t = concurr::boost_thread<
-      solver_t, 
-      bcond::cyclic, bcond::cyclic,
-#if defined DRY_THERMAL
-      bcond::cyclic, bcond::cyclic
-#else
-      bcond::rigid,  bcond::rigid 
-#endif
-    >;
-    slv.reset(new concurr_t(p));
-
-    // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
-  }
+  slv.reset(new concurr_boost_t(p));
+  setup::intcond2d(*static_cast<concurr_boost_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
 
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
@@ -152,7 +139,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    setup::intcond3d(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
@@ -165,7 +152,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    setup::intcond3d(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -208,7 +195,6 @@ int main(int argc, char** argv)
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
-      ("adv_serial", po::value<bool>()->default_value(false), "force advection to be computed on single thread")
       ("th_src", po::value<bool>()->default_value(true) , "temp src")
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
@@ -261,9 +247,6 @@ int main(int argc, char** argv)
 
     //handling z_rlx_sclr
     user_params.z_rlx_sclr = vm["z_rlx_sclr"].as<setup::real_t>();
-
-    // handling serial-advection-forcing flag
-    user_params.serial = vm["adv_serial"].as<bool>();
 
     // handling sources flags
     user_params.th_src = vm["th_src"].as<bool>();

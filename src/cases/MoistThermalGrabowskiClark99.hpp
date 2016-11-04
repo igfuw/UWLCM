@@ -281,9 +281,7 @@ namespace setup
   
     // function expecting a libmpdata++ solver as argument
     // 2D version
-    void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
-      typename std::enable_if<concurr_t::solver_t::n_dims == 2>::type* = 0
-    )
+    void intcond2d(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
     {
       blitz::secondIndex k;
       intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
@@ -292,9 +290,7 @@ namespace setup
     }
   
     // 3D version
-    void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
-      typename std::enable_if<concurr_t::solver_t::n_dims == 3>::type* = 0
-    )
+    void intcond3d(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
     {
       blitz::thirdIndex k;
       intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);

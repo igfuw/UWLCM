@@ -19,7 +19,7 @@ struct user_params_t
   int nt, outfreq, spinup, rng_seed;
   setup::real_t dt, z_rlx_sclr;
   std::string outdir;
-  bool serial, th_src, rv_src, uv_src, w_src;
+  bool th_src, rv_src, uv_src, w_src;
 };
 
 namespace setup 
@@ -128,17 +128,13 @@ namespace setup
       log_dry_radii_gccn *do_clone() const 
       { return new log_dry_radii_gccn( *this ); }
     };
-
+/*
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) =0;
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) =0;
-    virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
-      typename std::enable_if<concurr_t::solver_t::n_dims == 2>::type* = 0 
-    ) =0;
-    virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed,
-      typename std::enable_if<concurr_t::solver_t::n_dims == 3>::type* = 0 
-    )  =0;
+    virtual void intcond2d(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed) =0;
+    virtual void intcond3d(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed) =0;
     virtual void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params) =0;
-
+*/
     protected:
   
     // function enforcing cyclic values in horizontal directions
