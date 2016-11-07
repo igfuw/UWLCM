@@ -68,7 +68,7 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   if (1) // user_params.moist....
   {
-    case_ptr.reset(new setup::MoistThermalGrabowskiClark99_2d<concurr_boost_t>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_boost_t>()); 
 //    case_ptr.reset(new setup::CasesCommon<concurr_boost_t>()); 
   }
 
