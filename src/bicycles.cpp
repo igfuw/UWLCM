@@ -59,14 +59,14 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   std::unique_ptr<
     setup::CasesCommon<
-      concurr_any_t
+      concurr_boost_t
     >
   > case_ptr; 
 
-  if (user_params.serial)
+  if (1) // user_params.moist....
   {
-//    case_ptr.reset(new setup::MoistThermalGrabowskiClark99<concurr_serial_t>); 
-    case_ptr.reset(new setup::CasesCommon<concurr_serial_t>()); 
+//    case_ptr.reset(new setup::MoistThermalGrabowskiClark99<concurr_boost_t>); 
+    case_ptr.reset(new setup::CasesCommon<concurr_boost_t>()); 
   }
 
   // instantiation of structure containing simulation parameters
