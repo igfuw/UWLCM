@@ -29,25 +29,20 @@ namespace setup
   namespace theta_dry = libcloudphxx::common::theta_dry;
   namespace lognormal = libcloudphxx::common::lognormal;
 
+  // container for constants that appear in forcings, some are not needed in all cases, etc...
+  // TODO: make forcing functions part of case class
+  struct ForceParameters_t
+  {
+    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, F_sens, F_lat, u_fric;
+  };
+
   template<class concurr_t>
   class CasesCommon
   {
     public:
-    // some not really common vars, used only in Dycoms but need to be defined everywhere
-    const real_t z_i  = 795; //initial inversion height
-    const real_t heating_kappa = 85; // m^2/kg
-    const real_t F_0 = 70; // w/m^2
-    const real_t F_1 = 22; // w/m^2
-    const real_t q_i = 8e-3; // kg/kg
-    const real_t c_p = 1004; // J / kg / K
+    ForceParameters_t ForceParameters;
   
-    const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s]
-    const real_t rho_i = 1.12; // kg/m^3
-  
-    const real_t F_sens = 16; //W/m^2, sensible heat flux
-    const real_t F_lat = 93; //W/m^2, latent heat flux
-    const real_t u_fric = 0.25; // m/s, friction velocity
-  
+    const real_t z_i = 795; //initial inversion height
     //aerosol bimodal lognormal dist. 
     const quantity<si::length, real_t>
       mean_rd1 = real_t(.011e-6) * si::metres,
@@ -135,6 +130,22 @@ namespace setup
     virtual void intcond3d(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed) =0;
     virtual void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params) =0;
 */
+
+    // ctor
+    // TODO: these are DYCOMS definitions, move them there
+    CasesCommon()
+    {
+      ForceParameters.heating_kappa = 85; // m^2/kg
+      ForceParameters.F_0 = 70; // w/m^2
+      ForceParameters.F_1 = 22; // w/m^2
+      ForceParameters.q_i = 8e-3; // kg/kg
+      ForceParameters.D = 3.75e-6; // large-scale wind horizontal divergence [1/s]
+      ForceParameters.rho_i = 1.12; // kg/m^3
+      ForceParameters.F_sens = 16; //W/m^2, sensible heat flux
+      ForceParameters.F_lat = 93; //W/m^2, latent heat flux
+      ForceParameters.u_fric = 0.25; // m/s; friction velocity
+    }
+
     protected:
   
     // function enforcing cyclic values in horizontal directions

@@ -57,11 +57,14 @@ void run(int nx, int nz, const user_params_t &user_params)
 #endif
   >;
 
-  std::unique_ptr<
-    setup::CasesCommon<
-      concurr_boost_t
-    >
-  > case_ptr; 
+  using case_ptr_t = 
+    std::unique_ptr<
+      setup::CasesCommon<
+        concurr_boost_t
+      >
+    >;
+
+  case_ptr_t case_ptr; 
 
   if (1) // user_params.moist....
   {
@@ -70,12 +73,12 @@ void run(int nx, int nz, const user_params_t &user_params)
   }
 
   // instantiation of structure containing simulation parameters
-  typename solver_t::rt_params_t p;
+  typename solver_t::rt_params_t p(case_ptr->ForceParameters);
 
   // output and simulation parameters
   p.grid_size = {nx, nz};
 
-  setup::setopts(p, nx, nz, user_params);
+  case_ptr->setopts(p, nx, nz, user_params);
   setopts_micro<solver_t>(p, user_params);
 
   // reference profiles shared among threads
@@ -83,7 +86,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  setup::env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 

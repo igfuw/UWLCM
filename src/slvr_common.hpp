@@ -202,7 +202,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
       F(this->ijk).reindex(this->zero) = 
-        -pow(setup::u_fric,2) *  // const, cache it
+        -pow(params.ForceParameters.u_fric,2) *  // const, cache it
         this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
         U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
         (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
@@ -254,6 +254,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet;
     setup::arr_1D_t *th_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
+    setup::ForceParameters_t ForceParameters;
+
+    // ctor
+    rt_params_t(setup::ForceParameters_t FP):
+      ForceParameters(FP) {}
   };
 
   // per-thread copy of params

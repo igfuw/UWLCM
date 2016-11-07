@@ -32,7 +32,7 @@ namespace setup
     const real_t env_RH = 0.2;
     const real_t prtrb_RH = 1.; //effective value, should be 1.00, but it caused RH in libcloud = 1.01 in the perturbation; TODO: fix it, its caused by wrong initial condition not taking into account rho/rhod differences?
     // theta (std) at surface
-    const quantity<si::temperature, real_t> th_0 = T_0 / pow(setup::p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
+    const quantity<si::temperature, real_t> th_0 = T_0 / pow(p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
     const quantity<si::dimensionless, real_t> rv_0 = RH_T_p_to_rv(env_RH, T_0, p_0);
   //  const quantity<si::temperature, real_t> th_0_dry = theta_dry::std2dry<real_t>(th_0, rv_0);
   
@@ -56,10 +56,10 @@ namespace setup
   */
     // some more constants copied from env_prof, todo
   //  const setup::real_t T_surf = th2T(th_0, p_0) / si::kelvins;
-    const setup::real_t rhod_surf = (setup::p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms + rv_0 * R_v<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
-    const setup::real_t rhod_surfW = (setup::p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
+    const setup::real_t rhod_surf = (p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms + rv_0 * R_v<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
+    const setup::real_t rhod_surfW = (p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
   //  const setup::real_t T_virt_surf = (T_0 / si::kelvins) * (1. + 0.608 * (rv_0 / 1. + rv_0)); // T_virt, i.e. with specific humudity
-    //const setup::real_t rho_surf = (setup::p_0 / si::pascals) / T_virt_surf / (R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms); 
+    //const setup::real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / (R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms); 
     const setup::real_t cs = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
   
   
@@ -95,7 +95,7 @@ namespace setup
     struct rho_fctr
     {
       const real_t rh_surf;
-      rho_fctr() :
+      rho_fctr(const real_t &rho) :
         rh_surf(rho) {}
   
       real_t operator()(const real_t &z) const
@@ -456,5 +456,19 @@ namespace setup
       hgt_fctr_sclr(0) = 1;
     }
   */
-    };
+
+  public:
+  // ctor   
+  MoistThermalGrabowskiClark99():
+    T_0(283. * si::kelvins),
+    p_0(85000 * si::pascals),
+    th_0(T_0 / pow(p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>())),
+    rv_0(RH_T_p_to_rv(env_RH, T_0, p_0)),
+    z_0(0    * si::metres),
+    Z(2400 * si::metres),
+    X(3600 * si::metres),
+    Y(3600 * si::metres),
+    z_prtrb(800 * si::metres)
+  {}
+  };
 };
