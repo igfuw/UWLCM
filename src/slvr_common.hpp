@@ -255,10 +255,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     setup::arr_1D_t *th_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
-
-    // ctor
-    rt_params_t(setup::ForceParameters_t FP):
-      ForceParameters(FP) {}
   };
 
   // per-thread copy of params

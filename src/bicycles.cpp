@@ -68,12 +68,15 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   if (1) // user_params.moist....
   {
-//    case_ptr.reset(new setup::MoistThermalGrabowskiClark99<concurr_boost_t>); 
-    case_ptr.reset(new setup::CasesCommon<concurr_boost_t>()); 
+    case_ptr.reset(new setup::MoistThermalGrabowskiClark99_2d<concurr_boost_t>()); 
+//    case_ptr.reset(new setup::CasesCommon<concurr_boost_t>()); 
   }
 
   // instantiation of structure containing simulation parameters
-  typename solver_t::rt_params_t p(case_ptr->ForceParameters);
+  typename solver_t::rt_params_t p;
+
+  // copy force constants
+  p.ForceParameters = case_ptr->ForceParameters;
 
   // output and simulation parameters
   p.grid_size = {nx, nz};
@@ -91,10 +94,10 @@ void run(int nx, int nz, const user_params_t &user_params)
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // solver instantiation
-  std::unique_ptr<concurr_any_t> slv;
+  std::unique_ptr<concurr_boost_t> slv;
 
   slv.reset(new concurr_boost_t(p));
-  setup::intcond2d(*static_cast<concurr_boost_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+  case_ptr->intcond(*static_cast<concurr_boost_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
 
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
@@ -105,6 +108,7 @@ void run(int nx, int nz, const user_params_t &user_params)
 }
 
 // 3D model run logic - the same for any microphysics; TODO: still a lot of common code with 2D run
+#if 0
 template <class solver_t>
 void run(int nx, int ny, int nz, const user_params_t &user_params)
 {
@@ -165,6 +169,8 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // timestepping
   slv->advance(user_params.nt);
 }
+
+#endif
 
 // libmpdata++'s compile-time parameters
 struct ct_params_common : ct_params_default_t
@@ -287,7 +293,7 @@ int main(int argc, char** argv)
       };
 // thermals dont work in 3d
 #if !defined MOIST_THERMAL && !defined DRY_THERMAL && !defined DRY_THERMAL_COMPARE
-      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+  //    run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
 #endif
     }
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
@@ -316,7 +322,7 @@ int main(int argc, char** argv)
       };
 // thermals dont work in 3d
 #if !defined MOIST_THERMAL && !defined DRY_THERMAL && !defined DRY_THERMAL_COMPARE
-      run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
+//      run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
 #endif
     }
     else throw
