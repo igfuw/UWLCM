@@ -15,7 +15,7 @@ int main(int ac, char** av)
 
   string outdir;
   string opts_common = 
-    "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --adv_serial=true";
+    "--outfreq=1000 --nt=2 --spinup=1 --dt=0.1 --adv_serial=true"; // dt=1 caused blk1m dycoms to freeze on pressure solver
   unordered_set<string> opts_dim({
     "--nx=4 --ny=4 --nz=4",
     "--nx=4 --nz=4"
@@ -25,7 +25,7 @@ int main(int ac, char** av)
     "--micro=blk_1m --outdir=out_blk_1m"  
   });
   unordered_set<string> opts_case({
-    "--case=dry_thermal",
+    "--case=dry_thermal --cond=0 --coal=0",
     "--case=moist_thermal",
     "--case=dycoms"
   });
