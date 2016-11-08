@@ -125,7 +125,7 @@ namespace setup
       void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
       {
         blitz::thirdIndex k;
-        this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
+        this->intcond_hlpr(solver, rhod, rng_seed, k);
     
         using ix = typename concurr_t::solver_t::ix;
         solver.advectee(ix::v) = 0;
