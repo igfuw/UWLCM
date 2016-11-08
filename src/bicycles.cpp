@@ -38,20 +38,27 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
 {
-  using concurr_boost_t = concurr::boost_thread<
+  using concurr_boost_rigid_t = concurr::boost_thread<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
-#if defined DRY_THERMAL
-    bcond::cyclic, bcond::cyclic
-#else
     bcond::rigid,  bcond::rigid 
-#endif
+  >;
+
+  using concurr_boost_cyclic_t = concurr::boost_thread<
+    solver_t, 
+    bcond::cyclic, bcond::cyclic,
+    bcond::cyclic, bcond::cyclic
+  >;
+
+  using concurr_any_t = concurr::any<
+    typename solver_t::real_t, 
+    solver_t::n_dims
   >;
 
   using case_ptr_t = 
     std::unique_ptr<
       setup::CasesCommon<
-        concurr_boost_t
+        concurr_boost_rigid_t
       >
     >;
 
@@ -59,11 +66,11 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_boost_t>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_boost_rigid_t>()); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_boost_t>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_boost_rigid_t>()); 
   else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_boost_t>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_boost_rigid_t>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -87,10 +94,18 @@ void run(int nx, int nz, const user_params_t &user_params)
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // solver instantiation
-  std::unique_ptr<concurr_boost_t> slv;
+  std::unique_ptr<concurr_any_t> slv;
 
-  slv.reset(new concurr_boost_t(p));
-  case_ptr->intcond(*static_cast<concurr_boost_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+  if(user_params.model_case != "dry_thermal")
+  {
+    slv.reset(new concurr_boost_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+  }
+  else
+  {
+    slv.reset(new concurr_boost_cyclic_t(p));
+    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+  }
 
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
