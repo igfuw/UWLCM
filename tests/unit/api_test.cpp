@@ -24,15 +24,21 @@ int main(int ac, char** av)
     "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100 --unit_test=true",
     "--micro=blk_1m --outdir=out_blk_1m"  
   });
+  unordered_set<string> opts_case({
+    "--case=dry_thermal",
+    "--case=moist_thermal",
+    "--case=dycoms"
+  });
 
   for (auto &opts_d : opts_dim)
     for (auto &opts_m : opts_micro)
-    {
-      ostringstream cmd;
-      cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m << " " << opts_d;
-      notice_macro("about to call: " << cmd.str())
+      for (auto &opts_c : opts_case)
+      {
+        ostringstream cmd;
+        cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m << " " << opts_d << " " << opts_c;
+        notice_macro("about to call: " << cmd.str())
 
-      if (EXIT_SUCCESS != system(cmd.str().c_str()))
-        error_macro("model run failed: " << cmd.str())
-    }
+        if (EXIT_SUCCESS != system(cmd.str().c_str()))
+          error_macro("model run failed: " << cmd.str())
+      }
 }

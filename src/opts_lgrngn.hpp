@@ -35,7 +35,7 @@ void setopts_micro(
 
   po::options_description opts("Lagrangian microphysics options"); 
   opts.add_options()
-    ("backend", po::value<std::string>()->required() , "one of: CUDA, OpenMP, serial")
+    ("backend", po::value<std::string>()->required() , "one of: CUDA, multi_CUDA, OpenMP, serial")
     ("async", po::value<bool>()->default_value(true), "use CPU for advection while GPU does micro (ignored if backend != CUDA)")
     ("sd_conc", po::value<unsigned long long>()->required() , "super-droplet number per grid cell (unsigned long long)")
     // processes
