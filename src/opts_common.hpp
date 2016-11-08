@@ -24,7 +24,7 @@ void handle_opts(
 )
 {
   opts_main.add(opts_micro);
-  po::store(po::parse_command_line(ac, av, opts_main), vm); // could be exchanged with a config file parser
+    po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown, could be exchanged with a config file parser
 
   // hendling the "help" option
   if (vm.count("help"))
