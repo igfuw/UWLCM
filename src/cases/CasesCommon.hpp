@@ -26,6 +26,8 @@ namespace setup
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
 
+  const real_t D =  3.75e-6; // large-scale wind horizontal divergence [1/s]
+
   // container for constants that appear in forcings, some are not needed in all cases, etc...
   // TODO: make forcing functions part of case class
   struct ForceParameters_t
@@ -38,12 +40,9 @@ namespace setup
   {
     public:
     ForceParameters_t ForceParameters;
-  
-    const real_t z_i = 795; //initial inversion height
 
     //th, rv and surface fluxes relaxation time and height
     const quantity<si::time, real_t> tau_rlx = 300 * si::seconds;
-    const quantity<si::length, real_t> z_rlx_vctr = 1 * si::metres;
 
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) {assert(false);};
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) {assert(false);};
@@ -58,7 +57,7 @@ namespace setup
       ForceParameters.F_0 = 70; // w/m^2
       ForceParameters.F_1 = 22; // w/m^2
       ForceParameters.q_i = 8e-3; // kg/kg
-      ForceParameters.D = 3.75e-6; // large-scale wind horizontal divergence [1/s]
+      ForceParameters.D = D; // large-scale wind horizontal divergence [1/s]
       ForceParameters.rho_i = 1.12; // kg/m^3
       ForceParameters.F_sens = 16; //W/m^2, sensible heat flux
       ForceParameters.F_lat = 93; //W/m^2, latent heat flux

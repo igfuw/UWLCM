@@ -11,16 +11,12 @@
 #include "setup.hpp"
 
 // setup choice, TODO: make it runtime
-#if defined DYCOMS
   #include "cases/DYCOMS98.hpp"
-#elif defined MOIST_THERMAL
   #include "cases/MoistThermalGrabowskiClark99.hpp"
-#elif defined DRY_THERMAL
+#if defined DRY_THERMAL
   #include "cases/DryThermalGMD2015.hpp"
 #elif defined DRY_THERMAL_COMPARE
   #include "cases/DryThermalWojtekCompare.hpp"
-#else
-  #error please select setup
 #endif
 
 #include "opts_lgrngn.hpp"
