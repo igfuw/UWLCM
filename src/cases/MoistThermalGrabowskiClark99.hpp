@@ -144,10 +144,10 @@ namespace setup
         params.outdir = user_params.outdir;
         params.outfreq = user_params.outfreq;
         params.spinup = user_params.spinup;
-        params.w_src = user_params.w_src;
-        params.uv_src = user_params.uv_src;
-        params.th_src = user_params.th_src;
-        params.rv_src = user_params.rv_src;
+        params.w_src = true;
+        params.uv_src = false;
+        params.th_src = false;
+        params.rv_src = false;
         params.prs_tol=1e-6;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
@@ -371,7 +371,7 @@ namespace setup
       // TODO: make it work in 3d?
       MoistThermalGrabowskiClark99_3d()
       {
-        throw std::runtime_error("Moist Thermal doesn't work in 3d");
+        throw std::runtime_error("Moist Thermal doesn't work in 3d yet");
       }
     };
   };

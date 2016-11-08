@@ -10,14 +10,9 @@
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include "setup.hpp"
 
-// setup choice, TODO: make it runtime
-  #include "cases/DYCOMS98.hpp"
-  #include "cases/MoistThermalGrabowskiClark99.hpp"
-#if defined DRY_THERMAL
-  #include "cases/DryThermalGMD2015.hpp"
-#elif defined DRY_THERMAL_COMPARE
-  #include "cases/DryThermalWojtekCompare.hpp"
-#endif
+#include "cases/DYCOMS98.hpp"
+#include "cases/MoistThermalGrabowskiClark99.hpp"
+#include "cases/DryThermalGMD2015.hpp"
 
 #include "opts_lgrngn.hpp"
 #include "opts_blk_1m.hpp"
@@ -62,11 +57,13 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   case_ptr_t case_ptr; 
 
-  if (1) // user_params.moist....
-  {
+  // setup choice
+  if (user_params.model_case == "moist_thermal")
     case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_boost_t>()); 
-//    case_ptr.reset(new setup::CasesCommon<concurr_boost_t>()); 
-  }
+  else if (user_params.model_case == "dry_thermal")
+    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_boost_t>()); 
+  else if (user_params.model_case == "dycoms")
+    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_boost_t>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -190,6 +187,7 @@ int main(int argc, char** argv)
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms")
       ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
@@ -262,6 +260,9 @@ int main(int argc, char** argv)
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
 
+    // handling the "case" option
+    user_params.model_case = vm["case"].as<std::string>();
+
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
     {
@@ -287,10 +288,7 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
-// thermals dont work in 3d
-#if !defined MOIST_THERMAL && !defined DRY_THERMAL && !defined DRY_THERMAL_COMPARE
-  //    run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
-#endif
+//      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
     }
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
     {
@@ -316,10 +314,7 @@ int main(int argc, char** argv)
           vip_i=u, vip_j=v, vip_k=w, vip_den=-1
         }; };
       };
-// thermals dont work in 3d
-#if !defined MOIST_THERMAL && !defined DRY_THERMAL && !defined DRY_THERMAL_COMPARE
-//      run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
-#endif
+  //    run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
     }
     else throw
       po::validation_error(

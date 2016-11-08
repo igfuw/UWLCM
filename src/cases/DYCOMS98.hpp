@@ -166,7 +166,6 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
-      template<class user_params_t>
       void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -255,7 +254,7 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98_2d : Dycoms98<concurr_t>
+    class Dycoms98_2d : public Dycoms98<concurr_t>
     {
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params)
       {
@@ -270,12 +269,12 @@ namespace setup
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         using ix = typename concurr_t::solver_t::ix;
-        make_cyclic(solver.advectee(ix::th));
+        this->make_cyclic(solver.advectee(ix::th));
       }
     };
 
     template<class concurr_t>
-    class Dycoms98_3d : Dycoms98<concurr_t>
+    class Dycoms98_3d : public Dycoms98<concurr_t>
     {
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
       {
@@ -291,7 +290,7 @@ namespace setup
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         using ix = typename concurr_t::solver_t::ix;
-        make_cyclic(solver.advectee(ix::th));
+        this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
