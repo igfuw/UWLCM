@@ -213,6 +213,7 @@ int main(int argc, char** argv)
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
+      ("adv_serial", po::value<bool>()->default_value(false), "force advection to be computed on single thread")
       ("th_src", po::value<bool>()->default_value(true) , "temp src")
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
@@ -265,6 +266,9 @@ int main(int argc, char** argv)
 
     //handling z_rlx_sclr
     user_params.z_rlx_sclr = vm["z_rlx_sclr"].as<setup::real_t>();
+
+    // handling serial-advection-forcing flag
+    if(vm["adv_serial"].as<bool>()) setenv("OMP_NUM_THREADS", "1", 1);
 
     // handling sources flags
     user_params.th_src = vm["th_src"].as<bool>();

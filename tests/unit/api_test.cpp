@@ -15,7 +15,7 @@ int main(int ac, char** av)
 
   string outdir;
   string opts_common = 
-    "--outfreq=1000 --nt=2 --spinup=1 --dt=1";
+    "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --adv_serial=true";
   unordered_set<string> opts_dim({
     "--nx=4 --ny=4 --nz=4",
     "--nx=4 --nz=4"
