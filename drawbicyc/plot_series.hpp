@@ -17,7 +17,7 @@ void plot_series(Plotter_t plotter)
   Gnuplot gp;
   string file = plotter.file + "_series.svg";
   int hor = min<int>(plots.size(), 4);
-  int ver = plots.size() / hor + 0.99999;
+  int ver = double(plots.size()) / 4. + 0.99999;
   init_prof(gp, file, ver, hor); 
 
   string prof_file = plotter.file + "_series.dat";
