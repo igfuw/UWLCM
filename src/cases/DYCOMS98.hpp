@@ -237,6 +237,10 @@ namespace setup
         // rhod profile
         rhod = rho_surf * exp(- st_avg * k * dz) * pow(
                  1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
+
+        // theta_std env prof to theta_dry_e
+        for(int k=1; k<nz; ++k)
+          th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
   
         // subsidence rate
         w_LS = w_LS_fctr()(k * dz);
