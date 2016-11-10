@@ -226,7 +226,7 @@ void plot_series(Plotter_t plotter)
         try
         {
           {
-            auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]) * 100.; //g/kg
+            auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]) * 1e3; //g/kg
             typename Plotter_t::arr_t snap(tmp); 
             snap *= rhod; // water per cubic metre (should be wet density...)
             res_prof(at) = blitz::mean(snap); 
