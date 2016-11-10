@@ -8,11 +8,15 @@ class PlotterMicro_t : public Plotter_t<NDims>
 {
   protected:
   using parent_t = Plotter_t<NDims>;
-  std::string micro;
 
   public:
   using arr_t = typename parent_t::arr_t;
 
+  protected:
+  std::string micro;
+  arr_t res;
+
+  public:
   // cloud droplets mixing ratio
   auto h5load_rc_timestep(
     const string &file, 
@@ -22,14 +26,14 @@ class PlotterMicro_t : public Plotter_t<NDims>
     if(this->micro == "lgrngn")
     {
       auto snap = this->h5load_timestep(this->file, "cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
-      this->tmp = arr_t(snap);
+      res = arr_t(snap);
     }
     else if(this->micro == "blk_1m")
     {
       auto snap = this->h5load_timestep(this->file, "rc", at);
-      this->tmp = arr_t(snap);
+      res = arr_t(snap);
     }
-    return blitz::safeToReturn(this->tmp + 0);
+    return blitz::safeToReturn(res + 0);
   }
 
   // rain droplets mixing ratio
@@ -41,14 +45,14 @@ class PlotterMicro_t : public Plotter_t<NDims>
     if(this->micro == "lgrngn")
     {
       auto snap = this->h5load_timestep(this->file, "rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
-      this->tmp = arr_t(snap);
+      res = arr_t(snap);
     }
     else if(this->micro == "blk_1m")
     {
       auto snap = this->h5load_timestep(this->file, "rc", at);
-      this->tmp = arr_t(snap);
+      res = arr_t(snap);
     }
-    return blitz::safeToReturn(this->tmp + 0);
+    return blitz::safeToReturn(res + 0);
   }
 
   // activated drops mixing ratio
@@ -60,26 +64,27 @@ class PlotterMicro_t : public Plotter_t<NDims>
     if(this->micro == "lgrngn")
     {
       auto snap = this->h5load_timestep(this->file, "actrw_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
-      this->tmp = arr_t(snap);
+      res = arr_t(snap);
     }
     else if(this->micro == "blk_1m")
     {
       {
         auto snap = this->h5load_timestep(this->file, "rc", at);
-        this->tmp = arr_t(snap);
+        res = arr_t(snap);
       }
       {
         auto snap = this->h5load_timestep(this->file, "rr", at);
-        this->tmp += arr_t(snap);
+        res += arr_t(snap);
       }
     }
-    return blitz::safeToReturn(this->tmp + 0);
+    return blitz::safeToReturn(res + 0);
   }
 
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),
-    micro(micro)
+    micro(micro),
+    res(this->tmp.shape())
   {}
 };
 
