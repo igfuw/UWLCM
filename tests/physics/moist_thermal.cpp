@@ -51,7 +51,7 @@ int main(int ac, char** av)
   {
     // run the simulation
     ostringstream cmd;
-//    cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m.second;
+    cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m.second;
     notice_macro("about to call: " << cmd.str())
 
     if (EXIT_SUCCESS != system(cmd.str().c_str()))
