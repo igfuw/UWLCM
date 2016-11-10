@@ -89,6 +89,16 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_RH_ge_Sc();
     prtcls->diag_dry_mom(0);
     this->record_aux("actRH_rd_mom0", prtcls->outbuf());
+
+    // recording 3rd wet mom of radius of rain drops (r>100um)
+    prtcls->diag_dry_rng(100.e-6, 1);
+    prtcls->diag_wet_mom(3);
+    this->record_aux("rain_rw_mom3", prtcls->outbuf());
+
+    // recording 3rd wet mom of radius of cloud drops (5um< r < 100um)
+    prtcls->diag_dry_rng(5e-6, 100.e-6);
+    prtcls->diag_wet_mom(3);
+    this->record_aux("cloud_rw_mom3", prtcls->outbuf());
    
     // recording requested statistical moments
     {
