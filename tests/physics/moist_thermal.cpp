@@ -9,8 +9,8 @@
 #include <sstream> // std::ostringstream
 
 #include "../common.hpp"
-#include "../../drawbicyc/src/PlotterMicro.hpp"
-#include "../../drawbicyc/src/common_filters.hpp"
+#include "../../drawbicyc/PlotterMicro.hpp"
+#include "../../drawbicyc/common_filters.hpp"
 
 using std::ostringstream;
 using std::unordered_map;
