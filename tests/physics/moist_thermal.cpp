@@ -70,7 +70,7 @@ int main(int ac, char** av)
     for (int at = 0; at < n["t"]; ++at)
     {
       {
-        auto tmp = plotter.h5load_rc_timestep(plotter.file, at * 60);
+        auto tmp = plotter.h5load_ract_timestep(plotter.file, at * 60);
         typename Plotter_t::arr_t snap(tmp);
 
         // center of mass of cloud droplets
