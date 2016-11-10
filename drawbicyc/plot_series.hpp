@@ -4,7 +4,7 @@
 
 const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
 
-const std::set<std::string> plots({"wvarmax", "clfrac", "lwp", "er", "surf_precip"/*, "mass_dry"*/, "acc_precip", "cl_nc", "rc_com", "rc_avg", "th_com", "tot_water"});
+const std::set<std::string> plots({"wvarmax", "clfrac", "lwp", "er", "surf_precip"/*, "mass_dry"*/, "acc_precip", "cl_nc", "ract_com", "ract_avg", "th_com", "tot_water"});
 
 template<class Plotter_t>
 void plot_series(Plotter_t plotter)
@@ -76,20 +76,19 @@ void plot_series(Plotter_t plotter)
         }
         catch(...){;}
       }
-      // rc averaged over cells with rc > 1.e-5
-      else if (plt == "rc_avg")
+      // r_act averaged over cells with r_act > 1.e-5
+      else if (plt == "ract_avg")
       {
         try
         {
-          // read rc to res_tmp 
-          auto tmp = plotter.h5load_rc_timestep(plotter.file, at * n["outfreq"]);
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
 
           typename Plotter_t::arr_t snap(tmp);
           
           res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
           snap *= res_tmp; // apply filter
           
-          // mean only over updraught cells
           if(blitz::sum(res_tmp) > 0.)
             res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
           else
@@ -102,13 +101,7 @@ void plot_series(Plotter_t plotter)
         try
         {
           {
-            auto tmp = plotter.h5load_rc_timestep(plotter.file, at * n["outfreq"]);
-            typename Plotter_t::arr_t snap(tmp);
-            snap *= rhod;
-            res_prof(at) = blitz::sum(snap);
-          } 
-          {
-            auto tmp = plotter.h5load_rr_timestep(plotter.file, at * n["outfreq"]);
+            auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod;
             res_prof(at) = blitz::sum(snap);
@@ -122,12 +115,12 @@ void plot_series(Plotter_t plotter)
         }
         catch(...) {;}
       }
-      else if (plt == "rc_com")
+      else if (plt == "ract_com")
       {
-	// center of mass of cloud droplets
+	// center of mass of activated droplets
         try
         {
-          auto tmp = plotter.h5load_rc_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           typename Plotter_t::arr_t snap2(tmp);
           
@@ -233,16 +226,10 @@ void plot_series(Plotter_t plotter)
         try
         {
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            typename Plotter_t::arr_t snap(tmp); // cloud water mixing ratio [g/kg]
-            snap *= rhod; // cloud water per cubic metre (should be wet density...)
+            auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]) * 100.; //g/kg
+            typename Plotter_t::arr_t snap(tmp); 
+            snap *= rhod; // water per cubic metre (should be wet density...)
             res_prof(at) = blitz::mean(snap); 
-          }
-          {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            typename Plotter_t::arr_t snap(tmp); // rain water mixing ratio [g/kg]
-            snap *= rhod; // rain water per cubic metre (should be wet density...)
-            res_prof(at) += blitz::mean(snap); 
           }
         }
         catch(...) {;}
@@ -254,14 +241,9 @@ void plot_series(Plotter_t plotter)
         try
         {
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+            auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp); // cloud water mixing ratio [g/kg]
             rtot = snap;
-          }
-          {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-            typename Plotter_t::arr_t snap(tmp); // rain water mixing ratio [g/kg]
-            rtot += snap;
           }
           {
             auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]) * 1e3;
@@ -298,7 +280,7 @@ void plot_series(Plotter_t plotter)
 
     if (plt == "clfrac")
       gp << "set title 'average cloud fraction'\n";
-    else if (plt == "rc_com")
+    else if (plt == "ract_com")
     {
       res_prof /= 1000.;
       res_pos *= 60.;
@@ -314,7 +296,7 @@ void plot_series(Plotter_t plotter)
       gp << "set xlabel 'time [min]'\n";
       gp << "set title 'center of mass'\n";
     }
-    else if (plt == "rc_avg")
+    else if (plt == "ract_avg")
     {
       res_prof *= 1000.;
       res_pos *= 60.;
