@@ -20,7 +20,25 @@ class PlotterMicro_t : public Plotter_t<NDims>
   {
     if(this->micro == "lgrngn")
     {
-      auto snap = this->h5load_timestep(this->file, "actrw_rw_mom3", at) * 4./3. * 3.14 * 1e3;
+      auto snap = this->h5load_timestep(this->file, "cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
+      this->tmp = arr_t(snap);
+    }
+    else if(this->micro == "blk_1m")
+    {
+      auto snap = this->h5load_timestep(this->file, "rc", at);
+      this->tmp = arr_t(snap);
+    }
+    return blitz::safeToReturn(this->tmp + 0);
+  }
+
+  auto h5load_rr_timestep(
+    const string &file, 
+    int at
+  ) -> decltype(blitz::safeToReturn(arr_t() + 0))
+  {
+    if(this->micro == "lgrngn")
+    {
+      auto snap = this->h5load_timestep(this->file, "rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
       this->tmp = arr_t(snap);
     }
     else if(this->micro == "blk_1m")

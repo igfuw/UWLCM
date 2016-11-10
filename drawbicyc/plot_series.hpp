@@ -102,7 +102,13 @@ void plot_series(Plotter_t plotter)
         try
         {
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng002_mom3", at * n["outfreq"]) * 4./3. *3.14159265359 * 1e3;
+            auto tmp = plotter.h5load_rc_timestep(plotter.file, at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp);
+            snap *= rhod;
+            res_prof(at) = blitz::sum(snap);
+          } 
+          {
+            auto tmp = plotter.h5load_rr_timestep(plotter.file, at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod;
             res_prof(at) = blitz::sum(snap);
