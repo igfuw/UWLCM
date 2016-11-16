@@ -10,7 +10,8 @@ const std::set<std::string> plots({
 // "cl_nc", 
 "ract_com", "ract_avg", 
 //"th_com", "tot_water",
-"com_mom0","com_mom1","com_mom2" // higher moments need lower ones enabled!!
+"com_mom0","com_mom1","com_mom2", // higher moments need lower ones enabled!!
+"ract_std_dev"
 });
 
 template<class Plotter_t>
@@ -105,6 +106,35 @@ void plot_series(Plotter_t plotter)
             res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
           else
             res_prof(at) = 0.;
+        }
+        catch(...) {;}
+      }
+      // std dev of r_act for over cells with r_act > 1.e-5
+      else if (plt == "ract_std_dev")
+      {
+        try
+        {
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+
+          typename Plotter_t::arr_t snap(tmp);
+          
+          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
+          snap *= res_tmp; // apply filter
+ 
+          double avg_ract; // average cloud water mixing ratio
+          
+          if(blitz::sum(res_tmp) > 0.)
+            avg_ract = blitz::sum(snap) / blitz::sum(res_tmp); 
+          else
+            avg_ract = 0.;
+
+          snap = pow(snap - avg_ract, 2);
+          snap *= res_tmp; // apply filter
+          if(avg_ract>0)
+            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
+          else
+            avg_ract = 0.;
         }
         catch(...) {;}
       }
@@ -387,6 +417,14 @@ void plot_series(Plotter_t plotter)
       gp << "set ylabel 'average r_c  [g/kg]'\n";
       gp << "set xlabel 'time [min]'\n";
       gp << "set title 'average rc'\n";
+    }
+    else if (plt == "ract_std_dev")
+    {
+      res_prof *= 1000.;
+      res_pos *= 60.;
+      gp << "set ylabel 'standard deviation  [g/kg]'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title  'rc std dev'\n";
     }
     else if (plt == "tot_water")
       gp << "set title 'total water'\n";
