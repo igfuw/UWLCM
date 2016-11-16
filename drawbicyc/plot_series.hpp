@@ -161,7 +161,7 @@ void plot_series(Plotter_t plotter)
             com_z_idx(at) = blitz::sum(snap2) / blitz::sum(snap); 
             com_x_idx(at) = blitz::sum(snap3) / blitz::sum(snap); 
             std::cout << at << ": (" << com_x_idx(at) << "," << com_z_idx(at) << ")" << std::endl;
-            auto tmp2 = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+            auto tmp2 = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
             typename Plotter_t::arr_t snap_mom(tmp2);
             com_N_c(at) = snap_mom(com_x_idx(at), com_z_idx(at)); // 0th raw moment / mass [1/kg]
             snap_mom *= rhod; // now per m^3
@@ -177,7 +177,7 @@ void plot_series(Plotter_t plotter)
         // mean droplet radius at the center of mass
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom1", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp); // 1st raw moment / mass [m / kg]
           std::cout << at << ": 1st raw moment / mass = " << snap(com_x_idx(at), com_z_idx(at)) << " com_N_c = " << com_N_c(at) << std::endl;
           if(com_N_c(at) > 0)
@@ -193,11 +193,11 @@ void plot_series(Plotter_t plotter)
         // std deviation of distribution of radius at center of mass
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom1", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t first_raw_mom(tmp); // 1st raw moment / mass [m / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom2", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom2", at * n["outfreq"]);
           typename Plotter_t::arr_t second_raw_mom(tmp); // 2nd raw moment / mass [m^2 / kg]
           tmp = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
           typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
