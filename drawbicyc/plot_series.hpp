@@ -1,18 +1,9 @@
 #include "common.hpp"
 #include "PlotterMicro.hpp"
 #include <boost/tuple/tuple.hpp>
+#include "plots.hpp"
 
 const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
-
-const std::set<std::string> plots({
-//"wvarmax", "clfrac", "lwp", "er",
-// "surf_precip"/*, "mass_dry"*/, "acc_precip",
-// "cl_nc", 
-"ract_com", "ract_avg", 
-//"th_com", "tot_water",
-"com_mom0","com_mom1","com_mom2", // higher moments need lower ones enabled!!
-"ract_std_dev"
-});
 
 template<class Plotter_t>
 void plot_series(Plotter_t plotter)
@@ -25,8 +16,8 @@ void plot_series(Plotter_t plotter)
   }
   Gnuplot gp;
   string file = plotter.file + "_series.svg";
-  int hor = min<int>(plots.size(), 4);
-  int ver = double(plots.size()) / 4. + 0.99999;
+  int hor = min<int>(series.size(), 4);
+  int ver = double(series.size()) / 4. + 0.99999;
   init_prof(gp, file, ver, hor); 
 
   string prof_file = plotter.file + "_series.dat";
@@ -60,7 +51,7 @@ void plot_series(Plotter_t plotter)
   Array<int, 1> com_z_idx(last_timestep - first_timestep + 1), 
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
-  for (auto &plt : plots)
+  for (auto &plt : series)
   {
     res_prof = 0;
     res_pos = 0;

@@ -2,6 +2,7 @@
 #include "PlotterMicro.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <libcloudph++/common/const_cp.hpp>
+#include "plots.hpp"
 
 template<class Plotter_t>
 void plot_profiles(Plotter_t plotter)
@@ -34,8 +35,6 @@ void plot_profiles(Plotter_t plotter)
   auto tmp = plotter.h5load(plotter.file + "/const.h5", "G");
   typename Plotter_t::arr_t rhod(tmp);
   typename Plotter_t::arr_t rtot(rhod.shape());
-  
-  std::set<std::string> plots({"00rtot", "rliq", "thl", "wvar", "w3rd", "prflux", "act_con    c", "clfrac", "N_c", "non_gccn_rw_up", "gccn_rw_up", "non_gccn_rw_down", "gccn_rw_down", "sat_RH"}); // rtot has to be first
 
   int k_i = 0; // inversion cell
 
@@ -51,7 +50,7 @@ void plot_profiles(Plotter_t plotter)
 
   double z_i;
 
-  for (auto &plt : plots)
+  for (auto &plt : profs)
   {
     blitz::firstIndex i;
     blitz::secondIndex j;

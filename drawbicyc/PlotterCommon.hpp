@@ -30,6 +30,7 @@ class PlotterCommon
     h5s = h5d.getSpace();
   }
 
+  public:
   //ctor
   PlotterCommon(const string &file):
     file(file)
