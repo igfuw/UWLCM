@@ -12,14 +12,14 @@ namespace setup
 
   //aerosol bimodal lognormal dist. 
   const quantity<si::length, real_t>
-    mean_rd1 = real_t(.011e-6) * si::metres,
-    mean_rd2 = real_t(.06e-6) * si::metres;
+    mean_rd1 = real_t(.02e-6) * si::metres,
+    mean_rd2 = real_t(.075e-6) * si::metres;
   const quantity<si::dimensionless, real_t>
-    sdev_rd1 = real_t(1.2),
-    sdev_rd2 = real_t(1.7);
+    sdev_rd1 = real_t(1.4),
+    sdev_rd2 = real_t(1.6);
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
-    n1_stp = real_t(125e6*2) / si::cubic_metres, // 125 || 31
-    n2_stp = real_t(65e6*2) / si::cubic_metres;  // 65 || 16
+    n1_stp = real_t(60e6) / si::cubic_metres, // 125 || 31
+    n2_stp = real_t(40e6) / si::cubic_metres;  // 65 || 16
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
     n_unit_test = real_t(1) / si::cubic_metres;
   
