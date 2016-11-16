@@ -1,17 +1,9 @@
 #include "common.hpp"
 #include "PlotterMicro.hpp"
 #include <boost/tuple/tuple.hpp>
+#include "plots.hpp"
 
 const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
-
-const std::set<std::string> plots({
-//"wvarmax", "clfrac", "lwp", "er",
-// "surf_precip"/*, "mass_dry"*/, "acc_precip",
-// "cl_nc", 
-"ract_com", "ract_avg", 
-//"th_com", "tot_water",
-"com_mom0","com_mom1","com_mom2" // higher moments need lower ones enabled!!
-});
 
 template<class Plotter_t>
 void plot_series(Plotter_t plotter)
@@ -24,8 +16,8 @@ void plot_series(Plotter_t plotter)
   }
   Gnuplot gp;
   string file = plotter.file + "_series.svg";
-  int hor = min<int>(plots.size(), 4);
-  int ver = double(plots.size()) / 4. + 0.99999;
+  int hor = min<int>(series.size(), 4);
+  int ver = double(series.size()) / 4. + 0.99999;
   init_prof(gp, file, ver, hor); 
 
   string prof_file = plotter.file + "_series.dat";
@@ -59,7 +51,7 @@ void plot_series(Plotter_t plotter)
   Array<int, 1> com_z_idx(last_timestep - first_timestep + 1), 
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
-  for (auto &plt : plots)
+  for (auto &plt : series)
   {
     res_prof = 0;
     res_pos = 0;
@@ -105,6 +97,35 @@ void plot_series(Plotter_t plotter)
             res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
           else
             res_prof(at) = 0.;
+        }
+        catch(...) {;}
+      }
+      // std dev of r_act for over cells with r_act > 1.e-5
+      else if (plt == "ract_std_dev")
+      {
+        try
+        {
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+
+          typename Plotter_t::arr_t snap(tmp);
+          
+          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
+          snap *= res_tmp; // apply filter
+ 
+          double avg_ract; // average cloud water mixing ratio
+          
+          if(blitz::sum(res_tmp) > 0.)
+            avg_ract = blitz::sum(snap) / blitz::sum(res_tmp); 
+          else
+            avg_ract = 0.;
+
+          snap = pow(snap - avg_ract, 2);
+          snap *= res_tmp; // apply filter
+          if(avg_ract>0)
+            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
+          else
+            avg_ract = 0.;
         }
         catch(...) {;}
       }
@@ -161,7 +182,7 @@ void plot_series(Plotter_t plotter)
             com_z_idx(at) = blitz::sum(snap2) / blitz::sum(snap); 
             com_x_idx(at) = blitz::sum(snap3) / blitz::sum(snap); 
             std::cout << at << ": (" << com_x_idx(at) << "," << com_z_idx(at) << ")" << std::endl;
-            auto tmp2 = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+            auto tmp2 = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
             typename Plotter_t::arr_t snap_mom(tmp2);
             com_N_c(at) = snap_mom(com_x_idx(at), com_z_idx(at)); // 0th raw moment / mass [1/kg]
             snap_mom *= rhod; // now per m^3
@@ -177,7 +198,7 @@ void plot_series(Plotter_t plotter)
         // mean droplet radius at the center of mass
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom1", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp); // 1st raw moment / mass [m / kg]
           std::cout << at << ": 1st raw moment / mass = " << snap(com_x_idx(at), com_z_idx(at)) << " com_N_c = " << com_N_c(at) << std::endl;
           if(com_N_c(at) > 0)
@@ -193,11 +214,11 @@ void plot_series(Plotter_t plotter)
         // std deviation of distribution of radius at center of mass
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom1", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t first_raw_mom(tmp); // 1st raw moment / mass [m / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom2", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom2", at * n["outfreq"]);
           typename Plotter_t::arr_t second_raw_mom(tmp); // 2nd raw moment / mass [m^2 / kg]
           tmp = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
           typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
@@ -387,6 +408,14 @@ void plot_series(Plotter_t plotter)
       gp << "set ylabel 'average r_c  [g/kg]'\n";
       gp << "set xlabel 'time [min]'\n";
       gp << "set title 'average rc'\n";
+    }
+    else if (plt == "ract_std_dev")
+    {
+      res_prof *= 1000.;
+      res_pos *= 60.;
+      gp << "set ylabel 'standard deviation  [g/kg]'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title  'rc std dev'\n";
     }
     else if (plt == "tot_water")
       gp << "set title 'total water'\n";

@@ -10,3 +10,10 @@ target_link_libraries(drawbicyc ${Boost_LIBRARIES})
 target_include_directories(drawbicyc PUBLIC ${Boost_INCLUDE_DIRS})
 target_include_directories(drawbicyc PUBLIC ${libcloudphxx_INCLUDE_DIRS})
 
+add_executable(plot_series_compare plot_series_compare.cpp)
+target_link_libraries(plot_series_compare ${HDF5_LIBRARIES})
+target_include_directories(plot_series_compare PUBLIC ${HDF5_INCLUDE_DIRS})
+target_link_libraries(plot_series_compare ${Boost_LIBRARIES})
+target_include_directories(plot_series_compare PUBLIC ${Boost_INCLUDE_DIRS})
+target_include_directories(plot_series_compare PUBLIC ${libcloudphxx_INCLUDE_DIRS})
+
