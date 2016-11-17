@@ -38,6 +38,7 @@ void setopts_micro(
     ("backend", po::value<std::string>()->required() , "one of: CUDA, multi_CUDA, OpenMP, serial")
     ("async", po::value<bool>()->default_value(true), "use CPU for advection while GPU does micro (ignored if backend != CUDA)")
     ("sd_conc", po::value<unsigned long long>()->required() , "super-droplet number per grid cell (unsigned long long)")
+    ("sd_const_multi", po::value<double>()->default_value(rt_params.cloudph_opts_init.sd_const_multi) , "multiplicity in constant multiplicity mode (double)")
     // processes
     ("adve", po::value<bool>()->default_value(rt_params.cloudph_opts.adve) , "particle advection     (1=on, 0=off)")
     ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "particle sedimentation (1=on, 0=off)")
@@ -82,6 +83,7 @@ void setopts_micro(
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
+  rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
  
   if(!unit_test)
     boost::assign::ptr_map_insert<
