@@ -17,3 +17,13 @@ std::set<std::string> profs({
 "gccn_rw_up", "non_gccn_rw_down", "gccn_rw_down", "sat_RH"
 }); // rtot has to be first
 
+std::set<std::string> fields({
+"rl",
+// "rr", "nc", "nr",
+//"ef", "na", 
+"th", "rv",     
+//"u", "w", 
+"sd_conc"//, "r_dry", 
+//"RH"
+});
+
