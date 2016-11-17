@@ -71,8 +71,8 @@ class Plotter_t<2> : public PlotterCommon
     return blitz::safeToReturn(mean + 0);
   }
 
-  template <class data_t>
-  void plot(Gnuplot &gp, const data_t &data)
+  template <class gp_t, class data_t>
+  void plot(gp_t &gp, const data_t &data)
   {
     blitz::Array<float, 2> tmp(data);
   

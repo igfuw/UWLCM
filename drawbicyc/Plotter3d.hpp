@@ -75,8 +75,8 @@ class Plotter_t<3> : public PlotterCommon
     return blitz::safeToReturn(mean + 0);
   }
 
-  template <class data_t>
-  void plot(Gnuplot &gp, const data_t &data)
+  template <class gp_t, class data_t>
+  void plot(gp_t &gp, const data_t &data)
   {
     throw std::runtime_error("3d fields plotting doesn't work yet");
 /*

@@ -222,7 +222,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         if(params.cloudph_opts_init.sd_conc)
           params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
         else
-          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e11 / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
           
         if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
           params.cloudph_opts_init.n_sd_max *= 1.5; // more space for copied SDs
@@ -242,7 +242,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         if(params.cloudph_opts_init.sd_conc)
           params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.ny *params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
         else
-          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny *params.cloudph_opts_init.nz * 1.e11 / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
 
         if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
           params.cloudph_opts_init.n_sd_max *= 1.5; // more space for copied SDs

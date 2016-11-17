@@ -4,7 +4,6 @@
 #include <H5Cpp.h>
 #include <map>
 
-
 class PlotterCommon
 {
   public:
