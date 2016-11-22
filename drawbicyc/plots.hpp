@@ -18,8 +18,8 @@ std::set<std::string> profs({
 }); // rtot has to be first
 
 std::set<std::string> fields({
-"rl",
-// "rr", "nc", "nr",
+"rl", "nc",
+// "rr", "nr",
 //"ef", "na", 
 "th", "rv",     
 //"u", "w", 

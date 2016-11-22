@@ -47,8 +47,8 @@ void plot_fields(Plotter_t plotter)
       else if (plt == "nc")
       {
 	// cloud particle concentration
-	auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]) * 1e-6;
-	std::string title ="cloud (0.5um < r < 25um) droplet spec. conc. [mg^{-1}]";
+	auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]) * 1e-6;
+	std::string title ="activated droplet spec. conc. [mg^{-1}]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [0:150]\n";
 	plotter.plot(gp, tmp);
