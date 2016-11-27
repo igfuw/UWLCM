@@ -25,15 +25,19 @@ void plot_fields(Plotter_t plotter)
 
       if (plt == "rl")
       {
+        try{
 	// cloud water content
         auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]) * 1e3;
 
         std::string title = "cloud water mixing ratio [g/kg]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 	plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }
       else if (plt == "rr")
       {
+        try{
 	// rain water content
 	//                                                         rho_w  kg2g
 	auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
@@ -43,18 +47,24 @@ void plot_fields(Plotter_t plotter)
 //	gp << "set cbrange [1e-2:1]\n";
 	plotter.plot(gp, tmp);
 	gp << "unset logscale cb\n";
+        }
+        catch(...){}
       }
       else if (plt == "nc")
       {
 	// cloud particle concentration
+        try{
 	auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]) * 1e-6;
 	std::string title ="activated droplet spec. conc. [mg^{-1}]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [0:150]\n";
 	plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }
       else if (plt == "r_dry")
       {
+        try{
         // dry mass content
         // assume ammonium sulfate density of 1769 kg / m^3 (c.f. wikipedia)
         double rho_dry = 1769;
@@ -65,9 +75,12 @@ void plot_fields(Plotter_t plotter)
 //	gp << "set cbrange [1e-2:1]\n";
 	plotter.plot(gp, tmp);
 	gp << "unset logscale cb\n";
+        }
+        catch(...){}
       }
       else if (plt == "nr")
       {
+        try{
 	// rain particle concentration
 	auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom0", at * n["outfreq"]) * 1e-6;
 	std::string title = "rain (r > 25um) drop spec. conc. [mg^{-1}]";
@@ -76,15 +89,20 @@ void plot_fields(Plotter_t plotter)
 	gp << "set logscale cb\n";
 	plotter.plot(gp, tmp);
 	gp << "unset logscale cb\n";
+        }
+        catch(...){}
       }
       else if (plt == "ef")
       {
+        try{
 	// effective radius
 	auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]) / plotter.h5load_timestep(plotter.file, "rw_rng000_mom2", at * n["outfreq"]) * 1e6;
 	std::string title = "cloud (0.5um < r < 25um) droplet effective radius [μm]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [1:20]\n";
 	plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }
 /*
       else if (plt == "na")
@@ -109,45 +127,63 @@ void plot_fields(Plotter_t plotter)
 */
       else if (plt == "rv")
       {   
+        try{
 	std::string title = "water vapour mixing ratio [g/kg]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]);
         plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }   
       else if (plt == "th")
       {   
+        try{
 	std::string title = "dry air potential temperature [K]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = plotter.h5load_timestep(plotter.file, "th", at * n["outfreq"]);
         plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }   
       else if (plt == "u")
       {   
+        try{
 	std::string title = "velocity in x [m/s]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = plotter.h5load_timestep(plotter.file, "u", at * n["outfreq"]);
         plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }   
       else if (plt == "w")
       {   
+        try{
 	std::string title = "velocity in z [m/s]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
         plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }   
       else if (plt == "RH")
       {   
+        try{
 	std::string title = "relative humidity"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
         plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }   
       else if (plt == "sd_conc")
       {   
+        try{
 	std::string title = "number of super-droplets"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
         plotter.plot(gp, tmp);
+        }
+        catch(...){}
       }   
     } // var loop
   } // time loop
