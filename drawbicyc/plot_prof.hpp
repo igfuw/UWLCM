@@ -457,7 +457,7 @@ void plot_profiles(Plotter_t plotter)
           auto tmp = plotter.h5load_timestep(plotter.file, "precip_rate", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap = snap *  4./3 * 3.14 * 1e3 // to get mass
-                     / n["dx"] / n["dz"]    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
+                     / plotter.CellVol    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
                      * 2264.76e3;      // latent heat of evaporation [J/kg]
           res += snap; 
         }
