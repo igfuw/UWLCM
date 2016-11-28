@@ -55,7 +55,9 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+//    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+//    this->xchng_sclr(in, this->i, this->j);
+    in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j)) / dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
@@ -64,7 +66,10 @@ class slvr_dim<
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+    //for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+    //this->xchng_sclr(in, this->i, this->j);
+    in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
+    in(this->i, this->j.first() - 1) = in(this->i, this->j.first()); 
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
@@ -126,7 +131,9 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+//    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+//    this->xchng_sclr(in, this->i, this->j, this->k);
+    in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k)) / dz;
     // top and bottom cells are two times lower
     out(this->i, this->j, 0) *= 2; 
@@ -135,7 +142,10 @@ class slvr_dim<
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+//    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+//    this->xchng_sclr(in, this->i, this->j, this->k);
+    in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
+    in(this->i, this->j, this->k.first() - 1) = in(this->i, this->j, this->k.first()); 
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, this->j, 0) *= 2; 
