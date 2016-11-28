@@ -17,6 +17,7 @@ namespace setup
     using libcloudphxx::common::const_cp::p_vs;
     using libcloudphxx::common::theta_std::p_1000;
 
+
     // RH T and p to rv
     quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
     {
@@ -137,6 +138,7 @@ namespace setup
     template<class concurr_t>
     class MoistThermalGrabowskiClark99 : public CasesCommon<concurr_t>
     {
+
       protected:
     
       void setopts_hlpr(typename concurr_t::solver_t::rt_params_t &params, const user_params_t &user_params)

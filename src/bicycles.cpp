@@ -82,7 +82,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   p.grid_size = {nx, nz};
 
   case_ptr->setopts(p, nx, nz, user_params);
-  setopts_micro<solver_t>(p, user_params);
+  setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
   setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
@@ -165,7 +165,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   p.grid_size = {nx, ny, nz};
 
   case_ptr->setopts(p, nx, ny, nz, user_params);
-  setopts_micro<solver_t>(p, user_params);
+  setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
   setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 

@@ -9,6 +9,7 @@ namespace setup
     namespace theta_std = libcloudphxx::common::theta_std;
     namespace theta_dry = libcloudphxx::common::theta_dry;
     namespace lognormal = libcloudphxx::common::lognormal;
+
   
     const quantity<si::pressure, real_t> 
       p_0 = 101780 * si::pascals;
@@ -108,6 +109,7 @@ namespace setup
     template<class concurr_t>
     class Dycoms98 : public CasesCommon<concurr_t>
     {
+
       protected:
   
       template <class T, class U>
@@ -254,6 +256,18 @@ namespace setup
         z_0 = user_params.z_rlx_sclr;
         hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
         hgt_fctr_sclr(0) = 1;
+      }
+
+      // ctor
+      Dycoms98()
+      {
+        //aerosol bimodal lognormal dist. - DYCOMS
+        this->mean_rd1 = real_t(.011e-6) * si::metres,
+        this->mean_rd2 = real_t(.06e-6) * si::metres;
+        this->sdev_rd1 = real_t(1.2),
+        this->sdev_rd2 = real_t(1.7);
+        this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
+        this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
       }
     };
 

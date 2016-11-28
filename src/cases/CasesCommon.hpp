@@ -44,6 +44,17 @@ namespace setup
     //th, rv and surface fluxes relaxation time and height
     const quantity<si::time, real_t> tau_rlx = 300 * si::seconds;
 
+    //aerosol bimodal lognormal dist. - VOCALS by default
+    quantity<si::length, real_t>
+      mean_rd1 = real_t(.02e-6) * si::metres,
+      mean_rd2 = real_t(.075e-6) * si::metres;
+    quantity<si::dimensionless, real_t>
+      sdev_rd1 = real_t(1.4),
+      sdev_rd2 = real_t(1.6);
+    quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
+      n1_stp = real_t(60e6) / si::cubic_metres, // 125 || 31
+      n2_stp = real_t(40e6) / si::cubic_metres;  // 65 || 16
+
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) {assert(false);};
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed) =0;

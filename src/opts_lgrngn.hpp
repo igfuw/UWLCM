@@ -21,10 +21,11 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 // simulation and output parameters for micro=lgrngn
-template <class solver_t, class user_params_t>
+template <class solver_t, class user_params_t, class case_ptr_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
   const user_params_t &user_params,
+  const case_ptr_t &case_ptr,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::lgrngn::opts_t<typename solver_t::real_t>
@@ -86,13 +87,23 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
  
   if(!unit_test)
-    boost::assign::ptr_map_insert<
-      setup::log_dry_radii<thrust_real_t> // value type
-    >(
-      rt_params.cloudph_opts_init.dry_distros // map
-    )(
-      setup::kappa // key
+  {
+    std::auto_ptr<setup::log_dry_radii<thrust_real_t>> temp(
+      new setup::log_dry_radii<thrust_real_t>(
+        case_ptr->mean_rd1, // parameters
+        case_ptr->mean_rd2,
+        case_ptr->sdev_rd1,
+        case_ptr->sdev_rd2,
+        case_ptr->n1_stp,
+        case_ptr->n2_stp
+      )
     );
+
+    rt_params.cloudph_opts_init.dry_distros.insert(
+      setup::kappa, // key
+       temp
+    );
+   }
   else if(unit_test)
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_unit_test<thrust_real_t> // value type

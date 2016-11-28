@@ -10,16 +10,8 @@ namespace setup
 
 
 
-  //aerosol bimodal lognormal dist. 
-  const quantity<si::length, real_t>
-    mean_rd1 = real_t(.02e-6) * si::metres,
-    mean_rd2 = real_t(.075e-6) * si::metres;
-  const quantity<si::dimensionless, real_t>
-    sdev_rd1 = real_t(1.4),
-    sdev_rd2 = real_t(1.6);
-  const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
-    n1_stp = real_t(60e6) / si::cubic_metres, // 125 || 31
-    n2_stp = real_t(40e6) / si::cubic_metres;  // 65 || 16
+
+
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
     n_unit_test = real_t(1) / si::cubic_metres;
   
@@ -44,6 +36,26 @@ namespace setup
   template <typename T>
   struct log_dry_radii : public libcloudphxx::common::unary_function<T>
   {
+    const quantity<si::length, real_t> mean_rd1, mean_rd2;
+    const quantity<si::dimensionless, real_t> sdev_rd1, sdev_rd2;
+    const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n1_stp, n2_stp;
+
+    log_dry_radii(
+      quantity<si::length, real_t> mean_rd1,
+      quantity<si::length, real_t> mean_rd2,
+      quantity<si::dimensionless, real_t> sdev_rd1,
+      quantity<si::dimensionless, real_t> sdev_rd2,
+      quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n1_stp,
+      quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n2_stp
+    ):
+    mean_rd1(mean_rd1),
+    mean_rd2(mean_rd2),
+    sdev_rd1(sdev_rd1),
+    sdev_rd2(sdev_rd2),
+    n1_stp(n1_stp),
+    n2_stp(n2_stp) {}
+
+
     T funval(const T lnrd) const
     {
       return T((
@@ -64,7 +76,7 @@ namespace setup
     T funval(const T lnrd) const
     {
       return T((
-          lognormal::n_e(mean_rd1, sdev_rd1, n_unit_test, quantity<si::dimensionless, real_t>(lnrd)) 
+          lognormal::n_e(real_t(1e-7) * si::metres, quantity<si::dimensionless, real_t>(1), n_unit_test, quantity<si::dimensionless, real_t>(lnrd)) 
         ) * si::cubic_metres
       );
     }
