@@ -69,7 +69,7 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) = tmp1(idxperm::pi<perm_no>(z-1, this->hrzntl_subdomain));
   tmp1(ground) = 0.;
 
-  for(int z = 1 ; z < nz-1; ++z)
+  for(int z = 1 ; z <= nz-1; ++z)
     tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z-1, this->hrzntl_subdomain));
 
   // multiply by distance from the bottom of the cell to the bottom of the domain
