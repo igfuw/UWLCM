@@ -100,6 +100,63 @@ void plot_series(Plotter_t plotter)
         }
         catch(...) {;}
       }
+      // averagew sd_conc in cell with r_act > 1e-5
+      else if (plt == "sd_conc_avg")
+      {
+        try
+        {
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp_sd = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
+
+          typename Plotter_t::arr_t snap(tmp);
+          typename Plotter_t::arr_t snap_sd(tmp_sd);
+          
+          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
+          snap_sd *= res_tmp; // apply filter
+ 
+          double avg_sd_conc;
+          
+          if(blitz::sum(res_tmp) > 0.)
+            avg_sd_conc = blitz::sum(snap_sd) / blitz::sum(res_tmp); 
+          else
+            avg_sd_conc = 0.;
+
+          res_prof(at) = avg_sd_conc;
+        }
+        catch(...) {;}
+      }
+      // std dev of sd_conc in cell with r_act > 1e-5
+      else if (plt == "sd_conc_std_dev")
+      {
+        try
+        {
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp_sd = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
+
+          typename Plotter_t::arr_t snap(tmp);
+          typename Plotter_t::arr_t snap_sd(tmp_sd);
+          
+          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
+          snap_sd *= res_tmp; // apply filter
+ 
+          double avg_sd_conc;
+          
+          if(blitz::sum(res_tmp) > 0.)
+            avg_sd_conc = blitz::sum(snap_sd) / blitz::sum(res_tmp); 
+          else
+            avg_sd_conc = 0.;
+
+          snap_sd = pow(snap_sd - avg_sd_conc, 2);
+          snap_sd *= res_tmp; // apply filter
+          if(avg_sd_conc>0)
+            res_prof(at) = sqrt(blitz::sum(snap_sd) / blitz::sum(res_tmp)) / avg_sd_conc; 
+          else
+            res_prof(at) = 0.;
+        }
+        catch(...) {;}
+      }
       // std dev of r_act for over cells with r_act > 1.e-5
       else if (plt == "ract_std_dev")
       {
@@ -416,6 +473,20 @@ void plot_series(Plotter_t plotter)
       gp << "set ylabel 'standard deviation  [g/kg]'\n";
       gp << "set xlabel 'time [min]'\n";
       gp << "set title  'rc std dev'\n";
+    }
+    else if (plt == "sd_conc_avg")
+    {
+      res_pos *= 60.;
+      gp << "set ylabel 'average SD number'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'average SD number in cloudy cells'\n";
+    }
+    else if (plt == "sd_conc_std_dev")
+    {
+      res_pos *= 60.;
+      gp << "set ylabel 'std dev(SD number) / mean (SD number)'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'std dev over mean SD number in cloudy cells'\n";
     }
     else if (plt == "tot_water")
       gp << "set title 'total water'\n";
