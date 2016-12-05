@@ -246,7 +246,10 @@ void plot_series(Plotter_t plotter)
             res_prof(at) = snap_mom(com_x_idx(at), com_z_idx(at));
           }
           else 
+          {
+            com_N_c(at) = 0.;
             res_prof(at) = 0.;
+          }
         }
         catch(...) {;}
       }
@@ -257,7 +260,6 @@ void plot_series(Plotter_t plotter)
         {
           auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp); // 1st raw moment / mass [m / kg]
-          std::cout << at << ": 1st raw moment / mass = " << snap(com_x_idx(at), com_z_idx(at)) << " com_N_c = " << com_N_c(at) << std::endl;
           if(com_N_c(at) > 0)
             res_prof(at) = snap(com_x_idx(at), com_z_idx(at)) / com_N_c(at);
           else
@@ -279,16 +281,19 @@ void plot_series(Plotter_t plotter)
           typename Plotter_t::arr_t second_raw_mom(tmp); // 2nd raw moment / mass [m^2 / kg]
           tmp = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
           typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
-          double SD_no = sd_conc(com_x_idx(at), com_z_idx(at));
-          if(com_N_c(at) > 0 && SD_no > 1 && com_miu(at) > 0)
-            res_prof(at) = sqrt( 
-              SD_no / (SD_no - 1) /
-              com_N_c(at) * (
-                second_raw_mom(com_x_idx(at), com_z_idx(at)) - 
-                2. * com_miu(at) * first_raw_mom(com_x_idx(at), com_z_idx(at)) + 
-                com_miu(at) * com_miu(at) * zeroth_raw_mom(com_x_idx(at), com_z_idx(at))
-              )
-            );
+          if(com_N_c(at) > 0)
+          {
+            double SD_no = sd_conc(com_x_idx(at), com_z_idx(at));
+            if(SD_no > 1 && com_miu(at) > 0)
+              res_prof(at) = sqrt( 
+                SD_no / (SD_no - 1) /
+                com_N_c(at) * (
+                  second_raw_mom(com_x_idx(at), com_z_idx(at)) - 
+                  2. * com_miu(at) * first_raw_mom(com_x_idx(at), com_z_idx(at)) + 
+                  com_miu(at) * com_miu(at) * zeroth_raw_mom(com_x_idx(at), com_z_idx(at))
+                )
+              );
+          }
           else
             res_prof(at) = 0.;
         }
