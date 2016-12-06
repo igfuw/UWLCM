@@ -56,8 +56,9 @@ script:
   - cd bicycles
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=Release -DMODEL_CASE="MOIST_THERMAL"
+  - cmake .. -DCMAKE_BUILD_TYPE=Release
   - make
-  - make test
+  - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+
   
   # TODO: run the dry thermal test
