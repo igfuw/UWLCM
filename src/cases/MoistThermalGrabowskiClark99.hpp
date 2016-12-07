@@ -150,7 +150,6 @@ namespace setup
         params.uv_src = false;
         params.th_src = false;
         params.rv_src = false;
-        params.prs_tol=1e-6;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = true;

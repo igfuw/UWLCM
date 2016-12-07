@@ -54,14 +54,24 @@ class slvr_piggy<
   // ctor
   slvr_piggy(
     typename parent_t::ctor_args_t args,
-    typename parent_t::rt_params_t const &p
+    typename parent_t::rt_params_t p
   ) :
     parent_t(args, p) {}
+
+  public:
+
+  // ctor
+  struct rt_params_t : parent_t::rt_params_t 
+  {   
+    rt_params_t()
+    {
+      this->prs_tol = 1e-6;
+    }
+  }; 
 };
 
 
 // piggybacker
-/*
 template <class ct_params_t>
 class slvr_piggy<
   ct_params_t,
@@ -93,12 +103,12 @@ class slvr_piggy<
 
   void hook_ante_step()
   {
-    // save courant numbers
+    // read courant numbers
     if(this->rank==0)
     {
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
-        f_cour_out << this->vips()[d];
+        f_cour_in >> this->vips()[d];
       }
     }
     parent_t::hook_ante_step();
@@ -111,5 +121,4 @@ class slvr_piggy<
   ) :
     parent_t(args, p) {}
 };
-*/
 
