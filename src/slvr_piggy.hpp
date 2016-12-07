@@ -23,6 +23,28 @@ class slvr_piggy<
     solvers::mpdata_rhs_vip_prs<ct_params_t>
   >;  
 
+  std::ofstream f_cour_out; // output courant number file
+
+  void hook_ante_loop(int nt) 
+  {
+    parent_t::hook_ante_loop(nt); 
+    // open file for out courants
+    f_cour_out.open(this->outdir+"/courants_out.dat"); 
+  }
+
+  void hook_ante_step()
+  {
+    // save courant numbers
+    if(this->rank==0)
+    {
+      for (int d = 0; d < parent_t::n_dims; ++d)
+      {
+        f_cour_out << this->vips()[d];
+      }
+    }
+    parent_t::hook_ante_step();
+  }
+
   // ctor
   slvr_piggy(
     typename parent_t::ctor_args_t args,
