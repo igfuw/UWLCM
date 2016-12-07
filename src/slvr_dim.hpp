@@ -38,6 +38,8 @@ class slvr_dim<
   using ix = typename ct_params_t::ix;
 
   protected:
+  std::ofstream f_cour_out; // output courant number file, TODO: its the same in 3D!
+
   using arr_sub_t = blitz::Array<setup::real_t, 1>;
   // inject dimension-independent ranges
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
@@ -52,6 +54,23 @@ class slvr_dim<
   blitz::secondIndex vert_idx;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::vip_i};
+
+  void hook_ante_loop(int nt) 
+  {
+    parent_t::hook_ante_loop(nt); 
+    // open file for out courants, TODO: its the same in 3D
+    f_cour_out.open(this->outdir+"/courants_out.dat"); //TODO: catch exception
+  }
+
+  void hook_ante_step()
+  {
+    using ix = typename ct_params_t::ix;
+    // save courant numbers
+    f_cour_out << this->state(ix::u);
+    f_cour_out << this->state(ix::w);
+
+    parent_t::hook_ante_step();
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {

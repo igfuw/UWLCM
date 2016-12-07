@@ -34,7 +34,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   // surface precip stuff
   real_t prec_vol;
-  std::ofstream f_prec;
+  std::ofstream f_prec; // output precipitation file
   
   // spinup stuff
   virtual bool get_rain() = 0;
