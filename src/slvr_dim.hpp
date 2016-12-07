@@ -1,6 +1,6 @@
 #pragma once
-#include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
-#include <libmpdata++/output/hdf5_xdmf.hpp>
+
+#include "slvr_piggy.hpp"
 
 // custom 3D idxperm that accepts idx_t; todo: make it part of libmpdata?
 namespace libmpdataxx
@@ -27,14 +27,9 @@ template <class ct_params_t>
 class slvr_dim<
   ct_params_t,
   typename std::enable_if<ct_params_t::n_dims == 2 >::type
-> : public 
-  output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
-  >
+> : public slvr_piggy<ct_params_t> 
 {
-  using parent_t = output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
-  >;
+  using parent_t = slvr_piggy<ct_params_t>;
   using ix = typename ct_params_t::ix;
 
   protected:
@@ -117,6 +112,7 @@ class slvr_dim<
   }
 };
 
+/*
 // 3D version
 template <class ct_params_t>
 class slvr_dim<
@@ -193,4 +189,5 @@ class slvr_dim<
     vip_ground.push_back(new arr_sub_t(this->state(ix::vip_j)(this->i, this->j, 0).reindex({0,0})));
   }
 };
+*/
 
