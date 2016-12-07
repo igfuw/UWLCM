@@ -21,7 +21,7 @@ int main(int ac, char** av)
     "--nx=4 --nz=4"
   });
   vector<string> opts_micro({
-    "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100 --unit_test=true",
+    "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100 --unit_test=0",
     "--micro=blk_1m --outdir=out_blk_1m"  
   });
   vector<string> opts_case({
