@@ -125,6 +125,16 @@ void plot_fields(Plotter_t plotter)
 	plotter.plot(gp, tmp);
       }
 */
+      else if (plt == "mrk")
+      {   
+        try{
+	std::string title = "marker"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        auto tmp = plotter.h5load_timestep(plotter.file, "mrk", at * n["outfreq"]);
+        plotter.plot(gp, tmp);
+        }
+        catch(...){}
+      }   
       else if (plt == "rv")
       {   
         try{
