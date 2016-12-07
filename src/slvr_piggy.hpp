@@ -18,6 +18,7 @@ class slvr_piggy<
     solvers::mpdata_rhs_vip_prs<ct_params_t>
   >
 {
+
   protected:
   using parent_t = output::hdf5_xdmf<
     solvers::mpdata_rhs_vip_prs<ct_params_t>
@@ -28,26 +29,32 @@ class slvr_piggy<
   void hook_ante_loop(int nt) 
   {
     parent_t::hook_ante_loop(nt); 
-    // open file for out courants
-    try{
-      f_cour_out.open(this->outdir+"/courants_out.dat"); 
-    }
-    catch(...)
+    if(this->rank==0)
     {
-      throw std::runtime_error("error opening courant output file 'outdir/courants_out.dat'");
+      // open file for out courants
+      try{
+        f_cour_out.open(this->outdir+"/courants_out.dat"); 
+      }
+      catch(...)
+      {
+        throw std::runtime_error("error opening courant output file 'outdir/courants_out.dat'");
+      }
     }
   }
 
   void hook_ante_step()
   {
+    //this->mem->barrier();
     // save courant numbers
     if(this->rank==0)
     {
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
-        f_cour_out << this->vips()[d];
+        f_cour_out << this->state(this->vip_ixs[d]);
+       // f_cour_out << this->vips()[d];
       }
     }
+    this->mem->barrier();
     parent_t::hook_ante_step();
   }
 
@@ -81,36 +88,53 @@ class slvr_piggy<
     solvers::mpdata_rhs_vip<ct_params_t>
   >
 {
+
   protected:
   using parent_t = output::hdf5_xdmf<
     solvers::mpdata_rhs_vip<ct_params_t>
   >;  
+
+  private:
+  typename parent_t::arr_t in_bfr; // input buffer for courant numbers
+  
+  protected:
 
   std::ifstream f_cour_in; // input courant number file
 
   void hook_ante_loop(int nt) 
   {
     parent_t::hook_ante_loop(nt); 
-    // open file for in courants
-    try{
-      f_cour_in.open(this->outdir+"/courants_in.dat"); 
-    }
-    catch(...)
+    if(this->rank==0)
     {
-      throw std::runtime_error("error opening courant input file 'outdir/courants_in.dat'");
+      in_bfr.resize(this->state(this->vip_ixs[0]).shape());
+      // open file for in courants
+      try{
+        f_cour_in.open(this->outdir+"/courants_in.dat"); 
+      }
+      catch(...)
+      {
+        throw std::runtime_error("error opening courant input file 'outdir/courants_in.dat'");
+      }
     }
+    this->mem->barrier();
   }
 
   void hook_ante_step()
   {
+//    this->mem->barrier();
     // read courant numbers
     if(this->rank==0)
     {
+      using ix = typename ct_params_t::ix;
+
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
-        f_cour_in >> this->vips()[d];
+        // read in through buffer, if done directly caused data races
+        f_cour_in >> in_bfr;
+        this->state(this->vip_ixs[d]) = in_bfr;
       }
     }
+    this->mem->barrier();
     parent_t::hook_ante_step();
   }
 

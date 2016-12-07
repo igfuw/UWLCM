@@ -50,7 +50,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     parent_t::hook_ante_loop(nt); 
 
     // open file for output of precitpitation volume
-    f_prec.open(this->outdir+"/prec_vol.dat");
+    if(this->rank==0)
+      f_prec.open(this->outdir+"/prec_vol.dat");
     prec_vol = 0.;
   }
 
