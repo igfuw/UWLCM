@@ -175,6 +175,16 @@ void plot_fields(Plotter_t plotter)
         }
         catch(...){}
       }   
+      else if (plt == "cour_div")
+      {   
+        try{
+	std::string title = "divergence of courant numbers"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        auto tmp = plotter.h5load_timestep(plotter.file, "cour_div", at * n["outfreq"]);
+        plotter.plot(gp, tmp);
+        }
+        catch(...){}
+      }   
       else if (plt == "RH")
       {   
         try{
