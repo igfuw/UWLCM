@@ -19,7 +19,7 @@ std::set<std::string> profs({
 }); // rtot has to be first
 
 std::set<std::string> fields({
-"mrk", "cour_div",
+"mrk", "vel_div",
 "rl", "nc",
 // "rr", "nr",
 //"ef", "na", 
