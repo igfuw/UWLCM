@@ -267,11 +267,50 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 struct ct_params_common : ct_params_default_t
 {
   using real_t = setup::real_t;
-  enum { opts = opts::nug | opts::iga | opts::fct };  // TODO: reenable nug once it works in 3D
+  enum { opts = opts::nug | opts::iga | opts::fct };
   enum { rhs_scheme = solvers::trapez }; 
   enum { prs_scheme = solvers::cr };
   enum { vip_vab = solvers::expl };
-  enum { piggy = 0 }; // default driver, TODO: make it an enum driver/piggy
+};
+
+struct ct_params_2D_sd : ct_params_common
+{
+  enum { n_dims = 2 };
+  enum { n_eqns = 4 };
+  struct ix { enum {
+    u, w, th, rv, 
+    vip_i=u, vip_j=w, vip_den=-1
+  }; };
+};
+
+struct ct_params_3D_sd : ct_params_common
+{
+  enum { n_dims = 3 };
+  enum { n_eqns = 5 };
+  struct ix { enum {
+    u, v, w, th, rv, 
+    vip_i=u, vip_j=v, vip_k=w, vip_den=-1
+  }; };
+};
+
+struct ct_params_2D_blk_1m : ct_params_common
+{
+  enum { n_dims = 2 };
+  enum { n_eqns = 6 };
+  struct ix { enum {
+    u, w, th, rv, rc, rr,
+    vip_i=u, vip_j=w, vip_den=-1
+  }; };
+};
+
+struct ct_params_3D_blk_1m : ct_params_common
+{
+  enum { n_dims = 3 };
+  enum { n_eqns = 7 };
+  struct ix { enum {
+    u, v, w, th, rv, rc, rr, 
+    vip_i=u, vip_j=v, vip_k=w, vip_den=-1
+  }; };
 };
 
 
@@ -302,6 +341,7 @@ int main(int argc, char** argv)
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
+      ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;
@@ -360,6 +400,8 @@ int main(int argc, char** argv)
     user_params.uv_src = vm["uv_src"].as<bool>();
     user_params.w_src = vm["w_src"].as<bool>();
 
+    bool piggy = vm["piggy"].as<bool>();
+
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
 
@@ -369,55 +411,79 @@ int main(int argc, char** argv)
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
     {
-      struct ct_params_t : ct_params_common
+      if(!piggy) // no piggybacking
       {
-        enum { n_dims = 2 };
-    	enum { n_eqns = 4 };
-        struct ix { enum {
-          u, w, th, rv, 
-          vip_i=u, vip_j=w, vip_den=-1
-        }; };
-      };
-      run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
+        struct ct_params_t : ct_params_2D_sd
+        {
+          enum { piggy = 0 };
+        };
+        run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
+      }
+      else // piggyacking
+      {
+        struct ct_params_t : ct_params_2D_sd
+        {
+          enum { piggy = 1 };
+        };
+        run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
+      }
     }
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
     {
-      struct ct_params_t : ct_params_common
+      if(!piggy) // no piggybacking
       {
-        enum { n_dims = 3 };
-    	enum { n_eqns = 5 };
-        struct ix { enum {
-          u, v, w, th, rv, 
-          vip_i=u, vip_j=v, vip_k=w, vip_den=-1
-        }; };
-      };
-      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+        struct ct_params_t : ct_params_3D_sd
+        {
+          enum { piggy = 0 };
+        };
+        run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+      }
+      else // piggyacking
+      {
+        struct ct_params_t : ct_params_3D_sd
+        {
+          enum { piggy = 1 };
+        };
+        run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+      }
     }
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
     {
-      struct ct_params_t : ct_params_common
+      if(!piggy) // no piggybacking
       {
-        enum { n_dims = 2 };
-    	enum { n_eqns = 6 };
-        struct ix { enum {
-          u, w, th, rv, rc, rr,
-          vip_i=u, vip_j=w, vip_den=-1
-        }; };
-      };
-      run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
+        struct ct_params_t : ct_params_2D_blk_1m
+        {
+          enum { piggy = 0 };
+        };
+        run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
+      }
+      else // piggyacking
+      {
+        struct ct_params_t : ct_params_2D_blk_1m
+        {
+          enum { piggy = 1 };
+        };
+        run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
+      }
     }
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
     {
-      struct ct_params_t : ct_params_common
+      if(!piggy) // no piggybacking
       {
-        enum { n_dims = 3 };
-    	enum { n_eqns = 7 };
-        struct ix { enum {
-          u, v, w, th, rv, rc, rr, 
-          vip_i=u, vip_j=v, vip_k=w, vip_den=-1
-        }; };
-      };
-      run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
+        struct ct_params_t : ct_params_3D_blk_1m
+        {
+          enum { piggy = 0 };
+        };
+        run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
+      }
+      else // piggyacking
+      {
+        struct ct_params_t : ct_params_3D_blk_1m
+        {
+          enum { piggy = 1 };
+        };
+        run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
+      }
     }
     else throw
       po::validation_error(

@@ -18,26 +18,40 @@ class slvr_piggy<
     solvers::mpdata_rhs_vip_prs<ct_params_t>
   >
 {
+  private:
+  bool save_vel; // should velocity field be stored for piggybacking
 
   protected:
   using parent_t = output::hdf5_xdmf<
     solvers::mpdata_rhs_vip_prs<ct_params_t>
   >;  
 
-  std::ofstream f_cour_out; // output courant number file
+  std::ofstream f_vel_out; // file for velocity field
 
   void hook_ante_loop(int nt) 
   {
     parent_t::hook_ante_loop(nt); 
+
     if(this->rank==0)
     {
-      // open file for out courants
-      try{
-        f_cour_out.open(this->outdir+"/courants_out.dat"); 
-      }
-      catch(...)
+      po::options_description opts("Driver options"); 
+      opts.add_options()
+        ("save_vel", po::value<bool>()->default_value(false), "should velocity field be stored for piggybacking")
+      ;
+      po::variables_map vm;
+      handle_opts(opts, vm);
+          
+      save_vel = vm["save_vel"].as<bool>();
+      // open file for out vel
+      if(save_vel)
       {
-        throw std::runtime_error("error opening courant output file 'outdir/courants_out.dat'");
+        try{
+          f_vel_out.open(this->outdir+"/velocity_out.dat"); 
+        }
+        catch(...)
+        {
+          throw std::runtime_error("error opening velocity output file '{outdir}/velocity_out.dat'");
+        }
       }
     }
   }
@@ -45,13 +59,12 @@ class slvr_piggy<
   void hook_ante_step()
   {
     //this->mem->barrier();
-    // save courant numbers
-    if(this->rank==0)
+    // save velocity field
+    if(this->rank==0 && save_vel)
     {
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
-        f_cour_out << this->state(this->vip_ixs[d]);
-       // f_cour_out << this->vips()[d];
+        f_vel_out << this->state(this->vip_ixs[d]);
       }
     }
     this->mem->barrier();
@@ -95,25 +108,37 @@ class slvr_piggy<
   >;  
 
   private:
-  typename parent_t::arr_t in_bfr; // input buffer for courant numbers
+  typename parent_t::arr_t in_bfr; // input buffer for velocity
+  std::string vel_in;
   
   protected:
 
-  std::ifstream f_cour_in; // input courant number file
+  std::ifstream f_vel_in; // input velocity file
 
   void hook_ante_loop(int nt) 
   {
     parent_t::hook_ante_loop(nt); 
+
     if(this->rank==0)
     {
+      po::options_description opts("Piggybacker options"); 
+      opts.add_options()
+        ("vel_in", po::value<std::string>()->required(), "file with input velocities")
+      ;
+      po::variables_map vm;
+      handle_opts(opts, vm);
+          
+      vel_in = vm["vel_in"].as<std::string>();
+
       in_bfr.resize(this->state(this->vip_ixs[0]).shape());
-      // open file for in courants
+      // open file for in vel
+      // TODO: somehow check dimensionality of the input arrays
       try{
-        f_cour_in.open(this->outdir+"/courants_in.dat"); 
+        f_vel_in.open(vel_in); 
       }
       catch(...)
       {
-        throw std::runtime_error("error opening courant input file 'outdir/courants_in.dat'");
+        throw std::runtime_error("error opening velocities input file defined by --vel_in");
       }
     }
     this->mem->barrier();
@@ -122,7 +147,7 @@ class slvr_piggy<
   void hook_ante_step()
   {
 //    this->mem->barrier();
-    // read courant numbers
+    // read velo
     if(this->rank==0)
     {
       using ix = typename ct_params_t::ix;
@@ -130,7 +155,7 @@ class slvr_piggy<
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
         // read in through buffer, if done directly caused data races
-        f_cour_in >> in_bfr;
+        f_vel_in >> in_bfr;
         this->state(this->vip_ixs[d]) = in_bfr;
       }
     }
