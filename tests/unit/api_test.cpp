@@ -32,7 +32,7 @@ int main(int ac, char** av)
   vector<string> opts_piggy({
     "--piggy=0",
     "--piggy=0 --save_vel=1",
-    "--piggy=1 --vel_in=out_lgrngn/velocity_out.dat"
+    "--piggy=1 --vel_in=out_blk_1m/velocity_out.dat"  // take vel file from blk, cause it's ran first
   });
 
   for (auto &opts_d : opts_dim)
