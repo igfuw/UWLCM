@@ -61,7 +61,7 @@ void setopts_micro(
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
     ("onishi", po::value<bool>()->default_value(false) , "use the turbulent onishi kernel")
-    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
+//    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("eps", po::value<setup::real_t>()->default_value(0.01) , "turb dissip rate (for onishi kernel) [m^2/s^3]")
     ("ReL", po::value<setup::real_t>()->default_value(5000) , "taylor-microscale reynolds number (onishi kernel)")
 
@@ -79,14 +79,14 @@ void setopts_micro(
   rt_params.async = vm["async"].as<bool>();
   bool gccn = vm["gccn"].as<bool>();
   bool onishi = vm["onishi"].as<bool>();
-  bool unit_test = vm["unit_test"].as<bool>();
+//  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t eps = vm["eps"].as<setup::real_t>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
  
-  if(!unit_test)
+ // if(!unit_test)
   {
     std::auto_ptr<setup::log_dry_radii<thrust_real_t>> temp(
       new setup::log_dry_radii<thrust_real_t>(
@@ -104,14 +104,14 @@ void setopts_micro(
        temp
     );
    }
-  else if(unit_test)
+/*  else if(unit_test)
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_unit_test<thrust_real_t> // value type
     >(
       rt_params.cloudph_opts_init.dry_distros // map
     )(
       setup::kappa // key
-    );
+    );*/
   if(gccn) // add the gccns spectra
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_gccn<thrust_real_t> // value type

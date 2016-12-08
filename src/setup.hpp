@@ -11,10 +11,10 @@ namespace setup
 
 
 
-
+/*
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
     n_unit_test = real_t(1) / si::cubic_metres;
-  
+  */
   //aerosol lognormal dist. for GCCN from Jorgen Jensen
   const quantity<si::length, real_t>
     mean_rd3 = real_t(.283e-6) * si::metres;
@@ -70,6 +70,7 @@ namespace setup
   };
   
   // unit test lognormal aerosol distribution
+   /*
   template <typename T>
   struct log_dry_radii_unit_test : public libcloudphxx::common::unary_function<T>
   {
@@ -84,7 +85,7 @@ namespace setup
     log_dry_radii_unit_test *do_clone() const 
     { return new log_dry_radii_unit_test( *this ); }
   };
-
+*/
   // lognormal aerosol distribution with GCCN
   template <typename T>
   struct log_dry_radii_gccn : public libcloudphxx::common::unary_function<T>
