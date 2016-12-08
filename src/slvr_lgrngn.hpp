@@ -276,7 +276,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
   void hook_ante_step()
   {
-//std::cout << this->timestep << std::endl;
     parent_t::hook_ante_step(); // includes output
     this->mem->barrier();
     if (this->rank == 0) 
@@ -332,10 +331,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           Cy_arrinfo,
           make_arrinfo(Cz)
         );
-if(!std::isfinite(sum(this->mem->advectee(ix::th))))
-  std::cout << "nan in th: " << this->mem->advectee(ix::th);
-if(!std::isfinite(sum(this->mem->advectee(ix::rv))))
-  std::cout << "nan in rv: " << this->mem->advectee(ix::rv);
+//if(!std::isfinite(sum(this->mem->advectee(ix::th))))
+  //std::cout << "nan in th: " << this->mem->advectee(ix::th);
+//if(!std::isfinite(sum(this->mem->advectee(ix::rv))))
+  //std::cout << "nan in rv: " << this->mem->advectee(ix::rv);
         parent_t::tend = parent_t::clock::now();
         parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       } 

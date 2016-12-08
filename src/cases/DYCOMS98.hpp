@@ -122,7 +122,6 @@ namespace setup
         params.uv_src = user_params.uv_src;
         params.th_src = user_params.th_src;
         params.rv_src = user_params.rv_src;
-        params.prs_tol=1e-6;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
