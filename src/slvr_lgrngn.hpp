@@ -60,15 +60,30 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_wet_mom(0);
     this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
 
-    // recording 1st mom of rd of activated drops
+    // recording 0th mom of rw of activated drops
     prtcls->diag_rw_ge_rc();
-    prtcls->diag_dry_mom(1);
-    this->record_aux("actrw_rd_mom1", prtcls->outbuf());
+    prtcls->diag_wet_mom(0);
+    this->record_aux("actrw_rw_mom0", prtcls->outbuf());
+
+    // recording 1st mom of rw of activated drops
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_wet_mom(1);
+    this->record_aux("actrw_rw_mom1", prtcls->outbuf());
+
+    // recording 2nd mom of rw of activated drops
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_wet_mom(2);
+    this->record_aux("actrw_rw_mom2", prtcls->outbuf());
 
     // recording 3rd mom of rw of activated drops
     prtcls->diag_rw_ge_rc();
     prtcls->diag_wet_mom(3);
     this->record_aux("actrw_rw_mom3", prtcls->outbuf());
+
+    // recording 1st mom of rd of activated drops
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_dry_mom(1);
+    this->record_aux("actrw_rd_mom1", prtcls->outbuf());
 
     // recording 0th mom of rd of activated drops
     prtcls->diag_rw_ge_rc();
@@ -89,6 +104,26 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_RH_ge_Sc();
     prtcls->diag_dry_mom(0);
     this->record_aux("actRH_rd_mom0", prtcls->outbuf());
+
+    // recording 0th wet mom of radius of rain drops (r>25um)
+    prtcls->diag_dry_rng(25.e-6, 1);
+    prtcls->diag_wet_mom(0);
+    this->record_aux("rain_rw_mom0", prtcls->outbuf());
+
+    // recording 3rd wet mom of radius of rain drops (r>25um)
+    prtcls->diag_dry_rng(25.e-6, 1);
+    prtcls->diag_wet_mom(3);
+    this->record_aux("rain_rw_mom3", prtcls->outbuf());
+
+    // recording 0th wet mom of radius of cloud drops (.5um< r < 25um)
+    prtcls->diag_dry_rng(.5e-6, 25.e-6);
+    prtcls->diag_wet_mom(0);
+    this->record_aux("cloud_rw_mom0", prtcls->outbuf());
+
+    // recording 3rd wet mom of radius of cloud drops (.5um< r < 25um)
+    prtcls->diag_dry_rng(.5e-6, 25.e-6);
+    prtcls->diag_wet_mom(3);
+    this->record_aux("cloud_rw_mom3", prtcls->outbuf());
    
     // recording requested statistical moments
     {
@@ -150,8 +185,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   bool get_rain() { return params.cloudph_opts.coal; }
   void set_rain(bool val) 
   { 
-    //params.cloudph_opts.adve = val;
-    params.w_src = val;
     params.cloudph_opts.coal = val ? params.flag_coal : false;
     params.cloudph_opts.RH_max = val ? 44 : 1.06; // 0.5% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
   };
@@ -186,7 +219,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         params.cloudph_opts_init.z0 = this->dj / 2;
         params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * this->dj;
 
-        params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
+        if(params.cloudph_opts_init.sd_conc)
+          params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
+        else
+          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+          
         if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
           params.cloudph_opts_init.n_sd_max *= 1.5; // more space for copied SDs
       }
@@ -202,7 +239,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         params.cloudph_opts_init.z0 = this->dk / 2;
         params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * this->dk;
 
-        params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
+        if(params.cloudph_opts_init.sd_conc)
+          params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.ny *params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc;
+        else
+          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+
         if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
           params.cloudph_opts_init.n_sd_max *= 1.5; // more space for copied SDs
       }
@@ -213,7 +254,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       ));
 
       // temporary array of densities - prtcls cant be init'd with 1D profile
-      typename parent_t::arr_t rhod(this->mem->advectee(ix::th).shape());
+      typename parent_t::arr_t rhod(this->mem->advectee(ix::th).shape()); // TODO: replace all rhod arrays with this->mem->G
       rhod = (*params.rhod)(this->vert_idx);
 
 	prtcls->init(
@@ -235,7 +276,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
   void hook_ante_step()
   {
-//std::cout << this->timestep << std::endl;
     parent_t::hook_ante_step(); // includes output
     this->mem->barrier();
     if (this->rank == 0) 
@@ -291,10 +331,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           Cy_arrinfo,
           make_arrinfo(Cz)
         );
-if(!std::isfinite(sum(this->mem->advectee(ix::th))))
-  std::cout << "nan in th: " << this->mem->advectee(ix::th);
-if(!std::isfinite(sum(this->mem->advectee(ix::rv))))
-  std::cout << "nan in rv: " << this->mem->advectee(ix::rv);
+//if(!std::isfinite(sum(this->mem->advectee(ix::th))))
+  //std::cout << "nan in th: " << this->mem->advectee(ix::th);
+//if(!std::isfinite(sum(this->mem->advectee(ix::rv))))
+  //std::cout << "nan in rv: " << this->mem->advectee(ix::rv);
         parent_t::tend = parent_t::clock::now();
         parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       } 

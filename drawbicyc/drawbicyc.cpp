@@ -1,5 +1,6 @@
 #include"plot_series.hpp"
 #include"plot_prof.hpp"
+#include"plot_fields.hpp"
 
 int main(int argc, char** argv)
 {
@@ -9,8 +10,9 @@ int main(int argc, char** argv)
 
   // general opts
   opts_main.add_options()
-    ("prof", po::value<bool>()->default_value(true), "plot profiles?")
+    ("profs", po::value<bool>()->default_value(true), "plot profiles?")
     ("series", po::value<bool>()->default_value(true) , "plot series?")
+    ("fields", po::value<bool>()->default_value(false) , "plot fields?")
     ("dir", po::value<std::string>()->required() , "directory containing out_lgrngn")
     ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
   ;
@@ -31,7 +33,8 @@ int main(int argc, char** argv)
 
   // reading required plot types
   bool flag_series = vm["series"].as<bool>(),
-       flag_profiles = vm["prof"].as<bool>();
+       flag_profiles = vm["profs"].as<bool>(),
+       flag_fields = vm["fields"].as<bool>();
 
   // detecting input data dimensionality
   H5::H5File h5f(h5 + "/const.h5", H5F_ACC_RDONLY);
@@ -43,11 +46,13 @@ int main(int argc, char** argv)
   {
     if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro));
     if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro));
+    if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro));
   }
   else if(NDims == 3)
   {
     if(flag_series)   plot_series(PlotterMicro_t<3>(h5, micro));
     if(flag_profiles) plot_profiles(PlotterMicro_t<3>(h5, micro));
+    if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro));
   }
   else
     assert(false && "need 2d or 3d input data");

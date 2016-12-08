@@ -21,7 +21,7 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint  /usr/include/boost/numeric/; fi
 
 #libmpdataxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-thread-dev libboost-timer-dev; fi 
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-thread-dev libboost-timer-dev libboost-filesystem-dev libboost-iostreams-dev libgnuplot-iostream-dev; fi
 
 # hdf5
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
@@ -40,7 +40,6 @@ script:
   - cd build
   - cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ..
   - make
-  - make test
   - sudo make install
   - cd ../..
 
@@ -57,6 +56,9 @@ script:
   - cd bicycles
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=Release -DMODEL_CASE="MOIST_THERMAL"
+  - cmake .. -DCMAKE_BUILD_TYPE=Release
   - make
-  - make test
+  - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+
+  
+  # TODO: run the dry thermal test

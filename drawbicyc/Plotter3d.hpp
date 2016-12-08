@@ -75,6 +75,20 @@ class Plotter_t<3> : public PlotterCommon
     return blitz::safeToReturn(mean + 0);
   }
 
+  template <class gp_t, class data_t>
+  void plot(gp_t &gp, const data_t &data)
+  {
+  //  throw std::runtime_error("3d fields plotting doesn't work yet");
+    blitz::Array<float, 3> tmp3d(data);
+    using namespace blitz::tensor;
+    auto tmp2d = blitz::mean(tmp3d(i,k,j), k); // mean over second dimension
+    blitz::Array<float, 2> tmp(tmp2d);
+
+    gp << "set xrange [0:" << tmp.extent(0)-1 << "]\n";
+    gp << "set yrange [0:" << tmp.extent(1)-1 << "]\n";
+    gp << "splot '-' binary" << gp.binfmt(tmp.transpose(blitz::secondDim, blitz::firstDim)) << " scan=yx origin=(0,0,0) with image failsafe notitle\n";
+    gp.sendBinary(tmp);
+  }
 
   //ctor
   Plotter_t(const string &file):

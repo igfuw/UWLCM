@@ -9,6 +9,6 @@ if (NOT libcloudph++_FOUND)
   message(FATAL_ERROR "libclouphxx++ not found")
 endif()
 
-add_subdirectory(src) 
 add_subdirectory(drawbicyc)
+add_subdirectory(src) 
 add_subdirectory(tests)

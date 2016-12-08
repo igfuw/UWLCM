@@ -4,7 +4,6 @@
 #include <H5Cpp.h>
 #include <map>
 
-
 class PlotterCommon
 {
   public:
@@ -30,6 +29,7 @@ class PlotterCommon
     h5s = h5d.getSpace();
   }
 
+  public:
   //ctor
   PlotterCommon(const string &file):
     file(file)

@@ -21,10 +21,11 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 // simulation and output parameters for micro=lgrngn
-template <class solver_t, class user_params_t>
+template <class solver_t, class user_params_t, class case_ptr_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
   const user_params_t &user_params,
+  const case_ptr_t &case_ptr,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::lgrngn::opts_t<typename solver_t::real_t>
@@ -35,9 +36,10 @@ void setopts_micro(
 
   po::options_description opts("Lagrangian microphysics options"); 
   opts.add_options()
-    ("backend", po::value<std::string>()->required() , "one of: CUDA, OpenMP, serial")
+    ("backend", po::value<std::string>()->required() , "one of: CUDA, multi_CUDA, OpenMP, serial")
     ("async", po::value<bool>()->default_value(true), "use CPU for advection while GPU does micro (ignored if backend != CUDA)")
     ("sd_conc", po::value<unsigned long long>()->required() , "super-droplet number per grid cell (unsigned long long)")
+    ("sd_const_multi", po::value<double>()->default_value(rt_params.cloudph_opts_init.sd_const_multi) , "multiplicity in constant multiplicity mode (double)")
     // processes
     ("adve", po::value<bool>()->default_value(rt_params.cloudph_opts.adve) , "particle advection     (1=on, 0=off)")
     ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "particle sedimentation (1=on, 0=off)")
@@ -55,11 +57,11 @@ void setopts_micro(
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
     // 
-    ("out_dry", po::value<std::string>()->default_value("0:1|0"),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
-    ("out_wet", po::value<std::string>()->default_value(".5e-6:25e-6|0,1,2,3;25e-6:1|0,3,6"),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_dry", po::value<std::string>()->default_value(""),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
     ("onishi", po::value<bool>()->default_value(false) , "use the turbulent onishi kernel")
-    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
+//    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("eps", po::value<setup::real_t>()->default_value(0.01) , "turb dissip rate (for onishi kernel) [m^2/s^3]")
     ("ReL", po::value<setup::real_t>()->default_value(5000) , "taylor-microscale reynolds number (onishi kernel)")
 
@@ -77,28 +79,39 @@ void setopts_micro(
   rt_params.async = vm["async"].as<bool>();
   bool gccn = vm["gccn"].as<bool>();
   bool onishi = vm["onishi"].as<bool>();
-  bool unit_test = vm["unit_test"].as<bool>();
+//  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t eps = vm["eps"].as<setup::real_t>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
+  rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
  
-  if(!unit_test)
-    boost::assign::ptr_map_insert<
-      setup::log_dry_radii<thrust_real_t> // value type
-    >(
-      rt_params.cloudph_opts_init.dry_distros // map
-    )(
-      setup::kappa // key
+ // if(!unit_test)
+  {
+    std::auto_ptr<setup::log_dry_radii<thrust_real_t>> temp(
+      new setup::log_dry_radii<thrust_real_t>(
+        case_ptr->mean_rd1, // parameters
+        case_ptr->mean_rd2,
+        case_ptr->sdev_rd1,
+        case_ptr->sdev_rd2,
+        case_ptr->n1_stp,
+        case_ptr->n2_stp
+      )
     );
-  else if(unit_test)
+
+    rt_params.cloudph_opts_init.dry_distros.insert(
+      setup::kappa, // key
+       temp
+    );
+   }
+/*  else if(unit_test)
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_unit_test<thrust_real_t> // value type
     >(
       rt_params.cloudph_opts_init.dry_distros // map
     )(
       setup::kappa // key
-    );
+    );*/
   if(gccn) // add the gccns spectra
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_gccn<thrust_real_t> // value type

@@ -1,6 +1,6 @@
 #pragma once
-#include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
-#include <libmpdata++/output/hdf5_xdmf.hpp>
+
+#include "slvr_piggy.hpp"
 
 // custom 3D idxperm that accepts idx_t; todo: make it part of libmpdata?
 namespace libmpdataxx
@@ -27,14 +27,9 @@ template <class ct_params_t>
 class slvr_dim<
   ct_params_t,
   typename std::enable_if<ct_params_t::n_dims == 2 >::type
-> : public 
-  output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
-  >
+> : public slvr_piggy<ct_params_t> 
 {
-  using parent_t = output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
-  >;
+  using parent_t = slvr_piggy<ct_params_t>;
   using ix = typename ct_params_t::ix;
 
   protected:
@@ -55,7 +50,9 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+//    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+//    this->xchng_sclr(in, this->i, this->j);
+    in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j)) / dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
@@ -64,7 +61,10 @@ class slvr_dim<
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+    //for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
+    //this->xchng_sclr(in, this->i, this->j);
+    in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
+    in(this->i, this->j.first() - 1) = in(this->i, this->j.first()); 
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
@@ -98,14 +98,9 @@ template <class ct_params_t>
 class slvr_dim<
   ct_params_t,
   typename std::enable_if<ct_params_t::n_dims == 3 >::type
-> : public 
-  output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
-  >
+> : public slvr_piggy<ct_params_t> 
 {
-  using parent_t = output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
-  >;
+  using parent_t = slvr_piggy<ct_params_t>;
   using ix = typename ct_params_t::ix;
 
   protected:
@@ -126,7 +121,9 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+//    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+//    this->xchng_sclr(in, this->i, this->j, this->k);
+    in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k)) / dz;
     // top and bottom cells are two times lower
     out(this->i, this->j, 0) *= 2; 
@@ -135,7 +132,10 @@ class slvr_dim<
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+//    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
+//    this->xchng_sclr(in, this->i, this->j, this->k);
+    in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
+    in(this->i, this->j, this->k.first() - 1) = in(this->i, this->j, this->k.first()); 
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, this->j, 0) *= 2; 

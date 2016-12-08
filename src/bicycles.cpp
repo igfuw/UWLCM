@@ -8,36 +8,16 @@
 #include <libmpdata++/bcond/cyclic_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
 #include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
-#include <libmpdata++/concurr/serial.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include "setup.hpp"
 
-// setup choice, TODO: make it runtime
-#if defined DYCOMS
-  #include "cases/DYCOMS98.hpp"
-#elif defined MOIST_THERMAL
-  #include "cases/MoistThermalGrabowskiClark99.hpp"
-#elif defined DRY_THERMAL
-  #include "cases/DryThermalGMD2015.hpp"
-#elif defined DRY_THERMAL_COMPARE
-  #include "cases/DryThermalWojtekCompare.hpp"
-#else
-  #error please select setup
-#endif
+#include "cases/DYCOMS98.hpp"
+#include "cases/MoistThermalGrabowskiClark99.hpp"
+#include "cases/DryThermalGMD2015.hpp"
 
 #include "opts_lgrngn.hpp"
 #include "opts_blk_1m.hpp"
 #include "panic.hpp"
 #include <map>
-
-// simulation parameters container
-// TODO: write them to rt_params directly in main()
-struct user_params_t
-{
-  int nt, outfreq, spinup, rng_seed;
-  setup::real_t dt, z_rlx_sclr;
-  std::string outdir;
-  bool serial, th_src, rv_src, uv_src, w_src;
-};
 
 // copy external profiles into rt_parameters
 // TODO: more elegant way
@@ -58,62 +38,156 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
 {
+  using concurr_boost_rigid_t = concurr::boost_thread<
+    solver_t, 
+    bcond::cyclic, bcond::cyclic,
+    bcond::rigid,  bcond::rigid 
+  >;
+
+  using concurr_boost_cyclic_t = concurr::boost_thread<
+    solver_t, 
+    bcond::cyclic, bcond::cyclic,
+    bcond::cyclic, bcond::cyclic
+  >;
+
+  using concurr_any_t = concurr::any<
+    typename solver_t::real_t, 
+    solver_t::n_dims
+  >;
+
+  using case_ptr_t = 
+    std::unique_ptr<
+      setup::CasesCommon<
+        concurr_boost_rigid_t
+      >
+    >;
+
+  case_ptr_t case_ptr; 
+
+  // setup choice
+  if (user_params.model_case == "moist_thermal")
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_boost_rigid_t>()); 
+  else if (user_params.model_case == "dry_thermal")
+    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_boost_rigid_t>()); 
+  else if (user_params.model_case == "dycoms")
+    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_boost_rigid_t>()); 
+
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
+
+  // copy force constants
+  p.ForceParameters = case_ptr->ForceParameters;
 
   // output and simulation parameters
   p.grid_size = {nx, nz};
 
-  setup::setopts(p, nx, nz, user_params);
-  setopts_micro<solver_t>(p, user_params);
+  case_ptr->setopts(p, nx, nz, user_params);
+  setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
   setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  setup::env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // solver instantiation
-  std::unique_ptr<
-    concurr::any<
-      typename solver_t::real_t, 
-      solver_t::n_dims
-    >
-  > slv;
-  if (user_params.serial)
-  {
-    using concurr_t = concurr::serial<
-      solver_t, 
-      bcond::cyclic, bcond::cyclic,
-#if defined DRY_THERMAL
-      bcond::cyclic, bcond::cyclic
-#else
-      bcond::rigid,  bcond::rigid 
-#endif
-    >;
-    slv.reset(new concurr_t(p));
+  std::unique_ptr<concurr_any_t> slv;
 
-    // initial condition
-    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+  if(user_params.model_case != "dry_thermal")
+  {
+    slv.reset(new concurr_boost_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
-    using concurr_t = concurr::boost_thread<
-      solver_t, 
-      bcond::cyclic, bcond::cyclic,
-#if defined DRY_THERMAL
-      bcond::cyclic, bcond::cyclic
-#else
-      bcond::rigid,  bcond::rigid 
-#endif
-    >;
-    slv.reset(new concurr_t(p));
+    slv.reset(new concurr_boost_cyclic_t(p));
+    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+  }
 
-    // initial condition
-    setup::intcond<2>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+  // setup panic pointer and the signal handler
+  panic = slv->panic_ptr();
+  set_sigaction();
+ 
+  // timestepping
+  slv->advance(user_params.nt);
+}
+
+// 3D model run logic - the same for any microphysics; still a lot in common with 2d code...
+template <class solver_t>
+void run(int nx, int ny, int nz, const user_params_t &user_params)
+{
+  using concurr_boost_rigid_t = concurr::boost_thread<
+    solver_t, 
+    bcond::cyclic, bcond::cyclic,
+    bcond::cyclic, bcond::cyclic,
+    bcond::rigid,  bcond::rigid 
+  >;
+
+  using concurr_boost_cyclic_t = concurr::boost_thread<
+    solver_t, 
+    bcond::cyclic, bcond::cyclic,
+    bcond::cyclic, bcond::cyclic,
+    bcond::cyclic, bcond::cyclic
+  >;
+
+  using concurr_any_t = concurr::any<
+    typename solver_t::real_t, 
+    solver_t::n_dims
+  >;
+
+  using case_ptr_t = 
+    std::unique_ptr<
+      setup::CasesCommon<
+        concurr_boost_rigid_t
+      >
+    >;
+
+  case_ptr_t case_ptr; 
+
+  // setup choice
+  if (user_params.model_case == "moist_thermal")
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_3d<concurr_boost_rigid_t>()); 
+  else if (user_params.model_case == "dry_thermal")
+    case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_boost_rigid_t>()); 
+  else if (user_params.model_case == "dycoms")
+    case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_boost_rigid_t>()); 
+
+  // instantiation of structure containing simulation parameters
+  typename solver_t::rt_params_t p;
+
+  // copy force constants
+  p.ForceParameters = case_ptr->ForceParameters;
+
+  // output and simulation parameters
+  p.grid_size = {nx, ny, nz};
+
+  case_ptr->setopts(p, nx, ny, nz, user_params);
+  setopts_micro<solver_t>(p, user_params, case_ptr);
+
+  // reference profiles shared among threads
+  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
+
+  // assign their values
+  case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  // pass them to rt_params
+  copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+
+  // solver instantiation
+  std::unique_ptr<concurr_any_t> slv;
+
+  if(user_params.model_case != "dry_thermal")
+  {
+    slv.reset(new concurr_boost_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+  }
+  else
+  {
+    slv.reset(new concurr_boost_cyclic_t(p));
+    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
   }
 
   // setup panic pointer and the signal handler
@@ -125,6 +199,7 @@ void run(int nx, int nz, const user_params_t &user_params)
 }
 
 // 3D model run logic - the same for any microphysics; TODO: still a lot of common code with 2D run
+#if 0
 template <class solver_t>
 void run(int nx, int ny, int nz, const user_params_t &user_params)
 {
@@ -162,7 +237,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    setup::intcond3d(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
@@ -175,7 +250,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     slv.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond<3>(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    setup::intcond3d(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -186,14 +261,56 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   slv->advance(user_params.nt);
 }
 
+#endif
+
 // libmpdata++'s compile-time parameters
 struct ct_params_common : ct_params_default_t
 {
   using real_t = setup::real_t;
-  enum { opts = opts::nug | opts::iga | opts::fct };  // TODO: reenable nug once it works in 3D
+  enum { opts = opts::nug | opts::iga | opts::fct };
   enum { rhs_scheme = solvers::trapez }; 
   enum { prs_scheme = solvers::cr };
   enum { vip_vab = solvers::expl };
+};
+
+struct ct_params_2D_sd : ct_params_common
+{
+  enum { n_dims = 2 };
+  enum { n_eqns = 4 };
+  struct ix { enum {
+    u, w, th, rv, 
+    vip_i=u, vip_j=w, vip_den=-1
+  }; };
+};
+
+struct ct_params_3D_sd : ct_params_common
+{
+  enum { n_dims = 3 };
+  enum { n_eqns = 5 };
+  struct ix { enum {
+    u, v, w, th, rv, 
+    vip_i=u, vip_j=v, vip_k=w, vip_den=-1
+  }; };
+};
+
+struct ct_params_2D_blk_1m : ct_params_common
+{
+  enum { n_dims = 2 };
+  enum { n_eqns = 6 };
+  struct ix { enum {
+    u, w, th, rv, rc, rr,
+    vip_i=u, vip_j=w, vip_den=-1
+  }; };
+};
+
+struct ct_params_3D_blk_1m : ct_params_common
+{
+  enum { n_dims = 3 };
+  enum { n_eqns = 7 };
+  struct ix { enum {
+    u, v, w, th, rv, rc, rr, 
+    vip_i=u, vip_j=v, vip_k=w, vip_den=-1
+  }; };
 };
 
 
@@ -208,6 +325,7 @@ int main(int argc, char** argv)
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms")
       ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
@@ -218,11 +336,12 @@ int main(int argc, char** argv)
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
-      ("adv_serial", po::value<bool>()->default_value(false), "force advection to be computed on single thread")
+      ("serial", po::value<bool>()->default_value(false), "force advection and microphysics to be computed on single thread")
       ("th_src", po::value<bool>()->default_value(true) , "temp src")
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
+      ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;
@@ -273,7 +392,7 @@ int main(int argc, char** argv)
     user_params.z_rlx_sclr = vm["z_rlx_sclr"].as<setup::real_t>();
 
     // handling serial-advection-forcing flag
-    user_params.serial = vm["adv_serial"].as<bool>();
+    if(vm["serial"].as<bool>()) setenv("OMP_NUM_THREADS", "1", 1);
 
     // handling sources flags
     user_params.th_src = vm["th_src"].as<bool>();
@@ -281,67 +400,90 @@ int main(int argc, char** argv)
     user_params.uv_src = vm["uv_src"].as<bool>();
     user_params.w_src = vm["w_src"].as<bool>();
 
+    bool piggy = vm["piggy"].as<bool>();
+
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
+
+    // handling the "case" option
+    user_params.model_case = vm["case"].as<std::string>();
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
     {
-      struct ct_params_t : ct_params_common
+      if(!piggy) // no piggybacking
       {
-        enum { n_dims = 2 };
-    	enum { n_eqns = 4 };
-        struct ix { enum {
-          u, w, th, rv, 
-          vip_i=u, vip_j=w, vip_den=-1
-        }; };
-      };
-      run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
+        struct ct_params_t : ct_params_2D_sd
+        {
+          enum { piggy = 0 };
+        };
+        run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
+      }
+      else // piggyacking
+      {
+        struct ct_params_t : ct_params_2D_sd
+        {
+          enum { piggy = 1 };
+        };
+        run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
+      }
     }
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
     {
-      struct ct_params_t : ct_params_common
+      if(!piggy) // no piggybacking
       {
-        enum { n_dims = 3 };
-    	enum { n_eqns = 5 };
-        struct ix { enum {
-          u, v, w, th, rv, 
-          vip_i=u, vip_j=v, vip_k=w, vip_den=-1
-        }; };
-      };
-// thermals dont work in 3d
-#if !defined MOIST_THERMAL && !defined DRY_THERMAL && !defined DRY_THERMAL_COMPARE
-      run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
-#endif
+        struct ct_params_t : ct_params_3D_sd
+        {
+          enum { piggy = 0 };
+        };
+        run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+      }
+      else // piggyacking
+      {
+        struct ct_params_t : ct_params_3D_sd
+        {
+          enum { piggy = 1 };
+        };
+        run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
+      }
     }
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
     {
-      struct ct_params_t : ct_params_common
+      if(!piggy) // no piggybacking
       {
-        enum { n_dims = 2 };
-    	enum { n_eqns = 6 };
-        struct ix { enum {
-          u, w, th, rv, rc, rr,
-          vip_i=u, vip_j=w, vip_den=-1
-        }; };
-      };
-      run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
+        struct ct_params_t : ct_params_2D_blk_1m
+        {
+          enum { piggy = 0 };
+        };
+        run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
+      }
+      else // piggyacking
+      {
+        struct ct_params_t : ct_params_2D_blk_1m
+        {
+          enum { piggy = 1 };
+        };
+        run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
+      }
     }
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
     {
-      struct ct_params_t : ct_params_common
+      if(!piggy) // no piggybacking
       {
-        enum { n_dims = 3 };
-    	enum { n_eqns = 7 };
-        struct ix { enum {
-          u, v, w, th, rv, rc, rr, 
-          vip_i=u, vip_j=v, vip_k=w, vip_den=-1
-        }; };
-      };
-// thermals dont work in 3d
-#if !defined MOIST_THERMAL && !defined DRY_THERMAL && !defined DRY_THERMAL_COMPARE
-      run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
-#endif
+        struct ct_params_t : ct_params_3D_blk_1m
+        {
+          enum { piggy = 0 };
+        };
+        run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
+      }
+      else // piggyacking
+      {
+        struct ct_params_t : ct_params_3D_blk_1m
+        {
+          enum { piggy = 1 };
+        };
+        run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
+      }
     }
     else throw
       po::validation_error(

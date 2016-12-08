@@ -11,10 +11,11 @@
 #include "slvr_blk_1m.hpp"
 
 // simulation and output parameters for micro=blk_1m
-template <class solver_t, class user_params_t>
+template <class solver_t, class user_params_t, class case_ptr_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
   const user_params_t &user_params,
+  const case_ptr_t &case_ptr,
   typename std::enable_if<std::is_same<
     decltype(solver_t::rt_params_t::cloudph_opts),
     libcloudphxx::blk_1m::opts_t<typename solver_t::real_t>

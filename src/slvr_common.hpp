@@ -34,7 +34,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   // surface precip stuff
   real_t prec_vol;
-  std::ofstream f_prec;
+  std::ofstream f_prec; // output precipitation file
   
   // spinup stuff
   virtual bool get_rain() = 0;
@@ -50,7 +50,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     parent_t::hook_ante_loop(nt); 
 
     // open file for output of precitpitation volume
-    f_prec.open(this->outdir+"/prec_vol.dat");
+    if(this->rank==0)
+      f_prec.open(this->outdir+"/prec_vol.dat");
     prec_vol = 0.;
   }
 
@@ -202,7 +203,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
       F(this->ijk).reindex(this->zero) = 
-        -pow(setup::u_fric,2) *  // const, cache it
+        -pow(params.ForceParameters.u_fric,2) *  // const, cache it
         this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
         U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
         (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
@@ -254,6 +255,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet;
     setup::arr_1D_t *th_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
+    setup::ForceParameters_t ForceParameters;
   };
 
   // per-thread copy of params
@@ -274,7 +276,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     beta(args.mem->tmp[__FILE__][0][4]),
     F(args.mem->tmp[__FILE__][0][1])
   {
-    k_i.resize(this->shape(this->hrzntl_domain));
+    k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
   }
 
