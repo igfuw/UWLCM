@@ -125,8 +125,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
    
-    prtcls->diag_courant_divergence();
-    this->record_aux("cour_div", prtcls->outbuf());
+    prtcls->diag_vel_div();
+    this->record_aux("vel_div", prtcls->outbuf());
    
     // recording requested statistical moments
     {
@@ -305,6 +305,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
       rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+
       {
         // temporarily Cx & Cz are multiplied by this->rhod ...
         auto 
