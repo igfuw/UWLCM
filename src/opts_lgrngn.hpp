@@ -64,6 +64,7 @@ void setopts_micro(
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("eps", po::value<setup::real_t>()->default_value(0.01) , "turb dissip rate (for onishi kernel) [m^2/s^3]")
     ("ReL", po::value<setup::real_t>()->default_value(5000) , "taylor-microscale reynolds number (onishi kernel)")
+    ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
 
     // TODO: MAC, HAC, vent_coef
   ;
@@ -85,6 +86,12 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
+
+  std::string adve_scheme_str = vm["adve_scheme"].as<std::string>();
+  if (adve_scheme_str == "euler") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
+  else if (adve_scheme_str == "implicit") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
+  else if (adve_scheme_str == "pred_corr") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
+  else throw std::runtime_error("unrecognized adve_scheme optsion");
  
  // if(!unit_test)
   {
