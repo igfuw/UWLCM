@@ -1,9 +1,3 @@
-# search for libmpdata
-find_package(libmpdata++)
-if (NOT libmpdataxx_FOUND)
-  message(FATAL_ERROR "libmpdata++ not found")
-endif()
-
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   # make the Release flags the default
   set(CMAKE_CXX_FLAGS ${libmpdataxx_CXX_FLAGS_RELEASE})
