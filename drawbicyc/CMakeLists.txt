@@ -3,7 +3,6 @@ find_package(Boost COMPONENTS thread iostreams system timer program_options file
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-message("libmpdataxx libs: ${libmpdataxx_LIBRARIES}")
 foreach(exe drawbicyc plot_series_compare)
   add_executable(${exe} ${exe}.cpp)
   target_link_libraries(${exe} ${HDF5_LIBRARIES})
