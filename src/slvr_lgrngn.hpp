@@ -311,7 +311,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         auto 
           Cx = this->mem->GC[0](this->Cx_domain).reindex(this->zero).copy(),
           Cy = this->mem->GC[1](this->Cy_domain).reindex(this->zero).copy(),
-          Cz = this->mem->GC[this->vert_dim](this->Cz_domain).reindex(this->zero).copy();
+          Cz = this->mem->GC[ix::w](this->Cz_domain).reindex(this->zero).copy(); 
 
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {

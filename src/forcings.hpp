@@ -30,9 +30,12 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 // calc upward radiative flux through the bottom of the cells
 {
-  const auto &ijk = this->ijk;
-  int nz = this->mem->grid_size[this->vert_dim].length(); 
   namespace idxperm = libmpdataxx::idxperm;
+  using ix = typename ct_params_t::ix;
+  constexpr int perm_no=ix::w; // 1 for 2D, 2 for 3D
+
+  const auto &ijk = this->ijk;
+  int nz = this->mem->grid_size[perm_no].length(); 
 
   // index of first cell above inversion
   tmp1(ijk)  = rv(ijk) + r_l(ijk);
@@ -40,7 +43,6 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
   k_i(this->hrzntl_subdomain) = blitz::first( tmp1(ijk).reindex(this->zero) < params.ForceParameters.q_i, this->vert_idx); // vertical index of first cell above inversion (inversion is at the lower edge of this cell)
 
   // calc Eqs. 5 and 6 from Ackerman et al 2009
-  const int perm_no = this->vert_dim;
   // calc sum of r_l above certain level and store it in tmp1
   tmp1(ijk) = r_l(ijk);
 

@@ -42,7 +42,6 @@ class slvr_dim<
   idx_t<2> Cy_domain;
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
 
-  enum {vert_dim = 1};
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
   blitz::secondIndex vert_idx;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
@@ -113,7 +112,6 @@ class slvr_dim<
   idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1]^h, this->mem->grid_size[2]});
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
 
-  enum {vert_dim = 2};
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
   blitz::thirdIndex vert_idx;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
