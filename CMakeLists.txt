@@ -9,6 +9,13 @@ if (NOT libcloudph++_FOUND)
   message(FATAL_ERROR "libclouphxx++ not found")
 endif()
 
+# search for libmpdata
+find_package(libmpdata++)
+if (NOT libmpdataxx_FOUND)
+  message(FATAL_ERROR "libmpdata++ not found")
+endif()
+
+
 add_subdirectory(drawbicyc)
 add_subdirectory(src) 
 add_subdirectory(tests)
