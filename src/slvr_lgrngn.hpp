@@ -125,7 +125,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
    
-//    prtcls->diag_vel_div();
+    prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
    
     // recording requested statistical moments

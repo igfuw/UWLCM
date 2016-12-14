@@ -88,10 +88,10 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
 
   std::string adve_scheme_str = vm["adve_scheme"].as<std::string>();
-//  if (adve_scheme_str == "euler") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
-//  else if (adve_scheme_str == "implicit") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
-//  else if (adve_scheme_str == "pred_corr") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
-//  else throw std::runtime_error("unrecognized adve_scheme optsion");
+  if (adve_scheme_str == "euler") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
+  else if (adve_scheme_str == "implicit") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
+  else if (adve_scheme_str == "pred_corr") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
+  else throw std::runtime_error("unrecognized adve_scheme optsion");
  
  // if(!unit_test)
   {
