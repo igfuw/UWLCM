@@ -3,6 +3,8 @@ os:
     - linux
 compiler:
     - gcc
+notifications:
+  email: false
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe multiverse restricted"; fi
