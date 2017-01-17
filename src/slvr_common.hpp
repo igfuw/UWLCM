@@ -210,7 +210,8 @@ class slvr_common : public slvr_dim<ct_params_t>
 
       // du/dt = sum of kinematic momentum fluxes * dt
       this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
-      this->vip_rhs[it](this->ijk) *= -params.dt;
+      // multiplied by 2 here because it is later multiplied by 0.5 * dt
+      this->vip_rhs[it](this->ijk) *= -2;
     }
     this->mem->barrier();
     if(this->rank == 0)
