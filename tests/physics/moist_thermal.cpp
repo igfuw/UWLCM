@@ -42,7 +42,7 @@ int main(int ac, char** av)
   // relative precision at given timestep
   unordered_map<string, std::array<float, 11>> eps = { 
     {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 5e-2}} },  // why larger near the end?
-    {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 15e-2, 5e-1, 5e-1, 1}} }   // during evaporation we get large fluctuations
+    {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 5e-1, 5e-1, 1}} }   // during evaporation we get large fluctuations
   };
   // out dir
   unordered_map<string, string> tmp_out = { {"blk_1m", "tmp_out_blk_1m"}, {"lgrngn", "tmp_out_lgrngn"}};
