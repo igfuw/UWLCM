@@ -76,8 +76,16 @@ class Plotter_t<2> : public PlotterCommon
   {
     blitz::Array<float, 2> tmp(data);
   
+//    gp << "set size 1.6\n";
     gp << "set xrange [0:" << tmp.extent(0)-1 << "]\n";
     gp << "set yrange [0:" << tmp.extent(1)-1 << "]\n";
+    gp << "set xrange [" << (tmp.extent(0)-1) * 1./3. <<":" << (tmp.extent(0)-1) * 2. / 3. << "]\n";
+    gp << "set yrange [" << (tmp.extent(1)-1) * 1./5. <<":" << (tmp.extent(1)-1) * 3.5 / 5. << "]\n";
+
+  gp << "set xtics out scale .5 rotate by 60 ('1.2' 1200/dx, '1.5' 1500/dx, '1.8' 1800/dx, '2.1' 2100/dx, '2.4' 2400/dx)\n";//, '4.0' 4000/dx, '4.8' 4800/dx, '5.6' 5600/dx, '6.4' 6400/dx)\n"; 
+
+  gp << "set ytics out scale .5 rotate by 60 ('0.0' 0, '0.3' 300/dy, '0.6' 600/dy, '0.9' 900/dy, '1.2' 1200/dy, '1.5' 1500/dy)\n"; 
+
     gp << "splot '-' binary" << gp.binfmt(tmp.transpose(blitz::secondDim, blitz::firstDim)) << " scan=yx origin=(0,0,0) with image failsafe notitle\n";
     gp.sendBinary(tmp);
   }
