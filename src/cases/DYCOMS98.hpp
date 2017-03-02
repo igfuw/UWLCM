@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include "CasesCommon.hpp"
 
 namespace setup 
