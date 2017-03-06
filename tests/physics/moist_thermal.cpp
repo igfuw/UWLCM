@@ -42,7 +42,7 @@ int main(int ac, char** av)
   // relative precision at given timestep
   unordered_map<string, std::array<float, 11>> eps = { 
     {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 5e-2}} },  // why larger near the end?
-    {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 5e-1, 5e-1, 1}} }   // during evaporation we get large fluctuations
+    {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 5e-1, 5e-1, 1.5}} }   // during evaporation we get large fluctuations
   };
   // out dir
   unordered_map<string, string> tmp_out = { {"blk_1m", "tmp_out_blk_1m"}, {"lgrngn", "tmp_out_lgrngn"}};
@@ -103,8 +103,9 @@ int main(int ac, char** av)
     rel_err = where(expected_result > 0, abs(result_com - expected_result) / expected_result - epsilon, 0);
     if(any(rel_err > 0.))
     {
-      std::cerr << result_com;
-      std::cerr << rel_err;
+      std::cerr << "center of mass in time: " << result_com;
+      std::cerr << "expected result: " << expected_result;
+      std::cerr << "relative error minus precision: " << rel_err;
       error_macro("cloud droplets center of mass discrepancy");
     }
 
@@ -113,8 +114,9 @@ int main(int ac, char** av)
     rel_err = where(expected_result > 0, abs(result_avg - expected_result) / expected_result - epsilon, 0);
     if(any(rel_err > 0.))
     {
-      std::cerr << result_avg;
-      std::cerr << rel_err;
+      std::cerr << "average cloud water in time: " << result_avg;
+      std::cerr << "expected result: " << expected_result;
+      std::cerr << "relative error minus precision: " << rel_err;
       error_macro("average cloud water mixing ratio discrepancy");
     }
   }
