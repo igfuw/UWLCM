@@ -195,6 +195,20 @@ void plot_fields(Plotter_t plotter)
         }
         catch(...){}
       }   
+      else if (plt == "supersat")
+      {   
+        try{
+	std::string title = "supersaturation [%]"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+        typename Plotter_t::arr_t snap(tmp);
+        snap -= 1.;
+        snap *= 100;
+        gp << "set cbrange[0:3]\n";
+        plotter.plot(gp, snap);
+        }
+        catch(...){}
+      }   
       else if (plt == "sd_conc")
       {   
         try{

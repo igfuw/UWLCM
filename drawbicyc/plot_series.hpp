@@ -80,6 +80,19 @@ void plot_series(Plotter_t plotter)
         }
         catch(...){;}
       }
+      // max RH in the domain
+      else if (plt == "RH_max")
+      {
+        try
+        {
+          // read RH 
+          auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+
+          typename Plotter_t::arr_t snap(tmp);
+          res_prof(at) = blitz::max(snap);
+        }
+        catch(...) {;}
+      }
       // r_act averaged over cells with r_act > 1.e-5
       else if (plt == "ract_avg")
       {
@@ -531,6 +544,13 @@ void plot_series(Plotter_t plotter)
       gp << "set title 'accumulated surface precipitation [mm]'\n";
     else if (plt == "mass_dry")
       gp << "set title 'total dry mass [g]'\n";
+    else if (plt == "RH_max")
+    {
+      gp << "set title 'max RH in the domain'\n";
+      res_pos *= 60.;
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set ylabel 'RH'\n";
+    }
     else if (plt == "lwp")
     {
       gp << "set title 'liquid water path [g / m^2]'\n";
