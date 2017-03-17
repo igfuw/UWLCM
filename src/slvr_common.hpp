@@ -33,8 +33,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &beta;    // 'implicit' rhs part - coefficient of the value at n+1
 
   // surface precip stuff
-  real_t prec_vol;
-  std::ofstream f_prec; // output precipitation file
+  std::ofstream f_puddle; // output precipitation file
   
   // spinup stuff
   virtual bool get_rain() = 0;
@@ -51,8 +50,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     // open file for output of precitpitation volume
     if(this->rank==0)
-      f_prec.open(this->outdir+"/prec_vol.dat");
-    prec_vol = 0.;
+      f_puddle.open(this->outdir+"/prec_vol.dat");
   }
 
   void hook_ante_step()
@@ -228,8 +226,6 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     if (this->rank == 0) 
     {
-      f_prec << this->timestep << " "  << prec_vol << "\n";
-      prec_vol = 0.;
       // there's no hook_post_loop, so we imitate it here to write out computation times
       if(this->timestep == params.nt-1)
       {
