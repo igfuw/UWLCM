@@ -125,8 +125,17 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
    
+    // recording divergence of the velocity field
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
+
+    // recording puddle
+    auto puddle = prtcls->diag_puddle();
+    for(auto elem : puddle)
+    {   
+       this->f_puddle << elem.first << " " << elem.second << "\n";
+    }   
+    this->f_puddle << "\n";
    
     // recording requested statistical moments
     {
@@ -274,7 +283,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   }
 
 #if defined(STD_FUTURE_WORKS)
-  std::future<real_t> ftr;
+  std::future<void> ftr;
 #endif
 
   void hook_ante_step()
@@ -293,7 +302,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       ) {
         assert(ftr.valid());
         parent_t::tbeg = parent_t::clock::now();
-        this->prec_vol += ftr.get();
+        ftr.get();
         parent_t::tend = parent_t::clock::now();
         parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       } else assert(!ftr.valid()); 
@@ -369,7 +378,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           assert(ftr.valid());
         } else 
 #endif
-          this->prec_vol += prtcls->step_async(params.cloudph_opts);
+          prtcls->step_async(params.cloudph_opts);
         parent_t::tend = parent_t::clock::now();
         parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       }
@@ -390,7 +399,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         if (params.async)
         {
           assert(ftr.valid());
-          this->prec_vol += ftr.get();
+          ftr.get();
         }
 #endif
         diag();
