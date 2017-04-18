@@ -6,7 +6,7 @@
 const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
 
 template<class Plotter_t>
-void plot_series(Plotter_t plotter)
+void plot_series(Plotter_t plotter, Plots plots)
 {
 
   auto& n = plotter.map;
@@ -51,7 +51,7 @@ void plot_series(Plotter_t plotter)
   Array<int, 1> com_z_idx(last_timestep - first_timestep + 1), 
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
-  for (auto &plt : series)
+  for (auto &plt : plots.series)
   {
     res_prof = 0;
     res_pos = 0;

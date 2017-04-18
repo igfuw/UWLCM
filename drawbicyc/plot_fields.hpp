@@ -7,7 +7,7 @@
 #include "plots.hpp"
 
 template<class Plotter_t>
-void plot_fields(Plotter_t plotter)
+void plot_fields(Plotter_t plotter, Plots plots)
 {
   auto& n = plotter.map;
 
@@ -17,7 +17,7 @@ void plot_fields(Plotter_t plotter)
 
   for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
   {
-    for (auto &plt : fields)
+    for (auto &plt : plots.fields)
     {
       std::cout << at * n["outfreq"] << " : " << plt << std::endl;
       Gnuplot gp;
