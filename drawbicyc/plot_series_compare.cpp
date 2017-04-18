@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
   blitz::Array<float, 1> res_pos;
 
   int prof_ctr = 0;
-  for (auto &plt : series) 
+  for (auto &plt : series_dycoms) 
   {
     Gnuplot gp;
     std::string file = argv[1] +  std::string("series_compare_") + plt + std::string(".svg");
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
       res_pos.resize(snap.shape());
       res = snap;
 
-      for(int k=prof_ctr+1; k<profs.size(); ++k)
+      for(int k=prof_ctr+1; k<profs_dycoms.size(); ++k)
         iprof_file >> snap;
 
       auto n = PlotterCommon(argv[i+2]).map;

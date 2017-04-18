@@ -63,4 +63,4 @@ class Plots
     profs(type == "dycoms" ? profs_dycoms : profs_moist_thermal),
     fields(type == "dycoms" ? fields_dycoms : fields_moist_thermal)
   {}
-}
+};
