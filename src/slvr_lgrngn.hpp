@@ -313,6 +313,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       prtcls->diag_wet_mom(3);
       auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
       rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+      nancheck(rl, "rl after copying from diag_wet_mom(3)");
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
 
       {

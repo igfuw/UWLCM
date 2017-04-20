@@ -1,11 +1,7 @@
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # make the Release flags the default
-  set(CMAKE_CXX_FLAGS ${libmpdataxx_CXX_FLAGS_RELEASE})
-  # ignore CMake defaults
-  set(CMAKE_CXX_FLAGS_RELEASE "")
-else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} -O1")
-endif()
+# Select flags.
+SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libmpdataxx_CXX_FLAGS_DEBUG} -O2 -g0") #-g0 negates -g
+SET(CMAKE_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE}")
+SET(CMAKE_CXX_FLAGS_DEBUG  "${libmpdataxx_CXX_FLAGS_DEBUG}")
 
 # std::future
 include(CheckCXXSourceCompiles)

@@ -1,6 +1,7 @@
 #pragma once
 #include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
 #include <libmpdata++/output/hdf5_xdmf.hpp>
+#include "detail/checknan.cpp"
 
 template <class ct_params_t, class enableif = void>
 class slvr_piggy

@@ -1,8 +1,6 @@
 find_package(HDF5 COMPONENTS CXX HL REQUIRED)
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
 foreach(exe drawbicyc plot_series_compare)
   add_executable(${exe} ${exe}.cpp)
   target_link_libraries(${exe} ${HDF5_LIBRARIES})
