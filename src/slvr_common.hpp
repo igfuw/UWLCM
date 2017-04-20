@@ -92,6 +92,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     using ix = typename ct_params_t::ix;
 
     const auto &ijk = this->ijk;
+    auto ix_w = this->vip_ixs[ct_params_t::n_dims - 1]; // index of the vertical dimension
 
     // forcing
     switch (at)
@@ -111,7 +112,6 @@ class slvr_common : public slvr_dim<ct_params_t>
         if(params.w_src)
         {
           w_src(this->state(ix::th), this->state(ix::rv));
-          auto ix_w = this->vip_ixs[ct_params_t::n_dims - 1];
           rhs.at(ix_w)(ijk) += alpha(ijk);
         }
 
@@ -125,6 +125,7 @@ class slvr_common : public slvr_dim<ct_params_t>
             rhs.at(type)(ijk) += F(ijk);
           }
         }
+        
         break;
       }
       case (1):
@@ -178,6 +179,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->mem->barrier();
     if(this->rank == 0)
     {
+      nancheck(rhs.at(ix::th), "RHS of th after rhs_update");
+      nancheck(rhs.at(ix::rv), "RHS of rv after rhs_update");
+      nancheck(rhs.at(ix_w), "RHS of w after rhs_update");
+      for(auto type : this->hori_vel)
+        {nancheck(rhs.at(type), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
       tend = clock::now();
       tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
@@ -214,6 +220,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->mem->barrier();
     if(this->rank == 0)
     {
+      for(int it = 0; it < parent_t::n_dims-1; ++it)
+        {nancheck(this->vip_rhs[it], (std::string("vip_rhs after vip_rhs_expl_calc type: ") + std::to_string(it)).c_str());} 
       tend = clock::now();
       tvip_rhs += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
@@ -226,7 +234,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     if (this->rank == 0) 
     {
-      // there's no hook_post_loop, so we imitate it here to write out computation times
+      // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
       if(this->timestep == params.nt-1)
       {
         tend = clock::now();

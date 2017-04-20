@@ -6,5 +6,5 @@
 #define nancheck(arr, name) {if(!std::isfinite(sum(arr))) {\
                                std::cout << "A not-finite number detected in: " << name << std::endl;\
                                std::cout << arr;\
-                               abort();}}
+                               assert(0);}}
 #endif
