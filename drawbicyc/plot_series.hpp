@@ -58,14 +58,20 @@ void plot_series(Plotter_t plotter, Plots plots)
 
     std::ifstream f_precip(plotter.file + "/prec_vol.dat");
     std::string row;
-    double prec_vol;
+    double prec_vol = 0.;
+    double prec_vol_prev;
 
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
       res_pos(at) = at * n["outfreq"] * n["dt"] / 3600.;
-      // read in precipitation volume
-      std::getline(f_precip, row);
+      // store accumulated precip volume
+      prec_vol_prev = prec_vol;
+      // read in accumulated precipitation volume
+      // wet precip vol is the 10th value, followed by an empty line
+      for(int i=0; i<10; ++i)
+        std::getline(f_precip, row);
       sscanf(row.c_str(), "%*d %lf", &prec_vol);
+      std::getline(f_precip, row);
       if (plt == "clfrac")
       {
         try
@@ -384,7 +390,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // surface precipitation [mm/day]
         try
         {
-          res_prof(at) = prec_vol / (double(n["dx"]) * rhod.extent(0)) / (double(n["outfreq"]) * n["dt"] / 3600. / 24.) * 1e3;
+          res_prof(at) = (prec_vol - prec_vol_prev) / (double(n["dx"]) * rhod.extent(0)) / (double(n["outfreq"]) * n["dt"] / 3600. / 24.) * 1e3;
         }
         catch(...) {;}
       }
@@ -393,10 +399,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // accumulated surface precipitation [mm]
         try
         {
-          if(at==0)
             res_prof(at) = prec_vol / plotter.DomainSurf * 1e3; 
-          else
-            res_prof(at) = res_prof(at-1) + prec_vol / plotter.DomainSurf * 1e3; 
         }
         catch(...) {;}
       }
