@@ -107,12 +107,6 @@ class slvr_common : public slvr_dim<ct_params_t>
         // ---- potential temp sources ----
         th_src(this->state(ix::rv));
         rhs.at(ix::th)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk);
-this->mem->barrier();
-if(this->rank==0)
-{
-  std::cout << "alpha:" << alpha;
-  std::cout << "beta:" << beta;
-}
 
         // vertical velocity sources
         if(params.w_src)
@@ -149,12 +143,6 @@ if(this->rank==0)
         // todo: once rv_src beta!=0 (e.g. nudging), rv^n+1 estimate should be implicit here
         th_src(tmp2);
         rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk));
-this->mem->barrier();
-if(this->rank==0)
-{
-  std::cout << "alpha:" << alpha;
-  std::cout << "beta:" << beta;
-}
         // TODO: alpha should also take (possibly impolicit) estimate of th^n+1 too
         //       becomes important when nudging is introduced?
 

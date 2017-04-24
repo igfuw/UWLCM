@@ -51,60 +51,30 @@ void slvr_common<ct_params_t>::rv_src()
 template <class ct_params_t>
 void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 {
-if(this->rank==0)
-{
-  std::cout << "th_src input rv:" << rv;
-}
   const auto &ijk = this->ijk;
   if(params.th_src)
   {
     // -- heating --
     // surface flux
     surf_sens();
-this->mem->barrier();
-if(this->rank==0)
-{
-  std::cout << "th_src, F post surf:" << F;
-}
     // beta as tmp storage
     beta(ijk) = F(ijk);
     // radiation
     radiation(rv);
-this->mem->barrier();
-if(this->rank==0)
-{
-  std::cout << "th_src, F post radiation:" << F;
-}
     // add fluxes from radiation and surface
     F(ijk) += beta(ijk);
     // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
     this->vert_grad_fwd(F, alpha, params.dz);
-this->mem->barrier();
-if(this->rank==0)
-{
-  std::cout << "th_src, alpha after grad:" << alpha;
-}
   
     // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
     alpha(ijk).reindex(this->zero) *= - this->state(ix::th)(ijk).reindex(this->zero) / 
       calc_c_p()(rv(ijk).reindex(this->zero)) / 
       calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
       (*params.rhod)(this->vert_idx);
-
-this->mem->barrier();
-if(this->rank==0)
-{
-  std::cout << "th_src, alpha after multi:" << alpha;
-}
   
     // large-scale vertical wind
     subsidence(ix::th); // TODO: in case 1 th here should be in step n+1, calc it explicitly as th + 0.5 * dt * rhs(th);
                         //       could also be calculated implicitly, but we would need implicit th^n+1 in other cells
-this->mem->barrier();
-if(this->rank==0)
-{
-  std::cout << "th_src, F after subsidence:" << F;
-}
 
     alpha(ijk) += F(ijk);
   }
