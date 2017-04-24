@@ -93,7 +93,17 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_sens()
 {
   const auto &ijk = this->ijk;
+this->mem->barrier();
+if(this->rank==0)
+{
+  std::cout << "surf sens hgt fctr sclr:" << (*params.hgt_fctr_sclr);
+}
   F(ijk).reindex(this->zero) = params.ForceParameters.F_sens * (*params.hgt_fctr_sclr)(this->vert_idx);
+this->mem->barrier();
+if(this->rank==0)
+{
+  std::cout << "surf sens F after :" << F;
+}
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   //this->smooth(tmp1, F);
