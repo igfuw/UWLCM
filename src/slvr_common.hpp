@@ -179,11 +179,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->mem->barrier();
     if(this->rank == 0)
     {
-      nancheck(rhs.at(ix::th), "RHS of th after rhs_update");
-      nancheck(rhs.at(ix::rv), "RHS of rv after rhs_update");
-      nancheck(rhs.at(ix_w), "RHS of w after rhs_update");
+      nancheck(rhs.at(ix::th)(this->domain), "RHS of th after rhs_update");
+      nancheck(rhs.at(ix::rv)(this->domain), "RHS of rv after rhs_update");
+      nancheck(rhs.at(ix_w)(this->domain), "RHS of w after rhs_update");
       for(auto type : this->hori_vel)
-        {nancheck(rhs.at(type), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
+        {nancheck(rhs.at(type)(this->domain), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
       tend = clock::now();
       tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
@@ -221,7 +221,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(this->rank == 0)
     {
       for(int it = 0; it < parent_t::n_dims-1; ++it)
-        {nancheck(this->vip_rhs[it], (std::string("vip_rhs after vip_rhs_expl_calc type: ") + std::to_string(it)).c_str());} 
+        {nancheck(this->vip_rhs[it](this->domain), (std::string("vip_rhs after vip_rhs_expl_calc type: ") + std::to_string(it)).c_str());} 
       tend = clock::now();
       tvip_rhs += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
