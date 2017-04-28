@@ -8,7 +8,7 @@
 #include <string>
 #include <sstream> // std::ostringstream
 
-#include "../common.hpp"
+//#include "../common.hpp"
 #include "../../drawbicyc/PlotterMicro.hpp"
 #include "../../drawbicyc/common_filters.hpp"
 
