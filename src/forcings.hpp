@@ -2,7 +2,7 @@
 
 //TODO: make these functions return arrays
 
-// Grabowski & Smolarkiewicz 1996 eq. (2)
+// Grabowski & Smolarkiewicz 1995 "two-time semi-lagrangian modeling of precipitating clouds" eq. (2)
 template <class ct_params_t>
 void slvr_common<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
 {
