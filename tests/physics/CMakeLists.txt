@@ -1,4 +1,4 @@
-find_package(Boost COMPONENTS program_options filesystem REQUIRED)
+find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
 
 add_executable(moist_thermal moist_thermal.cpp)
 target_link_libraries(moist_thermal ${HDF5_LIBRARIES})
