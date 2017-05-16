@@ -66,7 +66,7 @@ script:
   - mkdir build
   - cd build
   - cmake .. -DCMAKE_BUILD_TYPE=Release
-  - make
+  - VERBOSE=1 make
   - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
   

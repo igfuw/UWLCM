@@ -1,11 +1,9 @@
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # make the Release flags the default
-  set(CMAKE_CXX_FLAGS ${libmpdataxx_CXX_FLAGS_RELEASE})
-  # ignore CMake defaults
-  set(CMAKE_CXX_FLAGS_RELEASE "")
-else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} -O1")
-endif()
+# Select flags.
+#-g0 negates -g; -UBZ_DEBUG negates blitz debug; NOTE: don't use -Ofast as it makes std::isfinite(sum(x)) return true even if some elements of x are nan/inf
+SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libmpdataxx_CXX_FLAGS_DEBUG} -O3 -g0 -UBZ_DEBUG -march=native") 
+
+SET(CMAKE_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE}")
+SET(CMAKE_CXX_FLAGS_DEBUG  "${libmpdataxx_CXX_FLAGS_DEBUG}")
 
 # std::future
 include(CheckCXXSourceCompiles)

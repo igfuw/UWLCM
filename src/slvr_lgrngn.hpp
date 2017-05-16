@@ -313,6 +313,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       prtcls->diag_wet_mom(3);
       auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
       rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+      nancheck(rl, "rl after copying from diag_wet_mom(3)");
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
 
       {
@@ -321,6 +322,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           Cx = this->mem->GC[0](this->Cx_domain).reindex(this->zero).copy(),
           Cy = this->mem->GC[1](this->Cy_domain).reindex(this->zero).copy(),
           Cz = this->mem->GC[ix::w](this->Cz_domain).reindex(this->zero).copy(); 
+        nancheck(Cx, "Cx after copying from mpdata");
+        nancheck(Cy, "Cy after copying from mpdata");
+        nancheck(Cz, "Cz after copying from mpdata");
 
         // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
         {
@@ -335,6 +339,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
         // running synchronous stuff
         parent_t::tbeg = parent_t::clock::now();
+        nancheck(this->mem->advectee(ix::th), "th before step sync");
+        nancheck(this->mem->advectee(ix::rv), "rv before step sync");
         prtcls->step_sync(
           params.cloudph_opts,
           make_arrinfo(this->mem->advectee(ix::th)),
@@ -344,6 +350,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           Cy_arrinfo,
           make_arrinfo(Cz)
         );
+        nancheck(this->mem->advectee(ix::th), "th after step sync");
+        nancheck(this->mem->advectee(ix::rv), "rv after step sync");
 //if(!std::isfinite(sum(this->mem->advectee(ix::th))))
   //std::cout << "nan in th: " << this->mem->advectee(ix::th);
 //if(!std::isfinite(sum(this->mem->advectee(ix::rv))))

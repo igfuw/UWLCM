@@ -1,4 +1,5 @@
 #pragma once
+#include "common.hpp"
 #include "PlotterCommon.hpp"
 
 template<int NDims>

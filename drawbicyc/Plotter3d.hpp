@@ -1,5 +1,6 @@
 #pragma once
 #include "Plotter2d.hpp"
+#include "common.hpp"
 
 // 3d version
 template<>
@@ -15,6 +16,7 @@ class Plotter_t<3> : public PlotterCommon
   hsize_t n[3];
   enum {x, y, z};
   arr_t tmp;
+  blitz::Range yrange;
 
   public:
 
@@ -81,7 +83,9 @@ class Plotter_t<3> : public PlotterCommon
   //  throw std::runtime_error("3d fields plotting doesn't work yet");
     blitz::Array<float, 3> tmp3d(data);
     using namespace blitz::tensor;
-    auto tmp2d = blitz::mean(tmp3d(i,k,j), k); // mean over second dimension
+    // select a slize in second dimension to average over
+    auto tmp3dslice = tmp3d(blitz::Range::all(), yrange, blitz::Range::all());
+    auto tmp2d = blitz::mean(tmp3dslice(i,k,j), k); // mean over second dimension
     blitz::Array<float, 2> tmp(tmp2d);
 
     gp << "set xrange [0:" << tmp.extent(0)-1 << "]\n";
@@ -94,6 +98,21 @@ class Plotter_t<3> : public PlotterCommon
   Plotter_t(const string &file):
     parent_t(file)
   {
+
+    po::options_description opts3d("profile plotting options");
+    opts3d.add_options()
+      ("y0", po::value<int>()->default_value(0) , "index of first cell in y dimension to vaerage over")
+      ("y1", po::value<int>()->default_value(0) , "index of last cell in y dimension to vaerage over")
+    ;
+    po::variables_map vm; 
+    handle_opts(opts3d, vm);
+    int y0 = vm["y0"].as<int>();
+    int y1 = vm["y1"].as<int>();
+    if(y1!=0 && y0!=0)
+      yrange = blitz::Range(y0, y1);
+    else
+      yrange = blitz::Range::all();
+
     // read number of timesteps
     this->h5f.openDataSet("T").getSpace().getSimpleExtentDims(n, NULL);
     this->map["t"] = n[0];
