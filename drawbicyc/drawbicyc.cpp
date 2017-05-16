@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     ("fields", po::value<bool>()->default_value(false) , "plot fields?")
     ("dir", po::value<std::string>()->required() , "directory containing out_lgrngn")
     ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
+    ("type", po::value<std::string>()->required(), "one of: dycoms, moist_thermal")
   ;
 
   po::variables_map vm;
@@ -25,6 +26,9 @@ int main(int argc, char** argv)
 
   // handling the "micro" option
   std::string micro = vm["micro"].as<std::string>();
+
+  // handling the "type" option
+  std::string type = vm["type"].as<std::string>();
 
   // parse dir name
   std::string
@@ -44,15 +48,15 @@ int main(int argc, char** argv)
 
   if(NDims == 2)
   {
-    if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro));
-    if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro));
-    if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro));
+    if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro), Plots(type));
+    if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), Plots(type));
+    if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro), Plots(type));
   }
   else if(NDims == 3)
   {
-    if(flag_series)   plot_series(PlotterMicro_t<3>(h5, micro));
-    if(flag_profiles) plot_profiles(PlotterMicro_t<3>(h5, micro));
-    if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro));
+    if(flag_series)   plot_series(PlotterMicro_t<3>(h5, micro), Plots(type));
+    if(flag_profiles) plot_profiles(PlotterMicro_t<3>(h5, micro), Plots(type));
+    if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro), Plots(type));
   }
   else
     assert(false && "need 2d or 3d input data");

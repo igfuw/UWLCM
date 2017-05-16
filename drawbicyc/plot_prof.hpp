@@ -5,7 +5,7 @@
 #include "plots.hpp"
 
 template<class Plotter_t>
-void plot_profiles(Plotter_t plotter)
+void plot_profiles(Plotter_t plotter, Plots plots)
 {
 
   // read opts
@@ -50,7 +50,7 @@ void plot_profiles(Plotter_t plotter)
 
   double z_i;
 
-  for (auto &plt : profs)
+  for (auto &plt : plots.profs)
   {
     blitz::firstIndex i;
     blitz::secondIndex j;
@@ -72,12 +72,12 @@ void plot_profiles(Plotter_t plotter)
       {
 	// liquid water content (cloud + rain, missing droplets with r<0.5um!)
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res += snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res += snap; 
         }
@@ -381,12 +381,12 @@ void plot_profiles(Plotter_t plotter)
       {
 	// total water content (vapor + cloud + rain, missing droplets with r<0.5um!)
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp += snap; 
         }
@@ -405,7 +405,7 @@ void plot_profiles(Plotter_t plotter)
       {
 	// cloud drops concentration [1/cm^3]
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -418,12 +418,12 @@ void plot_profiles(Plotter_t plotter)
 	// liquid potential temp [K]
         {
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
+            auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
             res_tmp2 = snap; 
           }
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
+            auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
             res_tmp2 += snap; 
           }
@@ -441,7 +441,7 @@ void plot_profiles(Plotter_t plotter)
       {
 	// cloud fraction (cloudy if N_c > 20/cm^3)
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -464,7 +464,7 @@ void plot_profiles(Plotter_t plotter)
 	// add vertical velocity to precipitation flux (3rd mom of cloud drops * w)
 /*
         { 
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom3", at * n["outfreq"]); // this time its a specific moment
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]); // this time its a specific moment
           typename Plotter_t::arr_t snap(tmp);
 	  auto tmp2 = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap2(tmp2);
@@ -475,7 +475,7 @@ void plot_profiles(Plotter_t plotter)
         }
 	// add vertical velocity to precipitation flux (3rd mom of rain drops * w)
         { 
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng001_mom3", at * n["outfreq"]); // this time its a specific moment
+          auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]); // this time its a specific moment
           typename Plotter_t::arr_t snap(tmp);
 	  auto tmp2 = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap2(tmp2);

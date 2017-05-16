@@ -6,7 +6,7 @@
 const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
 
 template<class Plotter_t>
-void plot_series(Plotter_t plotter)
+void plot_series(Plotter_t plotter, Plots plots)
 {
 
   auto& n = plotter.map;
@@ -16,8 +16,8 @@ void plot_series(Plotter_t plotter)
   }
   Gnuplot gp;
   string file = plotter.file + "_series.svg";
-  int hor = min<int>(series.size(), 4);
-  int ver = double(series.size()) / 4. + 0.99999;
+  int hor = min<int>(plots.series.size(), 4);
+  int ver = double(plots.series.size()) / 4. + 0.99999;
   init_prof(gp, file, ver, hor); 
 
   string prof_file = plotter.file + "_series.dat";
@@ -51,27 +51,33 @@ void plot_series(Plotter_t plotter)
   Array<int, 1> com_z_idx(last_timestep - first_timestep + 1), 
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
-  for (auto &plt : series)
+  for (auto &plt : plots.series)
   {
     res_prof = 0;
     res_pos = 0;
 
     std::ifstream f_precip(plotter.file + "/prec_vol.dat");
     std::string row;
-    double prec_vol;
+    double prec_vol = 0.;
+    double prec_vol_prev;
 
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
       res_pos(at) = at * n["outfreq"] * n["dt"] / 3600.;
-      // read in precipitation volume
-      std::getline(f_precip, row);
+      // store accumulated precip volume
+      prec_vol_prev = prec_vol;
+      // read in accumulated precipitation volume
+      // wet precip vol is the 10th value, followed by an empty line
+      for(int i=0; i<10; ++i)
+        std::getline(f_precip, row);
       sscanf(row.c_str(), "%*d %lf", &prec_vol);
+      std::getline(f_precip, row);
       if (plt == "clfrac")
       {
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -336,7 +342,7 @@ void plot_series(Plotter_t plotter)
 	// cloud droplet (0.5um < r < 25 um) concentration
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap /= 1e6; // per cm^3
           snap *= rhod; // b4 it was per milligram
@@ -350,7 +356,7 @@ void plot_series(Plotter_t plotter)
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep(plotter.file, "rw_rng000_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -384,7 +390,7 @@ void plot_series(Plotter_t plotter)
         // surface precipitation [mm/day]
         try
         {
-          res_prof(at) = prec_vol / (double(n["dx"]) * rhod.extent(0)) / (double(n["outfreq"]) * n["dt"] / 3600. / 24.) * 1e3;
+          res_prof(at) = (prec_vol - prec_vol_prev) / (double(n["dx"]) * rhod.extent(0)) / (double(n["outfreq"]) * n["dt"] / 3600. / 24.) * 1e3;
         }
         catch(...) {;}
       }
@@ -393,10 +399,7 @@ void plot_series(Plotter_t plotter)
         // accumulated surface precipitation [mm]
         try
         {
-          if(at==0)
             res_prof(at) = prec_vol / plotter.DomainSurf * 1e3; 
-          else
-            res_prof(at) = res_prof(at-1) + prec_vol / plotter.DomainSurf * 1e3; 
         }
         catch(...) {;}
       }
