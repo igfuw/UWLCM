@@ -29,6 +29,8 @@ int main(int argc, char** argv)
 
   // handling the "type" option
   std::string type = vm["type"].as<std::string>();
+  if(type != "dycoms" && type != "moist_thermal")
+    throw std::runtime_error("Unrecognized 'type' option, only dycoms and moist_thermal available now");
 
   // parse dir name
   std::string
