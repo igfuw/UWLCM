@@ -36,7 +36,7 @@ class PlotterCommon
   {
     // init dt and outfreq
     {
-      h5load(file + "/const.h5", "T");
+      h5load(file + "/const.h5", "advection");
 
       float dt;
       {
@@ -44,6 +44,8 @@ class PlotterCommon
         attr.read(attr.getDataType(), &dt);
       }
       map["dt"] = dt;
+
+      h5load(file + "/const.h5", "T");
 
       const hsize_t two = 2, zero = 0;
       float tmp[2];

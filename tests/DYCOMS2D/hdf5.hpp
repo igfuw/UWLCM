@@ -16,7 +16,7 @@ std::map<std::string, double> h5n(
   map["t"] = n[0];
 
   {
-    auto h5d = h5f.openDataSet("T");
+    auto h5d = h5f.openDataSet("advection");
 
     float dt;
     {
@@ -24,6 +24,8 @@ std::map<std::string, double> h5n(
       attr.read(attr.getDataType(), &dt);
     }
     map["dt"] = dt;
+
+    auto h5d = h5f.openDataSet("T");
 
     auto h5s = h5d.getSpace();
     const hsize_t two = 2, zero = 0;
