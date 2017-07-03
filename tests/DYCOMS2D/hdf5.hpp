@@ -16,7 +16,7 @@ std::map<std::string, double> h5n(
   map["t"] = n[0];
 
   {
-    auto h5d = h5f.openDataSet("advection");
+    auto h5d = h5f.openGroup("advection");
 
     float dt;
     {

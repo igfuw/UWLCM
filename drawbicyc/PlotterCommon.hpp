@@ -14,6 +14,7 @@ class PlotterCommon
   protected:
   H5::H5File h5f;
   H5::DataSet h5d;
+  H5::Group h5g;
   H5::DataSpace h5s;
 
   void h5load(
@@ -36,11 +37,15 @@ class PlotterCommon
   {
     // init dt and outfreq
     {
-      h5load(file + "/const.h5", "advection");
+      notice_macro("about to open file: " << file << "/const.h5")
+      h5f.openFile(file + "/const.h5", H5F_ACC_RDONLY);
+
+      notice_macro("about to read group: advection")
+      h5g = h5f.openGroup("advection");
 
       float dt;
       {
-        auto attr = h5d.openAttribute("dt");
+        auto attr = h5g.openAttribute("dt");
         attr.read(attr.getDataType(), &dt);
       }
       map["dt"] = dt;
