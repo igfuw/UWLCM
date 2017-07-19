@@ -103,12 +103,12 @@ namespace setup
       quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
       {
         real_t r = sqrt( pow( x - (X / si::metres / 2.), 2) + pow( z - (z_prtrb / si::metres), 2));
-        if(r <= 200.)
+        if(r <= 250.)
           return prtrb_RH;
-        else if(r >= 300.)
+        else if(r >= 350.)
           return env_RH;
         else // transition layer
-          return env_RH + (prtrb_RH - env_RH) * pow( cos(boost::math::constants::pi<real_t>() / 2. * (r - 200) / 100.), 2);
+          return env_RH + (prtrb_RH - env_RH) * pow( cos(boost::math::constants::pi<real_t>() / 2. * (r - 250) / 100.), 2);
       }
     BZ_DECLARE_FUNCTOR2(RH);
     };
