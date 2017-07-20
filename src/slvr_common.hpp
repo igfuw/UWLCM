@@ -45,6 +45,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     {
       set_rain(false);
     }
+    else
+      set_rain(true);
 
     parent_t::hook_ante_loop(nt); 
 

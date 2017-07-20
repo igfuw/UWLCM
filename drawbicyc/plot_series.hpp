@@ -76,13 +76,12 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          // cloud fraction (cloudy if q_c > 0.1 g/kg)
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap);
-          res_prof(at) = blitz::mean(snap); 
+          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
+          res_prof(at) = blitz::mean(res_tmp); 
         }
         catch(...){;}
       }
@@ -99,7 +98,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
-      // r_act averaged over cells with r_act > 1.e-5
+      // r_act averaged over cloudy cells
       else if (plt == "ract_avg")
       {
         try
@@ -119,7 +118,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
-      // averagew sd_conc in cell with r_act > 1e-5
+      // averagew sd_conc in clloudy cells
       else if (plt == "sd_conc_avg")
       {
         try
@@ -131,7 +130,7 @@ void plot_series(Plotter_t plotter, Plots plots)
           typename Plotter_t::arr_t snap(tmp);
           typename Plotter_t::arr_t snap_sd(tmp_sd);
           
-          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
+          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-4
           snap_sd *= res_tmp; // apply filter
  
           double avg_sd_conc;
@@ -145,7 +144,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
-      // std dev of sd_conc in cell with r_act > 1e-5
+      // relative std dev of sd_conc in cell with r_act > 1e-5
       else if (plt == "sd_conc_std_dev")
       {
         try
@@ -176,7 +175,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
-      // std dev of r_act for over cells with r_act > 1.e-5
+      // relative std dev of r_act for over cells with r_act > 1.e-5
       else if (plt == "ract_std_dev")
       {
         try
@@ -199,9 +198,9 @@ void plot_series(Plotter_t plotter, Plots plots)
           snap = pow(snap - avg_ract, 2);
           snap *= res_tmp; // apply filter
           if(avg_ract>0)
-            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
+            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)) / avg_ract; 
           else
-            avg_ract = 0.;
+            res_prof(at) = 0.;
         }
         catch(...) {;}
       }
@@ -372,6 +371,61 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...){;}
       }
+      // average concentration of activated droplets in cloudy cells
+      else if (plt == "cloud_avg_act_conc")
+      {
+        try
+        {
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          typename Plotter_t::arr_t snap_ract(tmp_ract);
+          res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
+
+          // cloud fraction (cloudy if rc>0.1g/kg)
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap *= res_tmp; //apply the cloudiness mask
+          if(blitz::sum(res_tmp) > 0)
+            res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      // relative std_dev of concentration of activated droplets in cloudy cells
+      else if (plt == "cloud_std_dev_act_conc")
+      {
+        try
+        {
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          typename Plotter_t::arr_t snap_ract(tmp_ract);
+          res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
+
+          // cloud fraction (cloudy if rc>0.1g/kg)
+          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap *= res_tmp; //apply the cloudiness mask
+
+          double avg;
+          if(blitz::sum(res_tmp) > 0)
+            avg = blitz::sum(snap) / blitz::sum(res_tmp); 
+          else
+            avg = 0;
+
+          snap = pow(snap - avg, 2);
+          snap *= res_tmp; // apply filter
+          if(avg>0)
+            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)) / avg; 
+          else
+            res_prof(at) = 0.;
+        }
+        catch(...){;}
+      }
       else if (plt == "mass_dry")
       {
 	// total dry mass
@@ -462,14 +516,18 @@ void plot_series(Plotter_t plotter, Plots plots)
     gp << "set xrange[*:*]\n";
 
     if (plt == "clfrac")
+    {
+      res_pos *= 60.;
+      gp << "set xlabel 'time [min]'\n";
       gp << "set title 'average cloud fraction'\n";
+    }
     else if (plt == "ract_com")
     {
       res_prof /= 1000.;
       res_pos *= 60.;
-      gp << "set ylabel 'r_c center of mass [km]'\n";
+      gp << "set ylabel 'q_c center of mass [km]'\n";
       gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'center of mass'\n";
+      gp << "set title 'center of mass of cloud water'\n";
     }
     else if (plt == "th_com")
     {
@@ -483,31 +541,44 @@ void plot_series(Plotter_t plotter, Plots plots)
     {
       res_prof *= 1000.;
       res_pos *= 60.;
-      gp << "set ylabel 'average r_c  [g/kg]'\n";
+      gp << "set ylabel '<q_c>  [g/kg]'\n";
       gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'average rc'\n";
+      gp << "set title 'avg cloud water mixing ratio'\n";
     }
     else if (plt == "ract_std_dev")
     {
-      res_prof *= 1000.;
       res_pos *= 60.;
-      gp << "set ylabel 'standard deviation  [g/kg]'\n";
+      gp << "set ylabel 'sigma(q_c) / <q_c>'\n";
       gp << "set xlabel 'time [min]'\n";
-      gp << "set title  'rc std dev'\n";
+      gp << "set title 'relative std dev of q_c'\n";
+    }
+    else if (plt == "cloud_avg_act_conc")
+    {
+      res_pos *= 60.;
+      gp << "set ylabel '<N_c>  [1/cm^3]'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'avg concentration of activated droplets'\n";
+    }
+    else if (plt == "cloud_std_dev_act_conc")
+    {
+      res_pos *= 60.;
+      gp << "set ylabel 'sigma(N_c) / <N_c>'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'relative std dev N_c'\n";
     }
     else if (plt == "sd_conc_avg")
     {
       res_pos *= 60.;
-      gp << "set ylabel 'average SD number'\n";
+      gp << "set ylabel '<N_{SD}>'\n";
       gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'average SD number in cloudy cells'\n";
+      gp << "set title 'average SD number'\n";
     }
     else if (plt == "sd_conc_std_dev")
     {
       res_pos *= 60.;
-      gp << "set ylabel 'std dev(SD number) / mean (SD number)'\n";
+      gp << "set ylabel 'sigma(N_{SD}) / <N_{SD}>'\n";
       gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'std dev over mean SD number in cloudy cells'\n";
+      gp << "set title 'relative std dev of N_{SD}'\n";
     }
     else if (plt == "tot_water")
       gp << "set title 'total water'\n";

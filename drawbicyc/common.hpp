@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include <set>
+#include <array>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -25,7 +25,7 @@
   cerr << " info: " << msg << endl; \
 }
 
-using std::set;
+using std::array;
 using std::string;
 using std::ostringstream;
 using std::cerr;

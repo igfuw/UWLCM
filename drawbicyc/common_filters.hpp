@@ -4,7 +4,7 @@ using namespace blitz;
 
 double iscloudy_rc(double x)
 {
-  return x > 1.e-5 ? 1. : 0.; 
+  return x > 1.e-4 ? 1. : 0.; 
 }
 BZ_DECLARE_FUNCTION(iscloudy_rc)
 
