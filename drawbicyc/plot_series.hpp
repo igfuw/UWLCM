@@ -426,6 +426,136 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...){;}
       }
+      // average supersaturation in cells with S>0
+      else if (plt == "cloud_avg_supersat")
+      {
+        try
+        {
+          // read RH 
+          auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap -= 1.;
+          res_tmp = iscloudy_sat(snap);
+          snap *= res_tmp; //apply the cloudiness mask
+          snap *= 100; // to get %
+          if(blitz::sum(res_tmp) > 0)
+            res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      // rel std_dev of supersaturation in cells with S>0
+      else if (plt == "cloud_std_dev_supersat")
+      {
+        try
+        {
+          // read RH 
+          auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap -= 1.;
+          res_tmp = iscloudy_sat(snap);
+          snap *= res_tmp; //apply the cloudiness mask
+          snap *= 100; // to get %
+          double avg;
+          if(blitz::sum(res_tmp) > 0)
+            avg = blitz::sum(snap) / blitz::sum(res_tmp); 
+          else
+            avg = 0;
+
+          snap = pow(snap - avg, 2);
+          snap *= res_tmp; // apply filter
+          if(avg>0)
+            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)) / avg; 
+          else
+            res_prof(at) = 0.;
+        }
+        catch(...){;}
+      }
+      // average radius of activated droplets in cloudy cells
+      else if (plt == "cloud_avg_act_rad")
+      {
+        try
+        {
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          typename Plotter_t::arr_t snap_ract(tmp_ract);
+          res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
+
+          // read act drop conc 
+          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          // read act drop 1st raw moment
+          auto tmp1 = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap1(tmp1);
+          snap1 = where(snap > 0, snap1 / snap, 0.);
+          // apply cloud mask
+          snap1 *= res_tmp;
+          if(blitz::sum(res_tmp) > 0)
+            res_prof(at) = blitz::sum(snap1) / blitz::sum(res_tmp); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+
+      // average standard deviation of the acttivated droplets radius distribution in cloudy cells
+      else if (plt == "cloud_avg_std_dev_act_rad")
+      {
+        try
+        {
+          // read activated droplets mixing ratio to res_tmp 
+          auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          typename Plotter_t::arr_t snap_ract(tmp_ract);
+          typename Plotter_t::arr_t mask(tmp_ract);
+          mask = iscloudy_rc(snap_ract); // find cells with rc>1e-5
+
+          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
+          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
+          typename Plotter_t::arr_t first_raw_mom(tmp * 1e6); // 1st raw moment / mass [um / kg]
+          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom2", at * n["outfreq"]);
+          typename Plotter_t::arr_t second_raw_mom(tmp * 1e12); // 2nd raw moment / mass [um^2 / kg]
+
+          typename Plotter_t::arr_t mean_r(first_raw_mom / zeroth_raw_mom);
+          typename Plotter_t::arr_t act_conc(zeroth_raw_mom);
+
+          res_tmp = where(act_conc > 0.,
+            (1. / act_conc * (second_raw_mom - 2 * mean_r * first_raw_mom + mean_r * mean_r * zeroth_raw_mom)),
+  //          (second_raw_mom / zeroth_raw_mom - first_raw_mom / zeroth_raw_mom * first_raw_mom / zeroth_raw_mom),
+            0.
+          );
+          //apply cloud mask
+          res_tmp *= mask;
+          res_tmp = sqrt(res_tmp);
+/*
+          tmp = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
+          typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
+          if(com_N_c(at) > 0)
+          {
+            double SD_no = sd_conc(com_x_idx(at), com_z_idx(at));
+            if(SD_no > 1 && com_miu(at) > 0)
+              res_prof(at) = sqrt( 
+                SD_no / (SD_no - 1) /
+                com_N_c(at) * (
+                  second_raw_mom(com_x_idx(at), com_z_idx(at)) - 
+                  2. * com_miu(at) * first_raw_mom(com_x_idx(at), com_z_idx(at)) + 
+                  com_miu(at) * com_miu(at) * zeroth_raw_mom(com_x_idx(at), com_z_idx(at))
+                )
+              );
+          }
+          else
+            res_prof(at) = 0.;
+*/
+
+          if(blitz::sum(mask) > 0)
+            res_prof(at) = blitz::sum(res_tmp) / blitz::sum(mask); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+
       else if (plt == "mass_dry")
       {
 	// total dry mass
@@ -519,7 +649,8 @@ void plot_series(Plotter_t plotter, Plots plots)
     {
       res_pos *= 60.;
       gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'average cloud fraction'\n";
+      gp << "set ylabel 'Ncell(q_c > 0.1 g/kg) / Ncell_{tot}'\n";
+      gp << "set title 'cloud fraction'\n";
     }
     else if (plt == "ract_com")
     {
@@ -565,6 +696,36 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set ylabel 'sigma(N_c) / <N_c>'\n";
       gp << "set xlabel 'time [min]'\n";
       gp << "set title 'relative std dev N_c'\n";
+    }
+    else if (plt == "cloud_avg_supersat")
+    {
+      res_pos *= 60.;
+      gp << "set ylabel '<S> [%]'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'avg supersaturation'\n";
+    }
+    else if (plt == "cloud_std_dev_supersat")
+    {
+      res_pos *= 60.;
+      gp << "set ylabel 'sigma(S) / <S>'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'relative std dev S'\n";
+    }
+    else if (plt == "cloud_avg_act_rad")
+    {
+      res_pos *= 60.;
+      res_prof *= 1e6;
+      gp << "set ylabel '<r_{mean}> [um]'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'average mean radius of activated droplets'\n";
+    }
+    else if (plt == "cloud_avg_std_dev_act_rad")
+    {
+      res_pos *= 60.;
+ ///     res_prof *= 1e6;
+      gp << "set ylabel '<sigma(r)> [um]'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'average std dev of radius of activated droplets'\n";
     }
     else if (plt == "sd_conc_avg")
     {
