@@ -415,7 +415,7 @@ void plot_series(Plotter_t plotter, Plots plots)
           res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
 
           // cloud fraction (cloudy if rc>0.1g/kg)
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -438,7 +438,7 @@ void plot_series(Plotter_t plotter, Plots plots)
           res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
 
           // cloud fraction (cloudy if rc>0.1g/kg)
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
