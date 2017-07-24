@@ -28,6 +28,7 @@ void init_prof(
   gp << "set linetype 4 lw 2 lc rgb 'violet'\n";
   gp << "set linetype 5 lw 2\n";
   gp << "set linetype 6 lw 2\n";
+  gp << "set nokey\n";
 }
 
 void init(

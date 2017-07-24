@@ -45,6 +45,7 @@ void plot_series(Plotter_t plotter, Plots plots)
   if(last_timestep == 0) last_timestep = n["t"]-1;
 
   Array<double, 1> res_prof(last_timestep - first_timestep + 1);
+  Array<double, 1> res_prof_std_dev(last_timestep - first_timestep + 1);
   Array<double, 1> res_pos(last_timestep - first_timestep + 1),
     com_N_c(last_timestep - first_timestep + 1), // particles concentration at the center of mass
     com_miu(last_timestep - first_timestep + 1); // to keep mean particle radius at the center of mass
@@ -53,6 +54,8 @@ void plot_series(Plotter_t plotter, Plots plots)
 
   for (auto &plt : plots.series)
   {
+    bool plot_std_dev = 0;
+    res_prof_std_dev = 0;
     res_prof = 0;
     res_pos = 0;
 
@@ -110,11 +113,19 @@ void plot_series(Plotter_t plotter, Plots plots)
           
           res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
           snap *= res_tmp; // apply filter
+          snap *= 1e3; // turn it into g/kg
           
           if(blitz::sum(res_tmp) > 0.)
             res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
           else
             res_prof(at) = 0.;
+
+          snap = pow(snap - res_prof(at), 2);
+          snap *= res_tmp; // apply filter
+          if(res_prof(at)>0)
+            res_prof_std_dev(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
+          else
+            res_prof_std_dev(at) = 0.;
         }
         catch(...) {;}
       }
@@ -141,6 +152,13 @@ void plot_series(Plotter_t plotter, Plots plots)
             avg_sd_conc = 0.;
 
           res_prof(at) = avg_sd_conc;
+
+          snap_sd = pow(snap_sd - avg_sd_conc, 2);
+          snap_sd *= res_tmp; // apply filter
+          if(avg_sd_conc>0)
+            res_prof_std_dev(at) = sqrt(blitz::sum(snap_sd) / blitz::sum(res_tmp)); 
+          else
+            res_prof_std_dev(at) = 0.;
         }
         catch(...) {;}
       }
@@ -182,12 +200,11 @@ void plot_series(Plotter_t plotter, Plots plots)
         {
           // read activated droplets mixing ratio to res_tmp 
           auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
-
           typename Plotter_t::arr_t snap(tmp);
           
           res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
           snap *= res_tmp; // apply filter
- 
+   
           double avg_ract; // average cloud water mixing ratio
           
           if(blitz::sum(res_tmp) > 0.)
@@ -201,6 +218,7 @@ void plot_series(Plotter_t plotter, Plots plots)
             res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)) / avg_ract; 
           else
             res_prof(at) = 0.;
+          
         }
         catch(...) {;}
       }
@@ -409,12 +427,10 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          // read activated droplets mixing ratio to res_tmp 
           auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          // read activated droplets mixing ratio to res_tmp 
           typename Plotter_t::arr_t snap_ract(tmp_ract);
           res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
-
-          // cloud fraction (cloudy if rc>0.1g/kg)
           auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
@@ -424,6 +440,14 @@ void plot_series(Plotter_t plotter, Plots plots)
             res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
           else
             res_prof(at) = 0;
+          
+          snap = pow(snap - res_prof(at), 2);
+          snap *= res_tmp; // apply filter
+          if(res_prof(at)>0)
+            res_prof_std_dev(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
+          else
+            res_prof_std_dev(at) = 0.;
+          
         }
         catch(...){;}
       }
@@ -475,6 +499,14 @@ void plot_series(Plotter_t plotter, Plots plots)
             res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
           else
             res_prof(at) = 0;
+          
+          snap = pow(snap - res_prof(at), 2);
+          snap *= res_tmp; // apply filter
+          if(res_prof(at)>0)
+            res_prof_std_dev(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
+          else
+            res_prof_std_dev(at) = 0.;
+          
         }
         catch(...){;}
       }
@@ -703,7 +735,7 @@ void plot_series(Plotter_t plotter, Plots plots)
     }
     else if (plt == "ract_avg")
     {
-      res_prof *= 1000.;
+      plot_std_dev = true;
       res_pos *= 60.;
       gp << "set ylabel '<q_c>  [g/kg]'\n";
       gp << "set xlabel 'time [min]'\n";
@@ -718,6 +750,7 @@ void plot_series(Plotter_t plotter, Plots plots)
     }
     else if (plt == "cloud_avg_act_conc")
     {
+      plot_std_dev = true;
       res_pos *= 60.;
       gp << "set ylabel '<N_c>  [1/cm^3]'\n";
       gp << "set xlabel 'time [min]'\n";
@@ -732,6 +765,7 @@ void plot_series(Plotter_t plotter, Plots plots)
     }
     else if (plt == "cloud_avg_supersat")
     {
+      plot_std_dev = true;
       res_pos *= 60.;
       gp << "set ylabel '<S> [%]'\n";
       gp << "set xlabel 'time [min]'\n";
@@ -762,6 +796,7 @@ void plot_series(Plotter_t plotter, Plots plots)
     }
     else if (plt == "sd_conc_avg")
     {
+      plot_std_dev = true;
       res_pos *= 60.;
       gp << "set ylabel '<N_{SD}>'\n";
       gp << "set xlabel 'time [min]'\n";
@@ -840,10 +875,20 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set title 'entrainment rate [cm / s]'\n";
     }
 
-    gp << "plot '-' with line\n";
-    std::cout << plt << " " << res_pos << res_prof << std::endl;
-    gp.send1d(boost::make_tuple(res_pos, res_prof));
+    gp << "plot '-' with l";
+    if(plot_std_dev)
+      gp << ", '-' w l, '-' w l";
+    gp << " \n";
 
+    std::cout << plt << " " << res_pos << res_prof << res_prof_std_dev << std::endl;
+    gp.send1d(boost::make_tuple(res_pos, res_prof));
+    if(plot_std_dev)
+    {
+      res_prof = res_prof + res_prof_std_dev;
+      gp.send1d(boost::make_tuple(res_pos, res_prof));
+      res_prof = res_prof - 2*res_prof_std_dev;
+      gp.send1d(boost::make_tuple(res_pos, res_prof));
+    }
     oprof_file << res_prof ;
    // plot(gp, res);
   } // var loop
