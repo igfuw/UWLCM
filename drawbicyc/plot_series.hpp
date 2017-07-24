@@ -328,7 +328,8 @@ void plot_series(Plotter_t plotter, Plots plots)
           {
             double SD_no = sd_conc(com_x_idx(at), com_z_idx(at));
             if(SD_no > 1 && com_miu(at) > 0)
-              res_prof(at) = sqrt( 
+            {
+              res_prof(at) = ( 
                 SD_no / (SD_no - 1) /
                 com_N_c(at) * (
                   second_raw_mom(com_x_idx(at), com_z_idx(at)) - 
@@ -336,6 +337,13 @@ void plot_series(Plotter_t plotter, Plots plots)
                   com_miu(at) * com_miu(at) * zeroth_raw_mom(com_x_idx(at), com_z_idx(at))
                 )
               );
+              
+              // could not be true due to numerics?
+              if(res_prof(at) > 0.) 
+                res_prof(at) = sqrt(res_prof(at));
+              else 
+                res_prof(at) = 0.;
+            }
           }
           else
             res_prof(at) = 0.;
