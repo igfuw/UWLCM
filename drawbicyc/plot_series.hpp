@@ -240,6 +240,31 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
+      else if (plt == "com_vel")
+      {
+	// vertical velocity at the center of mass of activated droplets
+        try
+        {
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          typename Plotter_t::arr_t snap2(tmp);
+          typename Plotter_t::arr_t snap3(tmp);
+          
+          snap2 = snap2 * plotter.LastIndex;
+          snap3 = snap3 * blitz::tensor::i;
+          if(blitz::sum(snap) > 1e-3)
+          {
+            int z_idx = blitz::sum(snap2) / blitz::sum(snap); 
+            int x_idx = blitz::sum(snap3) / blitz::sum(snap); 
+            auto tmp2 = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap_mom(tmp2);
+            res_prof(at) = snap_mom(x_idx, z_idx);
+          } 
+          else 
+            res_prof(at) = 0.;
+        }
+        catch(...) {;}
+      }
       else if (plt == "com_mom0")
       {
 	// 0th moment of rw distribution at the center of mass of activated droplets (particles concentration), 2D only
@@ -666,7 +691,7 @@ void plot_series(Plotter_t plotter, Plots plots)
       res_pos *= 60.;
       gp << "set ylabel 'th prtrb center of mass [km]'\n";
       gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'center of mass'\n";
+      gp << "set title 'center of mass height'\n";
     }
     else if (plt == "ract_avg")
     {
@@ -743,6 +768,13 @@ void plot_series(Plotter_t plotter, Plots plots)
     }
     else if (plt == "tot_water")
       gp << "set title 'total water'\n";
+    else if (plt == "com_vel")
+    {
+      gp << "set title 'vertical velocity of the COM\n";
+      res_pos *= 60.;
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set ylabel 'w [m/s]'\n";
+    }
     else if (plt == "com_mom0")
     {
       gp << "set title 'cloud drops concentration at the center of mass\n";
