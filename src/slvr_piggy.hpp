@@ -130,6 +130,7 @@ class slvr_piggy<
       handle_opts(opts, vm);
           
       vel_in = vm["vel_in"].as<std::string>();
+      std::cout << "piggybacking from: " << vel_in << std::endl;
 
       in_bfr.resize(this->state(this->vip_ixs[0]).shape());
       // open file for in vel
