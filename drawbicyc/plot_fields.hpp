@@ -9,6 +9,15 @@
 template<class Plotter_t>
 void plot_fields(Plotter_t plotter, Plots plots)
 {
+  // read opts
+  po::options_description opts("fields plotting options");
+  opts.add_options()
+    ("field_plotfreq", po::value<int>()->required() , "interval in sec with which fields are plotted")
+  ;
+  po::variables_map vm;
+  handle_opts(opts, vm);
+  const int plotfreq = vm["field_plotfreq"].as<int>();
+
   auto& n = plotter.map;
 
   blitz::firstIndex i;
@@ -17,6 +26,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
 
   for (int at = 0; at < n["t"]; ++at) // TODO: mark what time does it actually mean!
   {
+    if(int(at * n["outfreq"]) % plotfreq != 0) continue;
     for (auto &plt : plots.fields)
     {
       std::cout << at * n["outfreq"] << " : " << plt << std::endl;
