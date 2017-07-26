@@ -124,11 +124,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_wet_rng(.5e-6, 25.e-6);
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
-/*   
+   
     // recording divergence of the velocity field
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
-
+/*
     // recording puddle
     auto puddle = prtcls->diag_puddle();
     for(auto elem : puddle)
