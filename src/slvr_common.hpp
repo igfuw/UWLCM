@@ -111,7 +111,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         rhs.at(ix::th)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk);
 
         // vertical velocity sources
-        if(params.w_src)
+        if(params.w_src && (!ct_params_t::piggy))
         {
           w_src(this->state(ix::th), this->state(ix::rv));
           rhs.at(ix_w)(ijk) += alpha(ijk);
@@ -149,7 +149,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         //       becomes important when nudging is introduced?
 
         // vertical velocity sources
-        if(params.w_src)
+        if(params.w_src && (!ct_params_t::piggy))
         {
           // temporarily use beta to store the th^n+1 estimate
           beta(ijk) = this->state(ix::th)(ijk) + 0.5 * this->dt * rhs.at(ix::th)(ijk);
