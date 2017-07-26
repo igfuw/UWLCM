@@ -283,6 +283,31 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
+      else if (plt == "com_supersat")
+      {
+	// supersaturation at the center of mass of activated droplets
+        try
+        {
+          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          typename Plotter_t::arr_t snap2(tmp);
+          typename Plotter_t::arr_t snap3(tmp);
+          
+          snap2 = snap2 * plotter.LastIndex;
+          snap3 = snap3 * blitz::tensor::i;
+          if(blitz::sum(snap) > 1e-3)
+          {
+            int z_idx = blitz::sum(snap2) / blitz::sum(snap); 
+            int x_idx = blitz::sum(snap3) / blitz::sum(snap); 
+            auto tmp2 = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap_mom(tmp2);
+            res_prof(at) = snap_mom(x_idx, z_idx) - 1;
+          } 
+          else 
+            res_prof(at) = 0.;
+        }
+        catch(...) {;}
+      }
       else if (plt == "com_mom0")
       {
 	// 0th moment of rw distribution at the center of mass of activated droplets (particles concentration), 2D only
@@ -817,6 +842,14 @@ void plot_series(Plotter_t plotter, Plots plots)
       res_pos *= 60.;
       gp << "set xlabel 'time [min]'\n";
       gp << "set ylabel 'w [m/s]'\n";
+    }
+    else if (plt == "com_supersat")
+    {
+      gp << "set title 'supersaturation at the COM\n";
+      res_pos *= 60.;
+      res_prof *= 100.; // to get %
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set ylabel 'S [%]'\n";
     }
     else if (plt == "com_mom0")
     {
