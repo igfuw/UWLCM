@@ -42,7 +42,8 @@ int main(int argc, char** argv)
   // reading required plot types
   bool flag_series = vm["series"].as<bool>(),
        flag_profiles = vm["profs"].as<bool>(),
-       flag_fields = vm["fields"].as<bool>();
+       flag_fields = vm["fields"].as<bool>(),
+       flag_qv_qc_2_6_10_min = vm["qv_qc_2_6_10_min"].as<bool>();
 
   // detecting input data dimensionality
   H5::H5File h5f(h5 + "/const.h5", H5F_ACC_RDONLY);
