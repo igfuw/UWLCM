@@ -14,6 +14,7 @@ int main(int argc, char** argv)
     ("profs", po::value<bool>()->default_value(true), "plot profiles?")
     ("series", po::value<bool>()->default_value(true) , "plot series?")
     ("fields", po::value<bool>()->default_value(false) , "plot fields?")
+    ("qv_qc_2_6_10_min", po::value<bool>()->default_value(false) , "plot comparison of qv and qc fields at 2, 6 and 10 min?")
     ("dir", po::value<std::string>()->required() , "directory containing out_lgrngn")
     ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
     ("type", po::value<std::string>()->required(), "one of: dycoms, moist_thermal")
@@ -54,13 +55,14 @@ int main(int argc, char** argv)
     if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro), Plots(type));
     if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), Plots(type));
     if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro), Plots(type));
-    if(flag_fields)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro), Plots(type));
+    if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro), Plots(type));
   }
   else if(NDims == 3)
   {
     if(flag_series)   plot_series(PlotterMicro_t<3>(h5, micro), Plots(type));
     if(flag_profiles) plot_profiles(PlotterMicro_t<3>(h5, micro), Plots(type));
     if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro), Plots(type));
+    if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro), Plots(type));
   }
   else
     assert(false && "need 2d or 3d input data");
