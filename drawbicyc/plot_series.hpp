@@ -915,14 +915,15 @@ void plot_series(Plotter_t plotter, Plots plots)
 
     std::cout << plt << " " << res_pos << res_prof << res_prof_std_dev << std::endl;
     gp.send1d(boost::make_tuple(res_pos, res_prof));
+    oprof_file << res_prof ;
     if(plot_std_dev)
     {
+      oprof_file << res_prof_std_dev ;
       res_prof = res_prof + res_prof_std_dev;
       gp.send1d(boost::make_tuple(res_pos, res_prof));
       res_prof = res_prof - 2*res_prof_std_dev;
       gp.send1d(boost::make_tuple(res_pos, res_prof));
     }
-    oprof_file << res_prof ;
    // plot(gp, res);
   } // var loop
 }
