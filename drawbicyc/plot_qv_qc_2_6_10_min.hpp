@@ -56,7 +56,8 @@ void plot_qv_qc_2_6_10_min(Plotter_t plotter, Plots plots)
   gp << NOPALETTE;
   gp << "set title offset 0, -0.8 '$q_v$ [g/kg], t = 2 min'\n";
   try{
-  auto tmp = plotter.h5load_timestep(plotter.file, "rv", 120) * 1e3;
+  typename Plotter_t::arr_t tmp(plotter.h5load_timestep(plotter.file, "rv", 120) * 1e3);
+  std::cout << tmp;
   plotter.plot(gp, tmp);
   }
   catch(...){}
@@ -69,7 +70,8 @@ void plot_qv_qc_2_6_10_min(Plotter_t plotter, Plots plots)
   gp << NOPALETTE;
   gp << "set title offset 0, -0.8 '$q_v$ [g/kg], t = 6 min'\n";
   try{
-  auto tmp = plotter.h5load_timestep(plotter.file, "rv", 320) * 1e3;
+  typename Plotter_t::arr_t tmp(plotter.h5load_timestep(plotter.file, "rv", 320) * 1e3);
+  std::cout << tmp;
   plotter.plot(gp, tmp);
   }
   catch(...){}
@@ -82,7 +84,8 @@ void plot_qv_qc_2_6_10_min(Plotter_t plotter, Plots plots)
   gp << PALETTE;
   gp << "set title offset 0, -0.8 '$q_v$ [g/kg], t = 10 min'\n";
   try{
-  auto tmp = plotter.h5load_timestep(plotter.file, "rv", 600) * 1e3;
+  typename Plotter_t::arr_t tmp(plotter.h5load_timestep(plotter.file, "rv", 600) * 1e3);
+  std::cout << tmp;
   plotter.plot(gp, tmp);
   }
   catch(...){}
@@ -100,7 +103,8 @@ void plot_qv_qc_2_6_10_min(Plotter_t plotter, Plots plots)
   gp << "set title offset 0, -0.8 '$q_c$ [g/kg], t = 2 min'\n";
   try{
   // cloud water content
-  auto tmp = plotter.h5load_ract_timestep(plotter.file, 60) * 1e3;
+  typename Plotter_t::arr_t tmp(plotter.h5load_ract_timestep(plotter.file, 60) * 1e3);
+  std::cout << tmp;
   plotter.plot(gp, tmp);
   }
   catch(...){}
@@ -114,7 +118,8 @@ void plot_qv_qc_2_6_10_min(Plotter_t plotter, Plots plots)
   gp << "set title offset 0, -0.8 '$q_c$ [g/kg], t = 6 min'\n";
   try{
   // cloud water content
-  auto tmp = plotter.h5load_ract_timestep(plotter.file, 360) * 1e3;
+  typename Plotter_t::arr_t tmp(plotter.h5load_ract_timestep(plotter.file, 360) * 1e3);
+  std::cout << tmp;
   plotter.plot(gp, tmp);
   }
   catch(...){}
@@ -128,7 +133,8 @@ void plot_qv_qc_2_6_10_min(Plotter_t plotter, Plots plots)
   gp << "set title offset 0, -0.8 '$q_c$ [g/kg], t = 10 min'\n";
   try{
   // cloud water content
-  auto tmp = plotter.h5load_ract_timestep(plotter.file, 600) * 1e3;
+  typename Plotter_t::arr_t tmp (plotter.h5load_ract_timestep(plotter.file, 600) * 1e3);
+  std::cout << tmp;
   plotter.plot(gp, tmp);
   }
   catch(...){}
