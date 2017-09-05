@@ -37,7 +37,8 @@ int main(int ac, char** av)
   // average rc
   unordered_map<string, std::array<float, 11>> data_avg = {
     {"blk_1m", {{0, 1.3249e-05, 0.000111779, 0.000275816, 0.000421085, 0.000552938, 0.000621531, 0.000585304, 0.000513864, 0.000440379, 0.000406745}}},
-    {"lgrngn", {{0, 0, 9.43111e-05, 0.000258181, 0.00041635, 0.000533337, 0.000590126, 0.000575933, 0.000496402, 0.000391189, 0.000295669}}}
+//    {"lgrngn", {{0, 0, 9.43111e-05, 0.000258181, 0.00041635, 0.000533337, 0.000590126, 0.000575933, 0.000496402, 0.000391189, 0.000295669}}}  old values for ammonium sulphate aerosol (+ old env_profs)
+    {"lgrngn", {{ 0, 0, 0.000179877, 0.000374551, 0.000552171, 0.000704754, 0.000790675, 0.000791144, 0.00073452, 0.000648194, 0.000548742}}} //values for NaCl and env_profs used in the twomey SD bubble paper
   };
   // relative precision at given timestep
   unordered_map<string, std::array<float, 11>> eps = { 
