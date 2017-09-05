@@ -7,6 +7,10 @@ addons:
   apt:
     packages:
       - g++-6
+    sources: &sources
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-trusty-4.0
+
 notifications:
   email: false
 
