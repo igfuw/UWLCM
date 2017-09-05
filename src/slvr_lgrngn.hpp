@@ -128,7 +128,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     // recording divergence of the velocity field
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
-/*
+
     // recording puddle
     auto puddle = prtcls->diag_puddle();
     for(auto elem : puddle)
