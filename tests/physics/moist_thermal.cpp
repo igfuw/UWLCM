@@ -31,14 +31,15 @@ int main(int ac, char** av)
   // expected results
   // center of mass of rc
   unordered_map<string, std::array<float, 11>> data_com = {
-    {"blk_1m", {{0., 0., 915.282, 1006.67, 1101.82, 1183.7, 1245.3, 1292.47, 1326.17, 1340.71, 1346.41}}},
+//    {"blk_1m", {{0., 0.,      915.282, 1006.67, 1101.82, 1183.7,  1245.3,  1292.47, 1326.17, 1340.71, 1346.41}}}, // old values from before the twomey SD bubble paper
+    {"blk_1m", {{0., 841.758, 917.667, 1022.48, 1134.36, 1232.02, 1308.47, 1364.44, 1412.22, 1476.16, 1521.43}}},  // new values, i.e. for env profs from the twomey SD paper and for abs instead of iga&fct
     {"lgrngn", {{0, 0, 914.761, 1006.64, 1100.94, 1179.43, 1235.54, 1282.71, 1337.99, 1370.28, 1344.92}}}
   };
   // average rc
   unordered_map<string, std::array<float, 11>> data_avg = {
     {"blk_1m", {{0, 1.3249e-05, 0.000111779, 0.000275816, 0.000421085, 0.000552938, 0.000621531, 0.000585304, 0.000513864, 0.000440379, 0.000406745}}},
-//    {"lgrngn", {{0, 0, 9.43111e-05, 0.000258181, 0.00041635, 0.000533337, 0.000590126, 0.000575933, 0.000496402, 0.000391189, 0.000295669}}}  old values for ammonium sulphate aerosol (+ old env_profs)
-    {"lgrngn", {{ 0, 0, 0.000179877, 0.000374551, 0.000552171, 0.000704754, 0.000790675, 0.000791144, 0.00073452, 0.000648194, 0.000548742}}} //values for NaCl and env_profs used in the twomey SD bubble paper
+//    {"lgrngn", {{0, 0, 9.43111e-05, 0.000258181, 0.00041635, 0.000533337, 0.000590126, 0.000575933, 0.000496402, 0.000391189, 0.000295669}}} // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
+    {"lgrngn", {{ 0, 0, 0.000179877, 0.000374551, 0.000552171, 0.000704754, 0.000790675, 0.000791144, 0.00073452, 0.000648194, 0.000548742}}}  // values for NaCl and env_profs used in the twomey SD bubble paper
   };
   // relative precision at given timestep
   unordered_map<string, std::array<float, 11>> eps = { 
