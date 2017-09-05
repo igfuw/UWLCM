@@ -57,9 +57,10 @@ class slvr_piggy<
     }
   }
 
-  void hook_ante_step()
+  void hook_post_step()
   {
-    //this->mem->barrier();
+    parent_t::hook_post_step(); // includes changes of velocity field due to vip_rhs_impl_fnlz()
+    this->mem->barrier();
     // save velocity field
     if(this->rank==0 && save_vel)
     {
@@ -68,8 +69,6 @@ class slvr_piggy<
         f_vel_out << this->state(this->vip_ixs[d]);
       }
     }
-    this->mem->barrier();
-    parent_t::hook_ante_step();
   }
 
   // ctor
@@ -130,6 +129,7 @@ class slvr_piggy<
       handle_opts(opts, vm);
           
       vel_in = vm["vel_in"].as<std::string>();
+      std::cout << "piggybacking from: " << vel_in << std::endl;
 
       in_bfr.resize(this->state(this->vip_ixs[0]).shape());
       // open file for in vel
@@ -145,10 +145,11 @@ class slvr_piggy<
     this->mem->barrier();
   }
 
-  void hook_ante_step()
+  void hook_post_step()
   {
-//    this->mem->barrier();
-    // read velo
+    parent_t::hook_post_step(); // do whatever
+    this->mem->barrier(); //necessary?
+    // read velo, overwrite any vel rhs
     if(this->rank==0)
     {
       using ix = typename ct_params_t::ix;
@@ -158,10 +159,10 @@ class slvr_piggy<
         // read in through buffer, if done directly caused data races
         f_vel_in >> in_bfr;
         this->state(this->vip_ixs[d]) = in_bfr;
+//std::cout << this->state(this->vip_ixs[d]);
       }
     }
     this->mem->barrier();
-    parent_t::hook_ante_step();
   }
 
   // ctor
