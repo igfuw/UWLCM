@@ -3,9 +3,10 @@ os:
     - linux
 compiler:
     - gcc
-notifications:
-  email: false
-
+addons:
+  apt:
+    packages:
+      - g++-6
 notifications:
   email: false
 
@@ -17,8 +18,10 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
 
 install:
+#compiler
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
+
 #libcloudphxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then sudo $apt_get_install g++  ; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake libboost-python1.55-dev python-numpy python-scipy libthrust-dev python-pytest; fi
 
 # newest thrust
