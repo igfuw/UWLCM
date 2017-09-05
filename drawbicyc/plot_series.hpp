@@ -611,8 +611,8 @@ void plot_series(Plotter_t plotter, Plots plots)
           typename Plotter_t::arr_t act_conc(zeroth_raw_mom);
 
           res_tmp = where(act_conc > 0.,
-            (1. / act_conc * (second_raw_mom - 2 * mean_r * first_raw_mom + mean_r * mean_r * zeroth_raw_mom)),
-  //          (second_raw_mom / zeroth_raw_mom - first_raw_mom / zeroth_raw_mom * first_raw_mom / zeroth_raw_mom),
+  //          (1. / act_conc * (second_raw_mom - 2 * mean_r * first_raw_mom + mean_r * mean_r * zeroth_raw_mom)),
+            (second_raw_mom / zeroth_raw_mom - first_raw_mom / zeroth_raw_mom * first_raw_mom / zeroth_raw_mom),
             0.
           );
           //apply cloud mask

@@ -52,8 +52,8 @@ namespace setup
       sdev_rd1 = real_t(1.4),
       sdev_rd2 = real_t(1.6);
     quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
-      n1_stp = real_t(60e6) / si::cubic_metres, // 125 || 31
-      n2_stp = real_t(40e6) / si::cubic_metres;  // 65 || 16
+      n1_stp = real_t(70.47e6) / si::cubic_metres, // gives 60e6 at surface of moist thermal
+      n2_stp = real_t(46.98e6) / si::cubic_metres;  // gives 40e6 at surface of moist thermal
 
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) {assert(false);};
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) {assert(false);};

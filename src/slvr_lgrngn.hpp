@@ -36,7 +36,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->record_aux("RH", prtcls->outbuf());
 
     // recording precipitation rate per grid cel
-/*    prtcls->diag_all();
+    prtcls->diag_all();
     prtcls->diag_precip_rate();
     this->record_aux("precip_rate", prtcls->outbuf());
 
@@ -59,7 +59,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_dry_rng(0., 2e-6);
     prtcls->diag_wet_mom(0);
     this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
-*/
+
     // recording 0th mom of rw of activated drops
     prtcls->diag_rw_ge_rc();
     prtcls->diag_wet_mom(0);
@@ -79,7 +79,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_rw_ge_rc();
     prtcls->diag_wet_mom(3);
     this->record_aux("actrw_rw_mom3", prtcls->outbuf());
-/*
+
     // recording 1st mom of rd of activated drops
     prtcls->diag_rw_ge_rc();
     prtcls->diag_dry_mom(1);
@@ -104,7 +104,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_RH_ge_Sc();
     prtcls->diag_dry_mom(0);
     this->record_aux("actRH_rd_mom0", prtcls->outbuf());
-*/
+
     // recording 0th wet mom of radius of rain drops (r>25um)
     prtcls->diag_wet_rng(25.e-6, 1);
     prtcls->diag_wet_mom(0);
@@ -128,7 +128,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     // recording divergence of the velocity field
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
-/*
+
     // recording puddle
     auto puddle = prtcls->diag_puddle();
     for(auto elem : puddle)
@@ -168,7 +168,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         rng_num++;
       }
     }
-*/
     parent_t::tend = parent_t::clock::now();
     parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
   } 
