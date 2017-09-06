@@ -58,10 +58,11 @@ int main(int ac, char** av)
 //    {"lgrngn", {{0, 0, 9.43111e-02, 0.258181, 0.41635, 0.533337, 0.590126, 0.575933, 0.496402, 0.391189, 0.295669}}} // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
     {"lgrngn", {{ 0, 0, 0.179877, 0.374551, 0.552171, 0.704754, 0.790675, 0.791144, 0.73452, 0.648194, 0.548742}}}  // values for NaCl and env_profs used in the twomey SD bubble paper
   };
-  // std_dev_rc rc
+  // std_dev rc
   unordered_map<string, std::array<double, 11>> data_std_dev_rc = {
     {"blk_1m", {{0, 0, 0.0189641, 0.0669555, 0.137429, 0.210689, 0.266551, 0.30766, 0.333871, 0.310118, 0.232963}}},
-    {"lgrngn", {{0, 0, 0.0551891, 0.116698, 0.202856, 0.290047, 0.375072, 0.442025, 0.485523, 0.525853, 0.523559}}} 
+    {"lgrngn", {{0, 0, 0.0464611, 0.105821, 0.164722, 0.234542, 0.310864, 0.375448, 0.434617, 0.492958, 0.512137}}} // sd=32
+//    {"lgrngn", {{0, 0, 0.0551891, 0.116698, 0.202856, 0.290047, 0.375072, 0.442025, 0.485523, 0.525853, 0.523559}}} // sd=16
   };
   // relative precision at given timestep
   unordered_map<string, std::array<double, 11>> eps = { 
