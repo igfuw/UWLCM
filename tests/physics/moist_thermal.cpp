@@ -72,18 +72,8 @@ int main(int ac, char** av)
     // compare statistics
     // height of the center of mass of cloud droplets
     for (int at = 0; at < n["t"]; ++at)
-    {
-      {
-        auto tmp = plotter.h5load_ract_timestep(plotter.file, at * 60);
-        typename Plotter_t::arr_t ract(tmp);
-        typename Plotter_t::arr_t weighted(tmp);
-        weighted = weighted * plotter.LastIndex * n["dz"];
-        if(blitz::sum(ract) > 1e-3)
-          result(at) = blitz::sum(weighted) / blitz::sum(ract);
-        else
-          result(at) = 0.;
-      }
-    }
+      result(at) = plotter.act_com_z_timestep(plotter.file, at * 60); 
+
     blitz::Array<float, 1> expected_result(data_com[opts_m.first].data(), 11, blitz::neverDeleteData);
     blitz::Array<float, 1> epsilon(eps[opts_m.first].data(), 11, blitz::neverDeleteData);
     rel_err = where(expected_result > 0, abs(result - expected_result) / expected_result - epsilon, 0);

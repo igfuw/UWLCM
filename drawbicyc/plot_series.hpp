@@ -245,17 +245,7 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
 	// center of mass of activated droplets
         try
-        {
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          typename Plotter_t::arr_t snap2(tmp);
-          
-          snap2 = snap2 * plotter.LastIndex * n["dz"];
-          if(blitz::sum(snap) > 1e-3)
-            res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
-          else 
-            res_prof(at) = 0.;
-        }
+          res_prof(at) = plotter.act_com_z_timestep(plotter.file, at * n["outfreq"]);
         catch(...) {;}
       }
       else if (plt == "com_vel")

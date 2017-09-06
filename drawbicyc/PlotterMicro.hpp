@@ -80,6 +80,22 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return blitz::safeToReturn(res + 0);
   }
 
+  // height [m] of the center of mass of activated droplets
+  double act_com_z_timestep(
+    const string &file, 
+    int at
+  )
+  {
+    auto tmp = h5load_ract_timestep(this->file, at);
+    arr_t ract(tmp);
+    arr_t weighted(tmp);
+    weighted = weighted * this->LastIndex * this->map["dz"];
+    if(blitz::sum(ract) > 1e-3)
+      return blitz::sum(weighted) / blitz::sum(ract);
+    else
+      return 0.; 
+  }
+
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),
