@@ -245,7 +245,9 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
 	// center of mass of activated droplets
         try
+        {
           res_prof(at) = plotter.act_com_z_timestep(plotter.file, at * n["outfreq"]);
+        }        
         catch(...) {;}
       }
       else if (plt == "com_vel")
