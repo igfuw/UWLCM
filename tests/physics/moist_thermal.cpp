@@ -49,6 +49,7 @@ int main(int ac, char** av)
   };
   // out dir
   unordered_map<string, string> tmp_out = { {"blk_1m", "tmp_out_blk_1m"}, {"lgrngn", "tmp_out_lgrngn"}};
+  bool err_flag = 0;
 
   for (auto &opts_m : opts_micro)
   {
@@ -65,62 +66,81 @@ int main(int ac, char** av)
     Plotter_t plotter(tmp_out[opts_m.first], opts_m.first);
     auto& n = plotter.map;
 
-    blitz::Array<float, 1> result_com(n["t"]);
-    blitz::Array<float, 1> result_avg(n["t"]);
+    blitz::Array<float, 1> result(n["t"]);
     blitz::Array<double, 1> rel_err(n["t"]);
 
-    // read statistics
+    // compare statistics
+    // height of the center of mass of cloud droplets
     for (int at = 0; at < n["t"]; ++at)
     {
       {
         auto tmp = plotter.h5load_ract_timestep(plotter.file, at * 60);
-        typename Plotter_t::arr_t snap(tmp);
-
-        // center of mass of cloud droplets
-        {
-          typename Plotter_t::arr_t snap2(tmp);
-          snap2 = snap2 * plotter.LastIndex * n["dz"];
-          if(blitz::sum(snap) > 1e-3)
-            result_com(at) = blitz::sum(snap2) / blitz::sum(snap);
-          else
-            result_com(at) = 0.;
-        }
-        // cloud water mixing ratio averaged over cells with r_c>1e-5
-        {
-          typename Plotter_t::arr_t snap2(tmp);
-          snap2 = iscloudy_rc(snap2); // find cells with rc>1e-5
-          snap *= snap2; // apply filter
-
-          // mean only over updraught cells
-          if(blitz::sum(snap2) > 0.)
-            result_avg(at) = blitz::sum(snap) / blitz::sum(snap2);
-          else
-            result_avg(at) = 0.;
-        }
+        typename Plotter_t::arr_t ract(tmp);
+        typename Plotter_t::arr_t weighted(tmp);
+        weighted = weighted * plotter.LastIndex * n["dz"];
+        if(blitz::sum(ract) > 1e-3)
+          result(at) = blitz::sum(weighted) / blitz::sum(ract);
+        else
+          result(at) = 0.;
       }
     }
-
-    // compare center of mass
     blitz::Array<float, 1> expected_result(data_com[opts_m.first].data(), 11, blitz::neverDeleteData);
     blitz::Array<float, 1> epsilon(eps[opts_m.first].data(), 11, blitz::neverDeleteData);
-    rel_err = where(expected_result > 0, abs(result_com - expected_result) / expected_result - epsilon, 0);
+    rel_err = where(expected_result > 0, abs(result - expected_result) / expected_result - epsilon, 0);
+    std::cout << "height of the center of mass: " << result;
     if(any(rel_err > 0.))
     {
-      std::cerr << "center of mass in time: " << result_com;
+      std::cerr << "ERROR" << std::endl;
       std::cerr << "expected result: " << expected_result;
       std::cerr << "relative error minus precision: " << rel_err;
-      error_macro("cloud droplets center of mass discrepancy");
+      err_flag = 1;
     }
 
-    // compare avg rc
+    // average cloud water mixing ratio in cloudy cells
+    for (int at = 0; at < n["t"]; ++at)
+    {
+      {
+        auto tmp = plotter.h5load_ract_timestep(plotter.file, at * 60);
+        typename Plotter_t::arr_t ract(tmp);
+        typename Plotter_t::arr_t mask(tmp);
+        mask = iscloudy_rc(mask);
+        ract *= mask; // apply filter
+
+        if(blitz::sum(mask) > 0.)
+          result(at) = blitz::sum(ract) / blitz::sum(mask);
+        else
+          result(at) = 0.;
+      }
+    }
     expected_result = blitz::Array<float, 1>(data_avg[opts_m.first].data(), 11, blitz::neverDeleteData);
-    rel_err = where(expected_result > 0, abs(result_avg - expected_result) / expected_result - epsilon, 0);
+    rel_err = where(expected_result > 0, abs(result - expected_result) / expected_result - epsilon, 0);
+    std::cout << "average cloud water mixing ratio in cloudy cells: " << result;
     if(any(rel_err > 0.))
     {
-      std::cerr << "average cloud water in time: " << result_avg;
+      std::cerr << "ERROR" << std::endl;
       std::cerr << "expected result: " << expected_result;
       std::cerr << "relative error minus precision: " << rel_err;
-      error_macro("average cloud water mixing ratio discrepancy");
+      err_flag = 1;
+    }
+
+    // average concentration of activated droplets in cloudy cells
+    for (int at = 0; at < n["t"]; ++at)
+    {
+      {
+        auto tmp = plotter.h5load_ract_timestep(plotter.file, at * 60);
+        typename Plotter_t::arr_t ract(tmp);
+        typename Plotter_t::arr_t mask(tmp);
+        mask = iscloudy_rc(mask);
+        ract *= mask; // apply filter
+
+        if(blitz::sum(mask) > 0.)
+          result(at) = blitz::sum(ract) / blitz::sum(mask);
+        else
+          result(at) = 0.;
+      }
     }
   }
+
+  if(err_flag)
+    error_macro("error in one of the statistics");    
 }
