@@ -81,7 +81,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         {
           // cloud fraction (cloudy if q_c > 0.1 g/kg)
           // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
           res_prof(at) = blitz::mean(res_tmp); 
@@ -94,7 +94,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read RH 
-          auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
 
           typename Plotter_t::arr_t snap(tmp);
           res_prof(at) = blitz::max(snap);
@@ -107,7 +107,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
 
           typename Plotter_t::arr_t snap(tmp);
           
@@ -135,8 +135,8 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
-          auto tmp_sd = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
+          auto tmp_sd = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
 
           typename Plotter_t::arr_t snap(tmp);
           typename Plotter_t::arr_t snap_sd(tmp_sd);
@@ -168,8 +168,8 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
-          auto tmp_sd = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
+          auto tmp_sd = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
 
           typename Plotter_t::arr_t snap(tmp);
           typename Plotter_t::arr_t snap_sd(tmp_sd);
@@ -199,7 +199,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           
           res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
@@ -227,13 +227,13 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           {
-            auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+            auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod;
             res_prof(at) = blitz::sum(snap);
           } 
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]);
+            auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod;
             res_prof(at) += blitz::sum(snap);
@@ -246,7 +246,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 	// center of mass of activated droplets
         try
         {
-          res_prof(at) = plotter.act_com_z_timestep(plotter.file, at * n["outfreq"]);
+          res_prof(at) = plotter.act_com_z_timestep(at * n["outfreq"]);
         }        
         catch(...) {;}
       }
@@ -255,7 +255,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 	// vertical velocity at the center of mass of activated droplets
         try
         {
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           typename Plotter_t::arr_t snap2(tmp);
           typename Plotter_t::arr_t snap3(tmp);
@@ -266,7 +266,7 @@ void plot_series(Plotter_t plotter, Plots plots)
           {
             int z_idx = blitz::sum(snap2) / blitz::sum(snap); 
             int x_idx = blitz::sum(snap3) / blitz::sum(snap); 
-            auto tmp2 = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+            auto tmp2 = plotter.h5load_timestep("w", at * n["outfreq"]);
             typename Plotter_t::arr_t snap_mom(tmp2);
             res_prof(at) = snap_mom(x_idx, z_idx);
           } 
@@ -280,7 +280,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 	// supersaturation at the center of mass of activated droplets
         try
         {
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           typename Plotter_t::arr_t snap2(tmp);
           typename Plotter_t::arr_t snap3(tmp);
@@ -291,7 +291,7 @@ void plot_series(Plotter_t plotter, Plots plots)
           {
             int z_idx = blitz::sum(snap2) / blitz::sum(snap); 
             int x_idx = blitz::sum(snap3) / blitz::sum(snap); 
-            auto tmp2 = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+            auto tmp2 = plotter.h5load_timestep("RH", at * n["outfreq"]);
             typename Plotter_t::arr_t snap_mom(tmp2);
             res_prof(at) = snap_mom(x_idx, z_idx) - 1;
           } 
@@ -305,7 +305,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 	// 0th moment of rw distribution at the center of mass of activated droplets (particles concentration), 2D only
         try
         {
-          auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           typename Plotter_t::arr_t snap2(tmp);
           typename Plotter_t::arr_t snap3(tmp);
@@ -317,7 +317,7 @@ void plot_series(Plotter_t plotter, Plots plots)
             com_z_idx(at) = blitz::sum(snap2) / blitz::sum(snap); 
             com_x_idx(at) = blitz::sum(snap3) / blitz::sum(snap); 
             std::cout << at << ": (" << com_x_idx(at) << "," << com_z_idx(at) << ")" << std::endl;
-            auto tmp2 = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
+            auto tmp2 = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
             typename Plotter_t::arr_t snap_mom(tmp2);
             com_N_c(at) = snap_mom(com_x_idx(at), com_z_idx(at)); // 0th raw moment / mass [1/kg]
             snap_mom *= rhod; // now per m^3
@@ -336,7 +336,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // mean droplet radius at the center of mass
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp); // 1st raw moment / mass [m / kg]
           if(com_N_c(at) > 0)
             res_prof(at) = snap(com_x_idx(at), com_z_idx(at)) / com_N_c(at);
@@ -351,13 +351,13 @@ void plot_series(Plotter_t plotter, Plots plots)
         // std deviation of distribution of radius at center of mass
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t first_raw_mom(tmp); // 1st raw moment / mass [m / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom2", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
           typename Plotter_t::arr_t second_raw_mom(tmp); // 2nd raw moment / mass [m^2 / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
           typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
           if(com_N_c(at) > 0)
           {
@@ -390,7 +390,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 	// center of mass of temp perturb
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "th", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           
           res_tmp = is_th_prtrb(snap); // find cells with th>300.1
@@ -409,7 +409,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 	// cloud droplet (0.5um < r < 25 um) concentration
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap /= 1e6; // per cm^3
           snap *= rhod; // b4 it was per milligram
@@ -423,7 +423,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -444,11 +444,11 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp_ract = plotter.h5load_ract_timestep(at * n["outfreq"]);
           // read activated droplets mixing ratio to res_tmp 
           typename Plotter_t::arr_t snap_ract(tmp_ract);
           res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -474,12 +474,12 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read activated droplets mixing ratio to res_tmp 
-          auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp_ract = plotter.h5load_ract_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap_ract(tmp_ract);
           res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
 
           // cloud fraction (cloudy if rc>0.1g/kg)
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -506,7 +506,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read RH 
-          auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap -= 1.;
           res_tmp = iscloudy_sat(snap);
@@ -533,7 +533,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read RH 
-          auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap -= 1.;
           res_tmp = iscloudy_sat(snap);
@@ -560,15 +560,15 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read activated droplets mixing ratio to res_tmp 
-          auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp_ract = plotter.h5load_ract_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap_ract(tmp_ract);
           res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
 
           // read act drop conc 
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           // read act drop 1st raw moment
-          auto tmp1 = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
+          auto tmp1 = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t snap1(tmp1);
           snap1 = where(snap > 0, snap1 / snap, 0.);
           // apply cloud mask
@@ -587,16 +587,16 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // read activated droplets mixing ratio to res_tmp 
-          auto tmp_ract = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+          auto tmp_ract = plotter.h5load_ract_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap_ract(tmp_ract);
           typename Plotter_t::arr_t mask(tmp_ract);
           mask = iscloudy_rc(snap_ract); // find cells with rc>1e-5
 
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom1", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
           typename Plotter_t::arr_t first_raw_mom(tmp * 1e6); // 1st raw moment / mass [um / kg]
-          tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom2", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
           typename Plotter_t::arr_t second_raw_mom(tmp * 1e12); // 2nd raw moment / mass [um^2 / kg]
 
           typename Plotter_t::arr_t mean_r(first_raw_mom / zeroth_raw_mom);
@@ -611,7 +611,7 @@ void plot_series(Plotter_t plotter, Plots plots)
           res_tmp *= mask;
           res_tmp = sqrt(res_tmp);
 /*
-          tmp = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
+          tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
           typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
           if(com_N_c(at) > 0)
           {
@@ -644,7 +644,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         double rho_dry = 1769; //[kg/m^3] - density of ammonium sulfate from wikipedia
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rd_rng000_mom3", at * n["outfreq"]) * 4./3. * 3.14 * rho_dry * 1e3;
+          auto tmp = plotter.h5load_timestep("rd_rng000_mom3", at * n["outfreq"]) * 4./3. * 3.14 * rho_dry * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod * plotter.CellVol; // turn mixing ratio in g/kg to total mass in g
           res_prof(at) = blitz::sum(snap); 
@@ -675,7 +675,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           {
-            auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]) * 1e3; //g/kg
+            auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3; //g/kg
             typename Plotter_t::arr_t snap(tmp); 
             snap *= rhod; // water per cubic metre (should be wet density...)
             res_prof(at) = blitz::mean(snap); 
@@ -690,12 +690,12 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           {
-            auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]);
+            auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp); // cloud water mixing ratio [g/kg]
             rtot = snap;
           }
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]) * 1e3;
+            auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
             typename Plotter_t::arr_t snap(tmp); // vapor mixing ratio [g/kg]
             rtot += snap;
           }
@@ -710,7 +710,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // maximum variance of vertical velocity
         try
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
     //      Array<double, 1> mean(n["z"]);
           snap = snap * snap; // 2nd power, w_mean = 0

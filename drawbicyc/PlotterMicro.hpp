@@ -19,18 +19,17 @@ class PlotterMicro_t : public Plotter_t<NDims>
   public:
   // cloud droplets mixing ratio
   auto h5load_rc_timestep(
-    const string &file, 
     int at
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     if(this->micro == "lgrngn")
     {
-      auto snap = this->h5load_timestep(this->file, "cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
+      auto snap = this->h5load_timestep("cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
       res = arr_t(snap);
     }
     else if(this->micro == "blk_1m")
     {
-      auto snap = this->h5load_timestep(this->file, "rc", at);
+      auto snap = this->h5load_timestep("rc", at);
       res = arr_t(snap);
     }
     return blitz::safeToReturn(res + 0);
@@ -38,18 +37,17 @@ class PlotterMicro_t : public Plotter_t<NDims>
 
   // rain droplets mixing ratio
   auto h5load_rr_timestep(
-    const string &file, 
     int at
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     if(this->micro == "lgrngn")
     {
-      auto snap = this->h5load_timestep(this->file, "rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
+      auto snap = this->h5load_timestep("rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
       res = arr_t(snap);
     }
     else if(this->micro == "blk_1m")
     {
-      auto snap = this->h5load_timestep(this->file, "rc", at);
+      auto snap = this->h5load_timestep("rc", at);
       res = arr_t(snap);
     }
     return blitz::safeToReturn(res + 0);
@@ -57,23 +55,22 @@ class PlotterMicro_t : public Plotter_t<NDims>
 
   // activated drops mixing ratio
   auto h5load_ract_timestep(
-    const string &file, 
     int at
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     if(this->micro == "lgrngn")
     {
-      auto snap = this->h5load_timestep(this->file, "actrw_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
+      auto snap = this->h5load_timestep("actrw_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
       res = arr_t(snap);
     }
     else if(this->micro == "blk_1m")
     {
       {
-        auto snap = this->h5load_timestep(this->file, "rc", at);
+        auto snap = this->h5load_timestep("rc", at);
         res = arr_t(snap);
       }
       {
-        auto snap = this->h5load_timestep(this->file, "rr", at);
+        auto snap = this->h5load_timestep("rr", at);
         res += arr_t(snap);
       }
     }
@@ -82,11 +79,10 @@ class PlotterMicro_t : public Plotter_t<NDims>
 
   // height [m] of the center of mass of activated droplets
   double act_com_z_timestep(
-    const string &file, 
     int at
   )
   {
-    auto tmp = h5load_ract_timestep(this->file, at);
+    auto tmp = h5load_ract_timestep(at);
     arr_t ract(tmp);
     arr_t weighted(tmp);
     weighted = weighted * this->LastIndex * this->map["dz"];

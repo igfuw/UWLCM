@@ -37,7 +37,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
       {
         try{
 	// cloud water content
-        auto tmp = plotter.h5load_ract_timestep(plotter.file, at * n["outfreq"]) * 1e3;
+        auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3;
 
         std::string title = "cloud water mixing ratio [g/kg]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
@@ -50,7 +50,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	// rain water content
 	//                                                         rho_w  kg2g
-	auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+	auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
 	gp << "set logscale cb\n";
  	std::string title = "rain (r > 25um) water mixing ratio [g/kg]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
@@ -64,7 +64,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
       {
 	// cloud particle concentration
         try{
-	auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rw_mom0", at * n["outfreq"]) * 1e-6;
+	auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]) * 1e-6;
 	std::string title ="activated droplet spec. conc. [mg^{-1}]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [0:150]\n";
@@ -78,7 +78,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         // dry mass content
         // assume ammonium sulfate density of 1769 kg / m^3 (c.f. wikipedia)
         double rho_dry = 1769;
-	auto tmp = plotter.h5load_timestep(plotter.file, "rd_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e9 * rho_dry;
+	auto tmp = plotter.h5load_timestep("rd_rng000_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e9 * rho_dry;
 	gp << "set logscale cb\n";
 	std::string title ="dry mass mixing ratio [ug/kg]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
@@ -92,7 +92,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
       {
         try{
 	// rain particle concentration
-	auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom0", at * n["outfreq"]) * 1e-6;
+	auto tmp = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]) * 1e-6;
 	std::string title = "rain (r > 25um) drop spec. conc. [mg^{-1}]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [.01:10]\n";
@@ -106,7 +106,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
       {
         try{
 	// effective radius
-	auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]) / plotter.h5load_timestep(plotter.file, "cloud_rw_mom2", at * n["outfreq"]) * 1e6;
+	auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) / plotter.h5load_timestep("cloud_rw_mom2", at * n["outfreq"]) * 1e6;
 	std::string title = "cloud (0.5um < r < 25um) droplet effective radius [μm]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [1:20]\n";
@@ -140,7 +140,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "marker"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "mrk", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep("mrk", at * n["outfreq"]);
         plotter.plot(gp, tmp);
         }
         catch(...){}
@@ -150,7 +150,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "water vapour mixing ratio [g/kg]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]) * 1e3;
+        auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
         plotter.plot(gp, tmp);
         }
         catch(...){}
@@ -160,7 +160,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "dry air potential temperature [K]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "th", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
         plotter.plot(gp, tmp);
         }
         catch(...){}
@@ -170,7 +170,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "velocity in x [m/s]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "u", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep("u", at * n["outfreq"]);
         plotter.plot(gp, tmp);
         }
         catch(...){}
@@ -180,7 +180,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "velocity in z [m/s]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
         plotter.plot(gp, tmp);
         }
         catch(...){}
@@ -190,7 +190,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "velocity field divergence"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "vel_div", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep("vel_div", at * n["outfreq"]);
         plotter.plot(gp, tmp);
         }
         catch(...){}
@@ -200,7 +200,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "relative humidity"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
         plotter.plot(gp, tmp);
         }
         catch(...){}
@@ -210,7 +210,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "supersaturation [%]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
         typename Plotter_t::arr_t snap(tmp);
         snap -= 1.;
         snap *= 100;
@@ -224,7 +224,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "number of super-droplets"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "sd_conc", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
         plotter.plot(gp, tmp);
         }
         catch(...){}

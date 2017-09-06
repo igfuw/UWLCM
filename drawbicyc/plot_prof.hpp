@@ -72,12 +72,12 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// liquid water content (cloud + rain, missing droplets with r<0.5um!)
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res += snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res += snap; 
         }
@@ -87,12 +87,12 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// gccn (rd>1um) droplets dry radius
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "gccn_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
@@ -103,12 +103,12 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	//non gccn (rd<1um) droplets dry radius
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "non_gccn_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
@@ -119,17 +119,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// non-gccn (rd<2um) droplets dry radius in downdraughts
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "non_gccn_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp); // mean radius
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isdowndraught(snap); // downdraft mask
           res_tmp *= res_tmp2; // apply the mask
@@ -143,17 +143,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// gccn (rd>2um) droplets dry radius in downdraughts
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "gccn_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isdowndraught(snap);
           res_tmp *= res_tmp2;
@@ -167,17 +167,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// non-gccn (rd<2um) droplets dry radius in updraughts
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "non_gccn_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
@@ -191,17 +191,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// gccn (rd>2um) droplets dry radius in updraughts
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "gccn_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
@@ -215,17 +215,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// ultra-gccn (rd>5um) droplets dry radius in downdraughts
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "ugccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("ugccn_rw_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "ugccn_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("ugccn_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isdowndraught(snap);
           res_tmp *= res_tmp2;
@@ -239,14 +239,14 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
         // 0th-mom (concentration) of droplets with RH > Sc
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actRH_rd_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actRH_rd_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap;
           res_tmp *= rhod / 1e6; // per cm^3
         }
         // updraft only
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
@@ -257,7 +257,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
         // 0th-mom of droplets with rw>rc
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rd_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rd_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap;
           res_tmp *= rhod / 1e6; // per cm^3
@@ -271,19 +271,19 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// RH > Sc droplets first dry mom
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actRH_rd_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("actRH_rd_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         // divide by 0th-mom (number of droplets)
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actRH_rd_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actRH_rd_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(snap > 0 , res_tmp / snap, res_tmp);
         }
         // updraft only
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
@@ -294,13 +294,13 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
 	// rw > rc droplets first dry mom
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rd_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("actrw_rd_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         // divide by 0th-mom (number of droplets)
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rd_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rd_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(snap > 0 , res_tmp / snap, res_tmp);
         }
@@ -313,12 +313,12 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// activated droplets dry radius
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actRH_rd_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("actRH_rd_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actRH_rd_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actRH_rd_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(snap > 0 , res_tmp / snap, res_tmp);
           res_tmp = snap;
@@ -330,12 +330,12 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// activated droplets dry radius
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rd_mom1", at * n["outfreq"]) * 1e6;
+          auto tmp = plotter.h5load_timestep("actrw_rd_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "actrw_rd_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("actrw_rd_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(snap > 0 , res_tmp / snap, res_tmp);
           res_tmp = snap;
@@ -346,7 +346,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       else if (plt == "rv")
       {
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]) * 1e3;
+          auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap;
         }
@@ -358,12 +358,12 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       else if (plt == "sat_RH")
       {
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "RH", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap -1;
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
@@ -381,17 +381,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// total water content (vapor + cloud + rain, missing droplets with r<0.5um!)
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp += snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]) * 1e3;
+          auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp += snap;
         }
@@ -405,7 +405,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// cloud drops concentration [1/cm^3]
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -418,17 +418,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 	// liquid potential temp [K]
         {
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
+            auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
             res_tmp2 = snap; 
           }
           {
-            auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
+            auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
             res_tmp2 += snap; 
           }
           // res_tmp2 is now q_l (liq water content)
-          auto tmp = plotter.h5load_timestep(plotter.file, "th", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp); // snap is theta_dry
           res_tmp = pow(snap * pow(rhod * R_d / (p_1000 * 100), R_d / c_pd), c_pd / (c_pd - R_d)); // res_tmp is now temperature; 1 bar = 100 000Pa
           snap *= (res_tmp - res_tmp2 * L / c_p) / res_tmp; 
@@ -441,7 +441,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// cloud fraction (cloudy if N_c > 20/cm^3)
         {
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -454,7 +454,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// precipitation flux(doesnt include vertical volicty w!)
         { 
-          auto tmp = plotter.h5load_timestep(plotter.file, "precip_rate", at * n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("precip_rate", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap = snap *  4./3 * 3.14 * 1e3 // to get mass
                      / plotter.CellVol    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
@@ -464,9 +464,9 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 	// add vertical velocity to precipitation flux (3rd mom of cloud drops * w)
 /*
         { 
-          auto tmp = plotter.h5load_timestep(plotter.file, "cloud_rw_mom3", at * n["outfreq"]); // this time its a specific moment
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]); // this time its a specific moment
           typename Plotter_t::arr_t snap(tmp);
-	  auto tmp2 = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+	  auto tmp2 = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap2(tmp2);
           snap = - (snap * snap2) *  4./3 * 3.14 * 1e3 // to get mass
                      * rhod           // dry air density
@@ -475,9 +475,9 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         }
 	// add vertical velocity to precipitation flux (3rd mom of rain drops * w)
         { 
-          auto tmp = plotter.h5load_timestep(plotter.file, "rain_rw_mom3", at * n["outfreq"]); // this time its a specific moment
+          auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]); // this time its a specific moment
           typename Plotter_t::arr_t snap(tmp);
-	  auto tmp2 = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+	  auto tmp2 = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap2(tmp2);
           snap = - (snap * snap2) *  4./3 * 3.14 * 1e3 // to get mass
                      * rhod           // dry air density
@@ -491,7 +491,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       else if (plt == "wvar")
       {
 	// variance of vertical velocity, w_mean=0
-	auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+	auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
         typename Plotter_t::arr_t snap(tmp);
         snap = snap * snap; // 2nd power
         res += snap;
@@ -500,7 +500,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       else if (plt == "w3rd")
       {
 	// 3rd mom of vertical velocity, w_mean=0
-	auto tmp = plotter.h5load_timestep(plotter.file, "w", at * n["outfreq"]);
+	auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
         typename Plotter_t::arr_t snap(tmp);
         snap = snap * snap * snap; // 3rd power
         res += snap;
