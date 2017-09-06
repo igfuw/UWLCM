@@ -106,26 +106,9 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-
-          typename Plotter_t::arr_t snap(tmp);
-          
-          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
-          snap *= res_tmp; // apply filter
-          snap *= 1e3; // turn it into g/kg
-          
-          if(blitz::sum(res_tmp) > 0.)
-            res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
-          else
-            res_prof(at) = 0.;
-
-          snap = pow(snap - res_prof(at), 2);
-          snap *= res_tmp; // apply filter
-          if(res_prof(at)>0)
-            res_prof_std_dev(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
-          else
-            res_prof_std_dev(at) = 0.;
+          auto stats = plotter.cloud_ract_stats_timestep(at * n["outfreq"]);
+          res_prof(at) = stats.first;
+          res_prof_std_dev(at) = stats.second;
         }
         catch(...) {;}
       }

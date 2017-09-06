@@ -37,10 +37,10 @@ int main(int ac, char** av)
   };
   // average rc
   unordered_map<string, std::array<float, 11>> data_avg = {
-//    {"blk_1m", {{0, 1.3249e-05, 0.000111779, 0.000275816, 0.000421085, 0.000552938, 0.000621531, 0.000585304, 0.000513864, 0.000440379, 0.000406745}}}, // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
-    {"blk_1m", {{0, 0, 0.000185381, 0.000357674, 0.000518615, 0.000635203, 0.000707202, 0.000733656, 0.000686596, 0.000556995, 0.000425793 }}}, // new values, i.e. for env profs from the twomey SD paper and for abs instead of iga&fct
-//    {"lgrngn", {{0, 0, 9.43111e-05, 0.000258181, 0.00041635, 0.000533337, 0.000590126, 0.000575933, 0.000496402, 0.000391189, 0.000295669}}} // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
-    {"lgrngn", {{ 0, 0, 0.000179877, 0.000374551, 0.000552171, 0.000704754, 0.000790675, 0.000791144, 0.00073452, 0.000648194, 0.000548742}}}  // values for NaCl and env_profs used in the twomey SD bubble paper
+//    {"blk_1m", {{0, 1.3249e-02, 0.111779, 0.275816, 0.421085, 0.552938, 0.621531, 0.585304, 0.513864, 0.440379, 0.406745}}}, // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
+    {"blk_1m", {{0, 0, 0.185381, 0.357674, 0.518615, 0.635203, 0.707202, 0.733656, 0.686596, 0.556995, 0.425793 }}}, // new values, i.e. for env profs from the twomey SD paper and for abs instead of iga&fct
+//    {"lgrngn", {{0, 0, 9.43111e-02, 0.258181, 0.41635, 0.533337, 0.590126, 0.575933, 0.496402, 0.391189, 0.295669}}} // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
+    {"lgrngn", {{ 0, 0, 0.179877, 0.374551, 0.552171, 0.704754, 0.790675, 0.791144, 0.73452, 0.648194, 0.548742}}}  // values for NaCl and env_profs used in the twomey SD bubble paper
   };
   // relative precision at given timestep
   unordered_map<string, std::array<float, 11>> eps = { 
@@ -88,20 +88,8 @@ int main(int ac, char** av)
 
     // average cloud water mixing ratio in cloudy cells
     for (int at = 0; at < n["t"]; ++at)
-    {
-      {
-        auto tmp = plotter.h5load_ract_timestep(at * 60);
-        typename Plotter_t::arr_t ract(tmp);
-        typename Plotter_t::arr_t mask(tmp);
-        mask = iscloudy_rc(mask);
-        ract *= mask; // apply filter
+      result(at) = (plotter.cloud_ract_stats_timestep(at * 60)).first;
 
-        if(blitz::sum(mask) > 0.)
-          result(at) = blitz::sum(ract) / blitz::sum(mask);
-        else
-          result(at) = 0.;
-      }
-    }
     expected_result = blitz::Array<float, 1>(data_avg[opts_m.first].data(), 11, blitz::neverDeleteData);
     rel_err = where(expected_result > 0, abs(result - expected_result) / expected_result - epsilon, 0);
     std::cout << "average cloud water mixing ratio in cloudy cells: " << result;

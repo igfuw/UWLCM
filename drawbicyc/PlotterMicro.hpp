@@ -78,9 +78,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
   }
 
   // height [m] of the center of mass of activated droplets
-  double act_com_z_timestep(
-    int at
-  )
+  double act_com_z_timestep(int at)
   {
     auto tmp = h5load_ract_timestep(at);
     arr_t ract(tmp);
@@ -90,6 +88,34 @@ class PlotterMicro_t : public Plotter_t<NDims>
       return blitz::sum(weighted) / blitz::sum(ract);
     else
       return 0.; 
+  }
+
+  // mean and std dev [g/kg] of the mixing ratio of activated dropelts in cloudy cells
+  std::pair<double, double> cloud_ract_stats_timestep(int at)
+  {
+    std::pair<double, double> res;
+    // read activated droplets mixing ratio 
+    auto tmp = h5load_ract_timestep(at);
+    arr_t ract(tmp);
+    arr_t mask(tmp);
+    
+    mask = iscloudy_rc(mask);
+    ract *= mask; // apply filter
+    ract *= 1e3; // turn it into g/kg
+    
+    if(blitz::sum(mask) > 0.) 
+      res.first = blitz::sum(ract) / blitz::sum(mask); 
+    else
+      res.first = 0.; 
+
+    ract = pow(ract - res.first, 2); 
+    ract *= mask; // apply filter
+    if(res.first>0)
+      res.second = sqrt(blitz::sum(ract) / blitz::sum(mask)); 
+    else
+      res.second = 0.;
+
+    return res;
   }
 
   //ctor
