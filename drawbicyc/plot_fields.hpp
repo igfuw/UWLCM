@@ -150,7 +150,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "water vapour mixing ratio [g/kg]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]);
+        auto tmp = plotter.h5load_timestep(plotter.file, "rv", at * n["outfreq"]) * 1e3;
         plotter.plot(gp, tmp);
         }
         catch(...){}
