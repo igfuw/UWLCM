@@ -158,8 +158,8 @@ class PlotterMicro_t : public Plotter_t<NDims>
     res(this->tmp.shape())
   {
     // read the density
-    auto tmp = this->h5load(file + "/const.h5", "G");
-    rhod = tmp;
+    rhod.resize(this->tmp.shape());
+    rhod = this->h5load(file + "/const.h5", "G");
   }
 };
 
