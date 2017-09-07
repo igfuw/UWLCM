@@ -96,9 +96,10 @@ class PlotterMicro_t : public Plotter_t<NDims>
   {
     std::pair<double, double> res;
     // read activated droplets mixing ratio 
-    auto tmp = h5load_ract_timestep(at);
-    arr_t ract(tmp);
-    arr_t mask(tmp);
+//    auto tmp = h5load_ract_timestep(at);
+    arr_t ract(h5load_ract_timestep(at));
+  //  arr_t ract(tmp);
+    arr_t mask(ract.copy());
     
     mask = iscloudy_rc(mask);
     ract *= mask; // apply filter
@@ -130,8 +131,8 @@ class PlotterMicro_t : public Plotter_t<NDims>
     mask = iscloudy_rc(mask);
 
     // read concentration of activated droplets
-    tmp = this->h5load_timestep("actrw_rw_mom0", at);
-    arr_t actconc(tmp);
+    auto tmp2 = this->h5load_timestep("actrw_rw_mom0", at);
+    arr_t actconc(tmp2);
 
     actconc *= rhod; // b4 it was specific moment
     actconc /= 1e6; // per cm^3
