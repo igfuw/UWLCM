@@ -15,6 +15,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
   protected:
   std::string micro;
   arr_t res;
+  arr_t rhod;
 
   public:
   // cloud droplets mixing ratio
@@ -118,11 +119,47 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return res;
   }
 
+  // mean and std_dev of concentration of activated droplets in cloudy cells [1/cm^3]
+  std::pair<double, double> cloud_actconc_stats_timestep(int at)
+  {   
+    std::pair<double, double> res;
+
+    // read activated droplets mixing ratio to find cloudy cells
+    auto tmp = h5load_ract_timestep(at);
+    arr_t mask(tmp);
+    mask = iscloudy_rc(mask);
+
+    // read concentration of activated droplets
+    tmp = this->h5load_timestep("actrw_rw_mom0", at);
+    arr_t actconc(tmp);
+
+    actconc *= rhod; // b4 it was specific moment
+    actconc /= 1e6; // per cm^3
+    actconc *= mask; //apply the cloudiness mask
+    if(blitz::sum(mask) > 0)
+      res.first = blitz::sum(actconc) / blitz::sum(mask); 
+    else
+      res.first = 0;
+  
+    actconc = pow(actconc - res.first, 2); 
+    actconc *= mask; // apply filter
+    if(res.first>0)
+      res.second = sqrt(blitz::sum(actconc) / blitz::sum(mask)); 
+    else
+      res.second = 0.; 
+
+    return res;
+  } 
+
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),
     micro(micro),
     res(this->tmp.shape())
-  {}
+  {
+    // read the density
+    auto tmp = this->h5load(file + "/const.h5", "G");
+    rhod = tmp;
+  }
 };
 

@@ -176,35 +176,6 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
-      // relative std dev of r_act for over cells with r_act > 1.e-5
-      else if (plt == "ract_std_dev")
-      {
-        try
-        {
-          // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          
-          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
-          snap *= res_tmp; // apply filter
-   
-          double avg_ract; // average cloud water mixing ratio
-          
-          if(blitz::sum(res_tmp) > 0.)
-            avg_ract = blitz::sum(snap) / blitz::sum(res_tmp); 
-          else
-            avg_ract = 0.;
-
-          snap = pow(snap - avg_ract, 2);
-          snap *= res_tmp; // apply filter
-          if(avg_ract>0)
-            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)) / avg_ract; 
-          else
-            res_prof(at) = 0.;
-          
-        }
-        catch(...) {;}
-      }
       else if (plt == "tot_water")
       {
         try
@@ -427,59 +398,9 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          auto tmp_ract = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          // read activated droplets mixing ratio to res_tmp 
-          typename Plotter_t::arr_t snap_ract(tmp_ract);
-          res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
-          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap *= res_tmp; //apply the cloudiness mask
-          if(blitz::sum(res_tmp) > 0)
-            res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
-          else
-            res_prof(at) = 0;
-          
-          snap = pow(snap - res_prof(at), 2);
-          snap *= res_tmp; // apply filter
-          if(res_prof(at)>0)
-            res_prof_std_dev(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
-          else
-            res_prof_std_dev(at) = 0.;
-          
-        }
-        catch(...){;}
-      }
-      // relative std_dev of concentration of activated droplets in cloudy cells
-      else if (plt == "cloud_std_dev_act_conc")
-      {
-        try
-        {
-          // read activated droplets mixing ratio to res_tmp 
-          auto tmp_ract = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap_ract(tmp_ract);
-          res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
-
-          // cloud fraction (cloudy if rc>0.1g/kg)
-          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap *= res_tmp; //apply the cloudiness mask
-
-          double avg;
-          if(blitz::sum(res_tmp) > 0)
-            avg = blitz::sum(snap) / blitz::sum(res_tmp); 
-          else
-            avg = 0;
-
-          snap = pow(snap - avg, 2);
-          snap *= res_tmp; // apply filter
-          if(avg>0)
-            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)) / avg; 
-          else
-            res_prof(at) = 0.;
+          auto stats = plotter.cloud_actconc_stats_timestep(at * n["outfreq"]);
+          res_prof(at) = stats.first;
+          res_prof_std_dev(at) = stats.second;
         }
         catch(...){;}
       }

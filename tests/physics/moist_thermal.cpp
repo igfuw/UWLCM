@@ -21,15 +21,15 @@ bool errcheck(barr1d result, barr1d expected_result, barr1d epsilon)
 {
   barr1d rel_err(result.shape());
   rel_err = where(expected_result > 0, abs(result - expected_result) / expected_result - epsilon, 0);
-  if(any(rel_err > 0.))
-  {
+//  if(any(rel_err > 0.))
+//  {
     std::cerr << "ERROR" << std::endl;
     std::cerr << "expected result: " << expected_result;
     std::cerr << "relative error minus precision: " << rel_err;
     return 1;
-  }
-  else
-    return 0;
+//  }
+//  else
+//    return 0;
 }
 
 struct test_data
@@ -105,6 +105,42 @@ int main(int ac, char** av)
     }
   });
 
+  // average concentration of activated dropletes in cloudy cells
+  tests.push_back({
+    // test name
+    "actconc_avg",
+    // expected values map
+    {
+  //    {"blk_1m", {{0, 1.3249e-02, 0.111779, 0.275816, 0.421085, 0.552938, 0.621531, 0.585304, 0.513864, 0.440379, 0.406745}}}, // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
+      {"blk_1m", {{0, 0, 0.185381, 0.357674, 0.518615, 0.635203, 0.707202, 0.733656, 0.686596, 0.556995, 0.425793 }}}, // new values, i.e. for env profs from the twomey SD paper and for abs instead of iga&fct
+  //    {"lgrngn", {{0, 0, 9.43111e-02, 0.258181, 0.41635, 0.533337, 0.590126, 0.575933, 0.496402, 0.391189, 0.295669}}} // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
+      {"lgrngn", {{ 0, 0, 0.179877, 0.374551, 0.552171, 0.704754, 0.790675, 0.791144, 0.73452, 0.648194, 0.548742}}}  // values for NaCl and env_profs used in the twomey SD bubble paper
+    },
+    // epsilons map
+    {
+      {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },  // why larger near the end?
+      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 5e-1, 5e-1, 1.5}} }   // during evaporation we get large fluctuations
+    }
+  });
+
+  // stqandard deviation of the concentration of activated dropletes in cloudy cells
+  tests.push_back({
+    // test name
+    "actconc_std_dev",
+    // expected values map
+    {
+  //    {"blk_1m", {{0, 1.3249e-02, 0.111779, 0.275816, 0.421085, 0.552938, 0.621531, 0.585304, 0.513864, 0.440379, 0.406745}}}, // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
+      {"blk_1m", {{0, 0, 0.185381, 0.357674, 0.518615, 0.635203, 0.707202, 0.733656, 0.686596, 0.556995, 0.425793 }}}, // new values, i.e. for env profs from the twomey SD paper and for abs instead of iga&fct
+  //    {"lgrngn", {{0, 0, 9.43111e-02, 0.258181, 0.41635, 0.533337, 0.590126, 0.575933, 0.496402, 0.391189, 0.295669}}} // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
+      {"lgrngn", {{ 0, 0, 0.179877, 0.374551, 0.552171, 0.704754, 0.790675, 0.791144, 0.73452, 0.648194, 0.548742}}}  // values for NaCl and env_profs used in the twomey SD bubble paper
+    },
+    // epsilons map
+    {
+      {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },  // why larger near the end?
+      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 5e-1, 5e-1, 1.5}} }   // during evaporation we get large fluctuations
+    }
+  });
+
 /*
   // expected results
   // center of mass of rc
@@ -167,6 +203,10 @@ int main(int ac, char** av)
           result(at) = (plotter.cloud_ract_stats_timestep(at * 60)).first;
         else if(test.name == "rc_std_dev")
           result(at) = (plotter.cloud_ract_stats_timestep(at * 60)).second;
+        else if(test.name == "actconc_avg")
+          result(at) = (plotter.cloud_actconc_stats_timestep(at * 60)).first;
+        else if(test.name == "actconc_std_dev")
+          result(at) = (plotter.cloud_actconc_stats_timestep(at * 60)).second;
       }
 
       // output the result
