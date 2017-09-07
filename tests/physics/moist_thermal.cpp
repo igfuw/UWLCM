@@ -34,6 +34,7 @@ bool errcheck(barr1d result, barr1d expected_result, barr1d epsilon)
 
 struct test_data
 {
+  string name;
   unordered_map<string, std::array<double, 11>> expected,
                                                 epsilon;
 };
@@ -51,9 +52,11 @@ int main(int ac, char** av)
   });
 
   // container for the expecged result and the epslion (req precision) for each tested statistic
-  unordered_map<string, test_data> tests;
+  vector<test_data> tests;
   // populate it - height of the center of mass
-  tests["com_z"] = {
+  tests.push_back({
+    // test name
+    "com_z",
     // expected values map
     {
 //    {"blk_1m", {{0., 0.,      915.282, 1006.67, 1101.82, 1183.7,  1245.3,  1292.47, 1326.17, 1340.71, 1346.41}}}, // old values from before the twomey SD bubble paper
@@ -65,9 +68,12 @@ int main(int ac, char** av)
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },  // why larger near the end?
       {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 5e-1, 5e-1, 1.5}} }   // during evaporation we get large fluctuations
     }
-  };
+  });
+
   // average mass mixing ratio of activated dropletes in cloudy cells
-  tests["rc_avg"] = {
+  tests.push_back({
+    // test name
+    "rc_avg",
     // expected values map
     {
   //    {"blk_1m", {{0, 1.3249e-02, 0.111779, 0.275816, 0.421085, 0.552938, 0.621531, 0.585304, 0.513864, 0.440379, 0.406745}}}, // old values from before the twomey SD bubble paper (ammonium sulphate aerosol + old env_profs + iga&fct)
@@ -80,9 +86,12 @@ int main(int ac, char** av)
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },  // why larger near the end?
       {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 5e-1, 5e-1, 1.5}} }   // during evaporation we get large fluctuations
     }
-  };
+  });
+
   // standard deviation of the mass mixing ratio of activated droplets in cloudy cells
-  tests["rc_std_dev"] = {
+  tests.push_back({
+    // test name
+    "rc_std_dev",
     // expected values map
     {
       {"blk_1m", {{0, 0, 0.0189641, 0.0669555, 0.137429, 0.210689, 0.266551, 0.30766, 0.333871, 0.310118, 0.232963}}},
@@ -94,7 +103,7 @@ int main(int ac, char** av)
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },  // why larger near the end?
       {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 5e-1, 5e-1, 1.5}} }   // during evaporation we get large fluctuations
     }
-  };
+  });
 
 /*
   // expected results
@@ -152,19 +161,19 @@ int main(int ac, char** av)
       // calculate the statistic from the simulation at each output step
       for (int at = 0; at < n["t"]; ++at)
       {
-        if(test.first == "com_z")
+        if(test.name == "com_z")
           result(at) = plotter.act_com_z_timestep(at * 60); 
-        else if(test.first == "rc_avg")
+        else if(test.name == "rc_avg")
           result(at) = (plotter.cloud_ract_stats_timestep(at * 60)).first;
-        else if(test.first == "rc_std_dev")
+        else if(test.name == "rc_std_dev")
           result(at) = (plotter.cloud_ract_stats_timestep(at * 60)).second;
       }
 
       // output the result
-      cout << test.first << " : " << result;
+      cout << test.name<< " : " << result;
       // read in expected result and the epsilon
-      blitz::Array<double, 1> expected_result(test.second.expected[opts_m.first].data(), 11, blitz::neverDeleteData);
-      blitz::Array<double, 1> epsilon(test.second.epsilon[opts_m.first].data(), 11, blitz::neverDeleteData);
+      blitz::Array<double, 1> expected_result(test.expected[opts_m.first].data(), 11, blitz::neverDeleteData);
+      blitz::Array<double, 1> epsilon(test.epsilon[opts_m.first].data(), 11, blitz::neverDeleteData);
       // check if there is an agreement
       err_flag = errcheck(result, expected_result, epsilon) || err_flag;
     }
