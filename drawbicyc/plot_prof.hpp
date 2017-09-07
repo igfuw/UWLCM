@@ -32,8 +32,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
   std::ofstream oprof_file(prof_file);
 
   // read in density
-  auto tmp = plotter.h5load(plotter.file + "/const.h5", "G");
-  typename Plotter_t::arr_t rhod(tmp);
+  typename Plotter_t::arr_t rhod(plotter.h5load(plotter.file + "/const.h5", "G"));
   typename Plotter_t::arr_t rtot(rhod.shape());
 
   int k_i = 0; // inversion cell
@@ -71,66 +70,38 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       if (plt == "rliq")
       {
 	// liquid water content (cloud + rain, missing droplets with r<0.5um!)
-        {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res += snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res += snap; 
-        }
+        res += plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+        res += plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
         gp << "set title 'liquid water r [g/kg] averaged over 2h-6h, w/o rw<0.5um'\n";
       }
       if (plt == "gccn_rw")
       {
 	// gccn (rd>1um) droplets dry radius
-        {
-          auto tmp = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
-        }
+        res_tmp = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+        typename Plotter_t::arr_t snap(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+        res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         res += res_tmp;
         gp << "set title 'gccn-based droplets mean wet radius'\n";
       }
       if (plt == "non_gccn_rw")
       {
 	//non gccn (rd<1um) droplets dry radius
-        {
-          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
-        }
+        res_tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+        typename Plotter_t::arr_t snap(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
+        res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         res += res_tmp;
         gp << "set title 'non-gccn-based droplets mean wet radius'\n";
       }
       if (plt == "non_gccn_rw_down")
       {
 	// non-gccn (rd<2um) droplets dry radius in downdraughts
+        res_tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
         {
-          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp); // mean radius
         }
         {
-          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("w", at * n["outfreq"]));
           res_tmp2 = isdowndraught(snap); // downdraft mask
           res_tmp *= res_tmp2; // apply the mask
         }

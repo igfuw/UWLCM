@@ -210,8 +210,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "supersaturation [%]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
-        typename Plotter_t::arr_t snap(tmp);
+        typename Plotter_t::arr_t snap(plotter.h5load_timestep("RH", at * n["outfreq"]));
         snap -= 1.;
         snap *= 100;
         gp << "set cbrange[0:3]\n";

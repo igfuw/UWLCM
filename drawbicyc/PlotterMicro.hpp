@@ -24,15 +24,9 @@ class PlotterMicro_t : public Plotter_t<NDims>
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     if(this->micro == "lgrngn")
-    {
-      auto snap = this->h5load_timestep("cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
-      res = arr_t(snap);
-    }
+      res = this->h5load_timestep("cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
     else if(this->micro == "blk_1m")
-    {
-      auto snap = this->h5load_timestep("rc", at);
-      res = arr_t(snap);
-    }
+      res = this->h5load_timestep("rc", at);
     return blitz::safeToReturn(res + 0);
   }
 
@@ -42,15 +36,9 @@ class PlotterMicro_t : public Plotter_t<NDims>
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     if(this->micro == "lgrngn")
-    {
-      auto snap = this->h5load_timestep("rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
-      res = arr_t(snap);
-    }
+      res = this->h5load_timestep("rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
     else if(this->micro == "blk_1m")
-    {
-      auto snap = this->h5load_timestep("rc", at);
-      res = arr_t(snap);
-    }
+      res = this->h5load_timestep("rc", at);
     return blitz::safeToReturn(res + 0);
   }
 
@@ -60,20 +48,11 @@ class PlotterMicro_t : public Plotter_t<NDims>
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     if(this->micro == "lgrngn")
-    {
-      auto snap = this->h5load_timestep("actrw_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
-      res = arr_t(snap);
-    }
+      res = this->h5load_timestep("actrw_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
     else if(this->micro == "blk_1m")
     {
-      {
-        auto snap = this->h5load_timestep("rc", at);
-        res = arr_t(snap);
-      }
-      {
-        auto snap = this->h5load_timestep("rr", at);
-        res += arr_t(snap);
-      }
+      res = this->h5load_timestep("rc", at);
+      res += arr_t(this->h5load_timestep("rr", at));
     }
     return blitz::safeToReturn(res + 0);
   }
@@ -81,9 +60,8 @@ class PlotterMicro_t : public Plotter_t<NDims>
   // height [m] of the center of mass of activated droplets
   double act_com_z_timestep(int at)
   {
-    auto tmp = h5load_ract_timestep(at);
-    arr_t ract(tmp);
-    arr_t weighted(tmp);
+    arr_t ract(h5load_ract_timestep(at));
+    arr_t weighted(ract.copy());
     weighted = weighted * this->LastIndex * this->map["dz"];
     if(blitz::sum(ract) > 1e-3)
       return blitz::sum(weighted) / blitz::sum(ract);
@@ -96,9 +74,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
   {
     std::pair<double, double> res;
     // read activated droplets mixing ratio 
-//    auto tmp = h5load_ract_timestep(at);
     arr_t ract(h5load_ract_timestep(at));
-  //  arr_t ract(tmp);
     arr_t mask(ract.copy());
     
     mask = iscloudy_rc(mask);
@@ -126,13 +102,11 @@ class PlotterMicro_t : public Plotter_t<NDims>
     std::pair<double, double> res;
 
     // read activated droplets mixing ratio to find cloudy cells
-    auto tmp = h5load_ract_timestep(at);
-    arr_t mask(tmp);
+    arr_t mask(h5load_ract_timestep(at));
     mask = iscloudy_rc(mask);
 
     // read concentration of activated droplets
-    auto tmp2 = this->h5load_timestep("actrw_rw_mom0", at);
-    arr_t actconc(tmp2);
+    arr_t actconc(this->h5load_timestep("actrw_rw_mom0", at));
 
     actconc *= rhod; // b4 it was specific moment
     actconc /= 1e6; // per cm^3
@@ -156,11 +130,9 @@ class PlotterMicro_t : public Plotter_t<NDims>
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),
     micro(micro),
-    res(this->tmp.shape())
+    res(this->tmp.shape()),
+    rhod(this->h5load(file + "/const.h5", "G"))
   {
-    // read the density
-    rhod.resize(this->tmp.shape());
-    rhod = this->h5load(file + "/const.h5", "G");
   }
 };
 
