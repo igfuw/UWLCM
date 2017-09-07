@@ -99,6 +99,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
   // mean and std_dev of concentration of activated droplets in cloudy cells [1/cm^3]
   std::pair<double, double> cloud_actconc_stats_timestep(int at)
   {   
+    if(this->micro == "blk_1m") return {0,0};
     std::pair<double, double> res;
 
     // read activated droplets mixing ratio to find cloudy cells
