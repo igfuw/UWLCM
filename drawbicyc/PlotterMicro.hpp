@@ -127,6 +127,34 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return res;
   } 
 
+  // mean and std_dev of supersaturation in cells with positive supersaturation [%]
+  std::pair<double, double> positive_supersat_stats_timestep(int at)
+  {   
+    if(this->micro == "blk_1m") return {0,0};
+    std::pair<double, double> res;
+
+    // read RH 
+    arr_t RH(this->h5load_timestep("RH", at));
+    RH -= 1.; 
+    arr_t sat(RH.copy());
+    sat = iscloudy_sat(RH);
+    RH *= sat; //apply the cloudiness mask
+    RH *= 100; // to get %
+    if(blitz::sum(sat) > 0)
+      res.first = blitz::sum(RH) / blitz::sum(sat); 
+    else
+      res.first = 0;
+  
+    RH = pow(RH - res.first, 2); 
+    RH *= sat; // apply filter
+    if(res.first>0)
+      res.second = sqrt(blitz::sum(RH) / blitz::sum(sat)); 
+    else
+      res.second = 0.; 
+
+    return res;
+  }
+
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),

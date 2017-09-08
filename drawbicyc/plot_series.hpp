@@ -409,52 +409,9 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          // read RH 
-          auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap -= 1.;
-          res_tmp = iscloudy_sat(snap);
-          snap *= res_tmp; //apply the cloudiness mask
-          snap *= 100; // to get %
-          if(blitz::sum(res_tmp) > 0)
-            res_prof(at) = blitz::sum(snap) / blitz::sum(res_tmp); 
-          else
-            res_prof(at) = 0;
-          
-          snap = pow(snap - res_prof(at), 2);
-          snap *= res_tmp; // apply filter
-          if(res_prof(at)>0)
-            res_prof_std_dev(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)); 
-          else
-            res_prof_std_dev(at) = 0.;
-          
-        }
-        catch(...){;}
-      }
-      // rel std_dev of supersaturation in cells with S>0
-      else if (plt == "cloud_std_dev_supersat")
-      {
-        try
-        {
-          // read RH 
-          auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap -= 1.;
-          res_tmp = iscloudy_sat(snap);
-          snap *= res_tmp; //apply the cloudiness mask
-          snap *= 100; // to get %
-          double avg;
-          if(blitz::sum(res_tmp) > 0)
-            avg = blitz::sum(snap) / blitz::sum(res_tmp); 
-          else
-            avg = 0;
-
-          snap = pow(snap - avg, 2);
-          snap *= res_tmp; // apply filter
-          if(avg>0)
-            res_prof(at) = sqrt(blitz::sum(snap) / blitz::sum(res_tmp)) / avg; 
-          else
-            res_prof(at) = 0.;
+          auto stats = plotter.positive_supersat_stats_timestep(at * n["outfreq"]);
+          res_prof(at) = stats.first;
+          res_prof_std_dev(at) = stats.second;
         }
         catch(...){;}
       }

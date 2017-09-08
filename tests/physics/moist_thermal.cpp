@@ -96,7 +96,7 @@ int main(int ac, char** av)
     },
     // epsilons map
     {
-      {"blk_1m", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 2e-2, 2e-2, 4e-2, 6e-2}} },
+      {"blk_1m", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 3e-2, 5e-2, 7e-2, 10e-2}} },
       {"lgrngn", {{1e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 10e-2}} } 
     }
   });
@@ -122,6 +122,40 @@ int main(int ac, char** av)
   tests.push_back({
     // test name
     "actconc_std_dev",
+    // expected values map
+    {
+      {"blk_1m", {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
+      {"lgrngn", {{0, 0, 27.902, 30.7292, 31.9791, 30.947, 32.4312, 34.3208, 35.8673, 35.6399, 34.2308}}}  
+
+    },
+    // epsilons map
+    {
+      {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
+      {"lgrngn", {{15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2}} } 
+    }
+  });
+
+  // average supersaturation in supersaturated cells
+  tests.push_back({
+    // test name
+    "supersat_avg",
+    // expected values map
+    {
+      {"blk_1m", {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
+      {"lgrngn", {{0, 0, 89.2595, 87.5162, 86.9183, 86.0386, 83.6924, 80.9611, 78.7904, 76.5399, 73.252}}}  
+
+    },
+    // epsilons map
+    {
+      {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
+      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2}} } 
+    }
+  });
+
+  // std dev of supersaturation in supersaturated cells
+  tests.push_back({
+    // test name
+    "supersat_std_dev",
     // expected values map
     {
       {"blk_1m", {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
@@ -174,6 +208,10 @@ int main(int ac, char** av)
           result(at) = (plotter.cloud_actconc_stats_timestep(at * 60)).first;
         else if(test.name == "actconc_std_dev")
           result(at) = (plotter.cloud_actconc_stats_timestep(at * 60)).second;
+        else if(test.name == "supersat_avg")
+          result(at) = (plotter.positive_supersat_stats_timestep(at * 60)).first;
+        else if(test.name == "supersat_std_dev")
+          result(at) = (plotter.positive_supersat_stats_timestep(at * 60)).second;
       }
 
       // output the result
