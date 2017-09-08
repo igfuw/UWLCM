@@ -2,7 +2,7 @@
 #include "Plotter2d.hpp"
 #include "Plotter3d.hpp"
 
-// 2d version
+// TODO: make two: plotterlgrngn and plotter blk1m
 template<int NDims>
 class PlotterMicro_t : public Plotter_t<NDims> 
 {
@@ -18,6 +18,8 @@ class PlotterMicro_t : public Plotter_t<NDims>
   arr_t rhod;
 
   public:
+  // functions for diagnosing fields
+  //
   // cloud droplets mixing ratio
   auto h5load_rc_timestep(
     int at
@@ -57,6 +59,33 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return blitz::safeToReturn(res + 0);
   }
 
+  // functions for diagnosing statistics
+  
+  // helper function that calculates staistics (mean and std_dev) of a field only in cloudy cells
+  std::pair<double, double> cloud_hlpr(arr_t arr, int at)
+  {
+    std::pair<double, double> res;
+    // read activated droplets mixing ratio 
+    arr_t mask(h5load_ract_timestep(at));
+    mask = iscloudy_rc(mask);
+    arr *= mask; // apply filter
+    
+    if(blitz::sum(mask) > 0.) 
+      res.first = blitz::sum(arr) / blitz::sum(mask); 
+    else
+      res.first = 0.; 
+
+    arr = pow(arr - res.first, 2); 
+    arr *= mask; // apply filter
+    if(res.first>0)
+      res.second = sqrt(blitz::sum(arr) / blitz::sum(mask)); 
+    else
+      res.second = 0.;
+
+    return res;
+  }
+
+  
   // height [m] of the center of mass of activated droplets
   double act_com_z_timestep(int at)
   {
@@ -72,59 +101,21 @@ class PlotterMicro_t : public Plotter_t<NDims>
   // mean and std dev [g/kg] of the mixing ratio of activated dropelts in cloudy cells
   std::pair<double, double> cloud_ract_stats_timestep(int at)
   {
-    std::pair<double, double> res;
     // read activated droplets mixing ratio 
     arr_t ract(h5load_ract_timestep(at));
-    arr_t mask(ract.copy());
-    
-    mask = iscloudy_rc(mask);
-    ract *= mask; // apply filter
     ract *= 1e3; // turn it into g/kg
-    
-    if(blitz::sum(mask) > 0.) 
-      res.first = blitz::sum(ract) / blitz::sum(mask); 
-    else
-      res.first = 0.; 
-
-    ract = pow(ract - res.first, 2); 
-    ract *= mask; // apply filter
-    if(res.first>0)
-      res.second = sqrt(blitz::sum(ract) / blitz::sum(mask)); 
-    else
-      res.second = 0.;
-
-    return res;
+    return cloud_hlpr(ract, at);
   }
 
   // mean and std_dev of concentration of activated droplets in cloudy cells [1/cm^3]
   std::pair<double, double> cloud_actconc_stats_timestep(int at)
   {   
     if(this->micro == "blk_1m") return {0,0};
-    std::pair<double, double> res;
-
-    // read activated droplets mixing ratio to find cloudy cells
-    arr_t mask(h5load_ract_timestep(at));
-    mask = iscloudy_rc(mask);
-
     // read concentration of activated droplets
     arr_t actconc(this->h5load_timestep("actrw_rw_mom0", at));
-
     actconc *= rhod; // b4 it was specific moment
     actconc /= 1e6; // per cm^3
-    actconc *= mask; //apply the cloudiness mask
-    if(blitz::sum(mask) > 0)
-      res.first = blitz::sum(actconc) / blitz::sum(mask); 
-    else
-      res.first = 0;
-  
-    actconc = pow(actconc - res.first, 2); 
-    actconc *= mask; // apply filter
-    if(res.first>0)
-      res.second = sqrt(blitz::sum(actconc) / blitz::sum(mask)); 
-    else
-      res.second = 0.; 
-
-    return res;
+    return cloud_hlpr(actconc, at);
   } 
 
   // mean and std_dev of supersaturation in cells with positive supersaturation [%]
@@ -153,6 +144,14 @@ class PlotterMicro_t : public Plotter_t<NDims>
       res.second = 0.; 
 
     return res;
+  }
+
+  // mean and std_dev of number of SDs in cloudy cells
+  std::pair<double, double> cloud_sdconc_stats_timestep(int at)
+  {   
+    if(this->micro == "blk_1m") return {0,0};
+    arr_t sdconc(this->h5load_timestep("sd_conc", at));
+    return cloud_hlpr(sdconc, at);
   }
 
   //ctor

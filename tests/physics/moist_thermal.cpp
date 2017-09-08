@@ -81,7 +81,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{2e-2, 2e-2, 5e-2, 2e-2, 2e-2, 2e-2, 2e-2, 3e-2, 5e-2, 10e-2, 10e-2}} }
+      {"lgrngn", {{3e-2, 3e-2, 5e-2, 3e-2, 3e-2, 3e-2, 3e-2, 3e-2, 5e-2, 10e-2, 10e-2}} }
     }
   });
 
@@ -97,7 +97,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 3e-2, 5e-2, 7e-2, 10e-2}} },
-      {"lgrngn", {{1e-2, 7e-2, 7e-2, 7e-2, 7e-2, 9e-2, 7e-2, 7e-2, 8e-2, 8e-2, 11e-2}} } 
+      {"lgrngn", {{1e-2, 9e-2, 9e-2, 9e-2, 9e-2, 9e-2, 9e-2, 9e-2, 9e-2, 9e-2, 11e-2}} } 
     }
   });
 
@@ -114,7 +114,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2}} } 
+      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 8e-2}} } 
     }
   });
 
@@ -164,7 +164,40 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{20e-2, 20e-2, 15e-2, 20e-2, 20e-2, 20e-2, 20e-2, 20e-2, 20e-2, 20e-2, 20e-2}} } 
+      {"lgrngn", {{40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2}} } // high, makes any sense? 
+    }
+  });
+
+  // average number of SDs in cloudy cells
+  tests.push_back({
+    // test name
+    "sdconc_avg",
+    // expected values map
+    {
+      {"blk_1m", {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
+      {"lgrngn", {{1.19209e-05, 0.476906, 0.428138, 0.374729, 0.333207, 0.277702, 0.224544, 0.213603, 0.251973, 0.298691, 0.351449}}}
+
+    },
+    // epsilons map
+    {
+      {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
+      {"lgrngn", {{1e-2, 2e-2, 4e-2, 5e-2, 7e-2, 7e-2, 10e-2, 25e-2, 25e-2, 25e-2, 35e-2}} } 
+    }
+  });
+
+  // std_dev of number of SDs in cloudy cells
+  tests.push_back({
+    // test name
+    "sdconc_std_dev",
+    // expected values map
+    {
+      {"blk_1m", {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
+      {"lgrngn", {{0, 0.121373, 0.212959, 0.204964, 0.267225, 0.274048, 0.272687, 0.367227, 0.394839, 0.391756, 0.469211}}} 
+    },
+    // epsilons map
+    {
+      {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
+      {"lgrngn", {{40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2}} } // high, makes any sense? 
     }
   });
 
@@ -211,6 +244,10 @@ int main(int ac, char** av)
           result(at) = (plotter.positive_supersat_stats_timestep(at * 60)).first;
         else if(test.name == "supersat_std_dev")
           result(at) = (plotter.positive_supersat_stats_timestep(at * 60)).second;
+        else if(test.name == "sdconc_avg")
+          result(at) = (plotter.cloud_sdconc_stats_timestep(at * 60)).first;
+        else if(test.name == "sdconc_std_dev")
+          result(at) = (plotter.cloud_sdconc_stats_timestep(at * 60)).second;
       }
 
       // output the result

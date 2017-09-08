@@ -117,62 +117,9 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          auto tmp_sd = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
-
-          typename Plotter_t::arr_t snap(tmp);
-          typename Plotter_t::arr_t snap_sd(tmp_sd);
-          
-          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-4
-          snap_sd *= res_tmp; // apply filter
- 
-          double avg_sd_conc;
-          
-          if(blitz::sum(res_tmp) > 0.)
-            avg_sd_conc = blitz::sum(snap_sd) / blitz::sum(res_tmp); 
-          else
-            avg_sd_conc = 0.;
-
-          res_prof(at) = avg_sd_conc;
-
-          snap_sd = pow(snap_sd - avg_sd_conc, 2);
-          snap_sd *= res_tmp; // apply filter
-          if(avg_sd_conc>0)
-            res_prof_std_dev(at) = sqrt(blitz::sum(snap_sd) / blitz::sum(res_tmp)); 
-          else
-            res_prof_std_dev(at) = 0.;
-        }
-        catch(...) {;}
-      }
-      // relative std dev of sd_conc in cell with r_act > 1e-5
-      else if (plt == "sd_conc_std_dev")
-      {
-        try
-        {
-          // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          auto tmp_sd = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
-
-          typename Plotter_t::arr_t snap(tmp);
-          typename Plotter_t::arr_t snap_sd(tmp_sd);
-          
-          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
-          snap_sd *= res_tmp; // apply filter
- 
-          double avg_sd_conc;
-          
-          if(blitz::sum(res_tmp) > 0.)
-            avg_sd_conc = blitz::sum(snap_sd) / blitz::sum(res_tmp); 
-          else
-            avg_sd_conc = 0.;
-
-          snap_sd = pow(snap_sd - avg_sd_conc, 2);
-          snap_sd *= res_tmp; // apply filter
-          if(avg_sd_conc>0)
-            res_prof(at) = sqrt(blitz::sum(snap_sd) / blitz::sum(res_tmp)) / avg_sd_conc; 
-          else
-            res_prof(at) = 0.;
+          auto stats = plotter.cloud_sdconc_stats_timestep(at * n["outfreq"]);
+          res_prof(at) = stats.first;
+          res_prof_std_dev(at) = stats.second;
         }
         catch(...) {;}
       }
