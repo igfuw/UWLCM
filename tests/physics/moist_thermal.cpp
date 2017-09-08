@@ -21,15 +21,15 @@ bool errcheck(barr1d result, barr1d expected_result, barr1d epsilon)
 {
   barr1d rel_err(result.shape());
   rel_err = where(expected_result > 0, abs(result - expected_result) / expected_result - epsilon, 0);
-//  if(any(rel_err > 0.))
-//  {
-    std::cerr << "ERROR" << std::endl;
     std::cerr << "expected result: " << expected_result;
     std::cerr << "relative error minus precision: " << rel_err;
+  if(any(rel_err > 0.))
+  {
+    std::cerr << "ERROR" << std::endl;
     return 1;
-//  }
-//  else
-//    return 0;
+  }
+  else
+    return 0;
 }
 
 struct test_data
@@ -81,7 +81,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{2e-2, 2e-2, 5e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 10e-2, 10e-2}} }
+      {"lgrngn", {{2e-2, 2e-2, 5e-2, 2e-2, 2e-2, 2e-2, 2e-2, 3e-2, 5e-2, 10e-2, 10e-2}} }
     }
   });
 
@@ -97,7 +97,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 3e-2, 5e-2, 7e-2, 10e-2}} },
-      {"lgrngn", {{1e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 10e-2}} } 
+      {"lgrngn", {{1e-2, 7e-2, 7e-2, 7e-2, 7e-2, 9e-2, 7e-2, 7e-2, 8e-2, 8e-2, 11e-2}} } 
     }
   });
 
@@ -142,13 +142,13 @@ int main(int ac, char** av)
     // expected values map
     {
       {"blk_1m", {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
-      {"lgrngn", {{0, 0, 89.2595, 87.5162, 86.9183, 86.0386, 83.6924, 80.9611, 78.7904, 76.5399, 73.252}}}  
+      {"lgrngn", {{1.19209e-05, 0.476906, 0.428138, 0.374729, 0.333207, 0.277702, 0.224544, 0.213603, 0.251973, 0.298691, 0.351449}}}
 
     },
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2}} } 
+      {"lgrngn", {{1e-2, 2e-2, 4e-2, 5e-2, 7e-2, 7e-2, 10e-2, 25e-2, 25e-2, 25e-2, 35e-2}} } 
     }
   });
 
@@ -159,13 +159,12 @@ int main(int ac, char** av)
     // expected values map
     {
       {"blk_1m", {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
-      {"lgrngn", {{0, 0, 27.902, 30.7292, 31.9791, 30.947, 32.4312, 34.3208, 35.8673, 35.6399, 34.2308}}}  
-
+      {"lgrngn", {{0, 0.121373, 0.212959, 0.204964, 0.267225, 0.274048, 0.272687, 0.367227, 0.394839, 0.391756, 0.469211}}} 
     },
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{11e-2, 11e-2, 15e-2, 11e-2, 11e-2, 11e-2, 11e-2, 11e-2, 11e-2, 11e-2, 11e-2}} } 
+      {"lgrngn", {{20e-2, 20e-2, 15e-2, 20e-2, 20e-2, 20e-2, 20e-2, 20e-2, 20e-2, 20e-2, 20e-2}} } 
     }
   });
 
