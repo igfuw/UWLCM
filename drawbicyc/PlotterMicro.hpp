@@ -154,6 +154,18 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(sdconc, at);
   }
 
+  // mean and std_dev of mean radius of activated droplets in cloudy cells
+  std::pair<double, double> cloud_meanr_stats_timestep(int at)
+  {   
+    if(this->micro == "blk_1m") return {0,0};
+    // read act drop 0th raw moment 
+    arr_t act0th(this->h5load_timestep("actrw_rw_mom0", at));
+    // read act drop 1st raw moment
+    arr_t act1st(this->h5load_timestep("actrw_rw_mom1", at));
+    act1st = where(act0th > 0, act1st / act0th, 0.);
+    return cloud_hlpr(act1st, at);
+  }
+
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),

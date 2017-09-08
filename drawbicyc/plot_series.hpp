@@ -367,24 +367,8 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          // read activated droplets mixing ratio to res_tmp 
-          auto tmp_ract = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap_ract(tmp_ract);
-          res_tmp = iscloudy_rc(snap_ract); // find cells with rc>1e-5
-
-          // read act drop conc 
-          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          // read act drop 1st raw moment
-          auto tmp1 = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap1(tmp1);
-          snap1 = where(snap > 0, snap1 / snap, 0.);
-          // apply cloud mask
-          snap1 *= res_tmp;
-          if(blitz::sum(res_tmp) > 0)
-            res_prof(at) = blitz::sum(snap1) / blitz::sum(res_tmp); 
-          else
-            res_prof(at) = 0;
+          auto stats = plotter.cloud_meanr_stats_timestep(at * n["outfreq"]);
+          res_prof(at) = stats.first;
         }
         catch(...){;}
       }
