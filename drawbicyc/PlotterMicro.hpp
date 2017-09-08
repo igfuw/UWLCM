@@ -154,15 +154,32 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(sdconc, at);
   }
 
-  // mean and std_dev of mean radius of activated droplets in cloudy cells
+  // mean and std_dev of mean radius of activated droplets in cloudy cells [um]
   std::pair<double, double> cloud_meanr_stats_timestep(int at)
   {   
     if(this->micro == "blk_1m") return {0,0};
-    // read act drop 0th raw moment 
-    arr_t act0th(this->h5load_timestep("actrw_rw_mom0", at));
-    // read act drop 1st raw moment
-    arr_t act1st(this->h5load_timestep("actrw_rw_mom1", at));
+    // read act drop 0th raw moment / mass [1/kg]
+    arr_t act0th(this->h5load_timestep("actrw_rw_mom0", at)); 
+    // read act drop 1st raw moment / mass [um/kg]
+    arr_t act1st(this->h5load_timestep("actrw_rw_mom1", at) * 1e6);
+    // calculate mean radius, store in act1st
     act1st = where(act0th > 0, act1st / act0th, 0.);
+    return cloud_hlpr(act1st, at);
+  }
+
+  // mean and std_dev of std_dev of radius of activated droplets in cloudy cells [um]
+  std::pair<double, double> cloud_stddevr_stats_timestep(int at)
+  {   
+    if(this->micro == "blk_1m") return {0,0};
+    // read act drop 0th raw moment / mass [1/kg]
+    arr_t act0th(this->h5load_timestep("actrw_rw_mom0", at)); 
+    // read act drop 1st raw moment / mass [um/kg]
+    arr_t act1st(this->h5load_timestep("actrw_rw_mom1", at) * 1e6);
+    // read act drop 2nd raw moment / mass [um^2/kg]
+    arr_t act2nd(this->h5load_timestep("actrw_rw_mom2", at) * 1e12);
+    // calculate stddev of radius, store in act1st
+    act1st = where(act0th > 0, 
+      act2nd / act0th - act1st / act0th * act1st / act0th, 0.);
     return cloud_hlpr(act1st, at);
   }
 

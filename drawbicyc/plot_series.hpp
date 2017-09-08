@@ -378,54 +378,8 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
-          // read activated droplets mixing ratio to res_tmp 
-          auto tmp_ract = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap_ract(tmp_ract);
-          typename Plotter_t::arr_t mask(tmp_ract);
-          mask = iscloudy_rc(snap_ract); // find cells with rc>1e-5
-
-          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
-          tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
-          typename Plotter_t::arr_t first_raw_mom(tmp * 1e6); // 1st raw moment / mass [um / kg]
-          tmp = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
-          typename Plotter_t::arr_t second_raw_mom(tmp * 1e12); // 2nd raw moment / mass [um^2 / kg]
-
-          typename Plotter_t::arr_t mean_r(first_raw_mom / zeroth_raw_mom);
-          typename Plotter_t::arr_t act_conc(zeroth_raw_mom);
-
-          res_tmp = where(act_conc > 0.,
-  //          (1. / act_conc * (second_raw_mom - 2 * mean_r * first_raw_mom + mean_r * mean_r * zeroth_raw_mom)),
-            (second_raw_mom / zeroth_raw_mom - first_raw_mom / zeroth_raw_mom * first_raw_mom / zeroth_raw_mom),
-            0.
-          );
-          //apply cloud mask
-          res_tmp *= mask;
-          res_tmp = sqrt(res_tmp);
-/*
-          tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
-          typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
-          if(com_N_c(at) > 0)
-          {
-            double SD_no = sd_conc(com_x_idx(at), com_z_idx(at));
-            if(SD_no > 1 && com_miu(at) > 0)
-              res_prof(at) = sqrt( 
-                SD_no / (SD_no - 1) /
-                com_N_c(at) * (
-                  second_raw_mom(com_x_idx(at), com_z_idx(at)) - 
-                  2. * com_miu(at) * first_raw_mom(com_x_idx(at), com_z_idx(at)) + 
-                  com_miu(at) * com_miu(at) * zeroth_raw_mom(com_x_idx(at), com_z_idx(at))
-                )
-              );
-          }
-          else
-            res_prof(at) = 0.;
-*/
-
-          if(blitz::sum(mask) > 0)
-            res_prof(at) = blitz::sum(res_tmp) / blitz::sum(mask); 
-          else
-            res_prof(at) = 0;
+          auto stats = plotter.cloud_stddevr_stats_timestep(at * n["outfreq"]);
+          res_prof(at) = stats.first;
         }
         catch(...){;}
       }
@@ -590,7 +544,6 @@ void plot_series(Plotter_t plotter, Plots plots)
     else if (plt == "cloud_avg_act_rad")
     {
       res_pos *= 60.;
-      res_prof *= 1e6;
       gp << "set ylabel '<r_{mean}> [um]'\n";
       gp << "set xlabel 'time [min]'\n";
       gp << "set title 'average mean radius of activated droplets'\n";

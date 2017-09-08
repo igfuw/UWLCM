@@ -218,6 +218,23 @@ int main(int ac, char** av)
     }
   });
 
+  // average std dev of radius of activated droplets
+  tests.push_back({
+    // test name
+    "stddevr_avg",
+    // expected values map
+    {
+      {"blk_1m", {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
+      {"lgrngn", {{1.19209e-05, 0.476906, 0.428138, 0.374729, 0.333207, 0.277702, 0.224544, 0.213603, 0.251973, 0.298691, 0.351449}}}
+
+    },
+    // epsilons map
+    {
+      {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
+      {"lgrngn", {{1e-2, 2e-2, 4e-2, 5e-2, 7e-2, 7e-2, 10e-2, 25e-2, 25e-2, 25e-2, 35e-2}} } 
+    }
+  });
+
   // cloud fraction
   tests.push_back({
     // test name
@@ -283,6 +300,8 @@ int main(int ac, char** av)
           result(at) = (plotter.cloud_sdconc_stats_timestep(at * 60)).second;
         else if(test.name == "meanr_avg")
           result(at) = (plotter.cloud_meanr_stats_timestep(at * 60)).first;
+        else if(test.name == "stddevr_avg")
+          result(at) = (plotter.cloud_stddevr_stats_timestep(at * 60)).first;
         else if(test.name == "clfrac")
         {
           Plotter_t::arr_t ract(plotter.h5load_ract_timestep(at * 60));
