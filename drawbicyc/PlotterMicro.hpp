@@ -180,6 +180,9 @@ class PlotterMicro_t : public Plotter_t<NDims>
     // calculate stddev of radius, store in act1st
     act1st = where(act0th > 0, 
       act2nd / act0th - act1st / act0th * act1st / act0th, 0.);
+    // might be slightly negative due to numerical errors
+    act1st = where(act1st < 0, 0, act1st);
+    act1st = sqrt(act1st);
     return cloud_hlpr(act1st, at);
   }
 
