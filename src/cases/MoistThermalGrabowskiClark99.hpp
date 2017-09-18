@@ -29,7 +29,7 @@ namespace setup
     const quantity<si::pressure, real_t> p_0(85000 * si::pascals); // total surface temperature
     const real_t stab = 1.3e-5; // stability, 1/m
     const real_t env_RH = 0.2;
-    const real_t prtrb_RH = 1.;
+    const real_t prtrb_RH = 1. - 1e-10;
     const quantity<si::temperature, real_t> th_std_0 = T_0 / pow(p_0 / p_1000<setup::real_t>(),  R_d_over_c_pd<setup::real_t>());
     const quantity<si::dimensionless, real_t> rv_0 = RH_T_p_to_rv(env_RH, T_0, p_0);
     const quantity<si::dimensionless, real_t> qv_0 = rv_0 / (1. + rv_0); // specific humidity at surface
