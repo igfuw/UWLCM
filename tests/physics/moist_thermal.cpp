@@ -65,7 +65,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 2e-2, 4e-2, 6e-2}} } 
+      {"lgrngn", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 2e-2, 3e-2, 6e-2, 10e-2}} } 
     }
   });
 
@@ -81,7 +81,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{3e-2, 3e-2, 5e-2, 3e-2, 3e-2, 3e-2, 3e-2, 3e-2, 7e-2, 10e-2, 15e-2}} }
+      {"lgrngn", {{7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 7e-2, 15e-2, 20e-2}} }
     }
   });
 
@@ -97,7 +97,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 3e-2, 5e-2, 7e-2, 10e-2}} },
-      {"lgrngn", {{1e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2}} } 
+      {"lgrngn", {{1e-2, 25e-2, 25e-2, 25e-2, 25e-2, 25e-2, 25e-2, 25e-2, 25e-2, 25e-2, 25e-2}} } 
     }
   });
 
@@ -114,7 +114,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 7e-2, 7e-2, 8e-2}} } 
+      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 7e-2, 10e-2, 10e-2}} } 
     }
   });
 
@@ -131,7 +131,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 20e-2}} } 
+      {"lgrngn", {{10e-2, 10e-2, 15e-2, 10e-2, 10e-2, 20e-2, 15e-2, 10e-2, 10e-2, 15e-2, 20e-2}} } 
     }
   });
 
@@ -148,11 +148,13 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{1e-2, 2e-2, 4e-2, 5e-2, 7e-2, 7e-2, 15e-2, 30e-2, 35e-2, 35e-2, 35e-2}} } 
+      {"lgrngn", {{1e-2, 2e-2, 4e-2, 5e-2, 7e-2, 10e-2, 15e-2, 30e-2, 35e-2, 35e-2, 50e-2}} } 
     }
   });
 
   // std dev of supersaturation in supersaturated cells
+  // disabled due to too low precision - would require higher sd_conc?
+  /*
   tests.push_back({
     // test name
     "supersat_std_dev",
@@ -167,6 +169,7 @@ int main(int ac, char** av)
       {"lgrngn", {{40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 40e-2, 50e-2, 60e-2}} } // high, makes any sense? 
     }
   });
+  */
 
   // average number of SDs in cloudy cells
   tests.push_back({
@@ -196,7 +199,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2}} } 
+      {"lgrngn", {{16e-2, 16e-2, 16e-2, 16e-2, 16e-2, 16e-2, 16e-2, 16e-2, 16e-2, 16e-2, 16e-2}} } 
     }
   });
 
@@ -212,7 +215,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2}} } 
+      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 8e-2}} } 
     }
   });
 
@@ -228,7 +231,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2}} } 
+      {"lgrngn", {{15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 15e-2, 20e-2}} } 
     }
   });
 
@@ -244,7 +247,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 15e-2, 15e-2}} } 
+      {"lgrngn", {{5e-2, 5e-2, 7e-2, 5e-2, 5e-2, 5e-2, 5e-2, 10e-2, 15e-2, 15e-2, 15e-2}} } 
     }
   });
 
