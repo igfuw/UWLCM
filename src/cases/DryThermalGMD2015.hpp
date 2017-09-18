@@ -56,7 +56,7 @@ namespace setup
         solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
     
         // density profile
-        solver.g_factor() = 1.;// rhod(index); // copy the 1D profile into 2D/3D array
+        solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
     
         // initial potential temperature
         real_t r0 = 250;
@@ -77,8 +77,7 @@ namespace setup
       // like in Wojtek's BabyEulag
       void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
-        setup::real_t dz = (Z / si::metres) / (nz-1);
-        blitz::thirdIndex k;
+        rhod = 1;
         th_e = 300;
         th_ref = 300;
       }
