@@ -20,6 +20,7 @@ int main(int ac, char** av)
     "--nx=4 --nz=4",
     "--nx=4 --ny=4 --nz=4"
   });
+  string opts_dim_dycoms_3d =  "--nx=40 --ny=40 --nz=40"; // =4 caused multiplicity overflows in the Lagrangian 3D dycoms
   vector<string> opts_micro({
     "--micro=blk_1m --outdir=out_blk_1m"  ,
     "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100"
@@ -45,6 +46,8 @@ int main(int ac, char** av)
             std::cout << "skipping 3d thermal tests" << std::endl;
             continue; 
           }
+          if(opts_d == opts_dim[1] && opts_c == opts_case[2] && opts_m == opts_micro[1])
+            opts_d = opts_dim_dycoms_3d;
           ostringstream cmd;
           cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p;
           notice_macro("about to call: " << cmd.str())
