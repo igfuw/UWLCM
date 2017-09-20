@@ -35,6 +35,7 @@ int main(int ac, char** av)
     "--piggy=0 --save_vel=1",
     "--piggy=1 --vel_in=out_blk_1m/velocity_out.dat"  // take vel file from blk, cause it's ran first
   });
+  string opts_pig_from_lgrngn = "--piggy=1 --vel_in=out_lgrngn/velocity_out.dat"; // 3d dycoms lgrgn has larger domain, se we cant piggyback on blk_1m
 
   for (auto &opts_d : opts_dim)
     for (auto &opts_m : opts_micro)
@@ -46,8 +47,13 @@ int main(int ac, char** av)
             std::cout << "skipping 3d thermal tests" << std::endl;
             continue; 
           }
+          // larger domain for 3d lgrngn dycoms
           if(opts_d == opts_dim[1] && opts_c == opts_case[2] && opts_m == opts_micro[1])
+          {
             opts_d = opts_dim_dycoms_3d;
+            if(opts_p == opts_piggy[2])
+              opts_p = opts_pig_from_lgrngn;
+          }
           ostringstream cmd;
           cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p;
           notice_macro("about to call: " << cmd.str())
