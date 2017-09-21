@@ -53,13 +53,13 @@ install:
 
 script:
 
-  # install libcloudphxx in Release mode
+  # install libcloudphxx in RelWithDebInfo mode
   - cd ..
   - git clone --depth=1 git://github.com/igfuw/libcloudphxx.git
   - cd libcloudphxx
   - mkdir build
   - cd build
-  - cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ..
+  - cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
   - make
   - sudo make install
   - cd ../..
@@ -73,11 +73,11 @@ script:
   - sudo make install
   - cd ../../..
 
-  # bicycles Release mode, moist thermal case
+  # UWLCM in RelWithDebInfo mode, moist thermal case
   - cd UWLCM
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=Release
+  - cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
   - VERBOSE=1 make
   - OMP_NUM_THREADS=6 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
