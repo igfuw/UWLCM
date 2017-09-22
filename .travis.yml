@@ -79,7 +79,7 @@ script:
   - cd build
   - cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
   - VERBOSE=1 make
-  - OMP_NUM_THREADS=4 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
+  - OMP_NUM_THREADS=6 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
   
   # TODO: run the dry thermal test

@@ -44,12 +44,11 @@ class Plotter_t<3> : public PlotterCommon
   }
 
   auto h5load_timestep(
-    const string &file, 
     const string &dataset,
     int at
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
-    string timestep_file = file + "/timestep" + zeropad(at, 10) + ".h5";
+    string timestep_file = this->file + "/timestep" + zeropad(at, 10) + ".h5";
     return h5load(timestep_file, dataset);
   }
 
