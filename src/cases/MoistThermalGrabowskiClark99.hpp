@@ -366,11 +366,12 @@ namespace setup
         real_t dx = (X / si::metres) / (nx-1); 
         solver.advectee(ix::rv) = prtrb_rv(th_e, rhod, dz)(
           sqrt(
-            pow(blitz::tensor::i * dx, 2) + 
-            pow(blitz::tensor::j * dz, 2)
+            pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
+            pow(blitz::tensor::j * dz - (z_prtrb / si::metres), 2)
           ),
           blitz::tensor::j * dz
         );
+
       }
     };
 
@@ -402,9 +403,9 @@ namespace setup
         real_t dy = (Y / si::metres) / (ny-1); 
         solver.advectee(ix::rv) = prtrb_rv(th_e, rhod, dz)(
           sqrt(
-            pow(blitz::tensor::i * dx, 2) + 
-            pow(blitz::tensor::j * dy, 2) + 
-            pow(blitz::tensor::k * dz, 2)
+            pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
+            pow(blitz::tensor::j * dy - (Y / si::metres / 2.), 2) + 
+            pow(blitz::tensor::k * dz - (z_prtrb / si::metres), 2)
           ),
           blitz::tensor::k * dz
         );
