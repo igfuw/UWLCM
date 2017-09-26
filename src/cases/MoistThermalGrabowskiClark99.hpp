@@ -107,9 +107,8 @@ namespace setup
     
     struct RH
     {
-      quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
+      quantity<si::dimensionless, real_t> operator()(const real_t &r) const // r - distance from the center of the perturbation
       {
-        real_t r = sqrt( pow( x - (X / si::metres / 2.), 2) + pow( z - (z_prtrb / si::metres), 2));
         if(r <= 250.)
           return prtrb_RH;
         else if(r >= 350.)
@@ -117,7 +116,7 @@ namespace setup
         else // transition layer
           return env_RH + (prtrb_RH - env_RH) * pow( cos(boost::math::constants::pi<real_t>() / 2. * (r - 250) / 100.), 2);
       }
-    BZ_DECLARE_FUNCTOR2(RH);
+    BZ_DECLARE_FUNCTOR(RH);
     };
     
 /*
@@ -132,16 +131,18 @@ namespace setup
     BZ_DECLARE_FUNCTOR(env_rv);
     };
   */  
-    struct prtrb_rv
+
+    struct prtrb_rv 
     {
       arr_1D_t &_th_std, &_rhod;
       real_t dz;
       prtrb_rv(arr_1D_t _th_std, arr_1D_t _rhod, real_t dz): _th_std(_th_std), _rhod(_rhod), dz(dz) {}
-      quantity<si::dimensionless, real_t> operator()(const real_t &x, const real_t &z) const
+
+      quantity<si::dimensionless, real_t> operator()(const real_t &r, const real_t &z) const
       {
-    //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
-        return RH_th_rhod_to_rv(RH()(x,z), _th_std(z/dz) , _rhod(z/dz));
+        return RH_th_rhod_to_rv(RH()(r), this->_th_std(z/this->dz) , this->_rhod(z/this->dz));
     //    return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
+    //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
       }
     BZ_DECLARE_FUNCTOR2(prtrb_rv);
     };
@@ -178,7 +179,6 @@ namespace setup
         int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dx = (X / si::metres) / (nx-1); 
     
-        solver.advectee(ix::rv) = prtrb_rv(th_e, rhod,dz)(blitz::tensor::i * dx, blitz::tensor::j * dz); 
        // solver.advectee(ix::rv) = rv_e(index);
 
         solver.advectee(ix::u) = 0;
@@ -358,6 +358,20 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
+
+        using ix = typename concurr_t::solver_t::ix;
+        int nz = solver.advectee().extent(ix::w); 
+        real_t dz = (Z / si::metres) / (nz-1); 
+        int nx = solver.advectee().extent(0); 
+        real_t dx = (X / si::metres) / (nx-1); 
+        solver.advectee(ix::rv) = prtrb_rv(th_e, rhod, dz)(
+          sqrt(
+            pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
+            pow(blitz::tensor::j * dz - (z_prtrb / si::metres), 2)
+          ),
+          blitz::tensor::j * dz
+        );
+
       }
     };
 
@@ -380,17 +394,33 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
-    
         using ix = typename concurr_t::solver_t::ix;
+        int nz = solver.advectee().extent(2); 
+        real_t dz = (Z / si::metres) / (nz-1); 
+        int nx = solver.advectee().extent(0); 
+        real_t dx = (X / si::metres) / (nx-1); 
+        int ny = solver.advectee().extent(1); 
+        real_t dy = (Y / si::metres) / (ny-1); 
+        solver.advectee(ix::rv) = prtrb_rv(th_e, rhod, dz)(
+          sqrt(
+            pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
+            pow(blitz::tensor::j * dy - (Y / si::metres / 2.), 2) + 
+            pow(blitz::tensor::k * dz - (z_prtrb / si::metres), 2)
+          ),
+          blitz::tensor::k * dz
+        );
+    
         solver.advectee(ix::v) = 0;
         solver.vab_relaxed_state(1) = 0;
       }
 
+/*
       // TODO: make it work in 3d?
       MoistThermalGrabowskiClark99_3d()
       {
         throw std::runtime_error("Moist Thermal doesn't work in 3d yet");
       }
+*/
     };
   };
 };
