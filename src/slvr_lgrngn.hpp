@@ -209,6 +209,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     parent_t::hook_ante_loop(nt); 
 
     // TODO: barrier?
+    this->mem->barrier();
     if (this->rank == 0) 
     {
       assert(params.backend != -1);
@@ -279,6 +280,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       parent_t::tbeg_loop = parent_t::clock::now();
       diag();
     }
+    this->mem->barrier();
     // TODO: barrier?
   }
 
@@ -333,12 +335,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           Cz.reindex(this->zero) /= (*params.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
         }
 
-        auto Cy_arrinfo = this->n_dims == 2 ? 
-          libcloudphxx::lgrngn::arrinfo_t<real_t>() : // empty for 2D run
-          make_arrinfo(Cy);
-
         // running synchronous stuff
         parent_t::tbeg = parent_t::clock::now();
+
         nancheck(this->mem->advectee(ix::th), "th before step sync");
         nancheck(this->mem->advectee(ix::rv), "rv before step sync");
         prtcls->step_sync(
@@ -347,15 +346,12 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           make_arrinfo(this->mem->advectee(ix::rv)),
           libcloudphxx::lgrngn::arrinfo_t<real_t>(),
           make_arrinfo(Cx),
-          Cy_arrinfo,
+          this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
           make_arrinfo(Cz)
         );
         nancheck(this->mem->advectee(ix::th), "th after step sync");
         nancheck(this->mem->advectee(ix::rv), "rv after step sync");
-//if(!std::isfinite(sum(this->mem->advectee(ix::th))))
-  //std::cout << "nan in th: " << this->mem->advectee(ix::th);
-//if(!std::isfinite(sum(this->mem->advectee(ix::rv))))
-  //std::cout << "nan in rv: " << this->mem->advectee(ix::rv);
+
         parent_t::tend = parent_t::clock::now();
         parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       } 
@@ -391,6 +387,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       }
     }
+    this->mem->barrier();
   }
   // 
   void hook_post_step()
