@@ -198,7 +198,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   void set_rain(bool val) 
   { 
     params.cloudph_opts.coal = val ? params.flag_coal : false;
-    params.cloudph_opts.RH_max = val ? 44 : 1.06; // 0.5% limit during spinup // TODO: specify it somewhere else, dup in blk_2m
+    params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
   };
 
   // deals with nitial supersaturation
