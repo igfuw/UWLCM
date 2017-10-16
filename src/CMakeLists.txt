@@ -17,7 +17,14 @@ add_executable(bicycles bicycles.cpp)
 target_link_libraries(bicycles ${libmpdataxx_LIBRARIES})
 target_include_directories(bicycles PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 
-target_link_libraries(bicycles ${libcloudphxx_LIBRARIES})
+if(CMAKE_BUILD_TYPE STREQUAL "Release") 
+  target_link_libraries(bicycles ${libcloudphxx_LIBRARIES})
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") 
+  target_link_libraries(bicycles ${libcloudphxx_LIBRARIES_RELWITHDEBINFO})
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug") 
+  target_link_libraries(bicycles ${libcloudphxx_LIBRARIES_DEBUG})
+endif()
+
 target_include_directories(bicycles PUBLIC ${libcloudphxx_INCLUDE_DIRS})
 
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
