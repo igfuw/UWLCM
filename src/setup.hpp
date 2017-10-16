@@ -25,7 +25,6 @@ namespace setup
   
   //aerosol chemical composition parameters (needed for activation)
   // for lgrngn:
-  const quantity<si::dimensionless, real_t> kappa = 1.28;//.61; // ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
   const quantity<si::dimensionless, real_t> kappa_gccn = 1.28; // NaCl; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
   // for blk_2m:
   const quantity<si::dimensionless, real_t> chem_b = .55; //ammonium sulphate //chem_b = 1.33; // sodium chloride

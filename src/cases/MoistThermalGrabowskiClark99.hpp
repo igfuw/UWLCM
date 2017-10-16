@@ -147,6 +147,7 @@ namespace setup
     BZ_DECLARE_FUNCTOR2(prtrb_rv);
     };
 
+    // its in fact the moist thermal from our 2017 GMD paper on Twomey SDs? differences: kappa=1.28, i.e. sea salt aerosol
     template<class concurr_t>
     class MoistThermalGrabowskiClark99 : public CasesCommon<concurr_t>
     {
@@ -303,6 +304,12 @@ namespace setup
           th_e(k) = libcloudphxx::common::theta_dry::std2dry(th_e(k) * si::kelvins, si_rv_e) / si::kelvins; 
         }
         th_ref = th_e;//th_std_fctr(th_std_0 / si::kelvins)(k * dz);
+      }
+
+      // ctor
+      MoistThermalGrabowskiClark99()
+      {
+        this->kappa = 1.28; // NaCl aerosol
       }
     
       // calculate the initial environmental theta and rv profiles

@@ -107,8 +107,8 @@ void setopts_micro(
     );
 
     rt_params.cloudph_opts_init.dry_distros.insert(
-      setup::kappa, // key
-       temp
+      case_ptr->kappa, // key
+      temp
     );
    }
 /*  else if(unit_test)
