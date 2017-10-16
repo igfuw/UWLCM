@@ -206,8 +206,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   {
     params.flag_coal = params.cloudph_opts.coal;
 
-    parent_t::hook_ante_loop(nt); 
-
     // TODO: barrier?
     this->mem->barrier();
     if (this->rank == 0) 
@@ -278,9 +276,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
       // writing diagnostic data for the initial condition
       parent_t::tbeg_loop = parent_t::clock::now();
-      diag();
     }
     this->mem->barrier();
+    parent_t::hook_ante_loop(nt); 
     // TODO: barrier?
   }
 
@@ -389,28 +387,22 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     }
     this->mem->barrier();
   }
-  // 
-  void hook_post_step()
+  
+  void record_all()
   {
-    parent_t::hook_post_step(); // includes output
-    this->mem->barrier();
-
-    if (this->rank == 0) 
-    {
-      // performing diagnostics
-      if (this->timestep % this->outfreq == 0) 
-      { 
+    // plain (no xdmf) hdf5 output
+    parent_t::output_t::parent_t::record_all();
+    // UWLCM output
 #if defined(STD_FUTURE_WORKS)
-        if (params.async)
-        {
-          assert(ftr.valid());
-          ftr.get();
-        }
-#endif
-        diag();
-      }
+    if (this->timestep > 0 && params.async)
+    {
+      assert(ftr.valid());
+      ftr.get();
     }
-    this->mem->barrier();
+#endif
+    diag();
+    // xmf markup
+    this->write_xmfs();
   }
 
   public:
