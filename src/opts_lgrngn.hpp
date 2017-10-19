@@ -95,20 +95,18 @@ void setopts_micro(
  
  // if(!unit_test)
   {
-    std::auto_ptr<setup::log_dry_radii<thrust_real_t>> temp(
-      new setup::log_dry_radii<thrust_real_t>(
-        case_ptr->mean_rd1, // parameters
-        case_ptr->mean_rd2,
-        case_ptr->sdev_rd1,
-        case_ptr->sdev_rd2,
-        case_ptr->n1_stp,
-        case_ptr->n2_stp
-      )
-    );
-
-    rt_params.cloudph_opts_init.dry_distros.insert(
+    rt_params.cloudph_opts_init.dry_distros.emplace(
       case_ptr->kappa, // key
-      temp
+      std::shared_ptr<setup::log_dry_radii<thrust_real_t>> (
+        new setup::log_dry_radii<thrust_real_t>(
+          case_ptr->mean_rd1, // parameters
+          case_ptr->mean_rd2,
+          case_ptr->sdev_rd1,
+          case_ptr->sdev_rd2,
+          case_ptr->n1_stp,
+          case_ptr->n2_stp
+        )
+      )
     );
    }
 /*  else if(unit_test)
@@ -119,6 +117,7 @@ void setopts_micro(
     )(
       setup::kappa // key
     );*/
+/*
   if(gccn) // add the gccns spectra
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_gccn<thrust_real_t> // value type
@@ -127,7 +126,7 @@ void setopts_micro(
     )(
       setup::kappa_gccn // key
     );
-
+*/
 
   // output variables
   rt_params.outvars = {

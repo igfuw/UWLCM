@@ -63,9 +63,6 @@ namespace setup
         ) * si::cubic_metres
       );
     }
-  
-    log_dry_radii *do_clone() const 
-    { return new log_dry_radii( *this ); }
   };
   
   // unit test lognormal aerosol distribution
@@ -96,8 +93,5 @@ namespace setup
         ) * si::cubic_metres
       );
     }
-
-    log_dry_radii_gccn *do_clone() const 
-    { return new log_dry_radii_gccn( *this ); }
   };
 };
