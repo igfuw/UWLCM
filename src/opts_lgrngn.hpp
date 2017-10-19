@@ -97,15 +97,13 @@ void setopts_micro(
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
       case_ptr->kappa, // key
-      std::shared_ptr<setup::log_dry_radii<thrust_real_t>> (
-        new setup::log_dry_radii<thrust_real_t>(
-          case_ptr->mean_rd1, // parameters
-          case_ptr->mean_rd2,
-          case_ptr->sdev_rd1,
-          case_ptr->sdev_rd2,
-          case_ptr->n1_stp,
-          case_ptr->n2_stp
-        )
+      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+        case_ptr->mean_rd1, // parameters
+        case_ptr->mean_rd2,
+        case_ptr->sdev_rd1,
+        case_ptr->sdev_rd2,
+        case_ptr->n1_stp,
+        case_ptr->n2_stp
       )
     );
    }
