@@ -7,7 +7,7 @@
 
 #include <libmpdata++/bcond/cyclic_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
-#include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
+#include <libmpdata++/concurr/openmp.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
 #include "setup.hpp"
 
 #include "cases/DYCOMS98.hpp"
@@ -38,13 +38,13 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
 {
-  using concurr_boost_rigid_t = concurr::boost_thread<
+  using concurr_boost_rigid_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::rigid,  bcond::rigid 
   >;
 
-  using concurr_boost_cyclic_t = concurr::boost_thread<
+  using concurr_boost_cyclic_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic
@@ -119,14 +119,14 @@ void run(int nx, int nz, const user_params_t &user_params)
 template <class solver_t>
 void run(int nx, int ny, int nz, const user_params_t &user_params)
 {
-  using concurr_boost_rigid_t = concurr::boost_thread<
+  using concurr_boost_rigid_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic,
     bcond::rigid,  bcond::rigid 
   >;
 
-  using concurr_boost_cyclic_t = concurr::boost_thread<
+  using concurr_boost_cyclic_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic,
@@ -241,7 +241,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   }
   else
   {
-    using concurr_t = concurr::boost_thread<
+    using concurr_t = concurr::openmp<
       solver_t, 
       bcond::cyclic, bcond::cyclic,
       bcond::cyclic, bcond::cyclic,
@@ -318,6 +318,7 @@ struct ct_params_3D_blk_1m : ct_params_common
 // all starts here with handling general options 
 int main(int argc, char** argv)
 {
+  omp_set_nested(1); // to allow openmp calls from libcloudphxx multi_CUDA backend
   // making argc and argv global
   ac = argc;
   av = argv;
