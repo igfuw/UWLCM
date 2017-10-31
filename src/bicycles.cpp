@@ -7,7 +7,7 @@
 
 #include <libmpdata++/bcond/cyclic_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
-#include <libmpdata++/concurr/boost_thread.hpp> // not to conflict with OpenMP used via Thrust in libcloudph++
+#include <libmpdata++/concurr/openmp.hpp>
 #include "setup.hpp"
 
 #include "cases/DYCOMS98.hpp"
@@ -38,13 +38,13 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
 {
-  using concurr_boost_rigid_t = concurr::boost_thread<
+  using concurr_openmp_rigid_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::rigid,  bcond::rigid 
   >;
 
-  using concurr_boost_cyclic_t = concurr::boost_thread<
+  using concurr_openmp_cyclic_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic
@@ -58,7 +58,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   using case_ptr_t = 
     std::unique_ptr<
       setup::CasesCommon<
-        concurr_boost_rigid_t
+        concurr_openmp_rigid_t
       >
     >;
 
@@ -66,11 +66,11 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_boost_rigid_t>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_boost_rigid_t>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_boost_rigid_t>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_openmp_rigid_t>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -98,13 +98,13 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   if(user_params.model_case != "dry_thermal")
   {
-    slv.reset(new concurr_boost_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    slv.reset(new concurr_openmp_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
-    slv.reset(new concurr_boost_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    slv.reset(new concurr_openmp_cyclic_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
   }
 
   // setup panic pointer and the signal handler
@@ -119,14 +119,14 @@ void run(int nx, int nz, const user_params_t &user_params)
 template <class solver_t>
 void run(int nx, int ny, int nz, const user_params_t &user_params)
 {
-  using concurr_boost_rigid_t = concurr::boost_thread<
+  using concurr_openmp_rigid_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic,
     bcond::rigid,  bcond::rigid 
   >;
 
-  using concurr_boost_cyclic_t = concurr::boost_thread<
+  using concurr_openmp_cyclic_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic,
@@ -141,7 +141,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   using case_ptr_t = 
     std::unique_ptr<
       setup::CasesCommon<
-        concurr_boost_rigid_t
+        concurr_openmp_rigid_t
       >
     >;
 
@@ -149,11 +149,11 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_3d<concurr_boost_rigid_t>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_3d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_boost_rigid_t>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_boost_rigid_t>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_openmp_rigid_t>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -181,13 +181,13 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 
   if(user_params.model_case != "dry_thermal")
   {
-    slv.reset(new concurr_boost_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    slv.reset(new concurr_openmp_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
-    slv.reset(new concurr_boost_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_boost_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    slv.reset(new concurr_openmp_cyclic_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
   }
 
   // setup panic pointer and the signal handler
@@ -241,7 +241,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   }
   else
   {
-    using concurr_t = concurr::boost_thread<
+    using concurr_t = concurr::openmp<
       solver_t, 
       bcond::cyclic, bcond::cyclic,
       bcond::cyclic, bcond::cyclic,
@@ -318,6 +318,7 @@ struct ct_params_3D_blk_1m : ct_params_common
 // all starts here with handling general options 
 int main(int argc, char** argv)
 {
+  omp_set_nested(1); // to allow openmp calls from libcloudphxx multi_CUDA backend
   // making argc and argv global
   ac = argc;
   av = argv;
