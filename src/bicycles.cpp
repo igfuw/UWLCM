@@ -267,8 +267,8 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 struct ct_params_common : ct_params_default_t
 {
   using real_t = setup::real_t;
-  //enum { opts = opts::nug | opts::iga | opts::fct };
-  enum { opts = opts::nug | opts::abs };
+  enum { opts = opts::nug | opts::iga | opts::fct };
+  //enum { opts = opts::nug | opts::abs };
   enum { rhs_scheme = solvers::trapez }; 
   enum { prs_scheme = solvers::cr };
   enum { vip_vab = solvers::expl };
