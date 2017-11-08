@@ -286,6 +286,17 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
+      else if (plt == "com_sd_conc")
+      {
+        // number of SDs at the center of mass
+        try
+        {
+          tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
+          typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
+          res_prof(at) = sd_conc(com_x_idx(at), com_z_idx(at));
+        }
+        catch(...) {;}
+      }
       else if (plt == "th_com")
       {
 	// center of mass of temp perturb
@@ -611,6 +622,13 @@ void plot_series(Plotter_t plotter, Plots plots)
       res_prof *= 1e6;
       gp << "set xlabel 'time [min]'\n";
       gp << "set ylabel 'std dev [micron]'\n";
+    }
+    else if (plt == "com_sd_conc")
+    {
+      gp << "set title 'number of SDs at the center of mass\n";
+      res_pos *= 60.;
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set ylabel 'SD no'\n";
     }
     else if (plt == "nc")
       gp << "set title 'average cloud drop conc [1/cm^3]'\n";
