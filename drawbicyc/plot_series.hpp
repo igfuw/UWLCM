@@ -128,16 +128,19 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           {
-            auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
+            auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
-            snap *= rhod;
-            res_prof(at) = blitz::sum(snap);
-          } 
+            res_prof(at) += blitz::mean(snap);
+          }
+          {
+            auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
+            typename Plotter_t::arr_t snap(tmp);
+            res_prof(at) += blitz::mean(snap);
+          }
           {
             auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
-            snap *= rhod;
-            res_prof(at) += blitz::sum(snap);
+            res_prof(at) += blitz::mean(snap);
           } 
         }
         catch(...) {;}
@@ -583,7 +586,13 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set title 'relative std dev of N_{SD}'\n";
     }
     else if (plt == "tot_water")
-      gp << "set title 'total water'\n";
+    {
+      gp << "set title 'mean water content, prtcls with r<0.5um not accounted!'\n";
+      res_pos *= 60.;
+      res_prof *= 1e3;
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set ylabel 'mean (cloud+rain+vapor) mixing ratio [g/kg]'\n";
+    }
     else if (plt == "com_vel")
     {
       gp << "set title 'vertical velocity of the COM\n";
