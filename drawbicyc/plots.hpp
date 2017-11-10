@@ -18,10 +18,11 @@ const std::vector<std::string> series_moist_thermal({
 "RH_max",
 "ract_com",
 "clfrac",
-// "tot_water"
+ "tot_water",
 "com_mom0","com_mom1","com_mom2", // higher moments need lower ones enabled!!
 "com_vel",
-"com_supersat"
+"com_supersat",
+"com_sd_conc"
 
 // "mass_dry",
 //"th_com"
