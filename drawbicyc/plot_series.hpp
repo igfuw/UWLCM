@@ -128,16 +128,28 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           {
-            auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
+            auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod;
-            res_prof(at) = blitz::sum(snap);
-          } 
+            res_prof(at) += blitz::mean(snap);
+          }
+          {
+            auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
+            typename Plotter_t::arr_t snap(tmp);
+            snap *= rhod;
+            res_prof(at) += blitz::mean(snap);
+          }
+          {
+            auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
+            typename Plotter_t::arr_t snap(tmp);
+            snap *= rhod;
+            res_prof(at) += blitz::mean(snap);
+          }
           {
             auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod;
-            res_prof(at) += blitz::sum(snap);
+            res_prof(at) += blitz::mean(snap);
           } 
         }
         catch(...) {;}
@@ -283,6 +295,17 @@ void plot_series(Plotter_t plotter, Plots plots)
           }
           else
             res_prof(at) = 0.;
+        }
+        catch(...) {;}
+      }
+      else if (plt == "com_sd_conc")
+      {
+        // number of SDs at the center of mass
+        try
+        {
+          tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
+          typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
+          res_prof(at) = sd_conc(com_x_idx(at), com_z_idx(at));
         }
         catch(...) {;}
       }
@@ -572,7 +595,13 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set title 'relative std dev of N_{SD}'\n";
     }
     else if (plt == "tot_water")
-      gp << "set title 'total water'\n";
+    {
+      gp << "set title 'mean water mass density'\n";
+      res_pos *= 60.;
+      res_prof *= 1e3;
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set ylabel 'mean (hydrometeors+vapor) water mass density [g/m^3]'\n";
+    }
     else if (plt == "com_vel")
     {
       gp << "set title 'vertical velocity of the COM\n";
@@ -611,6 +640,13 @@ void plot_series(Plotter_t plotter, Plots plots)
       res_prof *= 1e6;
       gp << "set xlabel 'time [min]'\n";
       gp << "set ylabel 'std dev [micron]'\n";
+    }
+    else if (plt == "com_sd_conc")
+    {
+      gp << "set title 'number of SDs at the center of mass\n";
+      res_pos *= 60.;
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set ylabel 'SD no'\n";
     }
     else if (plt == "nc")
       gp << "set title 'average cloud drop conc [1/cm^3]'\n";
