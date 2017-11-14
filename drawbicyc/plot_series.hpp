@@ -123,6 +123,17 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
+      // average activated sd_conc in clloudy cells
+      else if (plt == "sd_conc_act_avg")
+      {
+        try
+        {
+          auto stats = plotter.cloud_sdconc_act_stats_timestep(at * n["outfreq"]);
+          res_prof(at) = stats.first;
+          res_prof_std_dev(at) = stats.second;
+        }
+        catch(...) {;}
+      }
       else if (plt == "tot_water")
       {
         try
@@ -131,7 +142,7 @@ void plot_series(Plotter_t plotter, Plots plots)
             auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod;
-            res_prof(at) += blitz::mean(snap);
+            res_prof(at) = blitz::mean(snap);
           }
           {
             auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
@@ -587,12 +598,22 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set xlabel 'time [min]'\n";
       gp << "set title 'average SD number'\n";
     }
+/*
     else if (plt == "sd_conc_std_dev")
     {
       res_pos *= 60.;
       gp << "set ylabel 'sigma(N_{SD}) / <N_{SD}>'\n";
       gp << "set xlabel 'time [min]'\n";
       gp << "set title 'relative std dev of N_{SD}'\n";
+    }
+*/
+    else if (plt == "sd_conc_act_avg")
+    {
+      plot_std_dev = true;
+      res_pos *= 60.;
+      gp << "set ylabel '<N_{SD}^{act}>'\n";
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set title 'average activated SD number'\n";
     }
     else if (plt == "tot_water")
     {
