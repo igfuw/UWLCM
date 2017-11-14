@@ -154,6 +154,14 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(sdconc, at);
   }
 
+  // mean and std_dev of number of activated SDs in cloudy cells
+  std::pair<double, double> cloud_sdconc_act_stats_timestep(int at)
+  {   
+    if(this->micro == "blk_1m") return {0,0};
+    arr_t sdconc_act(this->h5load_timestep("sd_conc_act", at));
+    return cloud_hlpr(sdconc_act, at);
+  }
+
   // mean and std_dev of mean radius of activated droplets in cloudy cells [um]
   std::pair<double, double> cloud_meanr_stats_timestep(int at)
   {   
