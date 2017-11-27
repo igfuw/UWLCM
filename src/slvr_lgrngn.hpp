@@ -28,8 +28,14 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     parent_t::tbeg = parent_t::clock::now();
 
     // recording super-droplet concentration per grid cell 
+    prtcls->diag_all();
     prtcls->diag_sd_conc();
     this->record_aux("sd_conc", prtcls->outbuf());
+
+    // recording concentration of SDs that represent activated droplets 
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_sd_conc();
+    this->record_aux("sd_conc_act", prtcls->outbuf());
 
     // recording relative humidity
     prtcls->diag_RH();
