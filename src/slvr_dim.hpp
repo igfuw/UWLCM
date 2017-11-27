@@ -1,6 +1,7 @@
 #pragma once
 
 #include "slvr_piggy.hpp"
+#include <libmpdata++/formulae/arakawa_c.hpp>
 
 // custom 3D idxperm that accepts idx_t; todo: make it part of libmpdata?
 namespace libmpdataxx
@@ -21,6 +22,7 @@ class slvr_dim
 
 using libmpdataxx::arakawa_c::h;
 using namespace libmpdataxx; // TODO: get rid of it?
+using namespace arakawa_c;
 
 // 2D version 
 template <class ct_params_t>
@@ -49,8 +51,6 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-//    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
-//    this->xchng_sclr(in, this->i, this->j);
     in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j)) / dz;
     // top and bottom cells are two times lower
@@ -60,8 +60,6 @@ class slvr_dim<
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    //for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
-    //this->xchng_sclr(in, this->i, this->j);
     in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
     in(this->i, this->j.first() - 1) = in(this->i, this->j.first()); 
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j-1)) / 2./ dz;
@@ -72,8 +70,13 @@ class slvr_dim<
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
   {
-    for (auto &bc : this->bcs[1]) bc->fill_halos_sclr(in, this->i, false);
-    out(this->i, this->j) = 0.25 * (in(this->i, this->j + 1) + 2 * in(this->i, this->j) + in(this->i, this->j - 1));
+    this->xchng_sclr(in, this->ijk);
+
+    out(this->i, this->j) = (4 * in(this->i, this->j) + 
+                                 in(this->i + 1, this->j) + in(this->i - 1, this->j) +
+                                 in(this->i, this->j + 1) + in(this->i, this->j - 1) 
+                            ) / 8.;
+    this->mem->barrier();
   }
 
   auto calc_U_ground() 
@@ -119,8 +122,6 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-//    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
-//    this->xchng_sclr(in, this->i, this->j, this->k);
     in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k)) / dz;
     // top and bottom cells are two times lower
@@ -130,8 +131,6 @@ class slvr_dim<
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-//    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
-//    this->xchng_sclr(in, this->i, this->j, this->k);
     in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
     in(this->i, this->j, this->k.first() - 1) = in(this->i, this->j, this->k.first()); 
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k-1)) / 2./ dz;
@@ -142,8 +141,13 @@ class slvr_dim<
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
   {
-    for (auto &bc : this->bcs[2]) bc->fill_halos_sclr(in, this->i, this->j, false);
-    out(this->i, this->j, this->k) = 0.25 * (in(this->i, this->j, this->k + 1) + 2 * in(this->i, this->j, this->k) + in(this->i, this->j, this->k - 1));
+    this->xchng_sclr(in, this->ijk); 
+    out(this->i, this->j, this->k) = (6 * in(this->i, this->j, this->k) + 
+                                      in(this->i + 1, this->j, this->k) + in(this->i - 1, this->j, this->k) +
+                                      in(this->i, this->j + 1, this->k) + in(this->i, this->j - 1, this->k) +
+                                      in(this->i, this->j, this->k + 1) + in(this->i, this->j, this->k - 1)
+                                     ) / 12.;
+    this->mem->barrier();
   }
 
   auto calc_U_ground() 
