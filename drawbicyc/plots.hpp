@@ -2,10 +2,12 @@
 
 const std::vector<std::string> series_dycoms({
 "wvarmax", "clfrac", "lwp", "er",
- "surf_precip", "mass_dry", "acc_precip",
- "cl_nc",
- "sd_conc_avg", "sd_conc_std_dev",
- "tot_water"
+ "surf_precip", 
+//"mass_dry", 
+ "acc_precip",
+ "cl_nc"//,
+// "sd_conc_avg", "sd_conc_std_dev",
+// "tot_water"
 });
 
 const std::vector<std::string> series_moist_thermal({
@@ -31,9 +33,11 @@ const std::vector<std::string> series_moist_thermal({
 
 std::vector<std::string> profs_dycoms({
 "00rtot", "rliq", "thl", "wvar", 
-"w3rd", "prflux", "act_conc", 
-"clfrac", "N_c", 
-"sat_RH"
+"w3rd", "prflux"
+//, "act_conc"
+,"clfrac"
+//, "N_c", 
+//"sat_RH"
 }); // rtot has to be first
 
 std::vector<std::string> profs_moist_thermal({

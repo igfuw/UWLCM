@@ -70,9 +70,10 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       if (plt == "rliq")
       {
 	// liquid water content (cloud + rain, missing droplets with r<0.5um!)
-        res += plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-        res += plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
-        gp << "set title 'liquid water r [g/kg] averaged over 2h-6h, w/o rw<0.5um'\n";
+        //res += plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
+        res += plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
+        res += plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
+        gp << "set title 'liquid water [g/kg]'\n";
       }
       if (plt == "gccn_rw")
       {
@@ -351,13 +352,19 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       else if (plt == "00rtot")
       {
 	// total water content (vapor + cloud + rain, missing droplets with r<0.5um!)
+	 /*
         {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap; 
+        }*/
+        {
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
         }
         {
-          auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3 * 1e3;
+          auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp += snap; 
         }
@@ -370,7 +377,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res_prof = plotter.horizontal_mean(res_tmp); // average in x
         // find instantaneous inversion height
         k_i +=  blitz::first((res_prof < 8.));
-        gp << "set title 'total water r [g/kg] averaged over 2h-6h, w/o rw<0.5um'\n";
+        gp << "set title 'total water [g/kg]'\n";
       }
       else if (plt == "N_c")
       {
@@ -484,12 +491,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
     std::cout << "average inversion height " << z_i;
     res_pos = i * n["dz"] / z_i; 
+
     if (plt != "act_rd" && plt != "act_conc")
     {
       if (plt == "ugccn_rw_down" || plt == "sat_RH" || plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up")
         res_prof /= last_timestep - first_timestep + 1;
       else
         res_prof = plotter.horizontal_mean(res); // average in x
+
+
+      // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
+      res_prof(0) = res_prof(1);
 
       gp << "plot '-' with line\n";
       gp.send1d(boost::make_tuple(res_prof, res_pos));
@@ -507,6 +519,9 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       gp << "plot '-' with line title 'RH > Sc', '-' w l t 'rw > rc'\n";
       res_prof /= last_timestep - first_timestep + 1;
       res_prof2 /= last_timestep - first_timestep + 1;
+      // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
+      res_prof(0) = res_prof(1);
+      res_prof2(0) = res_prof2(1);
       gp.send1d(boost::make_tuple(res_prof, res_pos));
       gp.send1d(boost::make_tuple(res_prof2, res_pos));
       oprof_file << res_prof ;
