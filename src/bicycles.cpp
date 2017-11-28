@@ -267,8 +267,6 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 struct ct_params_common : ct_params_default_t
 {
   using real_t = setup::real_t;
-  enum { opts = opts::nug | opts::iga | opts::fct };
-  //enum { opts = opts::nug | opts::abs };
   enum { rhs_scheme = solvers::trapez }; 
   enum { prs_scheme = solvers::cr };
   enum { vip_vab = solvers::expl };
@@ -313,6 +311,40 @@ struct ct_params_3D_blk_1m : ct_params_common
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
 };
+
+// function used to modify ct_params before running
+template<template<class... Args_slvr> class slvr, class ct_params_dim_micro, class... Args>
+void run_hlpr(bool piggy, std::string type, Args&&... args)
+{
+  if(!piggy) // no piggybacking
+  {
+    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
+    if(type == "moist_thermal") // use abs option in moist_thermal
+    {
+      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
+      run<slvr<ct_params_final>>(args...);
+    }
+    else // default is the iga | fct option
+    {
+      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
+      run<slvr<ct_params_final>>(args...);
+    }
+  }
+  else // piggybacking
+  {
+    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
+    if(type == "moist_thermal") // use abs option in moist_thermal
+    {
+      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
+      run<slvr<ct_params_final>>(args...);
+    }
+    else // default is the iga | fct option
+    {
+      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
+      run<slvr<ct_params_final>>(args...);
+    }
+  }
+}
 
 
 // all starts here with handling general options 
@@ -412,82 +444,19 @@ int main(int argc, char** argv)
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
-    {
-      if(!piggy) // no piggybacking
-      {
-        struct ct_params_t : ct_params_2D_sd
-        {
-          enum { piggy = 0 };
-        };
-        run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
-      }
-      else // piggyacking
-      {
-        struct ct_params_t : ct_params_2D_sd
-        {
-          enum { piggy = 1 };
-        };
-        run<slvr_lgrngn<ct_params_t>>(nx, nz, user_params);
-      }
-    }
+      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, nx, nz, user_params);
+
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
-    {
-      if(!piggy) // no piggybacking
-      {
-        struct ct_params_t : ct_params_3D_sd
-        {
-          enum { piggy = 0 };
-        };
-        run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
-      }
-      else // piggyacking
-      {
-        struct ct_params_t : ct_params_3D_sd
-        {
-          enum { piggy = 1 };
-        };
-        run<slvr_lgrngn<ct_params_t>>(nx, ny, nz, user_params);
-      }
-    }
+      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, nx, ny, nz, user_params);
+
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
-    {
-      if(!piggy) // no piggybacking
-      {
-        struct ct_params_t : ct_params_2D_blk_1m
-        {
-          enum { piggy = 0 };
-        };
-        run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
-      }
-      else // piggyacking
-      {
-        struct ct_params_t : ct_params_2D_blk_1m
-        {
-          enum { piggy = 1 };
-        };
-        run<slvr_blk_1m<ct_params_t>>(nx, nz, user_params);
-      }
-    }
+      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, nx, nz, user_params);
+
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
-    {
-      if(!piggy) // no piggybacking
-      {
-        struct ct_params_t : ct_params_3D_blk_1m
-        {
-          enum { piggy = 0 };
-        };
-        run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
-      }
-      else // piggyacking
-      {
-        struct ct_params_t : ct_params_3D_blk_1m
-        {
-          enum { piggy = 1 };
-        };
-        run<slvr_blk_1m<ct_params_t>>(nx, ny, nz, user_params);
-      }
-    }
-    else throw
+      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+
+    // TODO: not only micro can be wrong
+    else throw 
       po::validation_error(
         po::validation_error::invalid_option_value, micro, "micro" 
       );
