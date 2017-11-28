@@ -350,6 +350,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
         nancheck(this->mem->advectee(ix::th), "th before step sync");
         nancheck(this->mem->advectee(ix::rv), "rv before step sync");
+        negcheck(this->mem->advectee(ix::th), "th before step sync");
+        negcheck(this->mem->advectee(ix::rv), "rv before step sync");
         prtcls->step_sync(
           params.cloudph_opts,
           make_arrinfo(this->mem->advectee(ix::th)),
@@ -361,6 +363,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         );
         nancheck(this->mem->advectee(ix::th), "th after step sync");
         nancheck(this->mem->advectee(ix::rv), "rv after step sync");
+        negcheck(this->mem->advectee(ix::th), "th after step sync");
+        negcheck(this->mem->advectee(ix::rv), "rv after step sync");
 
         parent_t::tend = parent_t::clock::now();
         parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
