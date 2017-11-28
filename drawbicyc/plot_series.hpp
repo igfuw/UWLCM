@@ -70,11 +70,13 @@ void plot_series(Plotter_t plotter, Plots plots)
       // store accumulated precip volume
       prec_vol_prev = prec_vol;
       // read in accumulated precipitation volume
-      // wet precip vol is the 10th value, followed by an empty line
-      for(int i=0; i<10; ++i)
+      // wet precip vol is the 9th value, followed by druy vol and an empty line
+      for(int i=0; i<9; ++i)
         std::getline(f_precip, row);
       sscanf(row.c_str(), "%*d %lf", &prec_vol);
       std::getline(f_precip, row);
+      std::getline(f_precip, row);
+
       if (plt == "clfrac")
       {
         try
@@ -138,12 +140,14 @@ void plot_series(Plotter_t plotter, Plots plots)
       {
         try
         {
+/*
           {
             auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod;
             res_prof(at) = blitz::mean(snap);
           }
+*/
           {
             auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
@@ -436,7 +440,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // surface precipitation [mm/day]
         try
         {
-          res_prof(at) = (prec_vol - prec_vol_prev) / (double(n["dx"]) * rhod.extent(0)) / (double(n["outfreq"]) * n["dt"] / 3600. / 24.) * 1e3;
+          res_prof(at) = (prec_vol - prec_vol_prev) / plotter.DomainSurf / (double(n["outfreq"]) * n["dt"] / 3600. / 24.) * 1e3;
         }
         catch(...) {;}
       }
@@ -509,9 +513,9 @@ void plot_series(Plotter_t plotter, Plots plots)
 
     if (plt == "clfrac")
     {
-      res_pos *= 60.;
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel 'Ncell(q_c > 0.1 g/kg) / Ncell_{tot}'\n";
+    //  res_pos *= 60.;
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
       gp << "set title 'cloud fraction'\n";
     }
     else if (plt == "ract_com")
@@ -672,13 +676,29 @@ void plot_series(Plotter_t plotter, Plots plots)
     else if (plt == "nc")
       gp << "set title 'average cloud drop conc [1/cm^3]'\n";
     else if (plt == "cl_nc")
-      gp << "set title 'average cloud drop conc [1/cm^3] in cloudy cells (should be ca. 55)'\n";
+    {
+      gp << "set title 'average cloud drop conc [1/cm^3] in cloudy cells'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
     else if (plt == "wvarmax")
+    {
       gp << "set title 'max variance of w [m^2 / s^2]'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
     else if (plt == "surf_precip")
+    {
       gp << "set title 'surface precipitation [mm/d]'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
     else if (plt == "acc_precip")
+    {
       gp << "set title 'accumulated surface precipitation [mm]'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
     else if (plt == "mass_dry")
       gp << "set title 'total dry mass [g]'\n";
     else if (plt == "RH_max")
@@ -692,6 +712,8 @@ void plot_series(Plotter_t plotter, Plots plots)
     {
       gp << "set title 'liquid water path [g / m^2]'\n";
       res_prof *= (n["dz"] - 1) * n["z"]; // top and bottom cells are smaller
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
     }
     else if (plt == "er")
     {
@@ -700,6 +722,8 @@ void plot_series(Plotter_t plotter, Plots plots)
       res_prof(nolast) = (res_prof(nolast+1) - res_prof(nolast)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"]) + D * (res_prof(nolast) - 0.5) * n["dz"] * 1e2;
       res_prof(last_timestep) = 0.;
       gp << "set title 'entrainment rate [cm / s]'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
     }
 
     gp << "plot '-' with l";

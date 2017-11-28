@@ -8,3 +8,12 @@
                                std::cout << arr;\
                                assert(0);}}
 #endif
+
+#ifdef NDEBUG
+#define negcheck(arr, name) ((void)0)
+#else
+#define negcheck(arr, name) {if(min(arr) < 0.) {\
+                               std::cout << "A negative number detected in: " << name << std::endl;\
+                               std::cout << arr;\
+                               assert(0);}}
+#endif

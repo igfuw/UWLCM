@@ -59,24 +59,32 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     surf_sens();
     // beta as tmp storage
     beta(ijk) = F(ijk);
+      nancheck(F(ijk), "sensible surf forcing");
     // radiation
     radiation(rv);
+    nancheck(beta(ijk), "radiation");
     // add fluxes from radiation and surface
     F(ijk) += beta(ijk);
+      nancheck(F(ijk), "sensible surf forcing + radiation");
     // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
     this->vert_grad_fwd(F, alpha, params.dz);
+      nancheck(alpha(ijk), "sum of th flux");
   
     // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
     alpha(ijk).reindex(this->zero) *= - this->state(ix::th)(ijk).reindex(this->zero) / 
       calc_c_p()(rv(ijk).reindex(this->zero)) / 
       calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
       (*params.rhod)(this->vert_idx);
+
+      nancheck(alpha(ijk), "change of theta");
   
     // large-scale vertical wind
     subsidence(ix::th); // TODO: in case 1 th here should be in step n+1, calc it explicitly as th + 0.5 * dt * rhs(th);
                         //       could also be calculated implicitly, but we would need implicit th^n+1 in other cells
+      nancheck(F(ijk), "subsidence");
 
     alpha(ijk) += F(ijk);
+      nancheck(alpha(ijk), "alpha in th_src");
   }
   else
     alpha(ijk) = 0.;
