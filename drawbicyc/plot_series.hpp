@@ -719,7 +719,7 @@ void plot_series(Plotter_t plotter, Plots plots)
     {
       // forward difference, in cm
       Range nolast = Range(0, last_timestep-1);
-      res_prof(nolast) = (res_prof(nolast+1) - res_prof(nolast)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"]) + D * (res_prof(nolast) - 0.5) * n["dz"] * 1e2;
+      res_prof(nolast) = where(res_prof(nolast+1) > 0., (res_prof(nolast+1) - res_prof(nolast)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"]) + D * (res_prof(nolast) - 0.5) * n["dz"] * 1e2, 0.);
       res_prof(last_timestep) = 0.;
       gp << "set title 'entrainment rate [cm / s]'\n";
       gp << "set xlabel ''\n";
