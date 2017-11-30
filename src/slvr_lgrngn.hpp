@@ -348,6 +348,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         // running synchronous stuff
         parent_t::tbeg = parent_t::clock::now();
 
+        // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
+        // turn all negative rv into rv = 0... CHEATING
+        negtozero(this->mem->advectee(ix::rv), "rv before step sync");
+
         nancheck(this->mem->advectee(ix::th), "th before step sync");
         nancheck(this->mem->advectee(ix::rv), "rv before step sync");
         negcheck(this->mem->advectee(ix::th), "th before step sync");
@@ -361,6 +365,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
           make_arrinfo(Cz)
         );
+       
+        // microphysics could have led to rv < 0 ?
+        negtozero(this->mem->advectee(ix::rv), "rv after step sync");
+
         nancheck(this->mem->advectee(ix::th), "th after step sync");
         nancheck(this->mem->advectee(ix::rv), "rv after step sync");
         negcheck(this->mem->advectee(ix::th), "th after step sync");
