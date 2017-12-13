@@ -12,7 +12,7 @@ if len(sys.argv) == 3:
 print it_start, it_end, len(sys.argv)
 
 # load state
-LoadState('/home/piotr/praca/paraview_scripts/paraview_DYCOMS_init_state.pvsm', LoadStateDataFileOptions='Use File Names From State',
+LoadState('paraview_DYCOMS_init_state.pvsm', LoadStateDataFileOptions='Use File Names From State',
     DataDirectory='/home/piotr/praca/wyniki/DYCOMS3D',
     OnlyUseFilesInDataDirectory=0,
     tempxmfFileNames=['/mnt/acc_prometheus/wyniki/DYCOMS3D/SD30_dt0.5_19_11_17/out_lgrngn/temp.xmf'],
