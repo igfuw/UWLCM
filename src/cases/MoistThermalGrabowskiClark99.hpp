@@ -367,9 +367,9 @@ namespace setup
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
 
         using ix = typename concurr_t::solver_t::ix;
-        int nz = solver.advectee().extent(ix::w); 
+        int nz = solver.advectee_global().extent(ix::w); 
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee().extent(0); 
+        int nx = solver.advectee_global().extent(0); 
         real_t dx = (X / si::metres) / (nx-1); 
         solver.advectee(ix::rv) = prtrb_rv(th_e, rhod, dz)(
           sqrt(
@@ -402,11 +402,11 @@ namespace setup
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
         using ix = typename concurr_t::solver_t::ix;
-        int nz = solver.advectee().extent(2); 
+        int nz = solver.advectee_global().extent(2); 
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee().extent(0); 
+        int nx = solver.advectee_global().extent(0); 
         real_t dx = (X / si::metres) / (nx-1); 
-        int ny = solver.advectee().extent(1); 
+        int ny = solver.advectee_global().extent(1); 
         real_t dy = (Y / si::metres) / (ny-1); 
         solver.advectee(ix::rv) = prtrb_rv(th_e, rhod, dz)(
           sqrt(
