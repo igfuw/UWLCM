@@ -41,9 +41,9 @@ namespace setup
       void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
         using ix = typename concurr_t::solver_t::ix;
-        int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nx = solver.advectee_global().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dx = (X / si::metres) / (nx-1); 
     
     //    solver.advectee(ix::rv) = r_t()(index * dz); 
