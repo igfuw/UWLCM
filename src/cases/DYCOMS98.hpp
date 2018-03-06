@@ -287,7 +287,9 @@ namespace setup
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         using ix = typename concurr_t::solver_t::ix;
-        this->make_cyclic(solver.advectee(ix::th));
+        // make theta perturbation cyclic,
+        // TODO: reenable, with MPI it should be called on some global array before setting theta with advectee_global_set
+        //this->make_cyclic(solver.advectee(ix::th));
       }
     };
 
@@ -308,7 +310,7 @@ namespace setup
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         using ix = typename concurr_t::solver_t::ix;
-        this->make_cyclic(solver.advectee(ix::th));
+        //this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
