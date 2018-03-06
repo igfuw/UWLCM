@@ -71,6 +71,11 @@ class slvr_common : public slvr_dim<ct_params_t>
   template<int n_dims>
   blitz::TinyVector<int, n_dims> shape(const idx_t<n_dims> &rng) { return rng.ubound() - rng.lbound() + 1;}
 
+  // get base from a rng_t or an idx_t
+  inline blitz::TinyVector<int, 1> base(const rng_t &rng) { return blitz::TinyVector<int, 1>(rng.first());}
+  template<int n_dims>
+  blitz::TinyVector<int, n_dims> base(const idx_t<n_dims> &rng) { return rng.lbound();}
+
   void buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv);
   void radiation(typename parent_t::arr_t &rv);
   void rv_src();
@@ -209,10 +214,15 @@ class slvr_common : public slvr_dim<ct_params_t>
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
       F(this->ijk).reindex(this->zero) = 
-        -pow(params.ForceParameters.u_fric,2) *  // const, cache it
-        this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-        U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-        (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
+        where(
+          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+          (*params.hgt_fctr_vctr)(this->vert_idx) > 0.,                                        // hgt_fctr
+          -pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+          (*params.hgt_fctr_vctr)(this->vert_idx),
+          0.
+        );                                       // hgt_fctr
 
       // du/dt = sum of kinematic momentum fluxes * dt
       this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
@@ -283,7 +293,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     beta(args.mem->tmp[__FILE__][0][4]),
     F(args.mem->tmp[__FILE__][0][1])
   {
-    k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    k_i.resize(this->shape(this->hrzntl_subdomain)); 
+    k_i.reindexSelf(this->base(this->hrzntl_subdomain));
     r_l = 0.;
   }
 
