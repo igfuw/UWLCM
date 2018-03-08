@@ -330,10 +330,16 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
       {
         // temporarily Cx & Cz are multiplied by this->rhod ...
+         /*
         auto 
           Cx = this->mem->GC[0](this->Cx_domain).reindex(this->zero).copy(),
           Cy = this->mem->GC[1](this->Cy_domain).reindex(this->zero).copy(),
           Cz = this->mem->GC[ix::w](this->Cz_domain).reindex(this->zero).copy(); 
+*/
+        auto 
+          Cx = this->mem->GC[0](this->Cx_domain).copy(),
+          Cy = this->mem->GC[1](this->Cy_domain).copy(),
+          Cz = this->mem->GC[ix::w](this->Cz_domain).copy(); 
 
         nancheck(Cx, "Cx after copying from mpdata");
         nancheck(Cy, "Cy after copying from mpdata");
