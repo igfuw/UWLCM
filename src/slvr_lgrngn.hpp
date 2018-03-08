@@ -188,7 +188,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     typename parent_t::arr_t arr
   ) {
     return libcloudphxx::lgrngn::arrinfo_t<real_t>(
-      arr.dataZero(), 
+      arr.data(), 
       arr.stride().data()
     );
   }
@@ -334,6 +334,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           Cx = this->mem->GC[0](this->Cx_domain).reindex(this->zero).copy(),
           Cy = this->mem->GC[1](this->Cy_domain).reindex(this->zero).copy(),
           Cz = this->mem->GC[ix::w](this->Cz_domain).reindex(this->zero).copy(); 
+
         nancheck(Cx, "Cx after copying from mpdata");
         nancheck(Cy, "Cy after copying from mpdata");
         nancheck(Cz, "Cz after copying from mpdata");
@@ -356,6 +357,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         nancheck(this->mem->advectee(ix::rv), "rv before step sync");
         negcheck(this->mem->advectee(ix::th), "th before step sync");
         negcheck(this->mem->advectee(ix::rv), "rv before step sync");
+
         prtcls->step_sync(
           params.cloudph_opts,
           make_arrinfo(this->mem->advectee(ix::th)),
@@ -365,7 +367,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
           make_arrinfo(Cz)
         );
-       
+
         // microphysics could have led to rv < 0 ?
         negtozero(this->mem->advectee(ix::rv), "rv after step sync");
 
