@@ -9,6 +9,11 @@ class slvr_piggy
 
 using namespace libmpdataxx; // TODO: get rid of it?
 
+// require minimal halo of 2, because pred_corr advection scheme of super-droplets requires a halo of courant number;
+// TODO: this is probably not optimal, because all fields have bigger halos
+// TODO: make libcloudphxx exchange halos of courant number and dont require the courant number field already with halo
+constexpr int minhalo = 2; 
+
 // driver
 template <class ct_params_t>
 class slvr_piggy<
@@ -16,7 +21,7 @@ class slvr_piggy<
   typename std::enable_if<ct_params_t::piggy == 0 >::type
 > : public 
   output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
+    solvers::mpdata_rhs_vip_prs<ct_params_t, minhalo>
   >
 {
   private:
@@ -24,7 +29,7 @@ class slvr_piggy<
 
   protected:
   using parent_t = output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t>
+    solvers::mpdata_rhs_vip_prs<ct_params_t, minhalo>
   >;  
 
   std::ofstream f_vel_out; // file for velocity field
@@ -98,13 +103,13 @@ class slvr_piggy<
   typename std::enable_if<ct_params_t::piggy == 1 >::type
 > : public 
   output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip<ct_params_t>
+    solvers::mpdata_rhs_vip<ct_params_t, minhalo>
   >
 {
 
   protected:
   using parent_t = output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip<ct_params_t>
+    solvers::mpdata_rhs_vip<ct_params_t, minhalo>
   >;  
 
   private:
