@@ -153,7 +153,7 @@ int main(int argc, char *argv[]){
   double pth[] = {300., 300., 300., 300.};
   double prhod[] = {1.225, 1.225, 1.225, 1.225};
   double prv[] = {.01, 0.01, 0.01, 0.01};
-  double pCx[] = {-1, -1, -1, -1, -1};
+  double pCx[] = {-1, -1, -1, -1, -1, -1, -1};
   double pCz[] = {0., 0., 0., 0.};
   //long int strides[] = {sizeof(double)};
   long int strides[] = {1, 1};
