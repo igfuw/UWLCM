@@ -37,7 +37,7 @@ int main(int argc, char** argv)
   // parse dir name
   std::string
     dir = vm["dir"].as<std::string>(),
-    h5  = dir;// + "out_" + micro;
+    h5  = dir + "/";// + "out_" + micro;
 
   // reading required plot types
   bool flag_series = vm["series"].as<bool>(),
