@@ -90,19 +90,12 @@ void two_step(particles_proto_t<double> *prtcls,
     prtcls->step_async(opts);
 }
 
-
-int main(int argc, char *argv[]){
-  opts_init_t<double> opts_init;
-
-  int ndims;
-  sscanf(argv[1], "%d", &ndims);
-  printf("ndims %d\n", ndims);
-
+void test(backend_t backend, int ndims)
+{
   int rank = -1;
-  int provided_thread_lvl;
-  MPI_Init_thread(nullptr, nullptr, MPI_THREAD_MULTIPLE, &provided_thread_lvl);
-  printf("provided thread lvl: %d\n", provided_thread_lvl);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  opts_init_t<double> opts_init;
   opts_init.dt=3.;
   opts_init.sstp_coal = 1; 
   opts_init.kernel = kernel_t::geometric;
@@ -144,9 +137,10 @@ int main(int argc, char *argv[]){
   printf("ny = %d\n", opts_init.ny);
   printf("nz = %d\n", opts_init.nz);
   prtcls = factory<double>(
+    backend,
   //  (backend_t)multi_CUDA, 
   //  (backend_t)CUDA, 
-    (backend_t)serial, 
+  //  (backend_t)serial, 
     opts_init
   );
   printf("po factory\n");
@@ -211,5 +205,17 @@ int main(int argc, char *argv[]){
   MPI_Barrier(MPI_COMM_WORLD);
   printf("---sd_conc po adve---\n");
   printf("%d: %lf %lf %lf %lf\n",rank, out[0], out[1], out[2], out[3]);
+}
+
+int main(int argc, char *argv[]){
+  int ndims;
+  sscanf(argv[1], "%d", &ndims);
+  printf("ndims %d\n", ndims);
+
+  int provided_thread_lvl;
+  MPI_Init_thread(nullptr, nullptr, MPI_THREAD_MULTIPLE, &provided_thread_lvl);
+  printf("provided thread lvl: %d\n", provided_thread_lvl);
+ 
+  test(backend_t(multi_CUDA), ndims);
   MPI_Finalize();
 }
