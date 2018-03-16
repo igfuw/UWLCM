@@ -92,7 +92,7 @@ void two_step(particles_proto_t<double> *prtcls,
 
 void test(backend_t backend, int ndims, bool dir)
 {
-  std::cout << "dir: " << dir << " backend: " << backend << std::endl;
+  std::cout << "ndims: " << ndims <<  " direction: " << dir << " backend: " << backend << std::endl;
   int rank = -1;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -112,6 +112,12 @@ void test(backend_t backend, int ndims, bool dir)
     opts_init.dz = 1; 
     opts_init.nz = 1; 
     opts_init.z1 = 1; 
+  }
+  if(ndims==3)
+  {
+    opts_init.dy = 1; 
+    opts_init.ny = 1; 
+    opts_init.y1 = 1; 
   }
   opts_init.dev_id = rank; 
   std::cout << opts_init.dev_id << std::endl;
@@ -139,9 +145,6 @@ void test(backend_t backend, int ndims, bool dir)
   printf("nz = %d\n", opts_init.nz);
   prtcls = factory<double>(
     backend,
-  //  (backend_t)multi_CUDA, 
-  //  (backend_t)CUDA, 
-  //  (backend_t)serial, 
     opts_init
   );
   printf("po factory\n");
@@ -151,21 +154,26 @@ void test(backend_t backend, int ndims, bool dir)
   double pCxm[] = {-1, -1, -1, -1, -1, -1, -1};
   double pCxp[] = {1, 1, 1, 1, 1, 1, 1};
   double pCz[] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. ,0.};
+  double pCy[] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. ,0.};
   //long int strides[] = {sizeof(double)};
   long int strides[] = {1, 1};
   long int xstrides[] = {1, 1};
   long int ystrides[] = {1, 1};
+  long int zstrides[] = {1, 1};
 
   arrinfo_t<double> th(pth, strides);
   arrinfo_t<double> rhod(prhod, strides);
   arrinfo_t<double> rv(prv, strides);
   arrinfo_t<double> Cx( dir ? pCxm : pCxp, xstrides);
   arrinfo_t<double> Cz(pCz, ystrides);
+  arrinfo_t<double> Cy(pCy, ystrides);
 
   if(ndims==1)
     prtcls->init(th,rv,rhod, Cx);
   else if(ndims==2)
     prtcls->init(th,rv, rhod, Cx, arrinfo_t<double>(), Cz);
+  else if(ndims==3)
+    prtcls->init(th,rv, rhod, Cx, Cy, Cz);
 
   opts_t<double> opts;
   opts.adve = 0;
@@ -210,10 +218,6 @@ void test(backend_t backend, int ndims, bool dir)
 }
 
 int main(int argc, char *argv[]){
-  int ndims;
-  sscanf(argv[1], "%d", &ndims);
-  printf("ndims %d\n", ndims);
-
   int provided_thread_lvl;
   MPI_Init_thread(nullptr, nullptr, MPI_THREAD_MULTIPLE, &provided_thread_lvl);
   printf("provided thread lvl: %d\n", provided_thread_lvl);
@@ -221,8 +225,13 @@ int main(int argc, char *argv[]){
   auto backends = {backend_t(serial), backend_t(CUDA), backend_t(multi_CUDA)};
   for(auto back: backends)
   {
-    test(back, ndims, false);
-    test(back, ndims, true);
+    // 1d doesnt work with MPI
+    // 2D
+    test(back, 2, false);
+    test(back, 2, true);
+    // 3D
+    test(back, 3, false);
+    test(back, 3, true);
   }
   MPI_Finalize();
 }
