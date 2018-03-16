@@ -92,9 +92,19 @@ void two_step(particles_proto_t<double> *prtcls,
 
 void test(backend_t backend, int ndims, bool dir)
 {
-  std::cout << "ndims: " << ndims <<  " direction: " << dir << " backend: " << backend << std::endl;
   int rank = -1;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if(rank>1)
+  {
+    throw std::runtime_error("This test doesn't work for more than 2 mpi processes\n");
+  }
+
+  if(rank==0)
+  {
+//    std::cout << std::endl << " ------------------------------------ " << std::endl;
+    std::cout << "ndims: " << ndims <<  " direction: " << dir << " backend: " << backend << std::endl;
+  } 
+  MPI_Barrier(MPI_COMM_WORLD);
 
   opts_init_t<double> opts_init;
   opts_init.dt=3.;
@@ -120,7 +130,7 @@ void test(backend_t backend, int ndims, bool dir)
     opts_init.y1 = 1; 
   }
   opts_init.dev_id = rank; 
-  std::cout << opts_init.dev_id << std::endl;
+//  std::cout << opts_init.dev_id << std::endl;
 //  opts_init.sd_const_multi = 1;
 
 /*
@@ -140,14 +150,15 @@ void test(backend_t backend, int ndims, bool dir)
 
   particles_proto_t<double> *prtcls;
 
+/*
   printf("nx = %d\n", opts_init.nx);
   printf("ny = %d\n", opts_init.ny);
   printf("nz = %d\n", opts_init.nz);
+*/
   prtcls = factory<double>(
     backend,
     opts_init
   );
-  printf("po factory\n");
   double pth[] = {300., 300., 300., 300.};
   double prhod[] = {1.225, 1.225, 1.225, 1.225};
   double prv[] = {.01, 0.01, 0.01, 0.01};
@@ -186,8 +197,10 @@ void test(backend_t backend, int ndims, bool dir)
   prtcls->diag_all();
   prtcls->diag_sd_conc();
   double *out = prtcls->outbuf();
+/*
   printf("---sd_conc init---\n");
   printf("%d: %lf %lf %lf %lf\n",rank, out[0], out[1], out[2], out[3]);
+*/
   MPI_Barrier(MPI_COMM_WORLD);
   
 
@@ -203,8 +216,25 @@ void test(backend_t backend, int ndims, bool dir)
   prtcls->diag_all();
   prtcls->diag_sd_conc();
   out = prtcls->outbuf();
+/*
   printf("---sd_conc po coal---\n");
   printf("%d: %lf %lf %lf %lf\n",rank, out[0], out[1], out[2], out[3]);
+*/
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double sd_conc_global_post_coal[6];
+  double sd_conc_global_post_adve[6];
+  const int recvcount[] = {2,4};
+  const int displs[] = {0,2};
+
+  MPI_Gatherv(out, opts_init.nx, MPI_DOUBLE, sd_conc_global_post_coal, recvcount, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  if(rank==0)
+  {
+    for(double sd : sd_conc_global_post_coal) std::cout << sd << " ";
+    std::cout << std::endl;
+  } 
+
+
   opts.coal = 0;
   opts.adve = 1;
   two_step(prtcls,th,rhod,rv,opts);
@@ -213,8 +243,22 @@ void test(backend_t backend, int ndims, bool dir)
   out = prtcls->outbuf();
 
   MPI_Barrier(MPI_COMM_WORLD);
+
+  MPI_Gatherv(out, opts_init.nx, MPI_DOUBLE, sd_conc_global_post_adve, recvcount, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  if(rank==0)
+  {
+    for(double sd : sd_conc_global_post_adve) std::cout << sd << " ";
+    std::cout << std::endl;
+    const int perm_lft[6] = {5,0,1,2,3,4};
+    const int perm_rgt[6] = {1,2,3,4,5,0};
+    for(int i=0; i<6; ++i)
+      if(sd_conc_global_post_coal[ dir ? perm_rgt[i] : perm_lft[i]] != sd_conc_global_post_adve[i])
+        throw std::runtime_error("error in advection\n");
+  } 
+/*
   printf("---sd_conc po adve---\n");
   printf("%d: %lf %lf %lf %lf\n",rank, out[0], out[1], out[2], out[3]);
+*/
 }
 
 int main(int argc, char *argv[]){
