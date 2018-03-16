@@ -90,8 +90,9 @@ void two_step(particles_proto_t<double> *prtcls,
     prtcls->step_async(opts);
 }
 
-void test(backend_t backend, int ndims)
+void test(backend_t backend, int ndims, bool dir)
 {
+  std::cout << "dir: " << dir << " backend: " << backend << std::endl;
   int rank = -1;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -147,8 +148,9 @@ void test(backend_t backend, int ndims)
   double pth[] = {300., 300., 300., 300.};
   double prhod[] = {1.225, 1.225, 1.225, 1.225};
   double prv[] = {.01, 0.01, 0.01, 0.01};
-  double pCx[] = {-1, -1, -1, -1, -1, -1, -1};
-  double pCz[] = {0., 0., 0., 0., 0., 0., 0., 0.};
+  double pCxm[] = {-1, -1, -1, -1, -1, -1, -1};
+  double pCxp[] = {1, 1, 1, 1, 1, 1, 1};
+  double pCz[] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. ,0.};
   //long int strides[] = {sizeof(double)};
   long int strides[] = {1, 1};
   long int xstrides[] = {1, 1};
@@ -157,7 +159,7 @@ void test(backend_t backend, int ndims)
   arrinfo_t<double> th(pth, strides);
   arrinfo_t<double> rhod(prhod, strides);
   arrinfo_t<double> rv(prv, strides);
-  arrinfo_t<double> Cx(pCx, xstrides);
+  arrinfo_t<double> Cx( dir ? pCxm : pCxp, xstrides);
   arrinfo_t<double> Cz(pCz, ystrides);
 
   if(ndims==1)
@@ -215,7 +217,12 @@ int main(int argc, char *argv[]){
   int provided_thread_lvl;
   MPI_Init_thread(nullptr, nullptr, MPI_THREAD_MULTIPLE, &provided_thread_lvl);
   printf("provided thread lvl: %d\n", provided_thread_lvl);
- 
-  test(backend_t(multi_CUDA), ndims);
+
+  auto backends = {backend_t(serial), backend_t(CUDA), backend_t(multi_CUDA)};
+  for(auto back: backends)
+  {
+    test(back, ndims, false);
+    test(back, ndims, true);
+  }
   MPI_Finalize();
 }
