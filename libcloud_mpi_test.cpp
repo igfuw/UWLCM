@@ -144,9 +144,9 @@ int main(int argc, char *argv[]){
   printf("ny = %d\n", opts_init.ny);
   printf("nz = %d\n", opts_init.nz);
   prtcls = factory<double>(
-    (backend_t)multi_CUDA, 
+  //  (backend_t)multi_CUDA, 
   //  (backend_t)CUDA, 
-  //  (backend_t)serial, 
+    (backend_t)serial, 
     opts_init
   );
   printf("po factory\n");
@@ -154,7 +154,7 @@ int main(int argc, char *argv[]){
   double prhod[] = {1.225, 1.225, 1.225, 1.225};
   double prv[] = {.01, 0.01, 0.01, 0.01};
   double pCx[] = {-1, -1, -1, -1, -1, -1, -1};
-  double pCz[] = {0., 0., 0., 0.};
+  double pCz[] = {0., 0., 0., 0., 0., 0., 0., 0.};
   //long int strides[] = {sizeof(double)};
   long int strides[] = {1, 1};
   long int xstrides[] = {1, 1};
