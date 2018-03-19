@@ -167,10 +167,10 @@ void test(backend_t backend, int ndims, bool dir)
   double pCz[] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. ,0.};
   double pCy[] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. ,0.};
   //long int strides[] = {sizeof(double)};
-  long int strides[] = {1, 1};
-  long int xstrides[] = {1, 1};
-  long int ystrides[] = {1, 1};
-  long int zstrides[] = {1, 1};
+  long int strides[] = {1, 1, 1};
+  long int xstrides[] = {1, 1, 1};
+  long int ystrides[] = {1, 1, 1};
+  long int zstrides[] = {1, 1, 1};
 
   arrinfo_t<double> th(pth, strides);
   arrinfo_t<double> rhod(prhod, strides);
