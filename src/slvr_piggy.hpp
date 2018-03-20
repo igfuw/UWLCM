@@ -59,6 +59,7 @@ class slvr_piggy<
           throw std::runtime_error("error opening velocity output file '{outdir}/velocity_out.dat'");
         }
       }
+      this->record_aux_const("save_vel", save_vel);  
     }
   }
 
@@ -146,6 +147,8 @@ class slvr_piggy<
       {
         throw std::runtime_error("error opening velocities input file defined by --vel_in");
       }
+      this->record_aux_const("piggybacking", -44); // dummy -44 
+      this->record_aux_const(std::string("vel_in : ") + vel_in, -44);  // dummy -44
     }
     this->mem->barrier();
   }
