@@ -298,6 +298,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     // TODO: add git revisions of libmpdata, libcloud and uwlcm
     if (this->rank == 0) 
     {
+      this->record_aux_const("super-droplet microphysics", -44);  
       this->record_aux_const("nx", params.cloudph_opts_init.nx);  
       this->record_aux_const("ny", params.cloudph_opts_init.ny);  
       this->record_aux_const("nz", params.cloudph_opts_init.nz);  
