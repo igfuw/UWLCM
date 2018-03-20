@@ -291,6 +291,37 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     }
     this->mem->barrier();
     parent_t::hook_ante_loop(nt); 
+    // record microphysics options
+    // TODO: add "microphysics/lgrngn" group in const.h5
+    // TODO: add git revisions of libmpdata, libcloud and uwlcm
+    if (this->rank == 0) 
+    {
+std::cout << "slvr_lgrngn record aux const" << std::endl;
+      this->record_aux_const("sd_conc", params.cloudph_opts_init.sd_conc);  
+      this->record_aux_const("sd_const_multi", params.cloudph_opts_init.sd_const_multi);  
+      this->record_aux_const("adve_scheme", params.cloudph_opts_init.adve_scheme);  
+      this->record_aux_const("dev_count", params.cloudph_opts_init.dev_count);  
+      this->record_aux_const("dev_id", params.cloudph_opts_init.dev_id);  
+      this->record_aux_const("sstp_cond", params.cloudph_opts_init.sstp_cond);  
+      this->record_aux_const("sstp_coal", params.cloudph_opts_init.sstp_coal);  
+      this->record_aux_const("sstp_chem", params.cloudph_opts_init.sstp_chem);  
+      this->record_aux_const("exact_sstp_cond", params.cloudph_opts_init.exact_sstp_cond);  
+      this->record_aux_const("rng_seed", params.cloudph_opts_init.rng_seed);  
+      this->record_aux_const("kernel", params.cloudph_opts_init.kernel);  
+      this->record_aux_const("terminal_velocity", params.cloudph_opts_init.terminal_velocity);  
+      this->record_aux_const("backend", params.backend);  
+      this->record_aux_const("async", params.async);  
+      this->record_aux_const("adve", params.cloudph_opts.adve);  
+      this->record_aux_const("sedi", params.cloudph_opts.sedi);  
+      this->record_aux_const("cond", params.cloudph_opts.cond);  
+      this->record_aux_const("coal", params.flag_coal);  // cloudph_opts.coal could be 0 here due to spinup
+      this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
+      this->record_aux_const("chem_dsl", params.cloudph_opts.chem_dsl);  
+      this->record_aux_const("chem_dsc", params.cloudph_opts.chem_dsc);  
+      this->record_aux_const("chem_rct", params.cloudph_opts.chem_rct);  
+std::cout << "slvr_lgrngn record aux const finished" << std::endl;
+    }
+
     // TODO: barrier?
   }
 
