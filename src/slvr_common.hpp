@@ -1,4 +1,5 @@
 #pragma once
+#include "cases/CasesCommon.hpp"
 #include "slvr_dim.hpp"
 #include <chrono>
 
@@ -53,6 +54,31 @@ class slvr_common : public slvr_dim<ct_params_t>
     // open file for output of precitpitation volume
     if(this->rank==0)
       f_puddle.open(this->outdir+"/prec_vol.dat");
+
+    // record user_params
+    if(this->rank==0)
+    {
+      this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
+      this->record_aux_const("user_params nt", params.user_params.nt);  
+      this->record_aux_const("user_params dt", params.user_params.dt);  
+      this->record_aux_const("user_params outfreq", params.user_params.outfreq);  
+      this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);  
+      this->record_aux_const("user_params spinup", params.user_params.spinup);  
+      this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);  
+      this->record_aux_const("user_params z_rlx_sclr", params.user_params.z_rlx_sclr);  
+      this->record_aux_const("user_params th_src", params.user_params.th_src);  
+      this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
+      this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
+      this->record_aux_const("user_params w_src", params.user_params.w_src);  
+      this->record_aux_const("rt_params th_src", params.th_src);  
+      this->record_aux_const("rt_params rv_src", params.rv_src);  
+      this->record_aux_const("rt_params uv_src", params.uv_src);  
+      this->record_aux_const("rt_params w_src", params.w_src);  
+      this->record_aux_const("rt_params spinup", params.spinup);  
+      this->record_aux_const("rt_params subsidence", params.subsidence);  
+      this->record_aux_const("rt_params friction", params.friction);  
+      this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
+    }
   }
 
   void hook_ante_step()
@@ -263,6 +289,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     setup::arr_1D_t *th_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
+    user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
   };
 
   // per-thread copy of params
