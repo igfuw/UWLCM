@@ -343,7 +343,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       this->record_aux_const("chem_dsc", params.cloudph_opts.chem_dsc);  
       this->record_aux_const("chem_rct", params.cloudph_opts.chem_rct);  
       this->record_aux_const("chem_rho", params.cloudph_opts_init.chem_rho);  
-      this->record_aux_const("RH_max", params.cloudph_opts_init.RH_max);  
+      this->record_aux_const("opts_init RH_max", params.cloudph_opts_init.RH_max);  
       this->record_aux_const("supstp_src", params.cloudph_opts_init.supstp_src);  
       this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
       this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);  
