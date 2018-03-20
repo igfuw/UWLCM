@@ -25,7 +25,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # generate a header file with git revision id
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
-  add_custom_target(git_revision.h
+  add_custom_target(git_revision.h ALL
    git log -1 "--format=format:#define UWLCM_GIT_REVISION \"%H\"%n" HEAD > git_revision.h
    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} VERBATIM
   )

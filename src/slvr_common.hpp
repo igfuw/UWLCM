@@ -2,6 +2,9 @@
 #include "cases/CasesCommon.hpp"
 #include "slvr_dim.hpp"
 #include <chrono>
+#include <libmpdata++/git_revision.hpp>
+#include <libcloudph++/git_revision.h>
+#include "../git_revision.h"
 
 
 template <class ct_params_t>
@@ -58,6 +61,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     // record user_params
     if(this->rank==0)
     {
+      this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, -44);  
+      this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, -44);  
+      this->record_aux_const(std::string("LIBCLOUDPHXX git_revision : ") + LIBCLOUDPHXX_GIT_REVISION, -44);  
       this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
       this->record_aux_const("user_params nt", params.user_params.nt);  
       this->record_aux_const("user_params dt", params.user_params.dt);  
