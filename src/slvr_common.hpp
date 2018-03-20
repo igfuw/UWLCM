@@ -62,8 +62,16 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(this->rank==0)
     {
       this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, -44);  
+#ifdef LIBMPDATAXX_GIT_REVISION
       this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, -44);  
+#else
+      throw std::runtime_error("LIBMPDATAXX_GIT_REVISION is not defined, update your libmpdata++ library");
+#endif
+#ifdef LIBCLOUDPHXX_GIT_REVISION
       this->record_aux_const(std::string("LIBCLOUDPHXX git_revision : ") + LIBCLOUDPHXX_GIT_REVISION, -44);  
+#else
+      throw std::runtime_error("LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
+#endif
       this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
       this->record_aux_const("user_params nt", params.user_params.nt);  
       this->record_aux_const("user_params dt", params.user_params.dt);  
