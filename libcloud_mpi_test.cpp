@@ -290,11 +290,16 @@ int main(int argc, char *argv[]){
   {
     // 1d doesnt work with MPI
     // 2D
+  MPI_Barrier(MPI_COMM_WORLD);
     test(back, 2, false);
+  MPI_Barrier(MPI_COMM_WORLD);
     test(back, 2, true);
+  MPI_Barrier(MPI_COMM_WORLD);
     // 3D
     test(back, 3, false);
+  MPI_Barrier(MPI_COMM_WORLD);
     test(back, 3, true);
+  MPI_Barrier(MPI_COMM_WORLD);
   }
   MPI_Finalize();
 }
