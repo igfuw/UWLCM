@@ -256,9 +256,7 @@ void test(backend_t backend, int ndims, bool dir)
   
   std::vector<int> recvcount = {nx_factor*opts_init.nz * m1(opts_init.ny),2*nx_factor*opts_init.nz * m1(opts_init.ny)};
   std::vector<int> displs = {0,recvcount[0]};
-std::cout << "gatherv" << std::endl;
   MPI_Gatherv(out, opts_init.nx * opts_init.nz * m1(opts_init.ny), MPI_DOUBLE, sd_conc_global_post_coal.data(), recvcount.data(), displs.data(), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-std::cout << "po gatherv" << std::endl;
 
 
   opts.coal = 0;
