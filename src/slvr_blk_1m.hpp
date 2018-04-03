@@ -54,6 +54,21 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     condevap();
 
     parent_t::hook_ante_loop(nt); // forcings after adjustments
+
+    // recording parameters
+    if(this->rank==0)
+    {
+      this->record_aux_const("single-moment bulk microphysics", -44);  
+      this->record_aux_const("cond", opts.cond);  
+      this->record_aux_const("cevp", opts.cevp);  
+      this->record_aux_const("revp", opts.revp);  
+      this->record_aux_const("conv", opts.conv);  
+      this->record_aux_const("accr", opts.accr);  
+      this->record_aux_const("sedi", opts.sedi);  
+      this->record_aux_const("r_c0", opts.r_c0);  
+      this->record_aux_const("k_acnv", opts.k_acnv);  
+      this->record_aux_const("r_eps", opts.r_eps);  
+    }
   }
 
   void hook_ante_step()
@@ -89,7 +104,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     parent_t::hook_post_step(); // includes the above forcings
   }
 
-  libcloudphxx::blk_1m::opts_t<real_t> opts;
+  libcloudphxx::blk_1m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
 
   public:
 
