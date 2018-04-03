@@ -54,6 +54,7 @@ namespace setup
     quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
       n1_stp = real_t(70.47e6) / si::cubic_metres, // gives 60e6 at surface of moist thermal
       n2_stp = real_t(46.98e6) / si::cubic_metres;  // gives 40e6 at surface of moist thermal
+    real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
     // hygroscopicity kappa of the aerosol 
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
