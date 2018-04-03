@@ -128,6 +128,7 @@ namespace setup
         params.buoyancy_wet = true;
         params.subsidence = true;
         params.friction = true;
+        params.radiation = true;
       }
   
   
