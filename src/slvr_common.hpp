@@ -65,12 +65,12 @@ class slvr_common : public slvr_dim<ct_params_t>
 #ifdef LIBMPDATAXX_GIT_REVISION
       this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, -44);  
 #else
-      throw std::runtime_error("LIBMPDATAXX_GIT_REVISION is not defined, update your libmpdata++ library");
+      static_assert(false, "LIBMPDATAXX_GIT_REVISION is not defined, update your libmpdata++ library");
 #endif
 #ifdef LIBCLOUDPHXX_GIT_REVISION
       this->record_aux_const(std::string("LIBCLOUDPHXX git_revision : ") + LIBCLOUDPHXX_GIT_REVISION, -44);  
 #else
-      throw std::runtime_error("LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
+      static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
       this->record_aux_const("MPI size", this->mem->distmem.size());  
