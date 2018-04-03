@@ -78,6 +78,9 @@ void run(int nx, int nz, const user_params_t &user_params)
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
 
+  // copy user_params for output
+  p.user_params = user_params;
+
   // output and simulation parameters
   p.grid_size = {nx, nz};
 
@@ -160,6 +163,9 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
+
+  // copy user_params for output
+  p.user_params = user_params;
 
   // output and simulation parameters
   p.grid_size = {nx, ny, nz};
