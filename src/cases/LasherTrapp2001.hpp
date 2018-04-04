@@ -128,9 +128,7 @@ namespace setup
         // read the soundings
         // containers for soundings
         std::vector<real_t> pres_s, temp_s, RH_s, z_s;
-        std::string line;
-
-        while(std::getline(LasherTrapp2001_sounding_file, line))
+        for(std::string line : LasherTrapp2001_sounding_file)
         {
           real_t pres, temp, RH, z;
           sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
