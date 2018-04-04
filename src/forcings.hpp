@@ -30,13 +30,13 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 // calc upward radiative flux through the bottom of the cells
 {
+  const auto &ijk = this->ijk;
   if(params.radiation)
   {
     namespace idxperm = libmpdataxx::idxperm;
     using ix = typename ct_params_t::ix;
     constexpr int perm_no=ix::w; // 1 for 2D, 2 for 3D
   
-    const auto &ijk = this->ijk;
     int nz = this->mem->grid_size[perm_no].length(); 
   
     // index of first cell above inversion
