@@ -1,5 +1,6 @@
 #pragma once
 #include <random>
+#include <fstream>
 #include "CasesCommon.hpp"
 
 namespace setup 
@@ -44,8 +45,6 @@ namespace setup
     template<class concurr_t>
     class LasherTrapp2001 : public CasesCommon<concurr_t>
     {
-      // containers for soundings
-      std::vector<real_t> pres_s, temp_s, RH_s, z_s;
 
       protected:
   
@@ -71,6 +70,10 @@ namespace setup
       template <class index_t>
       void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
+        // we assume here that env_prof was called already, so that *_env profiles are initialized
+        using ix = typename concurr_t::solver_t::ix;
+        int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
         solver.advectee(ix::rv) = rv_env(index); 
         solver.advectee(ix::th) = th_dry_env(index); 
@@ -118,9 +121,75 @@ namespace setup
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
-  
-        real_t dz = (Z / si::metres) / (nz-1);
 
+
+        // read the soundings
+        std::ifstream fsound("LasherTrapp2001_sounding/x7221545.adjdec2");
+        std::string line;
+        // skip first 15 lines
+        for(int i=0; i<15; ++i)
+          std::getline(fsound, line);
+        real_t pres, temp, RH, z;
+
+        // containers for soundings
+        std::vector<real_t> pres_s, temp_s, RH_s, z_s;
+
+        while(std::getline(fsound, line))
+        {
+          sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
+          std::cerr << pres << " " << temp << " " << RH << " " << z << std::endl;
+          pres_s.push_back(pres * 100); 
+          temp_s.push_back(temp + 273.16);  // TODO: use libcloud's T_0 
+          RH_s.push_back(RH * 100); 
+          z_s.push_back(z); 
+          std::cerr << pres_s.back() << " " << temp_s.back() << " " << RH_s.back() << " " << z_s.back() << std::endl;
+        }
+
+        using ix = typename concurr_t::solver_t::ix;
+        real_t dz = (Z / si::metres) / (nz-1); 
+
+        // interpolate soundings to centers of cells 
+        std::vector<real_t> pres_si(nz), temp_si(nz), RH_si(nz);
+        real_t offset = z_s.at(0); // consider the lowest sounding level as ground level
+        pres_si[0] = pres_s[0];
+        temp_si[0] = temp_s[0];
+        RH_si[0] = RH_s[0];
+        int cell_no = 1;
+        for(int i=1; i<pres_s.size(); ++i)
+        {
+          real_t z_up = z_s.at(i) - offset;
+          real_t z_down = z_s.at(i-1) - offset;
+          real_t z = cell_no * dz;
+          if(z_down <= z && z < z_up)
+          {
+            real_t lin_fact = (z - z_down) / (z_up - z_down);
+            pres_si[cell_no] = pres_s[i-1] + lin_fact * (pres_s[i] - pres_s[i-1]);
+            temp_si[cell_no] = temp_s[i-1] + lin_fact * (temp_s[i] - temp_s[i-1]);
+            RH_si[cell_no] = RH_s[i-1] + lin_fact * (RH_s[i] - RH_s[i-1]);
+            ++cell_no;
+          }
+          if(cell_no == nz) break;
+        }
+        if(cell_no != nz) throw std::runtime_error("The initial sounding is not high enough");
+
+        // calc derived profiles
+        std::vector<real_t> th_std(nz), th_dry(nz), rv(nz);
+        for(int i=0; i<nz; ++i)
+        {
+          th_std[i] = pow(p_1000<real_t>() / si::pascals / pres_si[i], R_d<real_t>() / c_pd<real_t>());  
+          rv[i] = RH_T_p_to_rv(RH_si[i], temp_si[i] * si::kelvins, pres_si[i] * si::pascals); 
+          th_dry[i] = theta_dry::std2dry<real_t>(th_std[i] * si::kelvins, quantity<si::dimensionless, real_t>(rv[i])) / si::kelvins;
+        }
+
+        // create 1D blitz arrays to wrap the derived profiles, store the for use in intcond_hlpr
+        th_dry_env.resize(nz);
+        th_std_env.resize(nz);
+        rv_env.resize(nz);
+        th_dry_env = arr_1D_t(th_dry.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
+        th_std_env = arr_1D_t(th_std.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
+        rv_env     = arr_1D_t(rv.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
+
+  
         rv_e = rv_env;
         th_e = th_std_env; // temp to calc rhod
   
@@ -172,68 +241,6 @@ namespace setup
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(0.);
-
-        // read the soundings
-        std::ifstream fsound("LasherTrapp2001_sounding/x7221545.adjdec2");
-        std::string line;
-        // skip first 15 lines
-        for(int i=0; i<15; ++i)
-          std::getline(fsound, line);
-        real_t pres, temp, RH, z;
-        while(std::getline(fsound, line))
-        {
-          sscanf(line, "%*f %f %f %*f %f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
-          pres_s.push_back(pres * 100); 
-          temp_s.push_back(temp + 273.16 * si::kelvins);  // TODO: use libcloud's T_0 
-          RH_s.push_back(RH * 100); 
-          z_s.push_back(z); 
-          std::cerr << pres_s.back() << " " << temp_s.back() << " " << RH_s.back() << " " << z_s.back() << std::endl;
-        }
-
-        using ix = typename concurr_t::solver_t::ix;
-        int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dz = (Z / si::metres) / (nz-1); 
-
-        // interpolate soundings to centers of cells 
-        std::vector<real_t> pres_si(nz), temp_si(nz), RH_si(nz);
-        real_t offset = z_s.at(0); // consider the lowest sounding level as ground level
-        pres_si[0] = pres_s[0];
-        temp_si[0] = temp_s[0];
-        RH_si[0] = RH_s[0];
-        int cell_no = 1;
-        for(int i=1; i<pres_s.size(); ++i)
-        {
-          real_t z_up = z_s.at(i) - offset;
-          real_t z_down = z_s.at(i-1) - offset;
-          real_t z = cell_no * dz;
-          if(z_down <= z && z < z_up)
-          {
-            real_t lin_fact = (z - z_down) / (z_up - z_down);
-            pres_si[cell_no] = pres_s[i-1] + lin_fact * (pres_s[i] - pres_s[i-1]);
-            temp_si[cell_no] = temp_s[i-1] + lin_fact * (temp_s[i] - temp_s[i-1]);
-            RH_si[cell_no] = RH_s[i-1] + lin_fact * (RH_s[i] - RH_s[i-1]);
-            ++cell_no;
-          }
-          if(cell_no == nz) break;
-        }
-        if(cell_no != nz) throw std::runtime_error("The initial sounding is not high enough");
-
-        // calc derived profiles
-        std::vector<real_t> th_std(nz), th_dry(nz), rv(nz);
-        for(int i=0; i<nz; ++i)
-        {
-          th_std[i] = ((p_1000<real_t>() / Apres_si) * pow(R_d<real_t>() / c_pd<real_t>())) / si::kelvins;  
-          rv[i] = RH_T_p_to_rv(RH_si[i], temp_si[i] * si::kelvins, pres_si[i] * si::pascals); 
-          th_dry[i] = theta_dry::std2dry<real_t>(th_std[i] * si::kelvins, quantity<si::dimensionless, real_t>(rv(i))) / si::kelvins;
-        }
-
-        // create 1D blitz arrays to wrap the derived profiles
-        th_dry_env.resize(nz);
-        th_std_env.resize(nz);
-        rv_env.resize(nz);
-        th_dry_env = arr_1D_t(th_dry.data(), shape(nz), blitz::neverDeleteData).copy();
-        th_std_env = arr_1D_t(th_std.data(), shape(nz), blitz::neverDeleteData).copy();
-        rv_env     = arr_1D_t(rv.data(), shape(nz), blitz::neverDeleteData).copy();
       }
     };
 
