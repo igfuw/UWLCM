@@ -133,11 +133,11 @@ namespace setup
         while(std::getline(LasherTrapp2001_sounding_file, line))
         {
           real_t pres, temp, RH, z;
-          sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
+          sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
           std::cerr << pres << " " << temp << " " << RH << " " << z << std::endl;
           pres_s.push_back(pres * 100); 
           temp_s.push_back(temp + 273.16);  // TODO: use libcloud's T_0 
-          RH_s.push_back(RH * 100); 
+          RH_s.push_back(RH / 100); 
           z_s.push_back(z); 
           std::cerr << pres_s.back() << " " << temp_s.back() << " " << RH_s.back() << " " << z_s.back() << std::endl;
         }
@@ -152,18 +152,21 @@ namespace setup
         temp_si[0] = temp_s[0];
         RH_si[0] = RH_s[0];
         int cell_no = 1;
+        real_t z = cell_no * dz;
         for(int i=1; i<pres_s.size(); ++i)
         {
           real_t z_up = z_s.at(i) - offset;
           real_t z_down = z_s.at(i-1) - offset;
-          real_t z = cell_no * dz;
-          if(z_down <= z && z < z_up)
+          std::cerr << "profile z: " << z << std::endl;
+          while(z_down <= z && z < z_up)
           {
             real_t lin_fact = (z - z_down) / (z_up - z_down);
             pres_si[cell_no] = pres_s[i-1] + lin_fact * (pres_s[i] - pres_s[i-1]);
             temp_si[cell_no] = temp_s[i-1] + lin_fact * (temp_s[i] - temp_s[i-1]);
             RH_si[cell_no] = RH_s[i-1] + lin_fact * (RH_s[i] - RH_s[i-1]);
             ++cell_no;
+            z = cell_no*dz;
+            if(cell_no == nz) break;
           }
           if(cell_no == nz) break;
         }
@@ -173,9 +176,10 @@ namespace setup
         std::vector<real_t> th_std(nz), th_dry(nz), rv(nz);
         for(int i=0; i<nz; ++i)
         {
-          th_std[i] = pow(p_1000<real_t>() / si::pascals / pres_si[i], R_d<real_t>() / c_pd<real_t>());  
+          th_std[i] = temp_si[i] * pow(p_1000<real_t>() / si::pascals / pres_si[i], R_d<real_t>() / c_pd<real_t>());  
           rv[i] = RH_T_p_to_rv(RH_si[i], temp_si[i] * si::kelvins, pres_si[i] * si::pascals); 
           th_dry[i] = theta_dry::std2dry<real_t>(th_std[i] * si::kelvins, quantity<si::dimensionless, real_t>(rv[i])) / si::kelvins;
+          std::cerr << i << ": temp_si " << temp_si[i] << " pres_si " << pres_si[i] << " RH_si " << RH_si[i] << " th_std " << th_std[i] << " th_dry " << th_dry[i] << " rv " << rv[i] << std::endl;
         }
 
         // create 1D blitz arrays to wrap the derived profiles, store the for use in intcond_hlpr
@@ -185,6 +189,10 @@ namespace setup
         th_dry_env = arr_1D_t(th_dry.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
         th_std_env = arr_1D_t(th_std.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
         rv_env     = arr_1D_t(rv.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
+
+std::cerr << "th_dry_env: " << th_dry_env;
+std::cerr << "th_std_env: " << th_std_env;
+std::cerr << "rv_env: " << rv_env;
 
   
         rv_e = rv_env;
