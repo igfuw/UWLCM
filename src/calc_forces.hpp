@@ -76,7 +76,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
       (*params.rhod)(this->vert_idx);
 
-      nancheck(alpha(ijk), "change of theta");
+      nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
   
     // large-scale vertical wind
     subsidence(ix::th); // TODO: in case 1 th here should be in step n+1, calc it explicitly as th + 0.5 * dt * rhs(th);
