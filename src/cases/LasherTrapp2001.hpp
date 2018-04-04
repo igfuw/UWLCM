@@ -2,6 +2,7 @@
 #include <random>
 #include <fstream>
 #include "CasesCommon.hpp"
+#include "LasherTrapp2001_sounding/x7221545.adjdec2.hpp"
 
 namespace setup 
 {
@@ -97,6 +98,7 @@ namespace setup
   
           decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
           solver.advectee(ix::th) += prtrb;
         }
         {
@@ -106,6 +108,7 @@ namespace setup
   
           decltype(solver.advectee(ix::rv)) prtrb(solver.advectee(ix::rv).shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
           solver.advectee(ix::rv) += prtrb;
         }
       }
@@ -113,7 +116,6 @@ namespace setup
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      // like in Wojtek's BabyEulag
       void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -124,18 +126,13 @@ namespace setup
 
 
         // read the soundings
-        std::ifstream fsound("LasherTrapp2001_sounding/x7221545.adjdec2");
-        std::string line;
-        // skip first 15 lines
-        for(int i=0; i<15; ++i)
-          std::getline(fsound, line);
-        real_t pres, temp, RH, z;
-
         // containers for soundings
         std::vector<real_t> pres_s, temp_s, RH_s, z_s;
+        std::string line;
 
-        while(std::getline(fsound, line))
+        while(std::getline(LasherTrapp2001_sounding_file, line))
         {
+          real_t pres, temp, RH, z;
           sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
           std::cerr << pres << " " << temp << " " << RH << " " << z << std::endl;
           pres_s.push_back(pres * 100); 
