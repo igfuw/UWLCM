@@ -92,6 +92,8 @@ void setopts_micro(
   else if (adve_scheme_str == "implicit") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
   else if (adve_scheme_str == "pred_corr") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
   else throw std::runtime_error("unrecognized adve_scheme optsion");
+
+  rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
  
  // if(!unit_test)
   {
