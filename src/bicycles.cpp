@@ -13,6 +13,7 @@
 #include "cases/DYCOMS98.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
+#include "cases/LasherTrapp2001.hpp"
 
 #include "opts_lgrngn.hpp"
 #include "opts_blk_1m.hpp"
@@ -38,6 +39,12 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
 {
+  using concurr_openmp_rigid_rigid_t = concurr::openmp<
+    solver_t, 
+    bcond::rigid,  bcond::rigid,
+    bcond::rigid,  bcond::rigid 
+  >;
+
   using concurr_openmp_rigid_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
@@ -71,6 +78,8 @@ void run(int nx, int nz, const user_params_t &user_params)
     case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dycoms")
     case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "lasher_trapp")
+    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001_2d<concurr_openmp_rigid_t>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -99,15 +108,20 @@ void run(int nx, int nz, const user_params_t &user_params)
   // solver instantiation
   std::unique_ptr<concurr_any_t> slv;
 
-  if(user_params.model_case != "dry_thermal")
-  {
-    slv.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
-  }
-  else
+  if(user_params.model_case == "dry_thermal")
   {
     slv.reset(new concurr_openmp_cyclic_t(p));
     case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+  }
+  else if(user_params.model_case == "lasher_trapp")
+  {
+    slv.reset(new concurr_openmp_rigid_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+  }
+  else
+  {
+    slv.reset(new concurr_openmp_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -122,6 +136,13 @@ void run(int nx, int nz, const user_params_t &user_params)
 template <class solver_t>
 void run(int nx, int ny, int nz, const user_params_t &user_params)
 {
+  using concurr_openmp_rigid_rigid_t = concurr::openmp<
+    solver_t, 
+    bcond::rigid,  bcond::rigid,
+    bcond::rigid,  bcond::rigid,
+    bcond::rigid,  bcond::rigid 
+  >;
+
   using concurr_openmp_rigid_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
@@ -157,6 +178,8 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dycoms")
     case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "lasher_trapp")
+    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001_3d<concurr_openmp_rigid_t>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -185,15 +208,21 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // solver instantiation
   std::unique_ptr<concurr_any_t> slv;
 
-  if(user_params.model_case != "dry_thermal")
-  {
-    slv.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
-  }
-  else
+
+  if(user_params.model_case == "dry_thermal")
   {
     slv.reset(new concurr_openmp_cyclic_t(p));
     case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+  }
+  else if(user_params.model_case == "lasher_trapp")
+  {
+    slv.reset(new concurr_openmp_rigid_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+  }
+  else
+  {
+    slv.reset(new concurr_openmp_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -365,7 +394,7 @@ int main(int argc, char** argv)
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
-      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, lasher_trapp")
       ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
