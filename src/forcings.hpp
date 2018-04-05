@@ -7,7 +7,7 @@ void update_surf_flux_sens(arr_sub_t &surf_flux_sens, int timestep, real_t dt)
 {
   if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
     surf_flux_sens = 100.; // [W/m^2]
-  else if(int((2. / dt) + 0.5) == timestep) // should be 3600
+  else if(int((3600. / dt) + 0.5) == timestep) // should be 3600
   {
     int nx = surf_flux_sens.extent(0);
     int ny = surf_flux_sens.extent(1);
@@ -25,7 +25,7 @@ void update_surf_flux_lat(arr_sub_t &surf_flux_lat, int timestep, real_t dt)
 {
   if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
     surf_flux_lat = .4e-4; // ?
-  else if(int((2. / dt) + 0.5) == timestep)
+  else if(int((3600. / dt) + 0.5) == timestep)
   {
     int nx = surf_flux_lat.extent(0);
     int ny = surf_flux_lat.extent(1);
