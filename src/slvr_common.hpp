@@ -28,6 +28,9 @@ class slvr_common : public slvr_dim<ct_params_t>
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
+  // array with sensible heat surface flux
+  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_sens;
+
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
                            &tmp2,
@@ -246,6 +249,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename parent_t::arr_sub_t U_ground(this->shape(this->hrzntl_subdomain));
     U_ground = this->calc_U_ground();
 
+std::cerr << "u_fric: " << params.ForceParameters.u_fric << std::endl;
+
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
@@ -326,6 +331,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     F(args.mem->tmp[__FILE__][0][1])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
   }
 

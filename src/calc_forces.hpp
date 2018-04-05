@@ -31,7 +31,8 @@ void slvr_common<ct_params_t>::rv_src()
     this->vert_grad_fwd(F, alpha, params.dz);
 
     // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
-    alpha(ijk).reindex(this->zero) /= - (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
+    if(params.ForceParameters.surf_latent_flux_in_watts_per_square_meter)
+      alpha(ijk).reindex(this->zero) /= - (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
 
     // large-scale vertical wind
     subsidence(ix::rv); // TODO: in case 1, rv here should be in step n+1, calc it explicitly as rv + 0.5 * dt * rhs(rv); 

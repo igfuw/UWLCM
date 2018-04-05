@@ -33,6 +33,7 @@ namespace setup
   struct ForceParameters_t
   {
     real_t q_i, heating_kappa, F_0, F_1, rho_i, D, F_sens, F_lat, u_fric;
+    bool surf_latent_flux_in_watts_per_square_meter;
   };
 
   template<class concurr_t>
@@ -77,6 +78,7 @@ namespace setup
       ForceParameters.F_sens = 16; //W/m^2, sensible heat flux
       ForceParameters.F_lat = 93; //W/m^2, latent heat flux
       ForceParameters.u_fric = 0.25; // m/s; friction velocity
+      ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be a change in q_v [1/s]
     }
 
     protected:
