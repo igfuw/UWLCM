@@ -28,8 +28,9 @@ class slvr_common : public slvr_dim<ct_params_t>
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
-  // array with sensible heat surface flux
+  // array with sensible and latent heat surface flux
   blitz::Array<real_t, parent_t::n_dims-1> surf_flux_sens;
+  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_lat;
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -249,16 +250,16 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename parent_t::arr_sub_t U_ground(this->shape(this->hrzntl_subdomain));
     U_ground = this->calc_U_ground();
 
-std::cerr << "u_fric: " << params.ForceParameters.u_fric << std::endl;
-
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
       F(this->ijk).reindex(this->zero) = 
-        -pow(params.ForceParameters.u_fric,2) *  // const, cache it
-        this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-        U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-        (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
+        where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
+          -pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+        );
 
       // du/dt = sum of kinematic momentum fluxes * dt
       this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
@@ -332,6 +333,7 @@ std::cerr << "u_fric: " << params.ForceParameters.u_fric << std::endl;
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    surf_flux_lat.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
   }
 
