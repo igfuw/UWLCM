@@ -63,7 +63,7 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
-        params.friction = false; // ?
+        params.friction = true;
         params.radiation = false;
       }
   
@@ -244,6 +244,8 @@ std::cerr << "rv_env: " << rv_env;
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(0.);
+        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as a change in q_v [1/s]
+        this->ForceParameters.u_fric = 0.28;
       }
     };
 
