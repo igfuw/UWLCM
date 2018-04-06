@@ -224,6 +224,41 @@ namespace setup
         hgt_fctr_sclr(0) = 1;
       }
 
+      // functions that set surface fluxes per timestep
+      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
+      {
+        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+          surf_flux_sens = 100.; // [W/m^2]
+        else if(int((3600. / dt) + 0.5) == timestep)
+        {
+          int nx = surf_flux_sens.extent(0);
+          int ny = surf_flux_sens.extent(1);
+          real_t dx = 10000. / (nx-1);
+          real_t dy = 10000. / (ny-1);
+          if(surf_flux_sens.rank() == 2) // TODO: make it a compile-time decision
+            surf_flux_sens = 300. * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
+          else if(surf_flux_sens.rank() == 1)
+            surf_flux_sens = 300. * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
+        }
+      }
+      
+      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
+      {
+        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+          surf_flux_lat = .4e-4; // [1/s]
+        else if(int((3600. / dt) + 0.5) == timestep)
+        {
+          int nx = surf_flux_lat.extent(0);
+          int ny = surf_flux_lat.extent(1);
+          real_t dx = 10000. / (nx-1);
+          real_t dy = 10000. / (ny-1);
+          if(surf_flux_lat.rank() == 2) // TODO: make it a compile-time decision
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
+          else if(surf_flux_lat.rank() == 1)
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
+        }
+      }
+
       // ctor
       LasherTrapp2001()
       {

@@ -62,12 +62,13 @@ void run(int nx, int nz, const user_params_t &user_params)
     solver_t::n_dims
   >;
 
-  using case_ptr_t = 
-    std::unique_ptr<
-      setup::CasesCommon<
-        concurr_openmp_rigid_t
-      >
-    >;
+  using case_t = setup::CasesCommon<
+    concurr_openmp_rigid_t
+  >;
+
+  using case_ptr_t = std::unique_ptr<
+    case_t
+  >;
 
   case_ptr_t case_ptr; 
 
@@ -88,9 +89,8 @@ void run(int nx, int nz, const user_params_t &user_params)
   p.ForceParameters = case_ptr->ForceParameters;
 
   // copy functions used to update surface fluxes
-  typedef void (*funtype)(typename solver_t::arr_sub_t&, int, typename setup::real_t);
-  p.update_surf_flux_sens = static_cast<funtype>(update_surf_flux_sens_LT<typename solver_t::arr_sub_t, typename setup::real_t>) ;
-  p.update_surf_flux_lat = static_cast<funtype>(update_surf_flux_lat_LT<typename solver_t::arr_sub_t, typename setup::real_t>) ;
+  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
+  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
 
   // copy user_params for output
   p.user_params = user_params;
@@ -486,14 +486,14 @@ int main(int argc, char** argv)
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
       run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, nx, nz, user_params);
 
-//    else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
-//      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, nx, ny, nz, user_params);
+    else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, nx, ny, nz, user_params);
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
       run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, nx, nz, user_params);
 
-//    else if (micro == "blk_1m" && ny > 0) // 3D one-moment
-//      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+    else if (micro == "blk_1m" && ny > 0) // 3D one-moment
+      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
 
     // TODO: not only micro can be wrong
     else throw 
