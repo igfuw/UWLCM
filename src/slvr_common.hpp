@@ -98,6 +98,10 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
     }
+ 
+    // initialize surf fluxes with timestep==0
+    params.update_surf_flux_sens(surf_flux_sens, 0, this->dt);
+    params.update_surf_flux_lat(surf_flux_sens, 0, this->dt);
   }
 
   void hook_ante_step()
