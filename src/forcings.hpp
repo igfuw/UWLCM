@@ -2,41 +2,6 @@
 
 //TODO: make these functions return arrays
 //
-template <class arr_sub_t, class real_t>
-void update_surf_flux_sens_LT(arr_sub_t &surf_flux_sens, int timestep, real_t dt)
-{
-  if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-    surf_flux_sens = 100.; // [W/m^2]
-  else if(int((3600. / dt) + 0.5) == timestep) // should be 3600
-  {
-    int nx = surf_flux_sens.extent(0);
-    int ny = surf_flux_sens.extent(1);
-    real_t dx = 10000. / (nx-1);
-    real_t dy = 10000. / (ny-1);
-    if(surf_flux_sens.rank() == 2) // TODO: make it a compile-time decision
-      surf_flux_sens = 300. * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
-    else if(surf_flux_sens.rank() == 1)
-      surf_flux_sens = 300. * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
-  }
-}
-
-template <class arr_sub_t, class real_t>
-void update_surf_flux_lat_LT(arr_sub_t &surf_flux_lat, int timestep, real_t dt)
-{
-  if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-    surf_flux_lat = .4e-4; // ?
-  else if(int((3600. / dt) + 0.5) == timestep)
-  {
-    int nx = surf_flux_lat.extent(0);
-    int ny = surf_flux_lat.extent(1);
-    real_t dx = 10000. / (nx-1);
-    real_t dy = 10000. / (ny-1);
-    if(surf_flux_lat.rank() == 2) // TODO: make it a compile-time decision
-      surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
-    else if(surf_flux_lat.rank() == 1)
-      surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
-  }
-}
 
 // Grabowski & Smolarkiewicz 1995 "two-time semi-lagrangian modeling of precipitating clouds" eq. (2)
 template <class ct_params_t>
@@ -134,15 +99,11 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_sens()
 {
   const auto &ijk = this->ijk;
-//TODO: wywlaic params.Fo....F_sens
-//
   //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
   //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
   params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
   F(ijk).reindex(this->zero) = - surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) // "-" because negative gradient means inflow 
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
-
-//  F(ijk).reindex(this->zero) = params.ForceParameters.F_sens * (*params.hgt_fctr_sclr)(this->vert_idx);
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   //this->smooth(tmp1, F);
@@ -157,7 +118,6 @@ void slvr_common<ct_params_t>::surf_latent()
   params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
   F(ijk).reindex(this->zero) = - surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
-  //F(ijk).reindex(this->zero) =  params.ForceParameters.F_lat * (*params.hgt_fctr_sclr)(this->vert_idx); // we need to use a reindexed view, because the profile's base is 0
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   //this->smooth(tmp1, F);
