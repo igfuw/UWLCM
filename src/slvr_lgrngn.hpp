@@ -234,7 +234,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       params.cloudph_opts_init.dx = this->di;
       params.cloudph_opts_init.x0 = this->di / 2;
       params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
-std::cerr << "x0 " << params.cloudph_opts_init.x0 << " x1 " << params.cloudph_opts_init.x1 << std::endl;
 
       if(parent_t::n_dims == 2) // 2D
       {
