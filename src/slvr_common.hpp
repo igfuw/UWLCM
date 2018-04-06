@@ -311,6 +311,10 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
+
+    // functions for updating surface fluxes per timestep
+    std::function<void(typename parent_t::arr_sub_t&, int, real_t)> update_surf_flux_sens;
+    std::function<void(typename parent_t::arr_sub_t&, int, real_t)> update_surf_flux_lat;
   };
 
   // per-thread copy of params
