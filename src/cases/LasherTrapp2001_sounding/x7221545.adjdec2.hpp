@@ -1,3 +1,20 @@
+/*
+Data Type:                         CLASS 10 SECOND DATA - CORRECTED LOW LEVEL RH-DEWPT-TEMP
+Project ID:                        SCMS-FLA1
+Launch Site Type/Site ID:          FIXED, IS4
+Launch Location (lon,lat,alt):     080 56.45'W, 28 37.38'N, -80.94083, 28.623, 2
+GMT Launch Time (y,m,d,h,m,s):     1995, 07, 22, 15:45:26
+Sonde Type/ID/Sensor ID/Tx Freq:   VAISALA RS80-15LH 0, 0, 404.9
+Met Processor/Met Smoothing:       NCAR RS80 PROCESSOR, 10 SECONDS
+Winds Type/Processor/Smoothing:    LORAN-C, ANI-7000, 60 SECONDS
+Pre-launch Met Obs Source:         CAMPBELL SCIENTIFIC CR10
+System Operator/Comments:          ERIK MILLER, (REPROCESSED),GOOD FLIGHT, LOST LORAN FOR A BRIEF PERIOD AT LAUNCH.
+/
+/
+ Time  Press  Temp  Dewpt  RH    Uwind  Vwind  Wspd  Dir   dZ      Lon     Lat    Rng   Az     Alt    Qp   Qt   Qh   Qu   Qv   Quv
+  sec    mb     C     C     %     m/s    m/s   m/s   deg   m/s     deg     deg     km   deg     m     mb   C    %    m/s  m/s  m/s
+------ ------ ----- ----- ----- ------ ------ ----- ----- ----- -------- ------- ----- ----- ------- ---- ---- ---- ---- ---- ----
+*/
 std::vector<std::string> LasherTrapp2001_sounding_file = {
 "-120.0 1018.2  29.2  23.5  70.7    2.4    1.4   2.8 239.3   0.0  -80.941  28.623   0.0   0.0     2.0 77.0 77.0 77.0 77.0 77.0 77.0",
 "  10.0 1017.4  28.8  23.2  70.2    2.7    5.5   6.1 206.1    .7  -80.941  28.623   0.0  36.4     9.3 88.0 88.0 88.0   .5   .7   .9",
