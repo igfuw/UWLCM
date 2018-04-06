@@ -167,12 +167,13 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     solver_t::n_dims
   >;
 
-  using case_ptr_t = 
-    std::unique_ptr<
-      setup::CasesCommon<
-        concurr_openmp_rigid_t
-      >
-    >;
+  using case_t = setup::CasesCommon<
+    concurr_openmp_rigid_t
+  >;
+
+  using case_ptr_t = std::unique_ptr<
+    case_t
+  >;
 
   case_ptr_t case_ptr; 
 
