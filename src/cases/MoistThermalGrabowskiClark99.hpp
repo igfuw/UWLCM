@@ -1,3 +1,6 @@
+// In fact its the setup from the GMD 2017 paper Grabowski, Dziekan, Pawlowska on Twomey activation of SDs,
+// it's very similar to the Grabowski Clark 99 setup
+
 #pragma once
 #include "CasesCommon.hpp"
 

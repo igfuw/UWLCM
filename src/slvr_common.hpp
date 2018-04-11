@@ -289,7 +289,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     if (this->rank == 0) 
     {
       // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
-      if(this->timestep == params.nt-1)
+      if(this->timestep == params.nt) // timestep incremented before post_step
       {
         tend = clock::now();
         tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg_loop );
