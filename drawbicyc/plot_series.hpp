@@ -125,6 +125,17 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
+      // total number of SDs
+      else if (plt == "sd_tot")
+      {
+        try
+        {
+          auto tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_prof(at) = blitz::sum(snap);
+        }
+        catch(...) {;}
+      }
       // average activated sd_conc in clloudy cells
       else if (plt == "sd_conc_act_avg")
       {
@@ -707,6 +718,13 @@ void plot_series(Plotter_t plotter, Plots plots)
       res_pos *= 60.;
       gp << "set xlabel 'time [min]'\n";
       gp << "set ylabel 'RH'\n";
+    }
+    else if (plt == "sd_tot")
+    {
+      gp << "set title 'total number of SDs'\n";
+      res_pos *= 60.;
+      gp << "set xlabel 'time [min]'\n";
+      gp << "set ylabel '#SD'\n";
     }
     else if (plt == "lwp")
     {
