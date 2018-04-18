@@ -28,6 +28,10 @@ class slvr_common : public slvr_dim<ct_params_t>
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
+  // array with sensible and latent heat surface flux
+  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_sens;
+  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_lat;
+
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
                            &tmp2,
@@ -94,6 +98,10 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
     }
+ 
+    // initialize surf fluxes with timestep==0
+    params.update_surf_flux_sens(surf_flux_sens, 0, this->dt);
+    params.update_surf_flux_lat(surf_flux_sens, 0, this->dt);
   }
 
   void hook_ante_step()
@@ -250,10 +258,12 @@ class slvr_common : public slvr_dim<ct_params_t>
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
       F(this->ijk).reindex(this->zero) = 
-        -pow(params.ForceParameters.u_fric,2) *  // const, cache it
-        this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-        U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-        (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
+        where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
+          -pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+        );
 
       // du/dt = sum of kinematic momentum fluxes * dt
       this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
@@ -305,6 +315,10 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
+
+    // functions for updating surface fluxes per timestep
+    std::function<void(typename parent_t::arr_sub_t&, int, real_t)> update_surf_flux_sens;
+    std::function<void(typename parent_t::arr_sub_t&, int, real_t)> update_surf_flux_lat;
   };
 
   // per-thread copy of params
@@ -326,6 +340,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     F(args.mem->tmp[__FILE__][0][1])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    surf_flux_lat.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
   }
 
