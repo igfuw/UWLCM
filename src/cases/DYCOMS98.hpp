@@ -1,6 +1,9 @@
 #pragma once
 #include <random>
+#include <type_traits>
+#include <iomanip>
 #include "CasesCommon.hpp"
+#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
 
 namespace setup 
 {
@@ -10,7 +13,6 @@ namespace setup
     namespace theta_std = libcloudphxx::common::theta_std;
     namespace theta_dry = libcloudphxx::common::theta_dry;
     namespace lognormal = libcloudphxx::common::lognormal;
-
   
     const quantity<si::pressure, real_t> 
       p_0 = 101780 * si::pascals;
@@ -110,7 +112,6 @@ namespace setup
     template<class concurr_t>
     class Dycoms98 : public CasesCommon<concurr_t>
     {
-
       protected:
   
       template <class T, class U>
@@ -130,8 +131,6 @@ namespace setup
         params.friction = true;
         params.radiation = true;
       }
-  
-  
   
       template <class index_t>
       void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
@@ -163,8 +162,6 @@ namespace setup
         std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
         solver.advectee(ix::th) += prtrb;
       }
-  
-  
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
@@ -308,9 +305,25 @@ namespace setup
     template<class concurr_t>
     class Dycoms98_3d : public Dycoms98<concurr_t>
     {
+      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
+      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
+                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles>::type* = 0)
+      {}
+
+      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
+      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
+                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::smg>::type* = 0)
+      {
+        params.c_m = 0.0856;
+        params.smg_c = 0.165;
+        //p.prandtl_num = 0.42;
+        params.cdrag = 0.;
+      }
+      
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
+        this->setopts_sgs(params);
         params.di = (X / si::metres) / (nx-1); 
         params.dj = (Y / si::metres) / (ny-1);
         params.dk = (Z / si::metres) / (nz-1);
