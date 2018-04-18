@@ -101,7 +101,7 @@ class slvr_common : public slvr_dim<ct_params_t>
  
     // initialize surf fluxes with timestep==0
     params.update_surf_flux_sens(surf_flux_sens, 0, this->dt);
-    params.update_surf_flux_lat(surf_flux_sens, 0, this->dt);
+    params.update_surf_flux_lat(surf_flux_lat, 0, this->dt);
   }
 
   void hook_ante_step()
