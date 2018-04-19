@@ -184,7 +184,6 @@ namespace setup
         th_std_env = arr_1D_t(th_std.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
         rv_env     = arr_1D_t(rv.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
 
-
         // TODO: calc hydrostatic env profiles like in dycoms? w kodzie od S. L-T tego jednak nie ma...
 
         rv_e = rv_env;

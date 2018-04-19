@@ -256,8 +256,8 @@ namespace setup
         {
           real_t zz = k * dz;  
           // predictor
-           real_t rhob=pre_ref(k-1) / rg / (T(k-1)*(1.+a*rv_e(k-1)));
-           pre_ref(k)=pre_ref(k-1) - gg*rhob*dz;
+           real_t rhob=pre_ref(k-1) / rg / (T(k-1)*(1.+a*rv_e(k-1))); // density of air at k-1
+           pre_ref(k)=pre_ref(k-1) - gg*rhob*dz; // estimate of pre at k (dp = -g * rho * dz)
     // iteration for T and qv:
            rv_e(k)=rv_e(k-1);
            T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap); 
