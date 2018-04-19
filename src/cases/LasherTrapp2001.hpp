@@ -2,6 +2,7 @@
 #include <random>
 #include <fstream>
 #include "CasesCommon.hpp"
+#include "LasherTrapp2001_sounding/x7221545.adjdec2.hpp"
 
 namespace setup 
 {
@@ -62,7 +63,7 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
-        params.friction = false; // ?
+        params.friction = true;
         params.radiation = false;
       }
   
@@ -97,6 +98,7 @@ namespace setup
   
           decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
           solver.advectee(ix::th) += prtrb;
         }
         {
@@ -106,6 +108,7 @@ namespace setup
   
           decltype(solver.advectee(ix::rv)) prtrb(solver.advectee(ix::rv).shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
           solver.advectee(ix::rv) += prtrb;
         }
       }
@@ -113,7 +116,6 @@ namespace setup
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      // like in Wojtek's BabyEulag
       void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -124,25 +126,16 @@ namespace setup
 
 
         // read the soundings
-        std::ifstream fsound("LasherTrapp2001_sounding/x7221545.adjdec2");
-        std::string line;
-        // skip first 15 lines
-        for(int i=0; i<15; ++i)
-          std::getline(fsound, line);
-        real_t pres, temp, RH, z;
-
         // containers for soundings
         std::vector<real_t> pres_s, temp_s, RH_s, z_s;
-
-        while(std::getline(fsound, line))
+        for(std::string line : LasherTrapp2001_sounding_file)
         {
-          sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
-          std::cerr << pres << " " << temp << " " << RH << " " << z << std::endl;
+          real_t pres, temp, RH, z;
+          sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
           pres_s.push_back(pres * 100); 
           temp_s.push_back(temp + 273.16);  // TODO: use libcloud's T_0 
-          RH_s.push_back(RH * 100); 
+          RH_s.push_back(RH / 100); 
           z_s.push_back(z); 
-          std::cerr << pres_s.back() << " " << temp_s.back() << " " << RH_s.back() << " " << z_s.back() << std::endl;
         }
 
         using ix = typename concurr_t::solver_t::ix;
@@ -155,18 +148,20 @@ namespace setup
         temp_si[0] = temp_s[0];
         RH_si[0] = RH_s[0];
         int cell_no = 1;
+        real_t z = cell_no * dz;
         for(int i=1; i<pres_s.size(); ++i)
         {
           real_t z_up = z_s.at(i) - offset;
           real_t z_down = z_s.at(i-1) - offset;
-          real_t z = cell_no * dz;
-          if(z_down <= z && z < z_up)
+          while(z_down <= z && z < z_up)
           {
             real_t lin_fact = (z - z_down) / (z_up - z_down);
             pres_si[cell_no] = pres_s[i-1] + lin_fact * (pres_s[i] - pres_s[i-1]);
             temp_si[cell_no] = temp_s[i-1] + lin_fact * (temp_s[i] - temp_s[i-1]);
             RH_si[cell_no] = RH_s[i-1] + lin_fact * (RH_s[i] - RH_s[i-1]);
             ++cell_no;
+            z = cell_no*dz;
+            if(cell_no == nz) break;
           }
           if(cell_no == nz) break;
         }
@@ -176,7 +171,7 @@ namespace setup
         std::vector<real_t> th_std(nz), th_dry(nz), rv(nz);
         for(int i=0; i<nz; ++i)
         {
-          th_std[i] = pow(p_1000<real_t>() / si::pascals / pres_si[i], R_d<real_t>() / c_pd<real_t>());  
+          th_std[i] = temp_si[i] * pow(p_1000<real_t>() / si::pascals / pres_si[i], R_d<real_t>() / c_pd<real_t>());  
           rv[i] = RH_T_p_to_rv(RH_si[i], temp_si[i] * si::kelvins, pres_si[i] * si::pascals); 
           th_dry[i] = theta_dry::std2dry<real_t>(th_std[i] * si::kelvins, quantity<si::dimensionless, real_t>(rv[i])) / si::kelvins;
         }
@@ -189,10 +184,8 @@ namespace setup
         th_std_env = arr_1D_t(th_std.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
         rv_env     = arr_1D_t(rv.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
 
-
         // TODO: calc hydrostatic env profiles like in dycoms? w kodzie od S. L-T tego jednak nie ma...
 
-  
         rv_e = rv_env;
         th_e = th_std_env; // temp to calc rhod
   
@@ -233,6 +226,41 @@ namespace setup
         hgt_fctr_sclr(0) = 1;
       }
 
+      // functions that set surface fluxes per timestep
+      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
+      {
+        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+          surf_flux_sens = 100.; // [W/m^2]
+        else if(int((3600. / dt) + 0.5) == timestep)
+        {
+          int nx = surf_flux_sens.extent(0);
+          int ny = surf_flux_sens.extent(1);
+          real_t dx = 10000. / (nx-1);
+          real_t dy = 10000. / (ny-1);
+          if(surf_flux_sens.rank() == 2) // TODO: make it a compile-time decision
+            surf_flux_sens = 300. * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
+          else if(surf_flux_sens.rank() == 1)
+            surf_flux_sens = 300. * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
+        }
+      }
+      
+      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
+      {
+        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+          surf_flux_lat = .4e-4; // [1/s]
+        else if(int((3600. / dt) + 0.5) == timestep)
+        {
+          int nx = surf_flux_lat.extent(0);
+          int ny = surf_flux_lat.extent(1);
+          real_t dx = 10000. / (nx-1);
+          real_t dy = 10000. / (ny-1);
+          if(surf_flux_lat.rank() == 2) // TODO: make it a compile-time decision
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
+          else if(surf_flux_lat.rank() == 1)
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
+        }
+      }
+
       // ctor
       LasherTrapp2001()
       {
@@ -244,6 +272,8 @@ namespace setup
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(0.);
+        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as a change in q_v [1/s]
+        this->ForceParameters.u_fric = 0.28;
       }
     };
 

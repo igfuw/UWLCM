@@ -1,6 +1,7 @@
 #pragma once
 
 //TODO: make these functions return arrays
+//
 
 // Grabowski & Smolarkiewicz 1995 "two-time semi-lagrangian modeling of precipitating clouds" eq. (2)
 template <class ct_params_t>
@@ -98,7 +99,11 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_sens()
 {
   const auto &ijk = this->ijk;
-  F(ijk).reindex(this->zero) = params.ForceParameters.F_sens * (*params.hgt_fctr_sclr)(this->vert_idx);
+  //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
+  //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
+  params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
+  F(ijk).reindex(this->zero) = - surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) // "-" because negative gradient means inflow 
+                               * (*params.hgt_fctr_sclr)(this->vert_idx);
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   //this->smooth(tmp1, F);
@@ -108,7 +113,11 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_latent()
 {
   const auto &ijk = this->ijk;
-  F(ijk).reindex(this->zero) =  params.ForceParameters.F_lat * (*params.hgt_fctr_sclr)(this->vert_idx); // we need to use a reindexed view, because the profile's base is 0
+  //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
+  //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
+  params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
+  F(ijk).reindex(this->zero) = - surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
+                               * (*params.hgt_fctr_sclr)(this->vert_idx);
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   //this->smooth(tmp1, F);

@@ -62,12 +62,13 @@ void run(int nx, int nz, const user_params_t &user_params)
     solver_t::n_dims
   >;
 
-  using case_ptr_t = 
-    std::unique_ptr<
-      setup::CasesCommon<
-        concurr_openmp_rigid_t
-      >
-    >;
+  using case_t = setup::CasesCommon<
+    concurr_openmp_rigid_t
+  >;
+
+  using case_ptr_t = std::unique_ptr<
+    case_t
+  >;
 
   case_ptr_t case_ptr; 
 
@@ -87,6 +88,10 @@ void run(int nx, int nz, const user_params_t &user_params)
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
 
+  // copy functions used to update surface fluxes
+  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
+  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
+
   // copy user_params for output
   p.user_params = user_params;
 
@@ -105,31 +110,37 @@ void run(int nx, int nz, const user_params_t &user_params)
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
+  // set outvars
+  p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
+  p.outvars.insert({solver_t::ix::th, {"th", "[K]"}});
+  p.outvars.insert({solver_t::ix::u, {"u", "[m/s]"}});
+  p.outvars.insert({solver_t::ix::w, {"w", "[m/s]"}});
+
   // solver instantiation
-  std::unique_ptr<concurr_any_t> slv;
+  std::unique_ptr<concurr_any_t> concurr;
 
   if(user_params.model_case == "dry_thermal")
   {
-    slv.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    concurr.reset(new concurr_openmp_cyclic_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
-    slv.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    concurr.reset(new concurr_openmp_rigid_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
   }
   else
   {
-    slv.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    concurr.reset(new concurr_openmp_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
-  panic = slv->panic_ptr();
+  panic = concurr->panic_ptr();
   set_sigaction();
  
   // timestepping
-  slv->advance(user_params.nt);
+  concurr->advance(user_params.nt);
 }
 
 // 3D model run logic - the same for any microphysics; still a lot in common with 2d code...
@@ -162,12 +173,13 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     solver_t::n_dims
   >;
 
-  using case_ptr_t = 
-    std::unique_ptr<
-      setup::CasesCommon<
-        concurr_openmp_rigid_t
-      >
-    >;
+  using case_t = setup::CasesCommon<
+    concurr_openmp_rigid_t
+  >;
+
+  using case_ptr_t = std::unique_ptr<
+    case_t
+  >;
 
   case_ptr_t case_ptr; 
 
@@ -187,6 +199,10 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
 
+  // copy functions used to update surface fluxes
+  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
+  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
+
   // copy user_params for output
   p.user_params = user_params;
 
@@ -205,32 +221,39 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
+  // set outvars
+  p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
+  p.outvars.insert({solver_t::ix::th, {"th", "[K]"}});
+  p.outvars.insert({solver_t::ix::u, {"u", "[m/s]"}});
+  p.outvars.insert({solver_t::ix::v, {"v", "[m/s]"}});
+  p.outvars.insert({solver_t::ix::w, {"w", "[m/s]"}});
+
   // solver instantiation
-  std::unique_ptr<concurr_any_t> slv;
+  std::unique_ptr<concurr_any_t> concurr;
 
 
   if(user_params.model_case == "dry_thermal")
   {
-    slv.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    concurr.reset(new concurr_openmp_cyclic_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
-    slv.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    concurr.reset(new concurr_openmp_rigid_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
   }
   else
   {
-    slv.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    concurr.reset(new concurr_openmp_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
-  panic = slv->panic_ptr();
+  panic = concurr->panic_ptr();
   set_sigaction();
  
   // timestepping
-  slv->advance(user_params.nt);
+  concurr->advance(user_params.nt);
 }
 
 // 3D model run logic - the same for any microphysics; TODO: still a lot of common code with 2D run
@@ -260,7 +283,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
       typename solver_t::real_t, 
       solver_t::n_dims
     >
-  > slv;
+  > concurr;
   if (user_params.serial)
   {
     using concurr_t = concurr::serial<
@@ -269,10 +292,10 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
       bcond::cyclic, bcond::cyclic,
       bcond::rigid,  bcond::rigid 
     >;
-    slv.reset(new concurr_t(p));
+    concurr.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond3d(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    setup::intcond3d(*static_cast<concurr_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
   else
   {
@@ -282,18 +305,18 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
       bcond::cyclic, bcond::cyclic,
       bcond::rigid,  bcond::rigid 
     >;
-    slv.reset(new concurr_t(p));
+    concurr.reset(new concurr_t(p));
 
     // initial condition
-    setup::intcond3d(*static_cast<concurr_t*>(slv.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    setup::intcond3d(*static_cast<concurr_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
-  panic = slv->panic_ptr();
+  panic = concurr->panic_ptr();
   set_sigaction();
  
   // timestepping
-  slv->advance(user_params.nt);
+  concurr->advance(user_params.nt);
 }
 
 #endif
