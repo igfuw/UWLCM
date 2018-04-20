@@ -247,7 +247,7 @@ namespace setup
       void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-          surf_flux_lat = .4e-4; // [1/s]
+          surf_flux_lat = .4e-4; // [m/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           int nx = surf_flux_lat.extent(0);
@@ -272,7 +272,7 @@ namespace setup
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(0.);
-        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as a change in q_v [1/s]
+        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as avg(q_v w) [kg/kg m/s]
         this->ForceParameters.u_fric = 0.28;
       }
     };

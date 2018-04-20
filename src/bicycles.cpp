@@ -11,6 +11,7 @@
 #include "setup.hpp"
 
 #include "cases/DYCOMS98.hpp"
+#include "cases/BOMEX03.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/LasherTrapp2001.hpp"
