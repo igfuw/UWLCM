@@ -57,10 +57,16 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
   {
     // -- heating --
     // surface flux
-    surf_sens();
-    // beta as tmp storage
-    beta(ijk) = F(ijk);
+    if(params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
+    {
+      surf_sens();
       nancheck(F(ijk), "sensible surf forcing");
+      // beta as tmp storage
+      beta(ijk) = F(ijk);
+    }
+    else
+      beta(ijk) = 0.;
+
     // radiation
     radiation(rv);
     nancheck(beta(ijk), "radiation");
@@ -78,6 +84,16 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       (*params.rhod)(this->vert_idx);
 
       nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
+
+    // surf flux if it is specified as mean(theta*w)
+    if(!params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
+    {
+      surf_sens();
+      nancheck(F(ijk), "sensible surf forcing");
+      this->vert_grad_fwd(F, beta, params.dz);
+      nancheck(beta(ijk), "grad of sensible surf forcing");
+      alpha(ijk) += beta(ijk);
+    }
   
     // large-scale vertical wind
     subsidence(ix::th); // TODO: in case 1 th here should be in step n+1, calc it explicitly as th + 0.5 * dt * rhs(th);
