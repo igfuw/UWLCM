@@ -34,6 +34,7 @@ namespace setup
   {
     real_t q_i, heating_kappa, F_0, F_1, rho_i, D, u_fric;
     bool surf_latent_flux_in_watts_per_square_meter;
+    bool surf_sensible_flux_in_watts_per_square_meter;
   };
 
   template<class concurr_t>
