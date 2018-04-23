@@ -295,13 +295,13 @@ namespace setup
       void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
       {
         if(timestep == 0) 
-          surf_flux_sens = 16.; // [W/m^2]
+          surf_flux_sens = 8e-3; // [K m/s]
       }
 
       void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
       {
         if(timestep == 0)
-          surf_flux_lat = 93.; // [W/m^2]
+          surf_flux_lat = 5.2e-5; // [kg/kg m/s]
       }
 
       // ctor
@@ -317,6 +317,8 @@ namespace setup
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(0.); // [1/s] so far no subsidence of SDs, because currently it can only be specified as div_LS * z
         this->ForceParameters.u_fric = 0.28;
+        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
+        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta w)[ K m/s]
       }
     };
 
