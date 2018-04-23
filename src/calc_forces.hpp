@@ -77,10 +77,10 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     this->vert_grad_fwd(F, alpha, params.dz);
       nancheck(alpha(ijk), "sum of th flux");
   
-    // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) *= this->state(ix::th)(ijk).reindex(this->zero) / 
+    // change of theta[K/s] = heating[W/m^3] * theta_e[K] / T_e[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
+    alpha(ijk).reindex(this->zero) *= (*params.th_e)(this->vert_idx) / 
       calc_c_p()(rv(ijk).reindex(this->zero)) / 
-      calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
+      (*params.T_e)(this->vert_idx) /
       (*params.rhod)(this->vert_idx);
 
       nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");

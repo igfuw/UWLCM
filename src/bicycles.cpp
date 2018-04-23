@@ -23,11 +23,12 @@
 // copy external profiles into rt_parameters
 // TODO: more elegant way
 template<class params_t>
-void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p)
+void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &T_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p)
 {
   p.hgt_fctr_sclr = new setup::arr_1D_t(hgt_s.dataFirst(), hgt_s.shape(), blitz::neverDeleteData);
   p.hgt_fctr_vctr = new setup::arr_1D_t(hgt_v.dataFirst(), hgt_v.shape(), blitz::neverDeleteData);
   p.th_e = new setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
+  p.T_e = new setup::arr_1D_t(T_e.dataFirst(), T_e.shape(), blitz::neverDeleteData);
   p.rv_e = new setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
   p.th_ref = new setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
   p.pre_ref = new setup::arr_1D_t(pre_ref.dataFirst(), pre_ref.shape(), blitz::neverDeleteData);
@@ -102,13 +103,13 @@ void run(int nx, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz), T_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(th_e, T_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(th_e, T_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -217,7 +218,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(th_e, T_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
 

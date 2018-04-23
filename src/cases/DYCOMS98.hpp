@@ -169,7 +169,7 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
-      void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &T_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -179,13 +179,11 @@ namespace setup
   
         // pressure profile
         arr_1D_t pre(nz);
-        // temperature profile
-        arr_1D_t T(nz);
         real_t dz = (Z / si::metres) / (nz-1);
   
         r_t rt;
         // input sounding at z=0, for moist air, no liquid water
-        T(0) = th_l(0.) / si::kelvins *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
+        T_e(0) = th_l(0.) / si::kelvins *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
         pre(0) = p_0 / si::pascals;
         th_e(0) = th_l(0.) / si::kelvins;
         rv_e(0) = rt(0.);
@@ -201,7 +199,7 @@ namespace setup
   
         for(int k=1; k<nz; ++k)
         {
-          real_t bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(k-1)); // (p / rho) of moist air at k-1
+          real_t bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T_e(k-1) * (1 + 0.61 * rv_e(k-1)); // (p / rho) of moist air at k-1
           real_t rho1 = pre(k-1) / bottom; // rho at k-1
           pre(k) = pre(k-1) - rho1 * 9.81 * dz; // estimate of pre at k (dp = -g * rho * dz)
           real_t thetme = pow(p_1000<real_t>() / si::pascals / pre(k), f); // 1/Exner
@@ -216,7 +214,7 @@ namespace setup
           if(delta < 0.) delta = 0.;
           rv_e(k) = rt(k*dz) - delta;
           th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
-          T(k) = th_e(k) * pow(pre(k) / (p_1000<real_t>() / si::pascals),  f);
+          T_e(k) = th_e(k) * pow(pre(k) / (p_1000<real_t>() / si::pascals),  f);
         }
   
         // compute reference state theta and rhod
