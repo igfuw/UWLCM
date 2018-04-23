@@ -229,8 +229,8 @@ namespace setup
       // functions that set surface fluxes per timestep
       void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
       {
-        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-          surf_flux_sens = 100.; // [W/m^2]
+        if(timestep == 0) 
+          surf_flux_sens = .1; // [K * m/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           int nx = surf_flux_sens.extent(0);
@@ -238,15 +238,15 @@ namespace setup
           real_t dx = 10000. / (nx-1);
           real_t dy = 10000. / (ny-1);
           if(surf_flux_sens.rank() == 2) // TODO: make it a compile-time decision
-            surf_flux_sens = 300. * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
           else if(surf_flux_sens.rank() == 1)
-            surf_flux_sens = 300. * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
         }
       }
       
       void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
       {
-        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+        if(timestep == 0)
           surf_flux_lat = .4e-4; // [1/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
@@ -272,7 +272,8 @@ namespace setup
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(0.);
-        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as a change in q_v [1/s]
+        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
+        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
         this->ForceParameters.u_fric = 0.28;
       }
     };
