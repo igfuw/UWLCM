@@ -34,6 +34,7 @@ namespace setup
   {
     real_t q_i, heating_kappa, F_0, F_1, rho_i, D, u_fric;
     bool surf_latent_flux_in_watts_per_square_meter;
+    bool surf_sensible_flux_in_watts_per_square_meter;
   };
 
   template<class concurr_t>
@@ -78,7 +79,8 @@ namespace setup
       ForceParameters.D = D; // large-scale wind horizontal divergence [1/s]
       ForceParameters.rho_i = 1.12; // kg/m^3
       ForceParameters.u_fric = 0.25; // m/s; friction velocity
-      ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be a change in q_v [1/s]
+      ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
+      ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
     }
 
     protected:
