@@ -1,4 +1,10 @@
 // Based on Siebesma et al. 2003
+// TODO:  subsidence should be proportional to the gradient of HORIZONTALLLY AVERAGED fields
+//        right now it is the local gradient as in DYCOMS
+// TODO2: right now there is no subsidence of SDs (liquid water) due to two problems:
+//        1. only subsidence proportional to height z is implemented in libcloudphxx
+//        2. only subsidence proportional to local gradient is implemented in libcloudphxx
+//        possible fix: pass the subsidence rate from the model to libcloudphxx, not just div_LS
 
 #pragma once
 #include <random>
@@ -108,7 +114,7 @@ namespace setup
       {
         return init_prof({0, 1500, 3000}, {-2, -2, 0}, z) / (24. * 3600.); // [K/s]
       }
-      BZ_DECLARE_FUNCTOR(w_LS_fctr);
+      BZ_DECLARE_FUNCTOR(Q_r);
     };
 
     // drying due to horizontal wind
@@ -120,7 +126,7 @@ namespace setup
         // in reality, dr/dq = (1-q)^{-1} + q * (1-q)^{-2}
         return init_prof({0, 300, 500, 3000}, {-1.2e-8, -1.2e-8, 0, 0}, z) ; // [1/s]
       }
-      BZ_DECLARE_FUNCTOR(w_LS_fctr);
+      BZ_DECLARE_FUNCTOR(dt_dt_adv);
     };
 
     template<class concurr_t>
