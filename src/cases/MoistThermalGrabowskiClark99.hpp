@@ -245,7 +245,7 @@ namespace setup
         real_t qvs = a * esw / ((p_0 / si::pascals) -esw);
         //rv_e(0) = env_RH * qvs;
         rv_e(0) = rv_0;// env_RH * qvs;
-        real_t th_e_surf = th_std_0 / si::kelvins * (1 + a * rv_e(0)); // virtual potential temp, TODO: a czy th_std_0 to nie jest tak na prawde th_dry_0 (bo p_0 to cisnienie suchego powietrza, bo ref profil jest tylko suchy?)
+        real_t th_e_surf = th_std_0 / si::kelvins * (1 + a * rv_e(0)); // virtual potential temp
         
         th_e = th_std_fctr(th_e_surf)(k * dz);
         
