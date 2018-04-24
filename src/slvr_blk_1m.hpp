@@ -30,7 +30,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       rr   = this->state(ix::rr)(this->ijk); // rain water mixing ratio
     auto const
       rhod = (*this->mem->G)(this->ijk);
-      
+
     libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
       opts, rhod, p_e, th, rv, rc, rr, this->dt
     );
@@ -55,15 +55,15 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     zero_if_uninitialised(ix::rc);
     zero_if_uninitialised(ix::rr);
 
-    // deal with initial supersaturation
-    condevap();
-
-    parent_t::hook_ante_loop(nt); // forcings after adjustments
-
     // init the p_e array
     p_e.resize(this->shape(this->ijk));
     p_e = (*this->params.p_e)(this->vert_idx);
     p_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
+
+    // deal with initial supersaturation
+    condevap();
+
+    parent_t::hook_ante_loop(nt); // forcings after adjustments
 
     // recording parameters
     if(this->rank==0)
