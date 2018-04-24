@@ -503,6 +503,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   private:
 
   // per-thread copy of params
+  // TODO: but slvr_common also has a copy of it's params....
   rt_params_t params;
 
   public:
