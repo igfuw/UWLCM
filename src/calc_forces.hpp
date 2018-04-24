@@ -17,6 +17,13 @@ struct calc_T
   BZ_DECLARE_FUNCTOR2(calc_T)
 };
 
+struct calc_exner
+{
+  setup::real_t operator()(setup::real_t p) const
+  {return libcloudphxx::common::theta_dry::exner<setup::real_t>(p) / si::pascals;}
+  BZ_DECLARE_FUNCTOR(calc_exner)
+};
+
 // forcing functions
 // TODO: make functions return blitz arrays to avoid unnecessary copies
 template <class ct_params_t>
@@ -77,10 +84,9 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     this->vert_grad_fwd(F, alpha, params.dz);
       nancheck(alpha(ijk), "sum of th flux");
   
-    // change of theta[K/s] = heating[W/m^3] * theta_e[K] / T_e[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) *= (*params.th_e)(this->vert_idx) / 
+    // change of theta[K/s] = heating[W/m^3] * exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+    alpha(ijk).reindex(this->zero) *= calc_exner()((*params.p_e)(this->vert_idx)) / 
       calc_c_p()(rv(ijk).reindex(this->zero)) / 
-      (*params.T_e)(this->vert_idx) /
       (*params.rhod)(this->vert_idx);
 
       nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
