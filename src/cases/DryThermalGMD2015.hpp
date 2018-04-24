@@ -76,11 +76,16 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
-      void env_prof(arr_1D_t &th_e, arr_1D_t &T_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
+        using libcloudphxx::common::theta_std::p_1000
+        using libcloudphxx::common::moist_air::R_d;
+        using libcloudphxx::common::moist_air::c_pd;
+        using libcloudphxx::common::moist_air::R_d_over_c_pd;
+       
         rhod = 1;
         th_e = 300;
-        T_e  = 300; // TODO: not really?
+        p_e  = pow((rhod * si::kilograms / si::cubic_metres) * R_d<real_t>() * (th_e * si::kelvins) * pow(p_1000<real_t>(), R_d_over_c_pd<real_t>()), 1 / (R_d_over_c_pd<real_t>() + 1)) / si::pascals;
         th_ref = 300;
       }
     };

@@ -28,7 +28,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       rhod = (*this->mem->G)(this->ijk);
       
     libcloudphxx::blk_1m::adj_cellwise<real_t>( 
-      opts, rhod, th, rv, rc, rr, this->dt
+      opts, rhod, p_e, th, rv, rc, rr, this->dt
     );
     this->mem->barrier(); 
   }

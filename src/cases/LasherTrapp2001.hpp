@@ -34,7 +34,7 @@ namespace setup
     // env profiles of th and rv from the sounding
     arr_1D_t th_dry_env;
     arr_1D_t th_std_env;
-    arr_1D_t T_env;
+    arr_1D_t p_env;
     arr_1D_t rv_env;
 
 
@@ -117,7 +117,7 @@ namespace setup
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      void env_prof(arr_1D_t &th_e, arr_1D_t &T_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -180,17 +180,16 @@ namespace setup
         // create 1D blitz arrays to wrap the derived profiles, store the for use in intcond_hlpr
         th_dry_env.resize(nz);
         th_std_env.resize(nz);
-        T_env.resize(nz);
+        p_env.resize(nz);
         rv_env.resize(nz);
         th_dry_env = arr_1D_t(th_dry.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
         th_std_env = arr_1D_t(th_std.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
-        T_env = arr_1D_t(temp_si.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
+        p_env = arr_1D_t(pres_si.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
         rv_env     = arr_1D_t(rv.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
 
         // TODO: calc hydrostatic env profiles like in dycoms? w kodzie od S. L-T tego jednak nie ma...
-
+        p_e = p_env;
         rv_e = rv_env;
-        T_e = T_env;
         th_e = th_std_env; // temp to calc rhod
   
         // compute reference state theta and rhod
