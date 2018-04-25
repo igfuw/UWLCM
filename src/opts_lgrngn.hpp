@@ -11,7 +11,7 @@
 
 #include "opts_common.hpp"
 #include "slvr_lgrngn.hpp"
-#include "calc_forces.hpp"
+#include "calc_forces_common.hpp"
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    

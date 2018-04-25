@@ -20,6 +20,9 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
   // timing fields
+  // TODO: timing slows down simulations
+  //       either remove it and use profiling tools (e.g. vtune)
+  //       or add some compile-time flag to turn it off
   clock::time_point tbeg, tend, tbeg1, tbeg_loop;
   std::chrono::milliseconds tdiag, tupdate, tsync, tasync, tasync_wait, tloop, tvip_rhs;
 
@@ -311,6 +314,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet, radiation;
+    bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
     setup::arr_1D_t *th_e, *p_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
