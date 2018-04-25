@@ -31,11 +31,12 @@ class slvr_dim<
   typename std::enable_if<ct_params_t::n_dims == 2 >::type
 > : public slvr_piggy<ct_params_t> 
 {
+  public:
   using parent_t = slvr_piggy<ct_params_t>;
   using ix = typename ct_params_t::ix;
+  using arr_sub_t = blitz::Array<setup::real_t, 1>;
 
   protected:
-  using arr_sub_t = blitz::Array<setup::real_t, 1>;
   // inject dimension-independent ranges
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   rng_t hrzntl_domain = this->mem->grid_size[0];
@@ -102,11 +103,12 @@ class slvr_dim<
   typename std::enable_if<ct_params_t::n_dims == 3 >::type
 > : public slvr_piggy<ct_params_t> 
 {
+  public:
   using parent_t = slvr_piggy<ct_params_t>;
   using ix = typename ct_params_t::ix;
+  using arr_sub_t = blitz::Array<setup::real_t, 2>;
 
   protected:
-  using arr_sub_t = blitz::Array<setup::real_t, 2>;
   // inject dimension-independent ranges
   idx_t<3> domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]});
   idx_t<2> hrzntl_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});

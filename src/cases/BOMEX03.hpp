@@ -1,10 +1,20 @@
+// Based on Siebesma et al. 2003
+// TODO:  subsidence should be proportional to the gradient of HORIZONTALLLY AVERAGED fields
+//        right now it is the local gradient as in DYCOMS
+// TODO2: right now there is no subsidence of SDs (liquid water) due to two problems:
+//        1. only subsidence proportional to height z is implemented in libcloudphxx
+//        2. only subsidence proportional to local gradient is implemented in libcloudphxx
+//        possible fix: pass the subsidence rate from the model to libcloudphxx, not just div_LS
+// TODO3: parts of the setup that are still missing:
+//        1. constant, explicit forcings: Q_u, Q_v, low-level drying, radiation Q_r
+
 #pragma once
 #include <random>
 #include "CasesCommon.hpp"
 
 namespace setup 
 {
-  namespace dycoms
+  namespace bomex
   {
     namespace hydrostatic = libcloudphxx::common::hydrostatic;
     namespace theta_std = libcloudphxx::common::theta_std;
@@ -13,23 +23,34 @@ namespace setup
 
   
     const quantity<si::pressure, real_t> 
-      p_0 = 101780 * si::pascals;
+      p_0 = 101500 * si::pascals;
     const quantity<si::length, real_t> 
       z_0  = 0    * si::metres,
-      Z    = 1500 * si::metres, // DYCOMS: 1500
-      X    = 6400 * si::metres, // DYCOMS: 6400
-      Y    = 6400 * si::metres; // DYCOMS: 6400
-    const real_t z_abs = 1250;
-    const real_t z_i = 795; //initial inversion height
+      Z    = 75 * 40 * si::metres, 
+      X    = 64 * 100 * si::metres, 
+      Y    = 64 * 100 * si::metres; 
+    const real_t z_abs = 2500; // no word about absorber in Siebesma (2003)
     const quantity<si::length, real_t> z_rlx_vctr = 1 * si::metres;
+
+    real_t linint(const real_t a, const real_t b, const real_t fa, const real_t fb, const real_t x)
+    {
+      return((x - a) / (b - a) * (fb - fa) + fa); 
+    }
+
+    real_t init_prof(const std::vector<real_t> &lvls, const std::vector<real_t> &vals, const real_t z)
+    {
+      for(int i=0; i<lvls.size(); ++i)
+      {
+        if(z < lvls.at(i)) return linint(lvls.at(i-1), lvls.at(i), vals.at(i-1), vals.at(i), z); 
+      }
+      return vals.back();
+    }
   
     // liquid water potential temperature at height z
     quantity<si::temperature, real_t> th_l(const real_t &z)
     {
       quantity<si::temperature, real_t> ret;
-      ret = z < z_i ?
-        288.3 * si::kelvins : 
-        (295. + pow(z - z_i, 1./3)) * si::kelvins;
+      ret = init_prof({0, 520, 1480, 2000, 3000}, {298.7, 298.7, 302.4, 308.2, 311.85}, z) * si::kelvins;
       return ret;
     }
   
@@ -38,9 +59,11 @@ namespace setup
     {
       quantity<si::dimensionless, real_t> operator()(const real_t &z) const
       {
-        const quantity<si::dimensionless, real_t> q_t = z < z_i ?
-          9.45e-3 : 
-          (5. - 3. * (1. - exp((z_i - z)/500.))) * 1e-3;
+        // q_t is specific humidity
+        const quantity<si::dimensionless, real_t> q_t =
+          init_prof({0, 520, 1480, 2000, 3000}, {17., 16.3, 10.7, 4.2, 3.0}, z) * 1e-3;
+        // turn to mixing ratio
+        q_t = q_t / (1. - q_t);
         return q_t;
       }
       BZ_DECLARE_FUNCTOR(r_t);
@@ -61,7 +84,7 @@ namespace setup
     {
       real_t operator()(const real_t &z) const
       {
-        return 3. + 4.3 * z / 1000.; 
+        return init_prof({0, 700, 3000}, {-8,75, -8.75, -4.61}, z);; 
       }
       BZ_DECLARE_FUNCTOR(u);
     };
@@ -71,7 +94,7 @@ namespace setup
     {
       real_t operator()(const real_t &z) const
       {
-        return -9. + 5.6 * z / 1000.; 
+        return 0; 
       }
       BZ_DECLARE_FUNCTOR(v);
     };
@@ -81,34 +104,35 @@ namespace setup
     {
       real_t operator()(const real_t &z) const
       {
-        return - D * z; 
+        return init_prof({0, 1500, 2100, 3000}, {0, -0.65e-2, 0, 0}, z); 
       }
       BZ_DECLARE_FUNCTOR(w_LS_fctr);
     };
   
-    // density profile as a function of altitude
-    // hydrostatic and assuming constant theta (not used now)
-    struct rhod_fctr
+    // radiative forcing
+    struct Q_r
     {
-      real_t operator()(real_t z) const
+      real_t operator()(const real_t &z) const
       {
-        quantity<si::pressure, real_t> p = hydrostatic::p(
-  	z * si::metres, th_dry_fctr()(0.) * si::kelvins, r_t()(0.), z_0, p_0
-        );
-        
-        quantity<si::mass_density, real_t> rhod = theta_std::rhod(
-  	p, th_dry_fctr()(0.) * si::kelvins, r_t()(0.)
-        );
-  
-        return rhod / si::kilograms * si::cubic_metres;
+        return init_prof({0, 1500, 3000}, {-2, -2, 0}, z) / (24. * 3600.); // [K/s]
       }
-  
-      // to make the rhod() functor accept Blitz arrays as arguments
-      BZ_DECLARE_FUNCTOR(rhod_fctr);
+      BZ_DECLARE_FUNCTOR(Q_r);
+    };
+
+    // drying due to horizontal wind
+    struct dr_dt_adv
+    {
+      real_t operator()(const real_t &z) const
+      {
+        // assume dr/dt = dq/dt
+        // in reality, dr/dq = (1-q)^{-1} + q * (1-q)^{-2}
+        return init_prof({0, 300, 500, 3000}, {-1.2e-8, -1.2e-8, 0, 0}, z) ; // [1/s]
+      }
+      BZ_DECLARE_FUNCTOR(dt_dt_adv);
     };
 
     template<class concurr_t>
-    class Dycoms98 : public CasesCommon<concurr_t>
+    class Bomex03 : public CasesCommon<concurr_t>
     {
 
       protected:
@@ -128,7 +152,7 @@ namespace setup
         params.buoyancy_wet = true;
         params.subsidence = true;
         params.friction = true;
-        params.radiation = true;
+        params.radiation = false; // this applies only to the radiative forcing as used in dycoms
       }
   
   
@@ -155,13 +179,27 @@ namespace setup
         // initial potential temperature
         solver.advectee(ix::th) = th_dry_fctr()(index * dz); 
         // randomly prtrb tht
-        std::mt19937 gen(rng_seed);
-        std::uniform_real_distribution<> dis(-0.1, 0.1);
-        auto rand = std::bind(dis, gen);
+        {
+          std::mt19937 gen(rng_seed);
+          std::uniform_real_distribution<> dis(-0.1, 0.1);
+          auto rand = std::bind(dis, gen);
   
-        decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
-        std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
-        solver.advectee(ix::th) += prtrb;
+          decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
+          std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          prtrb = where(index * dz >= 1600., 0., prtrb); // no perturbation above 1.6km
+          solver.advectee(ix::th) += prtrb;
+        }
+        // randomly prtrb rv
+        {
+          std::mt19937 gen(rng_seed);
+          std::uniform_real_distribution<> dis(-0.025e-3, 0.025e-3);
+          auto rand = std::bind(dis, gen);
+  
+          decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
+          std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          prtrb = where(index * dz >= 1600., 0., prtrb); // no perturbation above 1.6km
+          solver.advectee(ix::rv) += prtrb;
+        }
       }
   
   
@@ -264,27 +302,31 @@ namespace setup
 
       void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
       {
-        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-          surf_flux_sens = 16.; // [W/m^2]
+        if(timestep == 0) 
+          surf_flux_sens = 8e-3; // [K m/s]
       }
 
       void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
       {
-        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-          surf_flux_lat = 93.; // [W/m^2]
+        if(timestep == 0)
+          surf_flux_lat = 5.2e-5; // [kg/kg m/s]
       }
 
       // ctor
       Dycoms98()
       {
-        //aerosol bimodal lognormal dist. - DYCOMS
+        // Siebesma 2003 does not specify aerosol
+        // use one from RICO (vanZanten 2011) as in Sato, Shima et al. 2017
         this->mean_rd1 = real_t(.011e-6) * si::metres,
         this->mean_rd2 = real_t(.06e-6) * si::metres;
         this->sdev_rd1 = real_t(1.2),
         this->sdev_rd2 = real_t(1.7);
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
-        this->div_LS = real_t(3.75e-6); // [1/s] large-scale wind divergence used to calc subsidence of SDs, TODO: use boost.units to enforce 1/s
+        this->div_LS = real_t(0.); // [1/s] so far no subsidence of SDs, because currently it can only be specified as div_LS * z
+        this->ForceParameters.u_fric = 0.28;
+        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
+        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta w)[ K m/s]
       }
     };
 

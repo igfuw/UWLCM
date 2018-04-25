@@ -16,6 +16,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   public:
   using ix = typename ct_params_t::ix;
   using real_t = typename ct_params_t::real_t;
+  using arr_sub_t = typename parent_t::arr_sub_t;
   private:
 
   // member fields
