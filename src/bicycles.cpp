@@ -103,7 +103,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
@@ -214,7 +214,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
@@ -388,6 +388,7 @@ void run_hlpr(bool piggy, std::string type, Args&&... args)
       struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
       run<slvr<ct_params_final>>(args...);
     }
+
   }
   else // piggybacking
   {
@@ -432,6 +433,8 @@ int main(int argc, char** argv)
       ("serial", po::value<bool>()->default_value(false), "force advection and microphysics to be computed on single thread")
       ("th_src", po::value<bool>()->default_value(true) , "temp src")
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
+      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1m)")
+      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1m)")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
@@ -490,6 +493,8 @@ int main(int argc, char** argv)
     // handling sources flags
     user_params.th_src = vm["th_src"].as<bool>();
     user_params.rv_src = vm["rv_src"].as<bool>();
+    user_params.rc_src = vm["rc_src"].as<bool>();
+    user_params.rr_src = vm["rr_src"].as<bool>();
     user_params.uv_src = vm["uv_src"].as<bool>();
     user_params.w_src = vm["w_src"].as<bool>();
 

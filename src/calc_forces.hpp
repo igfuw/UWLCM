@@ -133,4 +133,43 @@ void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
   alpha(ijk) += F(ijk);
 }
 
+template <class ct_params_t>
+void slvr_blk_1m<ct_params_t>::rc_src()
+{
+  const auto &ijk = this->ijk;
+  if(params.rc_src)
+  {
+    // large-scale vertical wind
+    subsidence(ix::rc); 
+    
+    alpha(ijk) += F(ijk);
+  }
+  else
+    alpha(ijk) = 0.;
 
+  beta(ijk) = 0.;
+  // nudging, todo: use some other coeff than vab_coeff
+//  alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
+//  beta(ijk) = - (*this->mem->vab_coeff)(ijk);
+}
+
+
+template <class ct_params_t>
+void slvr_blk_1m<ct_params_t>::rr_src()
+{
+  const auto &ijk = this->ijk;
+  if(params.rr_src)
+  {
+    // large-scale vertical wind
+    subsidence(ix::rr); 
+    
+    alpha(ijk) += F(ijk);
+  }
+  else
+    alpha(ijk) = 0.;
+
+  beta(ijk) = 0.;
+  // nudging, todo: use some other coeff than vab_coeff
+//  alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
+//  beta(ijk) = - (*this->mem->vab_coeff)(ijk);
+}
