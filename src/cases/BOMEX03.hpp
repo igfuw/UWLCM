@@ -5,6 +5,8 @@
 //        1. only subsidence proportional to height z is implemented in libcloudphxx
 //        2. only subsidence proportional to local gradient is implemented in libcloudphxx
 //        possible fix: pass the subsidence rate from the model to libcloudphxx, not just div_LS
+// TODO3: parts of the setup that are still missing:
+//        1. constant, explicit forcings: Q_u, Q_v, low-level drying, radiation Q_r
 
 #pragma once
 #include <random>
