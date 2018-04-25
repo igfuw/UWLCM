@@ -22,6 +22,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
   using arr_sub_t = typename parent_t::arr_sub_t;
+  using clock = typename parent_t::clock;
   private:
 
   // a 2D/3D arrays with copies of the environmental total pressure/partial pressure of dry air,
@@ -59,62 +60,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   void set_rain(bool val) { opts.conv = val; };
 
 
-  void update_rhs(
-    arrvec_t<typename parent_t::arr_t> &rhs,
-    const typename parent_t::real_t &dt,
-    const int &at
-  )
-  {
-    parent_t::update_rhs(rhs, dt, at);
-    this->mem->barrier();
-    if(this->rank == 0)
-      this->tbeg = clock::now();
-
-    using ix = typename ct_params_t::ix;
-
-    const auto &ijk = this->ijk;
-
-    // forcing
-    switch (at)
-    {
-      // for eulerian integration or used to init trapezoidal integration
-      case (0):
-      {
-        // ---- cloud water sources ----
-        rc_src();
-        rhs.at(ix::rc)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rc)(ijk);
-
-        // ---- rain water sources ----
-        rr_src();
-        rhs.at(ix::rr)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rr)(ijk);
-        
-        break;
-      }
-
-      case (1):
-      // trapezoidal rhs^n+1
-      {
-        // ---- cloud water sources ----
-        rc_src();
-        rhs.at(ix::rc)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rc)(ijk) / (1. - 0.5 * this->dt * beta(ijk));
-
-        // ---- rain water sources ----
-        rr_src();
-        rhs.at(ix::rr)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rr)(ijk) / (1. - 0.5 * this->dt * beta(ijk));
-       
-        break;
-      }
-    }
-    this->mem->barrier();
-    if(this->rank == 0)
-    {
-      nancheck(rhs.at(ix::rc)(this->domain), "RHS of rc after rhs_update");
-      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
-      this->tend = clock::now();
-      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
-    }
-  }
-
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
@@ -151,10 +96,10 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       this->record_aux_const("r_c0", opts.r_c0);  
       this->record_aux_const("k_acnv", opts.k_acnv);  
       this->record_aux_const("r_eps", opts.r_eps);  
-      this->record_aux_const("user_params rc_src", params.user_params.rc_src);  
-      this->record_aux_const("user_params rr_src", params.user_params.rr_src);  
-      this->record_aux_const("rt_params rc_src", params.rc_src);  
-      this->record_aux_const("rt_params rr_src", params.rr_src);  
+      this->record_aux_const("user_params rc_src", this->params.user_params.rc_src);  
+      this->record_aux_const("user_params rr_src", this->params.user_params.rr_src);  
+      this->record_aux_const("rt_params rc_src", this->params.rc_src);  
+      this->record_aux_const("rt_params rr_src", this->params.rr_src);  
     }
   }
 
@@ -176,7 +121,12 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
+    this->mem->barrier();
+    if(this->rank == 0)
+      this->tbeg = clock::now();
+
     // cell-wise
+    // TODO: rozne cell-wise na n i n+1 ?
     {
       auto 
 	dot_rc = rhs.at(ix::rc)(this->ijk),
@@ -185,6 +135,46 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 	rc   = this->state(ix::rc)(this->ijk),
 	rr   = this->state(ix::rr)(this->ijk);
       libcloudphxx::blk_1m::rhs_cellwise<real_t>(opts, dot_rc, dot_rr, rc, rr);
+    }
+
+    // forcing
+    switch (at)
+    {
+      // for eulerian integration or used to init trapezoidal integration
+      case (0):
+      {
+        // ---- cloud water sources ----
+        rc_src();
+        rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
+
+        // ---- rain water sources ----
+        rr_src();
+        rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
+        
+        break;
+      }
+
+      case (1):
+      // trapezoidal rhs^n+1
+      {
+        // ---- cloud water sources ----
+        rc_src();
+        rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
+
+        // ---- rain water sources ----
+        rr_src();
+        rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
+       
+        break;
+      }
+    }
+    this->mem->barrier();
+    if(this->rank == 0)
+    {
+      nancheck(rhs.at(ix::rc)(this->domain), "RHS of rc after rhs_update");
+      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
+      this->tend = clock::now();
+      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
   }
 
@@ -202,8 +192,15 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   struct rt_params_t : parent_t::rt_params_t 
   { 
     libcloudphxx::blk_1m::opts_t<real_t> cloudph_opts;
-    bool rr_src, rc_src;
   };
+
+  protected:
+
+  // per-thread copy of params
+  // TODO: but slvr_common also has a copy of it's params....
+  rt_params_t params;
+
+  public:
 
   // ctor
   slvr_blk_1m_common( 
@@ -232,6 +229,7 @@ class slvr_blk_1m<
   public:
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
+  using clock = typename parent_t::clock;
 
   // ctor
   slvr_blk_1m( 
@@ -249,6 +247,10 @@ class slvr_blk_1m<
   ) {
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
+    this->mem->barrier();
+    if(this->rank == 0)
+      this->tbeg = clock::now();
+
     // column-wise
     for (int i = this->i.first(); i <= this->i.last(); ++i)
     {
@@ -258,6 +260,14 @@ class slvr_blk_1m<
         rhod   = (*this->mem->G)(i, this->j),
 	rr     = this->state(parent_t::ix::rr)(i, this->j);
       libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
+    }
+
+    this->mem->barrier();
+    if(this->rank == 0)
+    {
+      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
+      this->tend = clock::now();
+      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
   }
 };
@@ -272,6 +282,7 @@ class slvr_blk_1m<
   public:
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
+  using clock = typename parent_t::clock;
 
   // ctor
   slvr_blk_1m( 
@@ -289,6 +300,10 @@ class slvr_blk_1m<
   ) {
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
+    this->mem->barrier();
+    if(this->rank == 0)
+      this->tbeg = clock::now();
+
     // column-wise
     for (int i = this->i.first(); i <= this->i.last(); ++i)
       for (int j = this->j.first(); j <= this->j.last(); ++j)
@@ -300,5 +315,13 @@ class slvr_blk_1m<
   	rr     = this->state(parent_t::ix::rr)(i, j, this->k);
         libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
       }
+
+    this->mem->barrier();
+    if(this->rank == 0)
+    {
+      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
+      this->tend = clock::now();
+      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+    }
   }
 };
