@@ -30,6 +30,8 @@ namespace setup
         params.uv_src = false;
         params.th_src = false;
         params.rv_src = false;
+        params.rc_src = false;
+        params.rr_src = false;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = false;

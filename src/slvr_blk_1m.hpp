@@ -53,8 +53,67 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
   protected:
 
+  void rc_src();
+  void rr_src();
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
+
+
+  void update_rhs(
+    arrvec_t<typename parent_t::arr_t> &rhs,
+    const typename parent_t::real_t &dt,
+    const int &at
+  )
+  {
+    parent_t::update_rhs(rhs, dt, at);
+    this->mem->barrier();
+    if(this->rank == 0)
+      this->tbeg = clock::now();
+
+    using ix = typename ct_params_t::ix;
+
+    const auto &ijk = this->ijk;
+
+    // forcing
+    switch (at)
+    {
+      // for eulerian integration or used to init trapezoidal integration
+      case (0):
+      {
+        // ---- cloud water sources ----
+        rc_src();
+        rhs.at(ix::rc)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rc)(ijk);
+
+        // ---- rain water sources ----
+        rr_src();
+        rhs.at(ix::rr)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rr)(ijk);
+        
+        break;
+      }
+
+      case (1):
+      // trapezoidal rhs^n+1
+      {
+        // ---- cloud water sources ----
+        rc_src();
+        rhs.at(ix::rc)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rc)(ijk) / (1. - 0.5 * this->dt * beta(ijk));
+
+        // ---- rain water sources ----
+        rr_src();
+        rhs.at(ix::rr)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rr)(ijk) / (1. - 0.5 * this->dt * beta(ijk));
+       
+        break;
+      }
+    }
+    this->mem->barrier();
+    if(this->rank == 0)
+    {
+      nancheck(rhs.at(ix::rc)(this->domain), "RHS of rc after rhs_update");
+      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
+      this->tend = clock::now();
+      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+    }
+  }
 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
@@ -92,6 +151,10 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       this->record_aux_const("r_c0", opts.r_c0);  
       this->record_aux_const("k_acnv", opts.k_acnv);  
       this->record_aux_const("r_eps", opts.r_eps);  
+      this->record_aux_const("user_params rc_src", params.user_params.rc_src);  
+      this->record_aux_const("user_params rr_src", params.user_params.rr_src);  
+      this->record_aux_const("rt_params rc_src", params.rc_src);  
+      this->record_aux_const("rt_params rr_src", params.rr_src);  
     }
   }
 
@@ -139,6 +202,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   struct rt_params_t : parent_t::rt_params_t 
   { 
     libcloudphxx::blk_1m::opts_t<real_t> cloudph_opts;
+    bool rr_src, rc_src;
   };
 
   // ctor
