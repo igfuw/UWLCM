@@ -98,8 +98,9 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   void hook_ante_step()
   {
     parent_t::hook_ante_step();
+    condevap(); // treat saturation adjustment as pre-advection, post-half-rhs adjustment
     // store rl for buoyancy
-    this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
+    //this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
   }
 
   void update_rhs(
@@ -107,6 +108,9 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     const typename parent_t::real_t &dt,
     const int &at 
   ) {
+    // store rl for buoyancy
+    this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
+
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
     // cell-wise
@@ -124,7 +128,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   // 
   void hook_post_step()
   {
-    condevap(); // treat saturation adjustment as post-advection, pre-rhs adjustment
+    //condevap(); // treat saturation adjustment as post-advection, pre-rhs adjustment
     parent_t::hook_post_step(); // includes the above forcings
   }
 
