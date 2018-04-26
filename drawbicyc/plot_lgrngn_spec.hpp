@@ -8,6 +8,36 @@
 
 #include <map>
 
+/*#include <unordered_set>
+#include <iomanip> 
+
+#include "common.hpp"
+#include "PlotterMicro.hpp"
+#include <boost/tuple/tuple.hpp>
+#include "plots.hpp"
+*/
+
+//plot spectra positions
+template<class Plotter_t>
+void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots, int at)
+{
+  auto& n = plotter.map;
+  Gnuplot gp;
+
+  try{
+  // cloud water content
+  auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3;
+
+  std::string title = "cloud water mixing ratio [g/kg]";
+  gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+  init(gp, plotter.file + "_spectra_positions_at" + zeropad(at) + ".svg", 1, 1, n, 2., 1); 
+  plotter.plot(gp, tmp, blitz::Range(yslice_idx, yslice_idx));
+  }
+  catch(...){}
+}
+
+
+
 //plot spectra
 template<class Plotter_t>
 void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
@@ -20,7 +50,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
   Gnuplot gp;
 //  int off = 2; // TODO!!!
   int off = 0; // TODO!!!
-  string file = plotter.file + "_spectra.svg";
+  string file = plotter.file + "_spectra_at" + zeropad(at) + ".svg";
 
   int hor = min<int>(focus_3d.size(), 2);
   int ver = double(focus_3d.size()) / 2. + 0.99999;
