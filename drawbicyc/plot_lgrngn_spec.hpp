@@ -18,13 +18,19 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
      std::cout << elem.first << " " << elem.second << std::endl;
   }
   Gnuplot gp;
-  int off = 2; // TODO!!!
+//  int off = 2; // TODO!!!
+  int off = 0; // TODO!!!
   string file = plotter.file + "_spectra.svg";
 
   int hor = min<int>(focus_3d.size(), 2);
   int ver = double(focus_3d.size()) / 2. + 0.99999;
 
   init_prof(gp, file, ver, hor);
+
+  gp << "set xrange [0:30]\n";
+  gp << "set yrange [0:50]\n";
+  gp << "set xlabel 'r [μm]'\n"; 
+  gp << "set ylabel 'n [cm^{-3} μm^{-1}]'\n"; 
 
   // read in density
   auto tmp = plotter.h5load(plotter.file + "/const.h5", "G");
@@ -69,20 +75,26 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
       auto tmp_w = plotter.h5load_timestep(name, at * n["outfreq"]);
 //      blitz::Array<float, 2> tmp_w(1e-6 * h5load(h5, name, at));
 
-      focus_w[left_edges_rw[i] / 1e-6 / si::metres] = (tmp_w * rhod)(x,y,z);
+      focus_w[left_edges_rw[i] / 1e-6 / si::metres] =
 /*
-      sum(tmp_w(
-        blitz::Range(x-1, x+1),
-        blitz::Range(y-1, y+1)
-      )) 
-      / 9 
-      / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
+ (tmp_w * rhod)(x,y,z) * 1e-6 // per cm^{-3}
+        / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
 */
+      sum((tmp_w*rhod)(
+        blitz::Range(x-1, x+1),
+        blitz::Range(y-1, y+1),
+        blitz::Range(z-1, z+1)
+      )) * 1e-6 // per cm^{-3}
+      / 27 
+      / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
     }
+    const string name = "rw_rng" + zeropad(nsw + off) + "_mom0";
+    auto tmp_w = plotter.h5load_timestep(name, at * n["outfreq"]);
 
     notice_macro("setting-up plot parameters");
+    gp << "set title 'larger drops conc: " << (tmp_w * rhod)(x,y,z) * 1e-6 <<"'" << endl;
     gp << "plot"
-       << "'-' with histeps title 'wet radius' lw 3 lc rgb 'blue'," << endl;
+       << "'-' with line title 'wet radius' lw 3 lc rgb 'blue'," << endl;
 //     << "'-' with histeps title 'dry radius' lw 1 lc rgb 'red' " << endl;
     gp.send(focus_w);
 //    gp.send(focus_d);
