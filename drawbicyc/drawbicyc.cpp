@@ -2,6 +2,7 @@
 #include"plot_prof.hpp"
 #include"plot_fields.hpp"
 #include"plot_qv_qc_2_6_10_min.hpp"
+#include"plot_lgrngn_spec.hpp"
 
 int main(int argc, char** argv)
 {
@@ -14,6 +15,7 @@ int main(int argc, char** argv)
     ("profs", po::value<bool>()->default_value(true), "plot profiles?")
     ("series", po::value<bool>()->default_value(true) , "plot series?")
     ("fields", po::value<bool>()->default_value(false) , "plot fields?")
+    ("spectra", po::value<bool>()->default_value(false) , "plot spectra?")
     ("qv_qc_2_6_10_min", po::value<bool>()->default_value(false) , "plot comparison of qv and qc fields at 2, 6 and 10 min?")
     ("dir", po::value<std::string>()->required() , "directory containing out_lgrngn")
     ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
@@ -43,6 +45,7 @@ int main(int argc, char** argv)
   bool flag_series = vm["series"].as<bool>(),
        flag_profiles = vm["profs"].as<bool>(),
        flag_fields = vm["fields"].as<bool>(),
+       flag_lgrngn_spec = vm["spectra"].as<bool>(),
        flag_qv_qc_2_6_10_min = vm["qv_qc_2_6_10_min"].as<bool>();
 
   // detecting input data dimensionality
@@ -64,6 +67,7 @@ int main(int argc, char** argv)
     if(flag_profiles) plot_profiles(PlotterMicro_t<3>(h5, micro), Plots(type));
     if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro), Plots(type));
     if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro), Plots(type));
+    if(flag_lgrngn_spec)   plot_lgrngn_spec(PlotterMicro_t<3>(h5, "lgrngn"), Plots(type), 12);
   }
   else
     assert(false && "need 2d or 3d input data");
