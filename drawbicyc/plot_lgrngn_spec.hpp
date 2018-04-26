@@ -30,7 +30,7 @@ void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots, int at)
 
   std::string title = "cloud water mixing ratio [g/kg]";
   gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-  init(gp, plotter.file + "_spectra_positions_at" + zeropad(at) + ".svg", 1, 1, n, 2., 1); 
+  init(gp, plotter.file + "_spectra_positions_at" + zeropad(at) + ".svg", 1, 1, n, 2.); 
   plotter.plot(gp, tmp, blitz::Range(yslice_idx, yslice_idx));
   }
   catch(...){}

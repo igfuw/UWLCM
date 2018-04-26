@@ -38,12 +38,15 @@ void init(
   const int &ny, const int &nx, // number of multiplots in y and x 
   std::map<std::string, double> n,
   double size_scale = 1,
-  double ratio = 0.666666
+  double ratio = 0 // default used to be 0.666666666
 )
 {
   boost::filesystem::create_directories(
     boost::filesystem::path(file).parent_path()
   );
+
+  if(ratio == 0)
+    ratio = n["dz"] / n["dx"];
 
   const int xtics = 7;
   const int ytics = xtics * ratio + 0.5;
@@ -72,8 +75,8 @@ void init(
   gp << "set ytics out scale .5 rotate by 60 (";
   for(int i=0; i<ytics; ++i)
   {
-    double label = double(i) / (ytics-1)* n["y"]  * n["dy"] / 1e3; 
-    gp << "'" << std::setprecision(1) << label << "' " << double(i * n["y"] / (ytics-1));
+    double label = double(i) / (ytics-1)* n["z"]  * n["dz"] / 1e3; 
+    gp << "'" << std::setprecision(1) << label << "' " << double(i * n["z"] / (ytics-1));
     if(i < ytics-1)
       gp << ", ";
   } 
