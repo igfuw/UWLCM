@@ -69,13 +69,13 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
     // init the p_e array
     p_e.resize(this->shape(this->ijk));
-    p_e = (*this->params.p_e)(this->vert_idx);
+    p_e = (*params.p_e)(this->vert_idx);
     p_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
 
     // init the p_d_e array
     p_d_e.resize(this->shape(this->ijk));
     // p_d_e = p_e - p_v_e
-    p_d_e = (*this->params.p_e)(this->vert_idx) - calc_p_v()((*this->params.p_e)(this->vert_idx), (*this->params.rv_e)(this->vert_idx));
+    p_d_e = (*params.p_e)(this->vert_idx) - calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
     p_d_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
 
     // deal with initial supersaturation
@@ -96,10 +96,10 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       this->record_aux_const("r_c0", opts.r_c0);  
       this->record_aux_const("k_acnv", opts.k_acnv);  
       this->record_aux_const("r_eps", opts.r_eps);  
-      this->record_aux_const("user_params rc_src", this->params.user_params.rc_src);  
-      this->record_aux_const("user_params rr_src", this->params.user_params.rr_src);  
-      this->record_aux_const("rt_params rc_src", this->params.rc_src);  
-      this->record_aux_const("rt_params rr_src", this->params.rr_src);  
+      this->record_aux_const("user_params rc_src", params.user_params.rc_src);  
+      this->record_aux_const("user_params rr_src", params.user_params.rr_src);  
+      this->record_aux_const("rt_params rc_src", params.rc_src);  
+      this->record_aux_const("rt_params rr_src", params.rr_src);  
     }
   }
 
@@ -208,6 +208,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     const rt_params_t &p
   ) : 
     parent_t(args, p),
+    params(p),
     opts(p.cloudph_opts)
   {}  
 };
@@ -265,7 +266,7 @@ class slvr_blk_1m<
     this->mem->barrier();
     if(this->rank == 0)
     {
-      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
+      nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
       this->tend = clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
@@ -319,7 +320,7 @@ class slvr_blk_1m<
     this->mem->barrier();
     if(this->rank == 0)
     {
-      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
+      nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
       this->tend = clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
