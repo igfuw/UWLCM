@@ -33,12 +33,10 @@ void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots, int at)
   init(gp, plotter.file + "_spectra_positions_at" + zeropad(at) + ".svg", 1, 1, n, 2.); 
 
   {   
-    char lbl = 'i';
     for (auto &fcs : focus_3d)
     {   
       auto &x = fcs[0];
       auto &y = fcs[2];
-printf("square x %d y %d\n", x, y);
 
       // black square
       gp << "set arrow from " << x-box_size << "," << y-box_size << " to " << x+(box_size+1) << "," << y-box_size << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
@@ -50,31 +48,20 @@ printf("square x %d y %d\n", x, y);
       gp << "set arrow from " << x-box_size << "," << y+(box_size+1) << " to " << x+(box_size+1) << "," << y+(box_size+1) << " nohead lw 2 front\n";
       gp << "set arrow from " << x-box_size << "," << y-box_size << " to " << x-box_size << "," << y+(box_size+1) << " nohead lw 2 front\n";
       gp << "set arrow from " << x+(box_size+1) << "," << y-box_size << " to " << x+(box_size+1) << "," << y+(box_size+1) << " nohead lw 2 front\n";
-
-      lbl -= 2;
     }   
   }   
 
   // labels
-/*
   {   
-    char lbl = 'i';
-    for (auto &fcs : std::set<std::set<std::pair<int, int>>>({focus.first, focus.second}))
+    char lbl = 'a';
+    for (auto &fcs : focus_3d)
     {   
-      for (auto &pr : fcs) 
-      {   
-        auto &x = pr.first;
-        auto &y = pr.second;
-
-        // labels
-        gp << "set label " << int(lbl) << " '" << lbl << "' at " << x+(((lbl+1)/2)%2?-6:+4) << "," << y+.5 << " front font \",20\"\n";
-
-        lbl -= 2;
-      }   
-      lbl = 'j';
-    }   
+      auto &x = fcs[0];
+      auto &y = fcs[2];
+      gp << "set label " << int(lbl) << " '" << lbl << "' at " << x-1 << "," << y-7 << " front font \",20\"\n";
+      lbl += 1;
+    }
   }   
-*/
 
   plotter.plot(gp, tmp, blitz::Range(yslice_idx, yslice_idx));
   }
@@ -112,12 +99,13 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
   typename Plotter_t::arr_t rhod(tmp);
 
   // focus to the gridbox from where the size distribution is plotted
-  char lbl = 'i';
+  char lbl = 'a';
   for (auto &fcs : focus_3d)
   {
     const int &x = fcs[0], &y = fcs[1], &z = fcs[2];
 
-    //gp << "set label 1 '(" << lbl << ")' at graph -.15, 1.02 font ',20'\n";
+    gp << "set label 1 '(" << lbl << ")' at graph .1, .95 font ',20'\n";
+    lbl += 1;
     //gp << "set title 'x=" << x << " y=" << y << "'\n";
 
 //    std::map<float, float> focus_d;
@@ -167,7 +155,8 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
     auto tmp_w = plotter.h5load_timestep(name, at * n["outfreq"]);
 
     notice_macro("setting-up plot parameters");
-    gp << "set title 'larger drops conc: " << (tmp_w * rhod)(x,y,z) * 1e-6 <<"'" << endl;
+    std::cout << "larger drops conc: " << (tmp_w * rhod)(x,y,z) * 1e-6 << endl;
+//    gp << "set title 'larger drops conc: " << (tmp_w * rhod)(x,y,z) * 1e-6 <<"'" << endl;
     gp << "plot"
        << "'-' with line title 'wet radius' lw 3 lc rgb 'blue'," << endl;
 //     << "'-' with histeps title 'dry radius' lw 1 lc rgb 'red' " << endl;
