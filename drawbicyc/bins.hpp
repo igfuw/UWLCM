@@ -21,8 +21,8 @@ vector<quantity<si::length> > bins_wet()
 }
 
 // focus plot locations
-int ox = 0, oy=0, oz=7;
 const int yslice_idx=75;
+const int z_idx=100;
 /*
 std::pair<
   std::set<std::pair<int,int> >,
@@ -45,10 +45,11 @@ std::pair<
 */
 
 std::set<std::array<int, 3>> focus_3d = {
-  {67+ox, yslice_idx+oy, 80+oz}, 
-  {70+ox, yslice_idx+oy, 80+oz}, 
-  {73+ox, yslice_idx+oy, 80+oz}, 
-  {76+ox, yslice_idx+oy, 80+oz},
-  {79+ox, yslice_idx+oy, 80+oz},
-  {82+ox, yslice_idx+oy, 80+oz} 
+  {60, yslice_idx, z_idx }, 
+  {68, yslice_idx, z_idx }, 
+  {76, yslice_idx, z_idx },
+  {84, yslice_idx, z_idx },
+  {92, yslice_idx, z_idx } 
 };
+
+const int box_size=2; // range of cells in each direction in the box is [x-box_size, x+box_size]

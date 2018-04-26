@@ -31,6 +31,51 @@ void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots, int at)
   std::string title = "cloud water mixing ratio [g/kg]";
   gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
   init(gp, plotter.file + "_spectra_positions_at" + zeropad(at) + ".svg", 1, 1, n, 2.); 
+
+  {   
+    char lbl = 'i';
+    for (auto &fcs : focus_3d)
+    {   
+      auto &x = fcs[0];
+      auto &y = fcs[2];
+printf("square x %d y %d\n", x, y);
+
+      // black square
+      gp << "set arrow from " << x-box_size << "," << y-box_size << " to " << x+(box_size+1) << "," << y-box_size << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
+      gp << "set arrow from " << x-box_size << "," << y+(box_size+1) << " to " << x+(box_size+1) << "," << y+(box_size+1) << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
+      gp << "set arrow from " << x-box_size << "," << y-box_size << " to " << x-box_size << "," << y+(box_size+1) << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
+      gp << "set arrow from " << x+(box_size+1) << "," << y-box_size << " to " << x+(box_size+1) << "," << y+(box_size+1) << " nohead lw 4 lc rgbcolor '#ffffff' front\n";
+      // white square
+      gp << "set arrow from " << x-box_size << "," << y-box_size << " to " << x+(box_size+1) << "," << y-box_size << " nohead lw 2 front\n";
+      gp << "set arrow from " << x-box_size << "," << y+(box_size+1) << " to " << x+(box_size+1) << "," << y+(box_size+1) << " nohead lw 2 front\n";
+      gp << "set arrow from " << x-box_size << "," << y-box_size << " to " << x-box_size << "," << y+(box_size+1) << " nohead lw 2 front\n";
+      gp << "set arrow from " << x+(box_size+1) << "," << y-box_size << " to " << x+(box_size+1) << "," << y+(box_size+1) << " nohead lw 2 front\n";
+
+      lbl -= 2;
+    }   
+  }   
+
+  // labels
+/*
+  {   
+    char lbl = 'i';
+    for (auto &fcs : std::set<std::set<std::pair<int, int>>>({focus.first, focus.second}))
+    {   
+      for (auto &pr : fcs) 
+      {   
+        auto &x = pr.first;
+        auto &y = pr.second;
+
+        // labels
+        gp << "set label " << int(lbl) << " '" << lbl << "' at " << x+(((lbl+1)/2)%2?-6:+4) << "," << y+.5 << " front font \",20\"\n";
+
+        lbl -= 2;
+      }   
+      lbl = 'j';
+    }   
+  }   
+*/
+
   plotter.plot(gp, tmp, blitz::Range(yslice_idx, yslice_idx));
   }
   catch(...){}
@@ -111,11 +156,11 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
         / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
 */
       sum((tmp_w*rhod)(
-        blitz::Range(x-1, x+1),
-        blitz::Range(y-1, y+1),
-        blitz::Range(z-1, z+1)
+        blitz::Range(x-box_size, x+box_size),
+        blitz::Range(y-box_size, y+box_size),
+        blitz::Range(z-box_size, z+box_size)
       )) * 1e-6 // per cm^{-3}
-      / 27 
+      / pow(2*box_size+1,3) 
       / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
     }
     const string name = "rw_rng" + zeropad(nsw + off) + "_mom0";
