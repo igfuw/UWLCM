@@ -158,7 +158,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
 
 
     gp << "set label 2 '<r>_{act} = " << std::setprecision(2) << act_rw_mean * 1e6 <<"µm' at graph .1, .83 font '15'\n";
-    gp << "set label 3 '\\sigma(r)_{act} = " << std::setprecision(2) << act_rw_std_dev * 1e6 <<"µm' at graph .1, .73 font ',15'\n";
+    gp << "set label 3 'σ(r)_{act} = " << std::setprecision(2) << act_rw_std_dev * 1e6 <<"µm' at graph .1, .73 font ',15'\n";
 
 
     std::map<float, float> focus_w;
