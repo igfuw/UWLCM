@@ -138,7 +138,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
       auto tmp_w = plotter.h5load_timestep(name, at * n["outfreq"]);
 //      blitz::Array<float, 2> tmp_w(1e-6 * h5load(h5, name, at));
 
-      focus_w[left_edges_rw[i] / 1e-6 / si::metres] =
+      focus_w[(left_edges_rw[i] + left_edges_rw[i+1]) / 2. / 1e-6 / si::metres] =
 /*
  (tmp_w * rhod)(x,y,z) * 1e-6 // per cm^{-3}
         / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
@@ -158,7 +158,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
     std::cout << "larger drops conc: " << (tmp_w * rhod)(x,y,z) * 1e-6 << endl;
 //    gp << "set title 'larger drops conc: " << (tmp_w * rhod)(x,y,z) * 1e-6 <<"'" << endl;
     gp << "plot"
-       << "'-' with line title 'wet radius' lw 3 lc rgb 'blue'," << endl;
+       << "'-' with histeps title 'wet radius' lw 3 lc rgb 'blue'," << endl;
 //     << "'-' with histeps title 'dry radius' lw 1 lc rgb 'red' " << endl;
     gp.send(focus_w);
 //    gp.send(focus_d);
