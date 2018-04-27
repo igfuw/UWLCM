@@ -1,21 +1,9 @@
 #include "common.hpp"
 #include "PlotterMicro.hpp"
 #include "plots.hpp"
-
 #include "bins.hpp"
-//#include "gnuplot.hpp"
-//#include "hdf5.hpp"
-
 #include <map>
 
-/*#include <unordered_set>
-#include <iomanip> 
-
-#include "common.hpp"
-#include "PlotterMicro.hpp"
-#include <boost/tuple/tuple.hpp>
-#include "plots.hpp"
-*/
 
 //plot spectra positions
 template<class Plotter_t>
@@ -89,6 +77,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
 
   init_prof(gp, file, ver, hor);
 
+
   gp << "set xrange [0:30]\n";
   gp << "set yrange [0:50]\n";
   gp << "set xlabel 'r [μm]'\n"; 
@@ -103,53 +92,91 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
   for (auto &fcs : focus_3d)
   {
     const int &x = fcs[0], &y = fcs[1], &z = fcs[2];
+    const blitz::RectDomain<3> focusBox({x-box_size, y-box_size, z-box_size}, {x+box_size, y+box_size, z+box_size});
 
-    gp << "set label 1 '(" << lbl << ")' at graph .1, .95 font ',20'\n";
+    gp << "set label 1 '(" << lbl << ")' at graph .1, .93 font ',20'\n";
     lbl += 1;
-    //gp << "set title 'x=" << x << " y=" << y << "'\n";
 
-//    std::map<float, float> focus_d;
+    // calc mean and std dev of radius of acivated droplets in the box
+    double act_conc = 0.; // concentration of activated droplets [1/kg]
+    double act_rw_mean = 0.; 
+    double act_rw_std_dev = 0.; 
+    try
+    {
+      auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+      typename Plotter_t::arr_t snap(tmp); 
+      act_conc = mean(snap(focusBox));
+    }
+    catch(...) {;}
+    // mean droplet radius in the box
+    try
+    {
+      auto tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
+      typename Plotter_t::arr_t snap(tmp); // 1st raw moment / mass [m / kg]
+      if(act_conc > 0)
+        act_rw_mean = mean(snap(focusBox)) / act_conc;
+      else
+        act_rw_mean = 0.;
+    }
+    catch(...) {;}
+    // std deviation of distribution of radius in the box
+    try
+    {
+      auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+      typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
+      tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
+      typename Plotter_t::arr_t first_raw_mom(tmp); // 1st raw moment / mass [m / kg]
+      tmp = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
+      typename Plotter_t::arr_t second_raw_mom(tmp); // 2nd raw moment / mass [m^2 / kg]
+      tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
+      typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
+      if(act_conc > 0)
+      {
+        double SD_no = sum(sd_conc(focusBox));
+        if(SD_no > 1 && act_rw_mean > 0)
+        {
+          act_rw_std_dev = (
+            SD_no / (SD_no - 1) /
+            act_conc * (
+              mean(second_raw_mom(focusBox)) -
+              2. * act_rw_mean * mean(first_raw_mom(focusBox)) +
+              act_rw_mean * act_rw_mean * mean(zeroth_raw_mom(focusBox))
+            )
+          );
+
+          // could not be true due to numerics?
+          if(act_rw_std_dev > 0.)
+            act_rw_std_dev = sqrt(act_rw_std_dev);
+          else
+            act_rw_std_dev = 0.;
+        }
+      }
+      else
+        act_rw_std_dev = 0.;
+    }
+    catch(...) {;}
+
+
+    gp << "set label 2 '<r>_{act} = " << std::setprecision(2) << act_rw_mean * 1e6 <<"µm' at graph .1, .83 font '15'\n";
+    gp << "set label 3 '\\sigma(r)_{act} = " << std::setprecision(2) << act_rw_std_dev * 1e6 <<"µm' at graph .1, .73 font ',15'\n";
+
+
     std::map<float, float> focus_w;
 
     //info on the number and location of histogram edges
-//    vector<quantity<si::length>> left_edges_rd = bins_dry();
-  //    int nsd = left_edges_rd.size() - 1;
     vector<quantity<si::length>> left_edges_rw = bins_wet();
     int nsw = left_edges_rw.size() - 1;
-
-/*
-    for (int i = 0; i < nsd; ++i)
-    {
-      const string name = "rd_rng" + zeropad(i) + "_mom0";
-      blitz::Array<float, 2> tmp_d(1e-6 * h5load(h5, name, at));
-
-      focus_d[left_edges_rd[i] / 1e-6 / si::metres] = sum(tmp_d(
-        blitz::Range(x-1, x+1),
-        blitz::Range(y-1, y+1)
-      )) 
-      / 9  // mean over 9 gridpoints
-      / ((left_edges_rd[i+1] - left_edges_rd[i]) / 1e-6 / si::metres); // per micrometre
-    }
-*/
 
     for (int i = 0; i < nsw; ++i)
     {
       const string name = "rw_rng" + zeropad(i + off) + "_mom0";
       auto tmp_w = plotter.h5load_timestep(name, at * n["outfreq"]);
-//      blitz::Array<float, 2> tmp_w(1e-6 * h5load(h5, name, at));
 
       focus_w[(left_edges_rw[i] + left_edges_rw[i+1]) / 2. / 1e-6 / si::metres] =
-/*
- (tmp_w * rhod)(x,y,z) * 1e-6 // per cm^{-3}
+        sum((tmp_w*rhod)(focusBox))
+        * 1e-6 // per cm^{-3}
+        / pow(2*box_size+1,3) 
         / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
-*/
-      sum((tmp_w*rhod)(
-        blitz::Range(x-box_size, x+box_size),
-        blitz::Range(y-box_size, y+box_size),
-        blitz::Range(z-box_size, z+box_size)
-      )) * 1e-6 // per cm^{-3}
-      / pow(2*box_size+1,3) 
-      / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
     }
     const string name = "rw_rng" + zeropad(nsw + off) + "_mom0";
     auto tmp_w = plotter.h5load_timestep(name, at * n["outfreq"]);
@@ -165,46 +192,3 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
 
   }
 }
-
-
-
-/*
-
-int main(int ac, char** av)
-{
-  if (ac != 2) error_macro("expecting 1 argument: CMAKE_BINARY_DIR")
-
-  std::string
-    dir = string(av[1]) + "/paper_GMD_2015/fig_a/",
-    h5  = dir + "out_lgrngn",
-    svg = dir + "out_lgrngn_spec.svg";
-
-  Gnuplot gp;
-
-  float ymin = .4 * .01, ymax = .9 * 10000;
-  const int at = 9000;
-
-  gp << "set term svg dynamic enhanced fsize 15 size 900, 1500 \n";
-  gp << "set output '" << svg << "'\n";
-  gp << "set logscale xy\n";
-  gp << "set xrange [.002:100]\n";
-  gp << "set yrange [" << ymin << ":" << ymax << "]\n";
-  gp << "set ylabel '[mg^{-1} μm^{-1}]'\n"; // TODO: add textual description (PDF?)
-  gp << "set grid\n";
-  gp << "set nokey\n";
-
-  // FSSP range
-  gp << "set arrow from .5," << ymin << " to .5," << ymax << " nohead\n";
-  gp << "set arrow from 25," << ymin << " to 25," << ymax << " nohead\n";
-
-  gp << "set xlabel offset 0,1.5 'particle radius [μm]'\n";
-  gp << "set key samplen 1.2\n";
-  gp << "set xtics rotate by 65 right (.01, .1, 1, 10, 100) \n";
-
-// TODO: use dashed lines to allow printing in black and white... same in image plots
-
-  assert(focus.first.size() == focus.second.size());
-  gp << "set multiplot layout " << focus.first.size() << ",2 columnsfirst upwards\n";
-
-}
-*/
