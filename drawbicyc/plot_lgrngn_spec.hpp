@@ -62,6 +62,7 @@ void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots, int at)
 template<class Plotter_t>
 void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
 {
+  const double r_c_adiab = 7.8; // adiabatic water content [g/kg] coming from Wojtek
   auto& n = plotter.map;
   for(auto elem : n)
   {
@@ -96,6 +97,13 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
 
     gp << "set label 1 '(" << lbl << ")' at graph .1, .93 font ',20'\n";
     lbl += 1;
+
+    // calc ratio of water content to adiabatic water content
+    {
+      auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3;
+      double ratio = mean(tmp(focusBox)) / r_c_adiab;
+      gp << "set label 4 'r_c / r_c^{adiab} = " << std::setprecision(2) << ratio << "' at graph .2, .93 font ',20'\n";
+    }
 
     // calc mean and std dev of radius of acivated droplets in the box
     double act_conc = 0.; // concentration of activated droplets [1/kg]
