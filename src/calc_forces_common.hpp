@@ -20,7 +20,7 @@ struct calc_T
 struct calc_exner
 {
   setup::real_t operator()(setup::real_t p) const
-  {return libcloudphxx::common::theta_dry::exner<setup::real_t>(p * si::pascals);}
+  {return libcloudphxx::common::theta_std::exner<setup::real_t>(p * si::pascals);}
   BZ_DECLARE_FUNCTOR(calc_exner)
 };
 

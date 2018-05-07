@@ -6,12 +6,6 @@
 #include <libcloudph++/blk_1m/rhs_cellwise.hpp>
 #include <libcloudph++/blk_1m/rhs_columnwise.hpp>
 
-struct calc_p_v
-{
-  setup::real_t operator()(setup::real_t p, setup::real_t rv) const
-  {return libcloudphxx::common::moist_air::p_v<setup::real_t>(p * si::pascals, rv)  / si::pascals;}
-  BZ_DECLARE_FUNCTOR2(calc_p_v)
-};
 
 template <class ct_params_t>
 class slvr_blk_1m_common : public slvr_common<ct_params_t>
@@ -25,11 +19,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   using clock = typename parent_t::clock;
   private:
 
-  // a 2D/3D arrays with copies of the environmental total pressure/partial pressure of dry air,
-  // it's needed by adj_cellwise_constp
-  blitz::Array<real_t, parent_t::n_dims> p_e;
-  blitz::Array<real_t, parent_t::n_dims> p_d_e;
-
   void condevap()
   {
     auto 
@@ -41,7 +30,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       rhod = (*this->mem->G)(this->ijk);
 
     libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
-      opts, rhod, p_e, p_d_e, th, rv, rc, rr, this->dt
+      opts, rhod, this->p_e, this->p_d_e, th, rv, rc, rr, this->dt
     );
     this->mem->barrier(); 
   }
@@ -66,17 +55,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     // if uninitialised fill with zeros
     zero_if_uninitialised(ix::rc);
     zero_if_uninitialised(ix::rr);
-
-    // init the p_e array
-    p_e.resize(this->shape(this->ijk));
-    p_e = (*params.p_e)(this->vert_idx);
-    p_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
-
-    // init the p_d_e array
-    p_d_e.resize(this->shape(this->ijk));
-    // p_d_e = p_e - p_v_e
-    p_d_e = (*params.p_e)(this->vert_idx) - calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
-    p_d_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
 
     // deal with initial supersaturation
     condevap();
