@@ -284,7 +284,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 	prtcls->init(
 	  make_arrinfo(this->mem->advectee(ix::th)),
 	  make_arrinfo(this->mem->advectee(ix::rv)),
-	  make_arrinfo(rhod)
+	  make_arrinfo(rhod),
+	  make_arrinfo(this->p_e),
+	  make_arrinfo(this->p_d_e)
 	); 
 
       // writing diagnostic data for the initial condition

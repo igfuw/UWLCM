@@ -6,6 +6,15 @@
 #include <libcloudph++/git_revision.h>
 #include "../git_revision.h"
 
+namespace detail
+{
+  struct calc_p_v
+  {
+    setup::real_t operator()(setup::real_t p, setup::real_t rv) const
+    {return libcloudphxx::common::moist_air::p_v<setup::real_t>(p * si::pascals, rv)  / si::pascals;}
+    BZ_DECLARE_FUNCTOR2(calc_p_v)
+  };
+};
 
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
@@ -42,6 +51,11 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &F,       // forcings helper
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
                            &beta;    // 'implicit' rhs part - coefficient of the value at n+1
+
+
+  // a 2D/3D arrays with copies of the environmental total pressure/partial pressure of dry air,
+  blitz::Array<real_t, parent_t::n_dims> p_e;
+  blitz::Array<real_t, parent_t::n_dims> p_d_e;
 
   // surface precip stuff
   std::ofstream f_puddle; // output precipitation file
@@ -347,6 +361,17 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     surf_flux_lat.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
+
+    // init the p_e array
+    p_e.resize(this->shape(this->ijk));
+    p_e = (*params.p_e)(this->vert_idx);
+    p_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
+
+    // init the p_d_e array
+    p_d_e.resize(this->shape(this->ijk));
+    // p_d_e = p_e - p_v_e
+    p_d_e = (*params.p_e)(this->vert_idx) - detail::calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
+    p_d_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
