@@ -19,7 +19,7 @@ def read_my_array(file_obj):
 def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None ):
   x = int(plot_iter / 2)
   y = plot_iter % 2
-  axarr[x, y].plot(time, val, color='red')
+  axarr[x, y].plot(time, val)
   if xlabel:
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
