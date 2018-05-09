@@ -87,8 +87,8 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots)
   int off = 0; // TODO!!!
   string file = plotter.file + "_spectra_at" + zeropad(spectra_step) + ".svg";
 
-  int hor = min<int>(focus_3d.size(), 2);
-  int ver = double(focus_3d.size()) / 2. + 0.99999;
+  int hor = min<int>(focus_3d.size(), 5);
+  int ver = double(focus_3d.size()) / 5. + 0.99999;
 
   init_prof(gp, file, ver, hor);
 
@@ -96,7 +96,6 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots)
   gp << "set xrange [0:30]\n";
   gp << "set yrange [0:50]\n";
   gp << "set xlabel 'r [μm]'\n"; 
-  gp << "set ylabel 'n [cm^{-3} μm^{-1}]'\n"; 
 
   // read in density
   auto tmp = plotter.h5load(plotter.file + "/const.h5", "G");
@@ -104,19 +103,27 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots)
 
   // focus to the gridbox from where the size distribution is plotted
   char lbl = 'a';
+  bool setylabel = 1;
   for (auto &fcs : focus_3d)
   {
+    if(setylabel)
+    {
+      gp << "set ylabel 'n [cm^{-3} μm^{-1}]'\n"; 
+      setylabel = 0;
+    }
+    else
+      gp << "unset ylabel\n"; 
     const int &x = fcs[0], &y = fcs[1], &z = fcs[2];
     const blitz::RectDomain<3> focusBox({x-box_size, y-box_size, z-box_size}, {x+box_size, y+box_size, z+box_size});
 
-    gp << "set label 1 '(" << lbl << ")' at graph .1, .93 font ',20'\n";
+    gp << "set label 1 '(" << lbl << ")' at graph .1, .93 font \",15\"\n";
     lbl += 1;
 
     // calc ratio of water content to adiabatic water content
     {
       auto tmp = plotter.h5load_ract_timestep(spectra_step * n["outfreq"]) * 1e3;
       double ratio = mean(tmp(focusBox)) / r_c_adiab;
-      gp << "set label 4 'r_c / r_c^{adiab} = " << std::setprecision(2) << ratio << "' at graph .2, .93 font ',20'\n";
+      gp << "set label 4 'AF = " << std::fixed << std::setprecision(2) << ratio << "' at graph .2, .63 font \",15\"\n";
     }
 
     // calc mean and std dev of radius of acivated droplets in the box
@@ -179,8 +186,8 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots)
     catch(...) {;}
 
 
-    gp << "set label 2 '<r>_{act} = " << std::setprecision(2) << act_rw_mean * 1e6 <<"µm' at graph .1, .83 font '15'\n";
-    gp << "set label 3 'σ(r)_{act} = " << std::setprecision(2) << act_rw_std_dev * 1e6 <<"µm' at graph .1, .73 font ',15'\n";
+    gp << "set label 2 '<r> = " << std::fixed << std::setprecision(2) << act_rw_mean * 1e6 <<" µm' at graph .2, .83 font \",15\"\n";
+    gp << "set label 3 'σ = " << std::fixed << std::setprecision(2) << act_rw_std_dev * 1e6 <<" µm' at graph .2, .73 font \",15\"\n";
 
 
     std::map<float, float> focus_w;
