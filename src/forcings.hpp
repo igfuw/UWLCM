@@ -102,7 +102,7 @@ void slvr_common<ct_params_t>::surf_sens()
   //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
   //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
   params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
-  F(ijk).reindex(this->zero) = - surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) // "-" because negative gradient means inflow 
+  F(ijk).reindex(this->zero) = surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) 
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
@@ -116,7 +116,7 @@ void slvr_common<ct_params_t>::surf_latent()
   //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
   //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
   params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
-  F(ijk).reindex(this->zero) = - surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
+  F(ijk).reindex(this->zero) = surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
