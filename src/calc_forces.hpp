@@ -32,7 +32,9 @@ void slvr_common<ct_params_t>::rv_src()
 
     // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
     if(params.ForceParameters.surf_latent_flux_in_watts_per_square_meter)
-      alpha(ijk).reindex(this->zero) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
+      alpha(ijk).reindex(this->zero) /= - (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
+    else
+      alpha(ijk).reindex(this->zero) *= -1; // negative gradient means inflow
 
     // large-scale vertical wind
     subsidence(ix::rv); // TODO: in case 1, rv here should be in step n+1, calc it explicitly as rv + 0.5 * dt * rhs(rv); 
@@ -78,7 +80,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       nancheck(alpha(ijk), "sum of th flux");
   
     // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) *= this->state(ix::th)(ijk).reindex(this->zero) / 
+    alpha(ijk).reindex(this->zero) *= - this->state(ix::th)(ijk).reindex(this->zero) / 
       calc_c_p()(rv(ijk).reindex(this->zero)) / 
       calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
       (*params.rhod)(this->vert_idx);
@@ -92,7 +94,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       nancheck(F(ijk), "sensible surf forcing");
       this->vert_grad_fwd(F, beta, params.dz);
       nancheck(beta(ijk), "grad of sensible surf forcing");
-      alpha(ijk) += beta(ijk);
+      alpha(ijk) += - beta(ijk); // negative gradient of upward flux means inflow
     }
   
     // large-scale vertical wind
