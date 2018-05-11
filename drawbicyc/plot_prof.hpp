@@ -49,6 +49,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
   double z_i;
 
+  bool res_pos_out_done = false;
+
   for (auto &plt : plots.profs)
   {
     blitz::firstIndex i;
@@ -332,22 +334,29 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         {
           auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap -1;
+          res_tmp = (snap -1) * 100;
         }
+/*
+ // for mean over updraught cells
         {
           auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
         }
+*/
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+//        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+//        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+
+//        mean over all cells
+//        res_prof += plotter.horizontal_sum(res_tmp);
 
         res += res_tmp;
-        gp << "set title 'supersaturation RH-based in updrafts only'\n";
-        gp << "set yrange [0.45:1.]\n";
-        gp << "set xrange [0.000:*]\n";
+        //gp << "set title 'supersaturation RH-based in updrafts only'\n";
+        gp << "set title 'supersaturation RH-based'\n";
+//        gp << "set yrange [0.45:1.]\n";
+  //      gp << "set xrange [0.000:*]\n";
       }
       else if (plt == "00rtot")
       {
@@ -390,6 +399,28 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res += snap; 
         }
         gp << "set title 'cloud droplets ( 0.5um < r < 25um) concentration [1/cm^3]'\n";
+      }
+      else if (plt == "cl_nc")
+      {
+	// cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          typename Plotter_t::arr_t snap2;
+          snap2.resize(snap.shape());
+          snap2=snap;
+          snap = iscloudy(snap); // cloudiness mask
+          snap2 *= snap;
+
+          // mean only over cloudy cells
+          res_pos = plotter.horizontal_sum(snap); // number of cloudy cells on a given level
+          res_prof += where(res_pos > 0 , plotter.horizontal_sum(snap2) / res_pos, 0);
+        }
+        catch(...){;}
       }
       else if (plt == "thl")
       {
@@ -491,10 +522,16 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
     std::cout << "average inversion height " << z_i;
     res_pos = i * n["dz"] / z_i; 
+    if(!res_pos_out_done)
+    {
+      oprof_file << res_pos;
+      res_pos_out_done = true;
+    }
+
 
     if (plt != "act_rd" && plt != "act_conc")
     {
-      if (plt == "ugccn_rw_down" || plt == "sat_RH" || plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up")
+      if (plt == "ugccn_rw_down" || /*plt == "sat_RH" ||*/ plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
         res_prof /= last_timestep - first_timestep + 1;
       else
         res_prof = plotter.horizontal_mean(res); // average in x
@@ -502,6 +539,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
       // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
       res_prof(0) = res_prof(1);
+
+std::cout << res_prof;
 
       gp << "plot '-' with line\n";
       gp.send1d(boost::make_tuple(res_prof, res_pos));
