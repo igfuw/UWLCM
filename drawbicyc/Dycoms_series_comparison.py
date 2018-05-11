@@ -8,8 +8,8 @@ from bisect import bisect_left
 
 
 def read_my_array(file_obj):
-  series_file.readline() # discarded line with size of the array
-  line = series_file.readline()
+  file_obj.readline() # discarded line with size of the array
+  line = file_obj.readline()
   line = line.split(" ")
   del line[0]
   del line[len(line)-1]

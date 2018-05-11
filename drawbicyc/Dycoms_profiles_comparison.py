@@ -8,17 +8,30 @@ from bisect import bisect_left
 
 
 def read_my_array(file_obj):
-  series_file.readline() # discarded line with size of the array
-  line = series_file.readline()
+  file_obj.readline() # discarded line with size of the array
+  line = file_obj.readline()
   line = line.split(" ")
   del line[0]
   del line[len(line)-1]
   arr = map(float,line)
   return np.array(arr)
 
+
+
+dycoms_vars = ["thetal", "qt", "ql", "w_var", "w_skw", "precip", "ss", "cfrac", "ndrop_cld"]
+
+# init the plot
+nplotx = 2 #int(len(dycoms_vars)/5 + 1)
+nploty = int(float(len(dycoms_vars))/float(nplotx) + 0.5)
+nemptyplots = nploty - len(dycoms_vars) % nploty
+emptyplots = np.arange(nploty - nemptyplots, nploty)
+print nplotx, nploty, nemptyplots
+print emptyplots
+fig, axarr = plt.subplots(nplotx, nploty )
+
 def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None ):
-  x = int(plot_iter / 2)
-  y = plot_iter % 2
+  x = int(plot_iter / nploty)
+  y = plot_iter % nploty
   axarr[x, y].plot(time, val)
   if xlabel:
     axarr[x, y].set_xlabel(xlabel)
@@ -26,15 +39,6 @@ def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None ):
     axarr[x, y].set_ylabel(ylabel)
   plot_iter = plot_iter+1
   return plot_iter
-
-
-dycoms_vars = ["thetal", "qt", "ql", "w_var", "w_skw", "precip", "ss", "cfrac", "ndrop_cld", "qr"]
-
-# init the plot
-nplotx = len(dycoms_vars)/5
-nploty = len(dycoms_vars)/nplotx
-print nplotx, nploty
-fig, axarr = plt.subplots(nplotx, nploty )
 
 
 # read dycoms results
@@ -143,6 +147,11 @@ for var in dycoms_vars:
   axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
   axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(mvar_arr, ihght, color='black')
+#  axes = axarr[x, y].gca()
+  axarr[x, y].set_ylim([0,1.2])
+  if var == "ss":
+    #axarr[x, y].set_xlim(xmin=-1)
+    axarr[x, y].set_xlim([-2,1])
 #
 #  for g in groups:
 #    axarr[x, y].plot(mvar_arr[g])#[mvar_arr[g]<1e35])
@@ -153,37 +162,43 @@ dycoms_file.close()
 
 
 #read my results
-#series_files_names = []
-#file_no = np.arange(len(sys.argv)-1)
-#for no in file_no:
-#  series_files_names.append(argv[no+1])
-#
-#for file_name in series_files_names:
-#  
-#  series_file = open(file_name, "r")
-#  my_times = read_my_array(series_file)
-#  my_max_w_var = read_my_array(series_file)
-#  my_cfrac = read_my_array(series_file)
-#  my_lwp = read_my_array(series_file)
-#  my_er = read_my_array(series_file)
-#  my_sp = read_my_array(series_file)
-#  read_my_array(series_file) # discard accumulated precip
-#  my_act_cond = read_my_array(series_file)
-#  
-#  # rescale time to hours
-#  my_times = my_times / 3600.
-#  
-#  series_file.close()
-#  
-#  
-#  #dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi"]
-#  plot_iter=0
-#  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP (g / m$^{2}$)')
-#  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='max w variance (m$^{2}$ / s$^2$)')
-#  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='surface precip. (mm / day)')
-#  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ (cm$^{-3}$)')
-#  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, xlabel='time (h)', ylabel='cloud frac.')
-#  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='time (h)', ylabel='entrainment rate (cm / s)')
+profiles_files_names = []
+file_no = np.arange(len(sys.argv)-1)
+for no in file_no:
+  profiles_files_names.append(argv[no+1])
 
+for file_name in profiles_files_names:
+  
+  # dycoms_vars = ["thetal", "qt", "ql", "w_var", "w_skw", "precip", "ss", "cfrac", "ndrop_cld", "qr"]
+  profiles_file = open(file_name, "r")
+  my_pos = read_my_array(profiles_file)
+  my_rtot = read_my_array(profiles_file)
+  my_rliq = read_my_array(profiles_file)
+  my_thl = read_my_array(profiles_file)
+  my_wvar = read_my_array(profiles_file)
+  my_w3rd = read_my_array(profiles_file)
+  my_prflux = read_my_array(profiles_file)
+  my_clfrac = read_my_array(profiles_file)
+  my_nc = read_my_array(profiles_file)
+  my_ss = read_my_array(profiles_file)
+
+  print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
+  
+  profiles_file.close()
+  
+  plot_iter=0
+  plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel='$\theta_l$[K]')
+  plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='q$_{tot}$[g/kg]')
+  plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='q$_{l}$[g/kg]')
+  plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='wvar')
+  plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='w3rd')
+  plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='prflux')
+  plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='S')
+  plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='cl frac')
+  plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='nc')
+
+# hide axes on empty plots
+for empty in emptyplots:
+  axarr[nplotx-1, empty].axis('off')
 plt.show()
 
