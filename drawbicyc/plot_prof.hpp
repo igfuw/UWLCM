@@ -360,13 +360,11 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       }
       else if (plt == "00rtot")
       {
-	// total water content (vapor + cloud + rain, missing droplets with r<0.5um!)
-	 /*
         {
           auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap; 
-        }*/
+        }
         {
           auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
