@@ -536,9 +536,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
 
       // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
-      res_prof(0) = res_prof(1);
-
-std::cout << res_prof;
+//      res_prof(0) = res_prof(1);
 
       gp << "plot '-' with line\n";
       gp.send1d(boost::make_tuple(res_prof, res_pos));
@@ -557,8 +555,8 @@ std::cout << res_prof;
       res_prof /= last_timestep - first_timestep + 1;
       res_prof2 /= last_timestep - first_timestep + 1;
       // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
-      res_prof(0) = res_prof(1);
-      res_prof2(0) = res_prof2(1);
+//      res_prof(0) = res_prof(1);
+  //    res_prof2(0) = res_prof2(1);
       gp.send1d(boost::make_tuple(res_prof, res_pos));
       gp.send1d(boost::make_tuple(res_prof2, res_pos));
       oprof_file << res_prof ;
