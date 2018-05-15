@@ -52,11 +52,19 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
+    // extrapolate upward, top cell is two times lower
+    in(this->i, this->j.last() + 1) = 1.5*in(this->i, this->j.last()) - .5 * in(this->i, this->j.last()-1); 
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j)) / dz;
-    // top and bottom cells are two times lower
-    out(this->i, 0) *= 2; 
+    // top nad bottom cells are two times lower
     out(this->i, this->j.last()) *= 2; 
+    out(this->i, 0) *= 2; 
+
+    // we don't want surf fluxes to change values at the ground ? (j=0)
+    /*
+    out(this->i, 0) = 0; 
+    // instead, the flux from 0-th level goes to the first level above the gfround
+    out(this->i, 1) = ( in(this->i, 2) - in(this->i, 0)) / (1.5*dz);
+    */
   }
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
@@ -124,11 +132,19 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
+    // extrapolate upward
+    in(this->i, this->j, this->k.last() + 1) = 1.5*in(this->i, this->j, this->k.last()) - 0.5*in(this->i, this->j, this->k.last()-1); 
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k)) / dz;
     // top and bottom cells are two times lower
-    out(this->i, this->j, 0) *= 2; 
     out(this->i, this->j, this->k.last()) *= 2; 
+    out(this->i, this->j, 0) *= 2; 
+
+/*
+    // we don't want surf fluxes to change values at the ground
+    out(this->i, this->j, 0) = 0; 
+    // instead, the flux from 0-th level goes to the first level above the gfround
+    out(this->i, this->j, 1) = ( in(this->i, this->j, 2) - in(this->i, this->j, 0)) / (1.5*dz);
+*/
   }
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
