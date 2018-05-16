@@ -29,7 +29,7 @@ namespace setup
       X    = 10000 * si::metres, // DYCOMS: 6400
       Y    = 10000 * si::metres; // DYCOMS: 6400
     const real_t z_abs = 7000;
-    const quantity<si::length, real_t> z_rlx_vctr = 100 * si::metres;
+    const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
 
     // env profiles of th and rv from the sounding
     arr_1D_t th_dry_env;
