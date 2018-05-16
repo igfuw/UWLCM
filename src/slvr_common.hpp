@@ -274,19 +274,43 @@ class slvr_common : public slvr_dim<ct_params_t>
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
-      F(this->ijk).reindex(this->zero) = 
+      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
         where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
-          -pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
           (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
         );
+/*
+ *
+      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
+        where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
+          -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+        );
+*/
 
       // du/dt = sum of kinematic momentum fluxes * dt
-      this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
+//      this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
       // multiplied by 2 here because it is later multiplied by 0.5 * dt
-      this->vip_rhs[it](this->ijk) *= -2;
+  //    this->vip_rhs[it](this->ijk) *= -2;
+  //
     }
+
+/*
+    for (int j = this->j.first(); j <= this->j.last(); ++j)
+    {   
+      this->vip_rhs[0](this->i, j).reindex({0}) +=  where(U_ground(blitz::tensor::i) == 0., 0., 
+                                         -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
+                                         this->vip_ground[0](blitz::tensor::i) /              // u_i at z=0
+                                         U_ground(blitz::tensor::i) *  // |U| at z=0
+                                         (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+                                       );
+    }   
+*/
+
     this->mem->barrier();
     if(this->rank == 0)
     {
