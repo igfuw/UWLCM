@@ -21,7 +21,7 @@ namespace setup
       Y    = 6400 * si::metres; // DYCOMS: 6400
     const real_t z_abs = 1250;
     const real_t z_i = 795; //initial inversion height
-    const quantity<si::length, real_t> z_rlx_vctr = 10 * si::metres;
+    const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
   
     // liquid water potential temperature at height z
     quantity<si::temperature, real_t> th_l(const real_t &z)
