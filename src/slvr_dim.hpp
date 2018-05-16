@@ -74,7 +74,9 @@ class slvr_dim<
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
-    out(this->i, this->j.last()) *= 2; 
+    //out(this->i, this->j.last()) *= 2; 
+    // set to 0 at top level to have no subsidence there - TODO: it messes with other possible uses of this function 
+    out(this->i, this->j.last()) = 0; 
   }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
@@ -154,7 +156,8 @@ class slvr_dim<
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, this->j, 0) *= 2; 
-    out(this->i, this->j, this->k.last()) *= 2; 
+    //out(this->i, this->j, this->k.last()) *= 2; 
+    out(this->i, this->j, this->k.last()) = 0; 
   }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
