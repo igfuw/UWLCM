@@ -41,7 +41,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
   int last_timestep =  vm["prof_end"].as<int>() / n["dt"] / n["outfreq"];
 
   // some ugly constants
-  const double p_1000 = 1000.;
+  const double p_1000 = 100000.;
   const double L = 2.5e6;
   const double R_d = 287.;
   const double c_p = 1004;
@@ -368,7 +368,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         {
           auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
           typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap; 
+          res_tmp += snap; 
         }
         {
           auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
@@ -424,23 +424,36 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// liquid potential temp [K]
         {
+          auto &ql(res_tmp2);
+          auto &T(res_tmp);
+          {
+            auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3;
+            typename Plotter_t::arr_t snap(tmp);
+            ql = snap; 
+          }
           {
             auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
-            res_tmp2 = snap; 
+            ql += snap; 
           }
           {
             auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
             typename Plotter_t::arr_t snap(tmp);
-            res_tmp2 += snap; 
+            ql += snap; 
           }
-          // res_tmp2 is now q_l (liq water content)
-          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp); // snap is theta_dry
-          res_tmp = pow(snap * pow(rhod * R_d / (p_1000 * 100), R_d / c_pd), c_pd / (c_pd - R_d)); // res_tmp is now temperature; 1 bar = 100 000Pa
-          snap *= (res_tmp - res_tmp2 * L / c_p) / res_tmp; 
-          res += snap; 
-//          res += res_tmp2;
+          // ql is now q_l (liq water content)
+//          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
+  //        typename Plotter_t::arr_t th_d(tmp); 
+          typename Plotter_t::arr_t th_d(plotter.h5load_timestep("th", at * n["outfreq"]));
+          ///auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
+          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
+          // init pressure, from rv just to get correct size
+          typename Plotter_t::arr_t p(rv); 
+          T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
+          // TODO: env pressure should be used below!
+          p = rhod * R_d * (1 + .608 * 1./(1.+1./rv)) * T; // q_v = 1 / (1 + 1/rv)
+          res += pow(p_1000 / p, R_d / c_pd) * (T - ql * L / c_p); 
+//          res += ql;
         }
         gp << "set title 'liquid potential temp [K]'\n";
       }
