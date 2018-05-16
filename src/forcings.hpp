@@ -24,7 +24,8 @@ void slvr_common<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename p
         (th(ijk).reindex(this->zero) - (*params.th_e)(this->vert_idx)) / (*params.th_ref)(this->vert_idx)
       );
 
-  this->smooth(tmp1, F);
+//  this->smooth(tmp1, F);
+  F(ijk) = tmp1(ijk);
 }
 
 template <class ct_params_t>
@@ -133,8 +134,8 @@ void slvr_common<ct_params_t>::subsidence(const int &type) // large-scale vertic
     this->vert_grad_cnt(tmp1, F, params.dz);
     F(ijk).reindex(this->zero) *= - (*params.w_LS)(this->vert_idx);
 
-    tmp1(ijk)=F(ijk); //TODO: unnecessary copy
-    this->smooth(tmp1, F);
+//    tmp1(ijk)=F(ijk); //TODO: unnecessary copy
+  //  this->smooth(tmp1, F);
   }
   else
     F(ijk)=0.;
