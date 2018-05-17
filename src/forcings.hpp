@@ -24,8 +24,8 @@ void slvr_common<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename p
         (th(ijk).reindex(this->zero) - (*params.th_e)(this->vert_idx)) / (*params.th_ref)(this->vert_idx)
       );
 
-//  this->smooth(tmp1, F);
-  F(ijk) = tmp1(ijk);
+  this->smooth(tmp1, F);
+//  F(ijk) = tmp1(ijk);
 }
 
 template <class ct_params_t>
