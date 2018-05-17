@@ -19,6 +19,10 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   using clock = typename parent_t::clock;
   private:
 
+  // a 2D/3D arrays with copies of the environmental total pressure/partial pressure of dry air,
+  blitz::Array<real_t, parent_t::n_dims> p_e;
+  blitz::Array<real_t, parent_t::n_dims> p_d_e;
+
   void condevap()
   {
     auto 
@@ -30,7 +34,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       rhod = (*this->mem->G)(this->ijk);
 
     libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
-      opts, rhod, this->p_e, this->p_d_e, th, rv, rc, rr, this->dt
+      opts, rhod, p_e, p_d_e, th, rv, rc, rr, this->dt
     );
     this->mem->barrier(); 
   }
@@ -55,6 +59,17 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     // if uninitialised fill with zeros
     zero_if_uninitialised(ix::rc);
     zero_if_uninitialised(ix::rr);
+ 
+    // init the p_e array
+    p_e.resize(this->shape(this->ijk));
+    p_e = (*params.p_e)(this->vert_idx);
+    p_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
+
+    // init the p_d_e array
+    p_d_e.resize(this->shape(this->ijk));
+    // p_d_e = p_e - p_v_e
+    p_d_e = (*params.p_e)(this->vert_idx) - detail::calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
+    p_d_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
 
     // deal with initial supersaturation
     condevap();
