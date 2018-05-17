@@ -281,12 +281,20 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       typename parent_t::arr_t rhod(this->mem->advectee(ix::th).shape()); // TODO: replace all rhod arrays with this->mem->G
       rhod = (*params.rhod)(this->vert_idx);
 
+      // temporary array of pressure - prtcls cant be init'd with 1D profile
+      typename parent_t::arr_t p_e(this->mem->advectee(ix::th).shape()); 
+      p_e = (*params.p_e)(this->vert_idx);
+
+      // temporary array of partial pressure of dry air - prtcls cant be init'd with 1D profile
+      typename parent_t::arr_t p_d_e(this->mem->advectee(ix::th).shape()); 
+      p_d_e = (*params.p_e)(this->vert_idx) - detail::calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
+
 	prtcls->init(
 	  make_arrinfo(this->mem->advectee(ix::th)),
 	  make_arrinfo(this->mem->advectee(ix::rv)),
 	  make_arrinfo(rhod),
-	  make_arrinfo(this->p_e),
-	  make_arrinfo(this->p_d_e)
+	  make_arrinfo(p_e),
+	  make_arrinfo(p_d_e)
 	); 
 
       // writing diagnostic data for the initial condition
