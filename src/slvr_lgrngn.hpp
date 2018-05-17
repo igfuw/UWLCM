@@ -42,6 +42,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_RH();
     this->record_aux("RH", prtcls->outbuf());
 
+    // recording pressure
+    prtcls->diag_pressure();
+    this->record_aux("libcloud_pressure", prtcls->outbuf());
+
     // recording precipitation rate per grid cel
     prtcls->diag_all();
     prtcls->diag_precip_rate();
@@ -293,8 +297,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 	  make_arrinfo(this->mem->advectee(ix::th)),
 	  make_arrinfo(this->mem->advectee(ix::rv)),
 	  make_arrinfo(rhod),
-	  make_arrinfo(p_e),
-	  make_arrinfo(p_d_e)
+	  make_arrinfo(p_e)
 	); 
 
       // writing diagnostic data for the initial condition
