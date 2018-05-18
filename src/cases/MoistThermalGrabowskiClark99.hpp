@@ -252,6 +252,7 @@ namespace setup
         th_e = th_std_fctr(th_e_surf)(k * dz);
         
         pre_ref(0.) = p_0 / si::pascals;
+        p_e(0) = pre_ref(0);
         T(0.) = T_0 / si::kelvins;
         
         for(int k=1; k<nz; ++k)
