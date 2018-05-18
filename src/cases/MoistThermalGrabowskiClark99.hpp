@@ -394,7 +394,19 @@ namespace setup
           ),
           blitz::tensor::j * dz
         );
-
+     
+        // reinitialise th with dry conversion based on perturbed rv TODO: without loops, also in 3D
+        for (int i = 0; i < nx; ++i)
+        {
+          for(int k = 0; k < nz; ++k)
+          {
+            using libcloudphxx::common::theta_dry::std2dry;
+            using libcloudphxx::common::theta_dry::dry2std;
+            quantity<si::dimensionless, real_t> si_rv_e = rv_e(k);
+            quantity<si::dimensionless, real_t> si_rv = solver.advectee(ix::rv)(i, k);
+            solver.advectee(ix::th)(i, k) = std2dry(dry2std(th_e(k) * si::kelvins, si_rv_e), si_rv) / si::kelvins; 
+          }
+        }
       }
     };
 
