@@ -46,6 +46,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_pressure();
     this->record_aux("libcloud_pressure", prtcls->outbuf());
 
+    // recording temperature
+    prtcls->diag_temperature();
+    this->record_aux("libcloud_temperature", prtcls->outbuf());
+
     // recording precipitation rate per grid cel
     prtcls->diag_all();
     prtcls->diag_precip_rate();
@@ -289,15 +293,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       typename parent_t::arr_t p_e(this->mem->advectee(ix::th).shape()); 
       p_e = (*params.p_e)(this->vert_idx);
 
-      // temporary array of partial pressure of dry air - prtcls cant be init'd with 1D profile
-      typename parent_t::arr_t p_d_e(this->mem->advectee(ix::th).shape()); 
-      p_d_e = (*params.p_e)(this->vert_idx) - detail::calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
-
 	prtcls->init(
 	  make_arrinfo(this->mem->advectee(ix::th)),
 	  make_arrinfo(this->mem->advectee(ix::rv)),
-	  make_arrinfo(rhod),
-	  make_arrinfo(p_e)
+	  make_arrinfo(rhod)
+	  ,make_arrinfo(p_e)
 	); 
 
       // writing diagnostic data for the initial condition
