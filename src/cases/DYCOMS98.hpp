@@ -229,7 +229,9 @@ namespace setup
         st(notopbot) = (th_e(notopbot+1) - th_e(notopbot-1)) / th_e(notopbot);
         real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
         // reference theta
-        th_ref = th_e(0) * exp(st_avg * k * dz);
+      //  th_ref = th_e(0) * exp(st_avg * k * dz);
+        th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) 
+                 * exp(st_avg * k * dz);
         // virtual temp at surface
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -238,7 +240,8 @@ namespace setup
   
         real_t T_surf = th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
         real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0));
-        real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
+        real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287, its the total, not dry density!
+        rho_surf /= (1 + rv_e(0)); // turn it into dry air density! TODO: is this correct? TODO2: approp change in the paper
         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
         // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / th_e(0);  // this is correct?
         // rhod profile
