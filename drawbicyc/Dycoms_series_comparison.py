@@ -16,10 +16,10 @@ def read_my_array(file_obj):
   arr = map(float,line)
   return np.array(arr)
 
-def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None ):
+def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None ):
   x = int(plot_iter / 2)
   y = plot_iter % 2
-  axarr[x, y].plot(time, val)
+  axarr[x, y].plot(time, val, label=varlabel)
   if xlabel:
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
@@ -28,9 +28,11 @@ def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None ):
   return plot_iter
 
 
+nplotx = 3
+nploty= 2
 
 # init the plot
-fig, axarr = plt.subplots(3,2)
+fig, axarr = plt.subplots(nplotx,nploty)
 
 
 # read dycoms results
@@ -126,6 +128,7 @@ file_no = np.arange(len(sys.argv)-1)
 for no in file_no:
   series_files_names.append(argv[no+1])
 
+label_counter=0
 for file_name in series_files_names:
   
   series_file = open(file_name, "r")
@@ -146,12 +149,18 @@ for file_name in series_files_names:
   
   #dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi"]
   plot_iter=0
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP (g / m$^{2}$)')
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='max w variance (m$^{2}$ / s$^2$)')
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='surface precip. (mm / day)')
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ (cm$^{-3}$)')
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, xlabel='time (h)', ylabel='cloud frac.')
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='time (h)', ylabel='entrainment rate (cm / s)')
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP (g / m$^{2}$)', varlabel=label_counter)
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='max w variance (m$^{2}$ / s$^2$)', varlabel=label_counter)
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='surface precip. (mm / day)', varlabel=label_counter)
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ (cm$^{-3}$)', varlabel=label_counter)
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, xlabel='time (h)', ylabel='cloud frac.', varlabel=label_counter)
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='time (h)', ylabel='entrainment rate (cm / s)', varlabel=label_counter)
+  label_counter+=1
+
+# show legends
+for x in np.arange(nplotx):
+  for y in np.arange(nploty):
+    axarr[x,y].legend()
 
 plt.show()
 

@@ -29,10 +29,13 @@ print nplotx, nploty, nemptyplots
 print emptyplots
 fig, axarr = plt.subplots(nplotx, nploty )
 
-def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None ):
+def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None ):
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
-  axarr[x, y].plot(time, val)
+  if varlabel != None:
+    axarr[x, y].plot(time, val, label=varlabel)
+  else:
+    axarr[x, y].plot(time, val)
   if xlabel:
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
@@ -167,38 +170,58 @@ file_no = np.arange(len(sys.argv)-1)
 for no in file_no:
   profiles_files_names.append(argv[no+1])
 
+label_counter = 0
 for file_name in profiles_files_names:
   
   # dycoms_vars = ["thetal", "qt", "ql", "w_var", "w_skw", "precip", "ss", "cfrac", "ndrop_cld", "qr"]
-  profiles_file = open(file_name, "r")
-  my_pos = read_my_array(profiles_file)
-  my_rtot = read_my_array(profiles_file)
-  my_rliq = read_my_array(profiles_file)
-  my_thl = read_my_array(profiles_file)
-  my_wvar = read_my_array(profiles_file)
-  my_w3rd = read_my_array(profiles_file)
-  my_prflux = read_my_array(profiles_file)
-  my_clfrac = read_my_array(profiles_file)
-  my_nc = read_my_array(profiles_file)
-  my_ss = read_my_array(profiles_file)
+  try:
+    profiles_file = open(file_name, "r")
+    my_pos = read_my_array(profiles_file)
+    my_rtot = read_my_array(profiles_file)
+    my_rliq = read_my_array(profiles_file)
+    my_thl = read_my_array(profiles_file)
+    my_wvar = read_my_array(profiles_file)
+    my_w3rd = read_my_array(profiles_file)
+    my_prflux = read_my_array(profiles_file)
+    my_clfrac = read_my_array(profiles_file)
+    my_nc = read_my_array(profiles_file)
+    my_ss = read_my_array(profiles_file)
 
-  print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
+    print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
   
-  profiles_file.close()
+    profiles_file.close()
+    
   
-  plot_iter=0
-  plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel='$\theta_l$[K]')
-  plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='q$_{tot}$[g/kg]')
-  plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='q$_{l}$[g/kg]')
-  plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='wvar')
-  plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='w3rd')
-  plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='prflux')
-  plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='S')
-  plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='cl frac')
-  plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='nc')
+    plot_iter=0
+    plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel='$\theta_l$[K]', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='q$_{tot}$[g/kg]', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='q$_{l}$[g/kg]', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='wvar', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='w3rd', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='prflux', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='S', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='cl frac', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='nc', varlabel=label_counter)
+  except:
+    print 'error opening file: ', file_name
+    my_pos = 0
+    my_rtot = 0
+    my_rliq = 0
+    my_thl = 0
+    my_wvar = 0
+    my_w3rd = 0
+    my_prflux = 0
+    my_clfrac = 0
+    my_nc = 0
+    my_ss = 0
+  label_counter = label_counter+1
 
 # hide axes on empty plots
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')
+# show legends
+for x in np.arange(nplotx):
+  for y in np.arange(nploty):
+    axarr[x,y].legend()
 plt.show()
 
