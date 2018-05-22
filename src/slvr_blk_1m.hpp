@@ -19,9 +19,8 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   using clock = typename parent_t::clock;
   private:
 
-  // a 2D/3D arrays with copies of the environmental total pressure/partial pressure of dry air,
-  blitz::Array<real_t, parent_t::n_dims> p_e;
-  blitz::Array<real_t, parent_t::n_dims> p_d_e;
+  // a 2D/3D array with copy of the environmental total pressure of dry air
+  typename parent_t::arr_t &p_e;
 
   void condevap()
   {
@@ -31,10 +30,11 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       rc   = this->state(ix::rc)(this->ijk), // cloud water mixing ratio
       rr   = this->state(ix::rr)(this->ijk); // rain water mixing ratio
     auto const
-      rhod = (*this->mem->G)(this->ijk);
+      rhod = (*this->mem->G)(this->ijk),
+      &p_e_arg = p_e(this->ijk);
 
     libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
-      opts, rhod, p_e, p_d_e, th, rv, rc, rr, this->dt
+      opts, rhod, p_e_arg, th, rv, rc, rr, this->dt
     );
     this->mem->barrier(); 
   }
@@ -61,15 +61,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     zero_if_uninitialised(ix::rr);
  
     // init the p_e array
-    p_e.resize(this->shape(this->ijk));
     p_e = (*params.p_e)(this->vert_idx);
-    p_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
-
-    // init the p_d_e array
-    p_d_e.resize(this->shape(this->ijk));
-    // p_d_e = p_e - p_v_e
-    p_d_e = (*params.p_e)(this->vert_idx) - detail::calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
-    p_d_e.reindexSelf(this->state(ix::rv).base()); // TODO: reindex not necessary?
 
     // deal with initial supersaturation
     condevap();
@@ -195,6 +187,12 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
   public:
 
+  static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
+  {
+    parent_t::alloc(mem, n_iters);
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 1); // p_e
+  }
+
   // ctor
   slvr_blk_1m_common( 
     typename parent_t::ctor_args_t args, 
@@ -202,7 +200,8 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   ) : 
     parent_t(args, p),
     params(p),
-    opts(p.cloudph_opts)
+    opts(p.cloudph_opts),
+    p_e(args.mem->tmp[__FILE__][0][0])
   {}  
 };
 
