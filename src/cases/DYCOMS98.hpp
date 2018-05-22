@@ -230,7 +230,7 @@ namespace setup
         real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
         // reference theta
       //  th_ref = th_e(0) * exp(st_avg * k * dz);
-        th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) 
+        th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) // calc dry theta at z=0 
                  * exp(st_avg * k * dz);
         // virtual temp at surface
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
