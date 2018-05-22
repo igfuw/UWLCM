@@ -91,6 +91,11 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   void hook_ante_step()
   {
     parent_t::hook_ante_step();
+    
+    negtozero(this->mem->advectee(ix::rv), "rv after first half of rhs");
+    negtozero(this->mem->advectee(ix::rc), "rc after first half of rhs");
+    negtozero(this->mem->advectee(ix::rr), "rr after first half of rhs");
+
     condevap(); // treat saturation adjustment as pre-advection, post-half-rhs adjustment
     // store rl for buoyancy
     //this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
