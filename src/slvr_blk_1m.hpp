@@ -33,8 +33,13 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       rhod = (*this->mem->G)(this->ijk),
       &p_e_arg = p_e(this->ijk);
 
+/*
     libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
       opts, rhod, p_e_arg, th, rv, rc, rr, this->dt
+    );
+*/
+    libcloudphxx::blk_1m::adj_cellwise_nwtrph<real_t>( 
+      opts, p_e_arg, th, rv, rc, this->dt
     );
     this->mem->barrier(); 
   }
@@ -46,11 +51,41 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   }
 
   protected:
+  
+  // accumulated water falling out of domain
+  real_t puddle;
+
+  void diag()
+  {
+    assert(this->rank == 0);
+    parent_t::tbeg = parent_t::clock::now();
+
+    // recording puddle
+    for(int i=0; i < 10; ++i)
+    {   
+       this->f_puddle << i << " " << (i == 8 ? this->puddle : 0) << "\n";
+    }   
+    this->f_puddle << "\n";
+   
+    parent_t::tend = parent_t::clock::now();
+    parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+  } 
+
 
   void rc_src();
   void rr_src();
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
+
+  void record_all()
+  {
+    // plain (no xdmf) hdf5 output
+    parent_t::output_t::parent_t::record_all();
+    // UWLCM output
+    diag();
+    // xmf markup
+    this->write_xmfs();
+  }
 
 
   // deals with initial supersaturation
@@ -119,12 +154,18 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     // TODO: rozne cell-wise na n i n+1 ?
     {
       auto 
+	dot_th = rhs.at(ix::th)(this->ijk),
+	dot_rv = rhs.at(ix::rv)(this->ijk),
 	dot_rc = rhs.at(ix::rc)(this->ijk),
 	dot_rr = rhs.at(ix::rr)(this->ijk);
       const auto 
+	th   = this->state(ix::th)(this->ijk),
+	rv   = this->state(ix::rv)(this->ijk),
 	rc   = this->state(ix::rc)(this->ijk),
-	rr   = this->state(ix::rr)(this->ijk);
-      libcloudphxx::blk_1m::rhs_cellwise<real_t>(opts, dot_rc, dot_rr, rc, rr);
+	rr   = this->state(ix::rr)(this->ijk),
+        rhod = (*this->mem->G)(this->ijk),
+        &p_e_arg = p_e(this->ijk);
+      libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p_e_arg, th, rv, rc, rr);
     }
 
     // forcing
@@ -206,6 +247,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     parent_t(args, p),
     params(p),
     opts(p.cloudph_opts),
+    puddle(0),
     p_e(args.mem->tmp[__FILE__][0][0])
   {}  
 };
@@ -257,7 +299,7 @@ class slvr_blk_1m<
       const auto 
         rhod   = (*this->mem->G)(i, this->j),
 	rr     = this->state(parent_t::ix::rr)(i, this->j);
-      libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
+      this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
     }
 
     this->mem->barrier();
@@ -311,7 +353,7 @@ class slvr_blk_1m<
         const auto 
         rhod   = (*this->mem->G)(i, j, this->k),
   	rr     = this->state(parent_t::ix::rr)(i, j, this->k);
-        libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
+        this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
       }
 
     this->mem->barrier();
