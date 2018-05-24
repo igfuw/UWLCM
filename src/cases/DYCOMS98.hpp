@@ -199,6 +199,8 @@ namespace setup
         real_t c = l_tri<real_t>() / c_pd<real_t>() / si::kelvins;
         real_t d = l_tri<real_t>() / si::joules * si::kilograms / rv;
         real_t f = R_d_over_c_pd<real_t>(); 
+
+real_t lwp_env = 0;
   
         for(int k=1; k<nz; ++k)
         {
@@ -218,7 +220,14 @@ namespace setup
           rv_e(k) = rt(k*dz) - delta;
           th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
           T(k) = th_e(k) * pow(p_e(k) / (p_1000<real_t>() / si::pascals),  f);
+
+          bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k) * (1 + 0.61 * rv_e(k)); // (p / rho) of moist air at k-1
+          rho1 = p_e(k) / bottom; // rho at k-1
+          lwp_env  += delta * rho1;
+std::cout << k << " env_prof temp: " << T(k)  << " env prof delta: " << delta << std::endl;
         }
+        lwp_env = lwp_env * 5  * 1e3;
+std::cout << "lwp env: " << lwp_env << std::endl;
   
         // compute reference state theta and rhod
         blitz::firstIndex k;
@@ -239,18 +248,22 @@ namespace setup
         using libcloudphxx::common::theta_std::p_1000;
   
         real_t T_surf = th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
+/*
         real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0));
         real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287, its the total, not dry density!
         rho_surf /= (1 + rv_e(0)); // turn it into dry air density! TODO: is this correct? TODO2: approp change in the paper
-        real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
-        // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / th_e(0);  // this is correct?
-        // rhod profile
-        rhod = rho_surf * exp(- st_avg * k * dz) * pow(
-                 1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
+*/
+        real_t rho_surf = (p_0 / si::pascals) / T_surf / (1. + 29. / 18. * rv_e(0)) / 287. ; // dry air density at the surface TODO: R_d instead of 287
 
         // theta_std env prof to theta_dry_e
         for(int k=1; k<nz; ++k)
           th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
+
+        // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf; // this is from Wojtek
+         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / th_e(0);  // this is correct? or total, not dry th_e(0) should be here?
+        // rhod profile
+        rhod = rho_surf * exp(- st_avg * k * dz) * pow(
+                 1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
   
         // subsidence rate
         w_LS = w_LS_fctr()(k * dz);
