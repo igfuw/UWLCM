@@ -124,9 +124,11 @@ dycoms_file.close()
 
 #read my results
 series_files_names = []
-file_no = np.arange(len(sys.argv)-1)
+series_labels = []
+file_no = np.arange(1, len(sys.argv)-1 / 2, 2)
 for no in file_no:
-  series_files_names.append(argv[no+1])
+  series_files_names.append(argv[no])
+  series_labels.append(argv[no+1])
 
 label_counter=0
 for file_name in series_files_names:
@@ -149,12 +151,12 @@ for file_name in series_files_names:
   
   #dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi"]
   plot_iter=0
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP (g / m$^{2}$)', varlabel=label_counter)
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='max w variance (m$^{2}$ / s$^2$)', varlabel=label_counter)
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='surface precip. (mm / day)', varlabel=label_counter)
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ (cm$^{-3}$)', varlabel=label_counter)
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, xlabel='time (h)', ylabel='cloud frac.', varlabel=label_counter)
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='time (h)', ylabel='entrainment rate (cm / s)', varlabel=label_counter)
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP (g / m$^{2}$)', varlabel=series_labels[label_counter])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='max w variance (m$^{2}$ / s$^2$)', varlabel=series_labels[label_counter])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='surface precip. (mm / day)', varlabel=series_labels[label_counter])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ (cm$^{-3}$)', varlabel=series_labels[label_counter])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, xlabel='time (h)', ylabel='cloud frac.', varlabel=series_labels[label_counter])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='time (h)', ylabel='entrainment rate (cm / s)', varlabel=series_labels[label_counter])
   label_counter+=1
 
 # show legends

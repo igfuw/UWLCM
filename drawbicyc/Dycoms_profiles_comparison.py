@@ -166,9 +166,12 @@ dycoms_file.close()
 
 #read my results
 profiles_files_names = []
-file_no = np.arange(len(sys.argv)-1)
+profiles_labels = []
+file_no = np.arange(1, len(sys.argv)-1 / 2, 2)
 for no in file_no:
-  profiles_files_names.append(argv[no+1])
+  profiles_files_names.append(argv[no])
+  profiles_labels.append(argv[no+1])
+
 
 label_counter = 0
 for file_name in profiles_files_names:
