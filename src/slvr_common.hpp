@@ -6,16 +6,6 @@
 #include <libcloudph++/git_revision.h>
 #include "../git_revision.h"
 
-namespace detail
-{
-  struct calc_p_v
-  {
-    setup::real_t operator()(setup::real_t p, setup::real_t rv) const
-    {return libcloudphxx::common::moist_air::p_v<setup::real_t>(p * si::pascals, rv)  / si::pascals;}
-    BZ_DECLARE_FUNCTOR2(calc_p_v)
-  };
-};
-
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
 {

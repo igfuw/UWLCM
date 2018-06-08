@@ -4,6 +4,16 @@
 #pragma once
 #include "CasesCommon.hpp"
 
+namespace detail
+{
+  struct calc_p_v
+  {
+    setup::real_t operator()(setup::real_t p, setup::real_t rv) const
+    {return libcloudphxx::common::moist_air::p_v<setup::real_t>(p * si::pascals, rv)  / si::pascals;}
+    BZ_DECLARE_FUNCTOR2(calc_p_v)
+  };
+};
+
 namespace setup 
 {
   namespace moist_thermal
@@ -27,6 +37,21 @@ namespace setup
     {
       return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
     }
+
+/*
+    // rv(RH, th_dry, rhod)
+    real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th_dry, const real_t &rhod)
+    {
+      real_t T = theta_dry::T(th_dry * si::kelvins, (rhod * si::kilograms / si::cubic_metres)) / si::kelvins;
+      return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
+    }
+    
+    // rv(RH, T, rhod)
+    real_t RH_T_rhod_to_rv(const real_t &RH, const real_t &T, const real_t &rhod)
+    {
+      return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
+    }
+*/
     
     const quantity<si::temperature, real_t> T_0(283. * si::kelvins);  // surface temperature
     const quantity<si::pressure, real_t> p_0(85000 * si::pascals); // total surface temperature
@@ -37,15 +62,11 @@ namespace setup
     const quantity<si::dimensionless, real_t> rv_0 = RH_T_p_to_rv(env_RH, T_0, p_0);
     const quantity<si::dimensionless, real_t> qv_0 = rv_0 / (1. + rv_0); // specific humidity at surface
     const quantity<si::length, real_t> 
-//     z_0  ( 0    * si::metres),
-     Z    ( 2400 * si::metres), // DYCOMS: 1500
-     X    ( 3600 * si::metres), // DYCOMS: 6400
-     Y    ( 3600 * si::metres), // DYCOMS: 6400
+     Z    ( 2400 * si::metres), 
+     X    ( 3600 * si::metres), 
+     Y    ( 3600 * si::metres), 
      z_prtrb ( 800 * si::metres);
-//    const setup::real_t rhod_surf = (p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms + rv_0 * R_v<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
- //   const setup::real_t rhod_surf = (p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms) / (1+0.608 * qv_0);
     const setup::real_t rhod_surf = theta_std::rhod(p_0, th_std_0, rv_0) * si::cubic_metres / si::kilograms;
-    //const setup::real_t rhod_surfW = (p_0 / si::pascals) / (T_0 / si::kelvins) /( R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms);
     const setup::real_t cs = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
 
     const real_t z_abs = 125000; // [m] height above which absorber works, no absorber
@@ -65,21 +86,6 @@ namespace setup
       BZ_DECLARE_FUNCTOR(th_std_fctr);
     };
   
-/*  
-    // temperature profile (constant stability atmosphere, Clark Farley 1984)
-    real_t T(const real_t &z)
-    {
-      return (T_0 / si::kelvins) / exp(- stab * z) * (
-               1. - cs * (1 - exp(- stab * z)));
-    }
-    
-    // pressure profile (constant stability atmosphere, Clark Farley 1984), dry...
-    real_t p(const real_t &z)
-    {
-      return p_0 / si::pascals * pow( 1. - cs * (1 - exp(- stab * z)), 1. / R_d_over_c_pd<setup::real_t>() );
-    }
-    
-*/
     // air density profile (constant stability atmosphere, Clark Farley 1984), dry...
     struct rho_fctr
     {
@@ -95,18 +101,6 @@ namespace setup
       BZ_DECLARE_FUNCTOR(rho_fctr);
     };
 
-    // rv(RH, th_dry, rhod)
-    real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th_dry, const real_t &rhod)
-    {
-      real_t T = theta_dry::T(th_dry * si::kelvins, (rhod * si::kilograms / si::cubic_metres)) / si::kelvins;
-      return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
-    }
-    
-    // rv(RH, T, rhod)
-    real_t RH_T_rhod_to_rv(const real_t &RH, const real_t &T, const real_t &rhod)
-    {
-      return (p_vs(T * si::kelvins) / si::pascals) * RH / (rhod * T * (R_v<real_t>() / si::joules * si::kilograms * si::kelvins));
-    }
     
     struct RH
     {
@@ -122,32 +116,17 @@ namespace setup
     BZ_DECLARE_FUNCTOR(RH);
     };
     
-/*
-    struct env_rv
-    {
-      quantity<si::dimensionless, real_t> operator()(const real_t &z) const
-      {
-    //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
-        return RH_th_rhod_to_rv(env_RH, th_std_fctr(th_std_0 / si::kelvins)(z) , rho_fctr(rhod_surf)(z));
-    //    return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
-      }
-    BZ_DECLARE_FUNCTOR(env_rv);
-    };
-  */  
-
     struct prtrb_rv 
     {
-      arr_1D_t &_th_std, &_rhod;
+      arr_1D_t &_T, &_p;
       real_t dz;
-      prtrb_rv(arr_1D_t _th_std, arr_1D_t _rhod, real_t dz): _th_std(_th_std), _rhod(_rhod), dz(dz) {}
+      prtrb_rv(arr_1D_t _T, arr_1D_t _p, real_t dz): _T(_T), _p(_p), dz(dz) {}
 
       quantity<si::dimensionless, real_t> operator()(const real_t &r, const real_t &z) const
       {
-        return RH_th_rhod_to_rv(RH()(r), this->_th_std(z/this->dz) , this->_rhod(z/this->dz));
-    //    return RH_T_p_to_rv(env_RH, T(z) * si::kelvins, p(z) * si::pascals);
-    //    return RH_T_rhod_to_rv(env_RH, T(z), rhod_fctr()(z));
+        return RH_T_p_to_rv(RH()(r), this->_T(z/this->dz) * si::kelvins , this->_p(z/this->dz) * si::pascals);
       }
-    BZ_DECLARE_FUNCTOR2(prtrb_rv);
+      BZ_DECLARE_FUNCTOR2(prtrb_rv);
     };
 
     // its in fact the moist thermal from our 2017 GMD paper on Twomey SDs? differences: kappa=1.28, i.e. sea salt aerosol
@@ -186,8 +165,6 @@ namespace setup
         int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dx = (X / si::metres) / (nx-1); 
     
-       // solver.advectee(ix::rv) = rv_e(index);
-
         solver.advectee(ix::u) = 0;
         solver.advectee(ix::w) = 0;  
        
@@ -201,7 +178,6 @@ namespace setup
     
         // initial potential temperature
         solver.advectee(ix::th) = th_e(index); 
-//libcloudphxx::common::theta_dry::std2dry(th_std_0, rv_0) / si::kelvins; 
       }
     
     
@@ -248,7 +224,7 @@ namespace setup
         //rv_e(0) = env_RH * qvs;
         rv_e(0) = rv_0;// env_RH * qvs;
         real_t th_e_surf = th_std_0 / si::kelvins * (1 + a * rv_e(0)); // virtual potential temp
-        
+
         th_e = th_std_fctr(th_e_surf)(k * dz);
         
         pre_ref(0.) = p_0 / si::pascals;
@@ -294,7 +270,7 @@ namespace setup
             T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
             T(k)=T(k)/(1.+a*rv_e(k));
           }
-          rv_e(k) =  RH_T_p_to_rv(env_RH, T(k) * si::kelvins, pre_ref(k) * si::pascals); // cheating!
+          //rv_e(k) =  RH_T_p_to_rv(env_RH, T(k) * si::kelvins, pre_ref(k) * si::pascals); // cheating!
           p_e(k) = pre_ref(k);
         }
     
@@ -309,6 +285,7 @@ namespace setup
         {
           quantity<si::dimensionless, real_t> si_rv_e = rv_e(k);
           th_e(k) = libcloudphxx::common::theta_dry::std2dry(th_e(k) * si::kelvins, si_rv_e) / si::kelvins; 
+          real_t p_d = pre_ref(k) - libcloudphxx::common::moist_air::p_v<real_t>(pre_ref(k) * si::pascals, rv_e(k))  / si::pascals;
         }
         th_ref = th_e;//th_std_fctr(th_std_0 / si::kelvins)(k * dz);
       }
@@ -318,48 +295,6 @@ namespace setup
       {
         this->kappa = 1.28; // NaCl aerosol
       }
-    
-      // calculate the initial environmental theta and rv profiles
-       /*
-      template<class user_params_t>
-      void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
-      {
-        setup::real_t dz = (Z / si::metres) / (nz-1);
-        blitz::firstIndex k;
-        th_ref = th_std_fctr()(k * dz);
-        th_e = th_ref;
-        rv_e = env_rv()(k * dz);
-        rhod = rho_fctr()(k * dz);
-    
-        std::cout << "th ref: " << th_ref << std::endl;
-        std::cout << "th e: " << th_e << std::endl;
-        std::cout << "rv e: " << rv_e << std::endl;
-        std::cout << "rho_ref: " << rhod << std::endl;
-    
-        // subsidence rate
-        //w_LS = setup::w_LS_fctr()(k * dz);
-    
-        // surface sources relaxation factors
-        // for vectors
-        
-        // real_t z_0 = setup::z_rlx_vctr / si::metres;
-        // hgt_fctr_vctr = exp(- (k-0.5) * dz / z_0); // z=0 at k=1/2
-        // hgt_fctr_vctr(0) = 1;
-        // // for scalars
-        // z_0 = user_params.z_rlx_sclr;
-        // hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
-        // hgt_fctr_sclr(0) = 1;
-
-
-        // calc divergence directly
-        real_t z_0 = z_rlx_vctr / si::metres;
-        hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
-        // for scalars
-        z_0 = user_params.z_rlx_sclr;
-        hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
-      }
-    */
-
     };
 
     // 2d/3d children
@@ -377,17 +312,20 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
+
+        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
+        arr_1D_t T(th_e * pow(p_d_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
         using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w); 
         real_t dz = (Z / si::metres) / (nz-1); 
         int nx = solver.advectee().extent(0); 
         real_t dx = (X / si::metres) / (nx-1); 
-        solver.advectee(ix::rv) = prtrb_rv(th_e, rhod, dz)(
+        solver.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
           sqrt(
             pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
             pow(blitz::tensor::j * dz - (z_prtrb / si::metres), 2)
@@ -395,18 +333,6 @@ namespace setup
           blitz::tensor::j * dz
         );
      
-        // reinitialise th with dry conversion based on perturbed rv TODO: without loops, also in 3D
-        for (int i = 0; i < nx; ++i)
-        {
-          for(int k = 0; k < nz; ++k)
-          {
-            using libcloudphxx::common::theta_dry::std2dry;
-            using libcloudphxx::common::theta_dry::dry2std;
-            quantity<si::dimensionless, real_t> si_rv_e = rv_e(k);
-            quantity<si::dimensionless, real_t> si_rv = solver.advectee(ix::rv)(i, k);
-            solver.advectee(ix::th)(i, k) = std2dry(dry2std(th_e(k) * si::kelvins, si_rv_e), si_rv) / si::kelvins; 
-          }
-        }
       }
     };
 
@@ -425,7 +351,7 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
@@ -448,14 +374,6 @@ namespace setup
         solver.advectee(ix::v) = 0;
         solver.vab_relaxed_state(1) = 0;
       }
-
-/*
-      // TODO: make it work in 3d?
-      MoistThermalGrabowskiClark99_3d()
-      {
-        throw std::runtime_error("Moist Thermal doesn't work in 3d yet");
-      }
-*/
     };
   };
 };
