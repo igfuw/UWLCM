@@ -237,17 +237,17 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
