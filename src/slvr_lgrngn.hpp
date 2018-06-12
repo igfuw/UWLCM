@@ -383,7 +383,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->mem->barrier();
     if (this->rank == 0) 
     {
-      parent_t::tbeg1 = parent_t::clock::now();
       // assuring previous async step finished ...
 #if defined(STD_FUTURE_WORKS)
       if (
@@ -489,6 +488,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       }
     }
     this->mem->barrier();
+    // start recording time of the non-delayed advection step
+    if (this->rank == 0) 
+    {
+      parent_t::tbeg = parent_t::clock::now();
+    }
   }
   
   void record_all()
