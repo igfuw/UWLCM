@@ -31,10 +31,13 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       rr   = this->state(ix::rr)(this->ijk); // rain water mixing ratio
     auto const
       rhod = (*this->mem->G)(this->ijk),
-      &p_d_e_arg = p_e(this->ijk),
+      &p_d_e_arg = p_d_e(this->ijk),
       &p_e_arg = p_e(this->ijk);
 
 /*
+    libcloudphxx::blk_1m::adj_cellwise<real_t>( 
+      opts, rhod, th, rv, rc, rr, this->dt
+    );
     libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
       opts, rhod, p_e_arg, p_d_e_arg, th, rv, rc, rr, this->dt
     );
@@ -171,6 +174,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
         &p_e_arg = p_e(this->ijk),
         &p_d_e_arg = p_d_e(this->ijk);
       libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p_e_arg, p_d_e_arg, th, rv, rc, rr);
+      //libcloudphxx::blk_1m::rhs_cellwise<real_t>(opts, dot_rc, dot_rr, rc, rr);
     }
 
     // forcing
