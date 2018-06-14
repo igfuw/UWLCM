@@ -100,10 +100,10 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     zero_if_uninitialised(ix::rr);
  
     // init the p_e array
-    p_e = (*params.p_e)(this->vert_idx);
+    p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
 
     // init the p_d_e array
-    p_d_e = (*params.p_e)(this->vert_idx) - detail::calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
+    p_d_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx) - detail::calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
 
     // deal with initial supersaturation
     condevap();
