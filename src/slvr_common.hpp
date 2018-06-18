@@ -23,7 +23,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   //       either remove it and use profiling tools (e.g. vtune)
   //       or add some compile-time flag to turn it off
   clock::time_point tbeg, tend, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tasync, tasync_wait, tloop, tvip_rhs, tnondelayed_step;
+  std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tvip_rhs, tnondelayed_step;
 
   int spinup; // number of timesteps
 
@@ -114,15 +114,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       set_rain(true);
     }
     parent_t::hook_ante_step(); 
-  }
-
-  void hook_ante_delayed_step()
-  {
-    if(this->rank == 0)
-    {
-      tend = clock::now();
-      tnondelayed_step += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-    }
   }
 
 
@@ -335,7 +326,8 @@ class slvr_common : public slvr_dim<ct_params_t>
           << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
           << "nondelayed step: " << tnondelayed_step.count() << " ("<< setup::real_t(tnondelayed_step.count())/tloop.count()*100 <<"%)" << std::endl
           << "async: " << tasync.count() << " ("<< setup::real_t(tasync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
+          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
+          << "sync_wait: " << tsync_wait.count() << " ("<< setup::real_t(tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
       }
     }
   }
