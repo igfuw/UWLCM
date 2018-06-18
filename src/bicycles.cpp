@@ -340,6 +340,7 @@ struct ct_params_2D_sd : ct_params_common
     u, w, th, rv, 
     vip_i=u, vip_j=w, vip_den=-1
   }; };
+  enum { delayed_step = opts::bit(ix::th) | opts::bit(ix::rv) };
 };
 
 struct ct_params_3D_sd : ct_params_common
@@ -350,6 +351,7 @@ struct ct_params_3D_sd : ct_params_common
     u, v, w, th, rv, 
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
+  enum { delayed_step = opts::bit(ix::th) | opts::bit(ix::rv) };
 };
 
 struct ct_params_2D_blk_1m : ct_params_common
