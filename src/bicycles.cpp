@@ -78,6 +78,9 @@ void run(int nx, int nz, const user_params_t &user_params)
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
 
+  // copy user_params for output
+  p.user_params = user_params;
+
   // output and simulation parameters
   p.grid_size = {nx, nz};
 
@@ -92,6 +95,12 @@ void run(int nx, int nz, const user_params_t &user_params)
   case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+
+  // set outvars
+  p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
+  p.outvars.insert({solver_t::ix::th, {"th", "[K]"}});
+  p.outvars.insert({solver_t::ix::u, {"u", "[m/s]"}});
+  p.outvars.insert({solver_t::ix::w, {"w", "[m/s]"}});
 
   // solver instantiation
   std::unique_ptr<concurr_any_t> slv;
@@ -161,6 +170,9 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
 
+  // copy user_params for output
+  p.user_params = user_params;
+
   // output and simulation parameters
   p.grid_size = {nx, ny, nz};
 
@@ -175,6 +187,13 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
   copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+
+  // set outvars
+  p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
+  p.outvars.insert({solver_t::ix::th, {"th", "[K]"}});
+  p.outvars.insert({solver_t::ix::u, {"u", "[m/s]"}});
+  p.outvars.insert({solver_t::ix::v, {"v", "[m/s]"}});
+  p.outvars.insert({solver_t::ix::w, {"w", "[m/s]"}});
 
   // solver instantiation
   std::unique_ptr<concurr_any_t> slv;

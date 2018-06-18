@@ -14,6 +14,9 @@ endif()
 
 add_executable(bicycles bicycles.cpp)
 
+# ensure that bicycles is not built before current git_revision file is created
+add_dependencies(bicycles git_revision.h) 
+
 target_link_libraries(bicycles ${libmpdataxx_LIBRARIES})
 target_include_directories(bicycles PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 
