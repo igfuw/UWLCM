@@ -32,7 +32,8 @@ namespace setup
   // TODO: make forcing functions part of case class
   struct ForceParameters_t
   {
-    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, F_sens, F_lat, u_fric;
+    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, F_sens, F_lat, u_fric, u_fric_param;
+    bool calc_u_fric;
   };
 
   template<class concurr_t>
@@ -74,9 +75,14 @@ namespace setup
       ForceParameters.q_i = 8e-3; // kg/kg
       ForceParameters.D = D; // large-scale wind horizontal divergence [1/s]
       ForceParameters.rho_i = 1.12; // kg/m^3
-      ForceParameters.F_sens = 16; //W/m^2, sensible heat flux
-      ForceParameters.F_lat = 93; //W/m^2, latent heat flux
-      ForceParameters.u_fric = 0.25; // m/s; friction velocity
+
+      // defined in dycoms_rf01 and dycoms_rf02
+      //TODO - what should be the default value?
+      ForceParameters.F_sens = 0.0;        //W/m^2, sensible heat flux
+      ForceParameters.F_lat = 0.0;         //W/m^2, latent heat flux
+      ForceParameters.calc_u_fric = false; // flag for calculation friction velocity
+      ForceParameters.u_fric = 0.0;        // m/s friction velocity
+      ForceParameters.u_fric_param = 0.0;  // cm parameter to calculate friction velocity
     }
 
     protected:

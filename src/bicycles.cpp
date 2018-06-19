@@ -10,12 +10,14 @@
 #include <libmpdata++/concurr/openmp.hpp>
 #include "setup.hpp"
 
-#include "cases/DYCOMS98.hpp"
+#include "cases/DYCOMS_RF01.hpp"
+#include "cases/DYCOMS_RF02.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 
 #include "opts_lgrngn.hpp"
 #include "opts_blk_1m.hpp"
+#include "opts_blk_2m.hpp"
 #include "panic.hpp"
 #include <map>
 
@@ -69,8 +71,10 @@ void run(int nx, int nz, const user_params_t &user_params)
     case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dry_thermal")
     case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_openmp_rigid_t>()); 
-  else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "dycoms_rf01")
+    case_ptr.reset(new setup::dycoms_rf01::DycomsRf01_2d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "dycoms_rf02")
+    case_ptr.reset(new setup::dycoms_rf02::DycomsRf02_2d<concurr_openmp_rigid_t>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -161,8 +165,10 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_3d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dry_thermal")
     case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_openmp_rigid_t>()); 
-  else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "dycoms_rf01")
+    case_ptr.reset(new setup::dycoms_rf01::DycomsRf01_3d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "dycoms_rf02")
+    case_ptr.reset(new setup::dycoms_rf02::DycomsRf02_3d<concurr_openmp_rigid_t>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -326,9 +332,29 @@ struct ct_params_3D_blk_1m : ct_params_common
   enum { n_dims = 3 };
   enum { n_eqns = 7 };
   struct ix { enum {
-    u, v, w, th, rv, rc, rr, 
+    u, v, w, th, rv, rc, rr,
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
+};
+
+struct ct_params_2D_blk_2m : ct_params_common
+{
+  enum { n_dims = 2 };
+  enum { n_eqns = 8 };
+  struct ix { enum {
+    u, w, th, rv, rc, rr, nc, nr,
+    vip_i=u, vip_j=w, vip_den=-1
+  }; };
+};
+
+struct ct_params_3D_blk_2m : ct_params_common
+{
+  enum { n_dims = 3 };
+  enum { n_eqns = 9 };
+  struct ix { enum {
+    u, v, w, th, rv, rc, rr, nc, nr,
+     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
+   }; };
 };
 
 // function used to modify ct_params before running
@@ -378,7 +404,7 @@ int main(int argc, char** argv)
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
-      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02")
       ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
@@ -473,6 +499,12 @@ int main(int argc, char** argv)
 
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
       run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+
+    else if (micro == "blk_2m" && ny == 0) // 2D two-moment
+      run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, user_params.model_case, nx, nz, user_params);
+
+    else if (micro == "blk_2m" && ny > 0) // 3D two-moment
+      run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, user_params.model_case, nx, ny, nz, user_params);
 
     // TODO: not only micro can be wrong
     else throw 
