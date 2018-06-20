@@ -37,20 +37,15 @@ int main(int ac, char** av)
   std::cout << "output directory: " << outdir << std::endl;
 */
   string opts_common = 
-    "--outfreq=600 --nt=7200 --spinup=3600 --nx=33 --nz=76 --dt=1 --relax_th_rv=false"; // DYCOMS: 128x300 ; 600 21600 3600
+    "--outfreq=200 --nt=12000 --spinup=9600 --nx=97 --nz=301 --dt=0.75 --relax_th_rv=false"; // DYCOMS: 128x300 ; 600 21600 3600
   set<string> opts_micro({
 //    "--micro=blk_1m --outdir=out_blk_1m",
-//    "--micro=blk_2m --outdir=out_blk_2m",
-    "--adv_serial=false --async=true --micro=lgrngn --outdir=out_lgrngn --backend=CUDA --sd_conc=32 --sstp_cond=1 --z_rlx_sclr=100 --sstp_coal=1"  
-    " --coal=false"
-      " --out_wet=\""
-        ".5e-6:25e-6|0,1,2,3;" // FSSP
-        "25e-6:1|0,3;"         // "rain"
-//        + bins_wet_str + // aerosol spectrum (wet)
-        "\""
-//      " --out_dry=\""
-//        + bins_dry_str + // aerosol spectrum (dry)
-//      "\""
+//    "--micro=lgrngn --outdir=out_lgrngn",
+    "--micro=blk_2m --outdir=out_blk_2m \
+     --adv_serial=false --async=true  --backend=OpenMP --case=dycoms_rf01 --piggy=false \
+     --acnv_A=1350 --acnv_b=2.47 --acnv_c=-1.79 \
+     --blk2m_mean_rd=0.05e-6 --blk2m_sdev_rd=1.5 --blk2m_N_stp=080e6 \
+     --w_src=1 --uv_src=1 --rv_src=1 --th_src=1 --subsidence=1 "
   });
 
   for (auto &opts_m : opts_micro)
