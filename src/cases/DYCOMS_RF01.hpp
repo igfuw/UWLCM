@@ -4,7 +4,7 @@
 
 namespace setup 
 {
-  namespace dycoms
+  namespace dycoms_rf01
   {
     namespace hydrostatic = libcloudphxx::common::hydrostatic;
     namespace theta_std = libcloudphxx::common::theta_std;
@@ -17,10 +17,10 @@ namespace setup
     const quantity<si::length, real_t> 
       z_0  = 0    * si::metres,
       Z    = 1500 * si::metres, // DYCOMS: 1500
-      X    = 6400 * si::metres, // DYCOMS: 6400
-      Y    = 6400 * si::metres; // DYCOMS: 6400
+      X    = 3360 * si::metres, // DYCOMS: 6400
+      Y    = 3360 * si::metres; // DYCOMS: 6400
     const real_t z_abs = 1250;
-    const real_t z_i = 795; //initial inversion height
+    const real_t z_i = 840; //initial inversion height
     const quantity<si::length, real_t> z_rlx_vctr = 1 * si::metres;
   
     // liquid water potential temperature at height z
@@ -28,8 +28,8 @@ namespace setup
     {
       quantity<si::temperature, real_t> ret;
       ret = z < z_i ?
-        288.3 * si::kelvins : 
-        (295. + pow(z - z_i, 1./3)) * si::kelvins;
+        289. * si::kelvins : 
+        (297.5 + pow(z - z_i, 1./3)) * si::kelvins;
       return ret;
     }
   
@@ -39,8 +39,8 @@ namespace setup
       quantity<si::dimensionless, real_t> operator()(const real_t &z) const
       {
         const quantity<si::dimensionless, real_t> q_t = z < z_i ?
-          9.45e-3 : 
-          (5. - 3. * (1. - exp((z_i - z)/500.))) * 1e-3;
+          9.e-3 :
+          1.5e-3;
         return q_t;
       }
       BZ_DECLARE_FUNCTOR(r_t);
@@ -61,7 +61,7 @@ namespace setup
     {
       real_t operator()(const real_t &z) const
       {
-        return 3. + 4.3 * z / 1000.; 
+        return -7.;
       }
       BZ_DECLARE_FUNCTOR(u);
     };
@@ -71,7 +71,7 @@ namespace setup
     {
       real_t operator()(const real_t &z) const
       {
-        return -9. + 5.6 * z / 1000.; 
+        return 5.5;
       }
       BZ_DECLARE_FUNCTOR(v);
     };
@@ -108,7 +108,7 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98 : public CasesCommon<concurr_t>
+    class DycomsRf01 : public CasesCommon<concurr_t>
     {
 
       protected:
@@ -129,9 +129,8 @@ namespace setup
         params.subsidence = true;
         params.friction = true;
       }
-  
-  
-  
+
+
       template <class index_t>
       void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
@@ -259,8 +258,13 @@ namespace setup
       }
 
       // ctor
-      Dycoms98()
+      DycomsRf01()
       {
+        this->ForceParameters.F_sens = 15.;   //W/m^2, sensible heat flux
+        this->ForceParameters.F_lat = 115.;   //W/m^2, latent heat flux
+        this->ForceParameters.u_fric_param = 0.0011; // parameter to calculate friction velocity
+        this->ForceParameters.calc_u_fric = true;
+
         //aerosol bimodal lognormal dist. - DYCOMS
         this->mean_rd1 = real_t(.011e-6) * si::metres,
         this->mean_rd2 = real_t(.06e-6) * si::metres;
@@ -273,7 +277,7 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98_2d : public Dycoms98<concurr_t>
+    class DycomsRf01_2d : public DycomsRf01<concurr_t>
     {
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params)
       {
@@ -293,7 +297,7 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98_3d : public Dycoms98<concurr_t>
+    class DycomsRf01_3d : public DycomsRf01<concurr_t>
     {
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
       {
