@@ -238,9 +238,9 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         st(notopbot) = (th_e(notopbot+1) - th_e(notopbot-1)) / th_e(notopbot);
         real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
         // reference theta
-      //  th_ref = th_e(0) * exp(st_avg * k * dz);
-        th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) // calc dry theta at z=0 
-                 * exp(st_avg * k * dz);
+        th_ref = th_e(0) * exp(st_avg * k * dz);
+      //  th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) // calc dry theta at z=0 
+      //           * exp(st_avg * k * dz);
         // virtual temp at surface
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -248,22 +248,23 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         using libcloudphxx::common::theta_std::p_1000;
   
         real_t T_surf = th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
-/*
+
         real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0));
         real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287, its the total, not dry density!
-        rho_surf /= (1 + rv_e(0)); // turn it into dry air density! TODO: is this correct? TODO2: approp change in the paper
-*/
-        real_t rho_surf = (p_0 / si::pascals) / T_surf / (1. + 29. / 18. * rv_e(0)) / 287. ; // dry air density at the surface TODO: R_d instead of 287
+//        rho_surf /= (1 + rv_e(0)); // turn it into dry air density! TODO: is this correct? TODO2: approp change in the paper
 
-        // theta_std env prof to theta_dry_e
-        for(int k=1; k<nz; ++k)
-          th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
+     //   real_t rho_surf = (p_0 / si::pascals) / T_surf / (1. + 29. / 18. * rv_e(0)) / 287. ; // dry air density at the surface TODO: R_d instead of 287
 
         // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf; // this is from Wojtek
          real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / th_e(0);  // this is correct? or total, not dry th_e(0) should be here?
         // rhod profile
         rhod = rho_surf * exp(- st_avg * k * dz) * pow(
                  1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
+
+
+        // theta_std env prof to theta_dry_e
+        for(int k=1; k<nz; ++k)
+          th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
   
         // subsidence rate
         w_LS = w_LS_fctr()(k * dz);
