@@ -19,8 +19,8 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   using clock = typename parent_t::clock;
   private:
 
-  // a 2D/3D array with copy of the environmental total pressure and env partial pressure of dry air
-  typename parent_t::arr_t &p_e, &p_d_e;
+  // a 2D/3D array with copy of the environmental total pressure of dry air
+  typename parent_t::arr_t &p_e;
 
   void condevap()
   {
@@ -31,7 +31,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       rr   = this->state(ix::rr)(this->ijk); // rain water mixing ratio
     auto const
       rhod = (*this->mem->G)(this->ijk),
-      &p_d_e_arg = p_d_e(this->ijk),
       &p_e_arg = p_e(this->ijk);
 
 /*
@@ -39,11 +38,11 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       opts, rhod, th, rv, rc, rr, this->dt
     );
     libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
-      opts, rhod, p_e_arg, p_d_e_arg, th, rv, rc, rr, this->dt
+      opts, rhod, p_e_arg, th, rv, rc, rr, this->dt
     );
 */
     libcloudphxx::blk_1m::adj_cellwise_nwtrph<real_t>( 
-      opts, p_e_arg, p_d_e_arg, th, rv, rc, this->dt
+      opts, p_e_arg, th, rv, rc, this->dt
     );
     this->mem->barrier(); 
   }
@@ -101,9 +100,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
  
     // init the p_e array
     p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
-
-    // init the p_d_e array
-    p_d_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx) - detail::calc_p_v()((*params.p_e)(this->vert_idx), (*params.rv_e)(this->vert_idx));
 
     // deal with initial supersaturation
     condevap();
@@ -171,10 +167,8 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 	rc   = this->state(ix::rc)(this->ijk),
 	rr   = this->state(ix::rr)(this->ijk),
         rhod = (*this->mem->G)(this->ijk),
-        &p_e_arg = p_e(this->ijk),
-        &p_d_e_arg = p_d_e(this->ijk);
-      libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p_e_arg, p_d_e_arg, th, rv, rc, rr);
-      //libcloudphxx::blk_1m::rhs_cellwise<real_t>(opts, dot_rc, dot_rr, rc, rr);
+        &p_e_arg = p_e(this->ijk);
+      libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p_e_arg, th, rv, rc, rr);
     }
 
     // forcing
@@ -211,8 +205,8 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     this->mem->barrier();
     if(this->rank == 0)
     {
-      nancheck2(rhs.at(ix::rc)(this->domain), this->state(ix::rc)(this->domain), "RHS of rc after rhs_update");
-      nancheck2(rhs.at(ix::rr)(this->domain), this->state(ix::rr)(this->domain), "RHS of rr after rhs_update");
+      nancheck(rhs.at(ix::rc)(this->domain), "RHS of rc after rhs_update");
+      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
       this->tend = clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
@@ -245,7 +239,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // p_e, p_d_e
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 1); // p_e
   }
 
   // ctor
@@ -257,8 +251,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     params(p),
     opts(p.cloudph_opts),
     puddle(0),
-    p_e(args.mem->tmp[__FILE__][0][0]),
-    p_d_e(args.mem->tmp[__FILE__][0][1])
+    p_e(args.mem->tmp[__FILE__][0][0])
   {}  
 };
 
