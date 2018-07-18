@@ -342,6 +342,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       this->record_aux_const("rng_seed", params.cloudph_opts_init.rng_seed);  
       this->record_aux_const("kernel", params.cloudph_opts_init.kernel);  
       this->record_aux_const("terminal_velocity", params.cloudph_opts_init.terminal_velocity);  
+      this->record_aux_const("RH_formula", params.cloudph_opts_init.RH_formula);  
       this->record_aux_const("backend", params.backend);  
       this->record_aux_const("async", params.async);  
       this->record_aux_const("adve", params.cloudph_opts.adve);  
