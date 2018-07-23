@@ -12,5 +12,9 @@ Microphysics schemes:
  
 Implemented cases:
  - DYCOMS stratocumulus
+ - single cumulus
  - moist thermal
  - dry thermal
+ 
+ Visualization of a modeled stratocumulus:
+ https://youtu.be/EZf260ZKqq0
