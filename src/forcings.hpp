@@ -24,7 +24,8 @@ void slvr_common<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename p
         (th(ijk).reindex(this->zero) - (*params.th_e)(this->vert_idx)) / (*params.th_ref)(this->vert_idx)
       );
 
-  this->smooth(tmp1, F);
+//  this->smooth(tmp1, F);
+  F(ijk) = tmp1(ijk);
 }
 
 template <class ct_params_t>
@@ -102,7 +103,7 @@ void slvr_common<ct_params_t>::surf_sens()
   //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
   //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
   params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
-  F(ijk).reindex(this->zero) = - surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) // "-" because negative gradient means inflow 
+  F(ijk).reindex(this->zero) = surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) 
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
@@ -116,7 +117,7 @@ void slvr_common<ct_params_t>::surf_latent()
   //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
   //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
   params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
-  F(ijk).reindex(this->zero) = - surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
+  F(ijk).reindex(this->zero) = surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
@@ -133,8 +134,8 @@ void slvr_common<ct_params_t>::subsidence(const int &type) // large-scale vertic
     this->vert_grad_cnt(tmp1, F, params.dz);
     F(ijk).reindex(this->zero) *= - (*params.w_LS)(this->vert_idx);
 
-    tmp1(ijk)=F(ijk); //TODO: unnecessary copy
-    this->smooth(tmp1, F);
+//    tmp1(ijk)=F(ijk); //TODO: unnecessary copy
+  //  this->smooth(tmp1, F);
   }
   else
     F(ijk)=0.;

@@ -30,6 +30,8 @@ namespace setup
         params.uv_src = false;
         params.th_src = false;
         params.rv_src = false;
+        params.rc_src = false;
+        params.rr_src = false;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = false;
@@ -76,10 +78,20 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
-      void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
+        using libcloudphxx::common::theta_std::p_1000;
+        using libcloudphxx::common::moist_air::R_d;
+        using libcloudphxx::common::moist_air::c_pd;
+        using libcloudphxx::common::moist_air::R_d_over_c_pd;
+       
         rhod = 1;
         th_e = 300;
+        //p_e  = pow((rhod * si::kilograms / si::cubic_metres) * R_d<real_t>() * (th_e * si::kelvins) * pow(p_1000<real_t>(), R_d_over_c_pd<real_t>()), 1. / (R_d_over_c_pd<real_t>() + 1)) / si::pascals;
+//        const quantity<si::dimensionless, real_t> p_theta = (quantity<si::mass_density, real_t>(rhod * si::kilograms / si::cubic_metres) * R_d<real_t>() * quantity<si::temperature, real_t>(th_e * si::kelvins))/si::pascals;
+        const quantity<si::pressure, real_t> p_theta = (quantity<si::mass_density, real_t>(1. * si::kilograms / si::cubic_metres) * R_d<real_t>() * quantity<si::temperature, real_t>(300. * si::kelvins));
+        /*const quantity<si::dimensionless, real_t>*/ real_t p = pow( real_t(p_theta / si::pascals) * pow(real_t(p_1000<real_t>() / si::pascals), R_d_over_c_pd<real_t>()), 1. / (R_d_over_c_pd<real_t>() + 1)) ;// * pow(p_1000<real_t>(), R_d_over_c_pd<real_t>()));//, 1. / (R_d_over_c_pd<real_t>() + 1)) / si::pascals;
+        p_e = p; // total env pressure
         th_ref = 300;
       }
     };
@@ -98,7 +110,7 @@ namespace setup
       }
   
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
@@ -121,7 +133,7 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
