@@ -11,7 +11,7 @@
 
 #include "opts_common.hpp"
 #include "slvr_lgrngn.hpp"
-#include "calc_forces.hpp"
+#include "calc_forces_common.hpp"
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
@@ -53,6 +53,7 @@ void setopts_micro(
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
     // free parameters
     ("exact_sstp_cond", po::value<bool>()->default_value(rt_params.cloudph_opts_init.exact_sstp_cond), "exact(per-particle) logic for substeps for condensation")
+    ("sd_conc_large_tail", po::value<bool>()->default_value(rt_params.cloudph_opts_init.sd_conc_large_tail), "add SDs to better represent the large tail")
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
@@ -128,16 +129,6 @@ void setopts_micro(
     );
 */
 
-  // output variables
-  rt_params.outvars = {
-    // <TODO>: make it common among all three micro?
-    {solver_t::ix::th, {"th", "[K]"}},
-    {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
-    {solver_t::ix::u, {"u", "[m/s]"}},
-    {solver_t::ix::w, {"w", "[m/s]"}}
-    // </TODO>
-  };
-
   // process toggling
   rt_params.cloudph_opts.adve = vm["adve"].as<bool>();
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
@@ -156,6 +147,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
   rt_params.cloudph_opts_init.exact_sstp_cond = vm["exact_sstp_cond"].as<bool>();
+  rt_params.cloudph_opts_init.sd_conc_large_tail = vm["sd_conc_large_tail"].as<bool>();
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
 

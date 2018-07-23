@@ -17,7 +17,7 @@ struct user_params_t
   int nt, outfreq, spinup, rng_seed;
   setup::real_t dt, z_rlx_sclr;
   std::string outdir, model_case;
-  bool th_src, rv_src, uv_src, w_src;
+  bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
 };
 
 namespace setup 
@@ -34,6 +34,7 @@ namespace setup
   {
     real_t q_i, heating_kappa, F_0, F_1, rho_i, D, u_fric;
     bool surf_latent_flux_in_watts_per_square_meter;
+    bool surf_sensible_flux_in_watts_per_square_meter;
   };
 
   template<class concurr_t>
@@ -62,8 +63,8 @@ namespace setup
 
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) {assert(false);};
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) {assert(false);};
-    virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed) =0;
-    virtual void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params) =0;
+    virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed) =0;
+    virtual void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params) =0;
     virtual void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt) {if(timestep==0) surf_flux_sens = 0.;}; 
     virtual void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt) {if(timestep==0) surf_flux_lat = 0.;};
 
@@ -78,7 +79,8 @@ namespace setup
       ForceParameters.D = D; // large-scale wind horizontal divergence [1/s]
       ForceParameters.rho_i = 1.12; // kg/m^3
       ForceParameters.u_fric = 0.25; // m/s; friction velocity
-      ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be a change in q_v [1/s]
+      ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
+      ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
     }
 
     protected:
