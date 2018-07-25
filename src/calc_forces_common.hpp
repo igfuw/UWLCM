@@ -134,16 +134,19 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 }
 
 template <class ct_params_t>
-void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
+void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv, const int at)
 {
   const auto &ijk = this->ijk;
   // buoyancy
   buoyancy(th, rv);
-  alpha(ijk) = F(ijk);
-  // large-scale vertical wind
-  subsidence(ix::w); // TODO: in case 1, w here should be in step n+1, calc it explicitly as w + 0.5 * dt * rhs(w); 
-                     //       could also be calculated implicitly, but we would need implicit w^n+1 in other cells;
-                     //       also include absorber in w^n+1 estimate...
+  alpha(ijk) = 0.5 * F(ijk); // halved, because it is applied trapezoidaly
+  if(at == 0) // subsidence added explicitly, so updated only at n
+  {
+    // large-scale vertical wind
+    subsidence(ix::w); // TODO: in case 1, w here should be in step n+1, calc it explicitly as w + 0.5 * dt * rhs(w); 
+                       //       could also be calculated implicitly, but we would need implicit w^n+1 in other cells;
+                       //       also include absorber in w^n+1 estimate...
 
-  alpha(ijk) += F(ijk);
+    alpha(ijk) += F(ijk);
+  }
 }
