@@ -367,6 +367,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     // TODO: barrier?
   }
 
+  void hook_mixed_rhs_ante_loop()
+  {} // empty, because update_rhs called before each step; defined, to avoid assert from default hook_mixed_rhs_ante_loop
+
 #if defined(STD_FUTURE_WORKS)
   std::future<void> ftr;
 #endif
@@ -499,6 +502,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   }
 
 
+
+
   void hook_ante_delayed_step()
   {
     parent_t::hook_ante_delayed_step();
@@ -561,6 +566,18 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       }
     }
     this->mem->barrier();
+  }
+
+  void hook_mixed_rhs_ante_step()
+  {
+    update_rhs(this->rhs, this->dt, this->n);
+    apply_rhs(this->dt);
+  }
+
+  void hook_mixed_rhs_post_step()
+  {
+    update_rhs(this->rhs, this->dt, this->n+1);
+    apply_rhs(this->dt);
   }
   
   void record_all()
