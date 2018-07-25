@@ -211,7 +211,7 @@ class slvr_common : public slvr_dim<ct_params_t>
           // todo: once rv_src beta!=0 (e.g. nudging), rv^n+1 estimate should be implicit here
 
     //      w_src(beta, F, 1);
-          w_src(this->state(ix::th)(ijk), this->state(ix::rv)(ijk), 1);
+          w_src(this->state(ix::th), this->state(ix::rv), 1);
           rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
