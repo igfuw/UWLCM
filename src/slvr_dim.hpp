@@ -2,6 +2,7 @@
 
 #include "slvr_piggy.hpp"
 #include <libmpdata++/formulae/arakawa_c.hpp>
+#include <libmpdata++/formulae/nabla_formulae.hpp>
 
 // custom 3D idxperm that accepts idx_t; todo: make it part of libmpdata?
 namespace libmpdataxx
@@ -49,6 +50,11 @@ class slvr_dim<
   blitz::secondIndex vert_idx;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::u};
+
+  idx_t<2> hrzntl_slice(int k)
+  {
+      return idx_t<2>({this->i, this->j});
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -132,6 +138,11 @@ class slvr_dim<
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::u, ix::v};
 
+  idx_t<3> hrzntl_slice(int k)
+  {
+      return idx_t<3>({this->i, this->j, rng_t(k, k)});
+  }
+
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
     // extrapolate upward
@@ -158,6 +169,13 @@ class slvr_dim<
     out(this->i, this->j, 0) *= 2; 
     //out(this->i, this->j, this->k.last()) *= 2; 
     out(this->i, this->j, this->k.last()) = 0; 
+  }
+  
+  void vert_grad_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  {
+    in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last());
+    in(this->i, this->j, this->k.first() - 1) = in(this->i, this->j, this->k.first());
+    out(this->i, this->j, this->k + h) = libmpdataxx::formulae::nabla::grad_cmpct<2>(in, this->k, this->i, this->j, dz);
   }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)

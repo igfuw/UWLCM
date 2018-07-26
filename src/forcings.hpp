@@ -97,31 +97,61 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
 }
 
 template <class ct_params_t>
-void slvr_common<ct_params_t>::surf_sens()
+void slvr_common<ct_params_t>::surf_sens_impl(iles_tag)
 {
-  const auto &ijk = this->ijk;
-  //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
-  //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
   params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
-  F(ijk).reindex(this->zero) = surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) 
-                               * (*params.hgt_fctr_sclr)(this->vert_idx);
+  //F(ijk).reindex(this->zero) = surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) 
+  //                             * (*params.hgt_fctr_sclr)(this->vert_idx);
+  for (auto k = this->k.first(); k <= this->k.last(); ++k)
+  {
+    F(this->hrzntl_slice(k)) = - // "-" because negative gradient means inflow 
+      surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr_sclr)(k);
+  }
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   //this->smooth(tmp1, F);
 }
 
 template <class ct_params_t>
-void slvr_common<ct_params_t>::surf_latent()
+void slvr_common<ct_params_t>::surf_sens_impl(smg_tag)
 {
-  const auto &ijk = this->ijk;
-  //TODO: each thread has surf_flux_sens of the size of the domain of all threads and each updates all of it
-  //      either make it shared among threads and updated by one all make it of the size of hrzntl_subdomain
+  params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
+  F(this->ijk) = 0;
+}
+
+template <class ct_params_t>
+void slvr_common<ct_params_t>::surf_sens()
+{
+  surf_sens_impl(sgs_tag{});
+}
+
+template <class ct_params_t>
+void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
+{
   params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
-  F(ijk).reindex(this->zero) = surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
-                               * (*params.hgt_fctr_sclr)(this->vert_idx);
+  //F(ijk).reindex(this->zero) = surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
+  //                             * (*params.hgt_fctr_sclr)(this->vert_idx);
+  for (auto k = this->k.first(); k <= this->k.last(); ++k)
+  {
+    F(this->hrzntl_slice(k)) = -
+      surf_flux_lat(this->hrzntl_slice(0)) * (*params.hgt_fctr_sclr)(k);
+  }
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
   //this->smooth(tmp1, F);
+}
+
+template <class ct_params_t>
+void slvr_common<ct_params_t>::surf_latent_impl(smg_tag)
+{
+  params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
+  F(this->ijk) = 0;
+}
+
+template <class ct_params_t>
+void slvr_common<ct_params_t>::surf_latent()
+{
+  surf_latent_impl(sgs_tag{});
 }
 
 template <class ct_params_t>
