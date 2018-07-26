@@ -1,5 +1,5 @@
 #pragma once
-#include "slvr_common.hpp"
+#include "slvr_sgs.hpp"
 #include "outmom.hpp"
 
 #include <libcloudph++/lgrngn/factory.hpp>
@@ -9,9 +9,15 @@
 #endif
 
 template <class ct_params_t>
-class slvr_lgrngn : public slvr_common<ct_params_t>
+class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                              slvr_common<ct_params_t>,
+                                              slvr_sgs<ct_params_t>
+                                             >
 {
-  using parent_t = slvr_common<ct_params_t>; 
+  using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                    slvr_common<ct_params_t>,
+                                    slvr_sgs<ct_params_t>
+                                   >;
 
   public:
   using ix = typename ct_params_t::ix;

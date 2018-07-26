@@ -7,6 +7,7 @@
 
 #include <libmpdata++/bcond/cyclic_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
+#include <libmpdata++/bcond/gndsky_3d.hpp>
 #include <libmpdata++/concurr/openmp.hpp>
 #include "setup.hpp"
 
@@ -36,6 +37,18 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t 
   p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
   p.w_LS = new setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
 }
+
+//struct iles_tag {};
+//struct sgs_tag {};
+//
+//template<class params_t, class case_ptr_t>
+//void set_sgs_params_hlpr(params_t&, const case_ptr_t&, iles_tag) {}
+
+//template<class params_t, class case_ptr_t>
+//void set_sgs_params_hlpr(params_t& p, const case_ptr_t &ptr, sgs_tag)
+//{
+//  ptr->setopts_sgs(p);
+//}
 
 // 2D model run logic - the same for any microphysics
 template <class solver_t>
@@ -96,7 +109,6 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   // copy user_params for output
   p.user_params = user_params;
-
   // output and simulation parameters
   p.grid_size = {nx, nz};
 
@@ -160,7 +172,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     solver_t, 
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic,
-    bcond::rigid,  bcond::rigid 
+    bcond::gndsky,  bcond::gndsky
   >;
 
   using concurr_openmp_cyclic_t = concurr::openmp<
@@ -212,6 +224,13 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   p.grid_size = {nx, ny, nz};
 
   case_ptr->setopts(p, nx, ny, nz, user_params);
+
+  //{
+  //  //using tag = typename std::conditional<solver_t::ct_params_t_::sgs_scheme == solvers::iles, iles_tag, sgs_tag>::type;
+  //  using tag = iles_tag;
+  //  set_sgs_params_hlpr(p, case_ptr, tag{});
+  //}
+
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
@@ -376,36 +395,86 @@ struct ct_params_3D_blk_1m : ct_params_common
 
 // function used to modify ct_params before running
 template<template<class... Args_slvr> class slvr, class ct_params_dim_micro, class... Args>
-void run_hlpr(bool piggy, std::string type, Args&&... args)
+void run_hlpr(bool piggy, std::string type, bool sgs, Args&&... args)
 {
   if(!piggy) // no piggybacking
   {
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
-    if(type == "moist_thermal") // use abs option in moist_thermal
+    //if(type == "moist_thermal") // use abs option in moist_thermal
+    //{
+    //  struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
+    //  if (sgs)
+    //  {
+    //    struct ct_params_final : ct_params_opts
+    //    { 
+    //      enum { sgs_scheme = solvers::smg};
+    //      enum { stress_diff = solvers::compact};
+    //    };
+    //    run<slvr<ct_params_final>>(args...);
+    //  }
+    //  else
+    //  {
+    //  }
+    //}
+    //else // default is the iga | fct option
     {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(args...);
-    }
-    else // default is the iga | fct option
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(args...);
+      struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
+      if (sgs)
+      {
+        struct ct_params_final : ct_params_opts
+        { 
+          enum { sgs_scheme = solvers::smg};
+          enum { stress_diff = solvers::compact};
+        };
+        run<slvr<ct_params_final>>(args...);
+      }
+      else
+      {
+        struct ct_params_final : ct_params_opts {};
+        run<slvr<ct_params_final>>(args...);
+      }
     }
   }
-  else // piggybacking
-  {
-    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
-    if(type == "moist_thermal") // use abs option in moist_thermal
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(args...);
-    }
-    else // default is the iga | fct option
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(args...);
-    }
-  }
+  //else // piggybacking
+  //{
+  //  struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
+  //  if(type == "moist_thermal") // use abs option in moist_thermal
+  //  {
+  //    struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
+  //    if (sgs)
+  //    {
+  //      struct ct_params_final : ct_params_opts
+  //      { 
+  //        enum { sgs_scheme = solvers::smg};
+  //        enum { stress_diff = solvers::compact};
+  //      };
+  //      run<slvr<ct_params_final>>(args...);
+  //    }
+  //    else
+  //    {
+  //      struct ct_params_final : ct_params_opts {};
+  //      run<slvr<ct_params_final>>(args...);
+  //    }
+  //  }
+  //  else // default is the iga | fct option
+  //  {
+  //    struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
+  //    if (sgs)
+  //    {
+  //      struct ct_params_final : ct_params_opts
+  //      { 
+  //        enum { sgs_scheme = solvers::smg};
+  //        enum { stress_diff = solvers::compact};
+  //      };
+  //      run<slvr<ct_params_final>>(args...);
+  //    }
+  //    else
+  //    {
+  //      struct ct_params_final : ct_params_opts {};
+  //      run<slvr<ct_params_final>>(args...);
+  //    }
+  //  }
+  //}
 }
 
 
@@ -440,6 +509,7 @@ int main(int argc, char** argv)
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
+      ("sgs", po::value<bool>()->default_value(false) , "is subgrid-scale model on")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;
@@ -501,6 +571,8 @@ int main(int argc, char** argv)
     user_params.w_src = vm["w_src"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();
+    
+    bool sgs = vm["sgs"].as<bool>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
@@ -509,17 +581,17 @@ int main(int argc, char** argv)
     user_params.model_case = vm["case"].as<std::string>();
 
     // run the simulation
-    if (micro == "lgrngn" && ny == 0) // 2D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, nx, nz, user_params);
+    //if (micro == "lgrngn" && ny == 0) // 2D super-droplet
+    //  run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, sgs, nx, nz, user_params);
 
-    else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, nx, ny, nz, user_params);
+    if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
 
-    else if (micro == "blk_1m" && ny == 0) // 2D one-moment
-      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, nx, nz, user_params);
+    //else if (micro == "blk_1m" && ny == 0) // 2D one-moment
+    //  run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, sgs, nx, nz, user_params);
 
-    else if (micro == "blk_1m" && ny > 0) // 3D one-moment
-      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+    //else if (micro == "blk_1m" && ny > 0) // 3D one-moment
+    //  run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
 
   // TODO: not only micro can be wrong
     else throw 

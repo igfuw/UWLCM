@@ -6,6 +6,9 @@
 #include <libcloudph++/git_revision.h>
 #include "../git_revision.h"
 
+struct smg_tag  {};
+struct iles_tag {};
+
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
 {
@@ -14,6 +17,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   public:
   using real_t = typename ct_params_t::real_t;
   using ix = typename ct_params_t::ix;
+  using sgs_tag = typename std::conditional<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles, iles_tag, smg_tag>::type;
 
   protected:
 
@@ -31,8 +35,8 @@ class slvr_common : public slvr_dim<ct_params_t>
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
   // array with sensible and latent heat surface flux
-  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_sens;
-  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_lat;
+  blitz::Array<real_t, parent_t::n_dims> &surf_flux_sens;
+  blitz::Array<real_t, parent_t::n_dims> &surf_flux_lat;
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -127,8 +131,16 @@ class slvr_common : public slvr_dim<ct_params_t>
   void rv_src();
   void th_src(typename parent_t::arr_t &rv);
   void w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv);
+
+  void surf_sens_impl(smg_tag);
+  void surf_sens_impl(iles_tag);
+
+  void surf_latent_impl(smg_tag);
+  void surf_latent_impl(iles_tag);
+
   void surf_sens();
   void surf_latent();
+
   void subsidence(const int&);
 
   void update_rhs(
@@ -346,8 +358,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
 
     // functions for updating surface fluxes per timestep
-    std::function<void(typename parent_t::arr_sub_t&, int, real_t)> update_surf_flux_sens;
-    std::function<void(typename parent_t::arr_sub_t&, int, real_t)> update_surf_flux_lat;
+    std::function<void(typename parent_t::arr_t&, int, real_t)> update_surf_flux_sens;
+    std::function<void(typename parent_t::arr_t&, int, real_t)> update_surf_flux_lat;
   };
 
   // per-thread copy of params
@@ -366,11 +378,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     r_l(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
-    F(args.mem->tmp[__FILE__][0][1])
+    F(args.mem->tmp[__FILE__][0][1]),
+    surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
+    surf_flux_lat(args.mem->tmp[__FILE__][1][1])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
-    surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
-    surf_flux_lat.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
   }
 
@@ -378,5 +390,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 2, "", true); // surf_flux_sens, surf_flux_lat
   }
 };

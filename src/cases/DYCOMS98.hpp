@@ -286,13 +286,13 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
       }
 
-      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
+      void update_surf_flux_sens(typename concurr_t::solver_t::arr_t &surf_flux_sens, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_sens = 16.; // [W/m^2]
       }
 
-      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
+      void update_surf_flux_lat(typename concurr_t::solver_t::arr_t &surf_flux_lat, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_lat = 93.; // [W/m^2]
@@ -346,7 +346,7 @@ std::cout << "lwp env: " << lwp_env << std::endl;
       {
         params.c_m = 0.0856;
         params.smg_c = 0.165;
-        //p.prandtl_num = 0.42;
+        params.prandtl_num = 0.42;
         params.cdrag = 0.;
       }
       
