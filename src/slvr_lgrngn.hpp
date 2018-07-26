@@ -376,8 +376,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
   void hook_ante_step()
   {
-    parent_t::hook_ante_step(); // includes output
-    this->mem->barrier();
     if (this->rank == 0) 
     {
       // assuring previous async step finished ...
@@ -405,6 +403,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
     }
     this->mem->barrier();
+    parent_t::hook_ante_step(); // includes output
   }
 
 
@@ -525,6 +524,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     negcheck(this->mem->advectee(ix::th), "th before step sync");
     negcheck(this->mem->advectee(ix::rv), "rv before step sync");
 
+    this->mem->barrier();
     // start sync/async run of step_cond
     // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
     if (this->rank == 0) 
