@@ -513,7 +513,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     }
     this->mem->barrier();
 
-    this->update_rhs(this->rhs, this->dt, 0);
+    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
     this->apply_rhs(this->dt);
 
     // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
