@@ -475,7 +475,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
   void hook_mixed_rhs_ante_step()
   {
-    this->update_rhs(this->rhs, this->dt, 0);
 
     // pass Eulerian fields to microphysics 
     if (this->rank == 0) 
@@ -514,8 +513,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     }
     this->mem->barrier();
 
-    // apply rhs (except condensation)
+    this->update_rhs(this->rhs, this->dt, 0);
     this->apply_rhs(this->dt);
+
     // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
     // turn all negative rv into rv = 0... CHEATING
     negtozero(this->mem->advectee(ix::rv), "rv before step sync");
