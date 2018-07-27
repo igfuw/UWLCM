@@ -426,7 +426,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
   //        T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
           // TODO: env pressure should be used below!
     //      p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
-          res += th * (T - ql * L / c_p); 
+          res += th / T * (T - ql * L / c_p); 
 //          res += ql;
         }
         gp << "set title 'liquid potential temp [K]'\n";
