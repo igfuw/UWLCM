@@ -238,7 +238,7 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         st(notopbot) = (th_e(notopbot+1) - th_e(notopbot-1)) / th_e(notopbot);
         real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
         // reference theta
-        th_ref = th_e(0) * exp(st_avg * k * dz);
+        th_ref = th_e(0) * (1. + 0.608 * rv_e(0)) * exp(st_avg * k * dz);
       //  th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) // calc dry theta at z=0 
       //           * exp(st_avg * k * dz);
         // virtual temp at surface
