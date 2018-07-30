@@ -196,15 +196,15 @@ for file_name in profiles_files_names:
     
   
     plot_iter=0
-    plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel='$\theta_l$[K]', varlabel=label_counter)
-    plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='q$_{tot}$[g/kg]', varlabel=label_counter)
-    plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='q$_{l}$[g/kg]', varlabel=label_counter)
-    plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='wvar', varlabel=label_counter)
-    plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='w3rd', varlabel=label_counter)
-    plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='prflux', varlabel=label_counter)
-    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='S', varlabel=label_counter)
-    plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='cl frac', varlabel=label_counter)
-    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='nc', varlabel=label_counter)
+    plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel='$\theta_l$[K]', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='q$_{tot}$[g/kg]', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='q$_{l}$[g/kg]', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='wvar', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='w3rd', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='prflux', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='S', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='cl frac', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='nc', varlabel=profiles_labels[label_counter])
   except:
     print 'error opening file: ', file_name
     my_pos = 0
