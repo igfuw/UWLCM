@@ -153,7 +153,7 @@ void setopts_micro(
 
   // coalescence kernel choice
   if(!onishi)
-    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
+    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall;//_davis_no_waals;
   else
   {
     rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::onishi_hall_davis_no_waals;
