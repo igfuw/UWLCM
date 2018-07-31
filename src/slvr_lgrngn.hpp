@@ -403,7 +403,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
     }
     this->mem->barrier();
-    parent_t::hook_ante_step(); // includes output
+    parent_t::hook_ante_step(); // includes RHS, which in turn launches sync_in and step_cond
   }
 
 
@@ -476,6 +476,19 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   void hook_mixed_rhs_ante_step()
   {
 
+    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
+    this->apply_rhs(this->dt);
+
+    // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
+    // turn all negative rv into rv = 0... CHEATING
+    negtozero(this->mem->advectee(ix::rv), "rv before step sync");
+    nancheck(this->mem->advectee(ix::th), "th before step sync");
+    nancheck(this->mem->advectee(ix::rv), "rv before step sync");
+    negcheck(this->mem->advectee(ix::th), "th before step sync");
+    negcheck(this->mem->advectee(ix::rv), "rv before step sync");
+
+    this->mem->barrier();
+
     // pass Eulerian fields to microphysics 
     if (this->rank == 0) 
     {
@@ -513,18 +526,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     }
     this->mem->barrier();
 
-    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
-    this->apply_rhs(this->dt);
-
-    // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
-    // turn all negative rv into rv = 0... CHEATING
-    negtozero(this->mem->advectee(ix::rv), "rv before step sync");
-    nancheck(this->mem->advectee(ix::th), "th before step sync");
-    nancheck(this->mem->advectee(ix::rv), "rv before step sync");
-    negcheck(this->mem->advectee(ix::th), "th before step sync");
-    negcheck(this->mem->advectee(ix::rv), "rv before step sync");
-
-    this->mem->barrier();
     // start sync/async run of step_cond
     // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
     if (this->rank == 0) 
