@@ -22,6 +22,13 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
+  // helpers for calculating RHS from condensation, probably some of the could be avoided e.g. if step_cond returnd deltas and not changed fields 
+  // or if change in theta was calculated from change in rv  
+  typename parent_t::arr_t &rv_pre_cond,
+                           &rv_post_cond,
+                           &th_pre_cond,
+                           &th_post_cond;
+
   // helper methods
   void diag()
   {
@@ -639,10 +646,20 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     const rt_params_t &p
   ) : 
     parent_t(args, p),
-    params(p)
+    params(p),
+    rv_pre_cond(args.mem->tmp[__FILE__][0][0]),
+    rv_post_cond(args.mem->tmp[__FILE__][0][1]),
+    th_pre_cond(args.mem->tmp[__FILE__][0][2]),
+    th_post_cond(args.mem->tmp[__FILE__][0][3])
   {
 
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
+
+  static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
+  {
+    parent_t::alloc(mem, n_iters);
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 4);
+  }
 
 };

@@ -36,7 +36,6 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
-                           &tmp2,
                            &r_l,
                            &F,       // forcings helper
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
@@ -365,11 +364,10 @@ class slvr_common : public slvr_dim<ct_params_t>
     params(p),
     spinup(p.spinup),
     tmp1(args.mem->tmp[__FILE__][0][0]),
-    tmp2(args.mem->tmp[__FILE__][0][5]),
     r_l(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
-    F(args.mem->tmp[__FILE__][0][1])
+    F(args.mem->tmp[__FILE__][0][1]),
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
@@ -380,6 +378,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 5);
   }
 };
