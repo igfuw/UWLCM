@@ -367,7 +367,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     r_l(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
-    F(args.mem->tmp[__FILE__][0][1]),
+    F(args.mem->tmp[__FILE__][0][1])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain

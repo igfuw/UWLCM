@@ -432,18 +432,24 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         assert(ftr.valid());
         parent_t::tbeg = parent_t::clock::now();
         ftr.get();
-        // microphysics could have led to rv < 0 ?
-        // TODO: repeated above, unify
-        negtozero(this->mem->advectee(ix::rv), "rv after step sync");
-
-        nancheck(this->mem->advectee(ix::th), "th after step sync");
-        nancheck(this->mem->advectee(ix::rv), "rv after step sync");
-        negcheck(this->mem->advectee(ix::th), "th after step sync");
-        negcheck(this->mem->advectee(ix::rv), "rv after step sync");
         parent_t::tend = parent_t::clock::now();
         parent_t::tsync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       } else assert(!ftr.valid()); 
 #endif
+    }
+
+    // add microphysics contribution to th and rv
+    this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
+    this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
+      
+    if (this->rank == 0) 
+    {
+      // microphysics could have led to rv < 0 ?
+      negtozero(this->mem->advectee(ix::rv), "rv after step sync");
+      nancheck(this->mem->advectee(ix::th), "th after step sync");
+      nancheck(this->mem->advectee(ix::rv), "rv after step sync");
+      negcheck(this->mem->advectee(ix::th), "th after step sync");
+      negcheck(this->mem->advectee(ix::rv), "rv after step sync");
       
       // running asynchronous stuff
       {
@@ -494,6 +500,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     negcheck(this->mem->advectee(ix::th), "th before step sync");
     negcheck(this->mem->advectee(ix::rv), "rv before step sync");
 
+    rv_pre_cond(this->ijk) = this->state(ix::rv)(this->ijk); 
+    th_pre_cond(this->ijk) = this->state(ix::th)(this->ijk); 
+
     this->mem->barrier();
 
     // pass Eulerian fields to microphysics 
@@ -522,14 +531,14 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       using libcloudphxx::lgrngn::CUDA;
       using libcloudphxx::lgrngn::multi_CUDA;
 
-        prtcls->sync_in(
-          make_arrinfo(this->mem->advectee(ix::th)),
-          make_arrinfo(this->mem->advectee(ix::rv)),
-          libcloudphxx::lgrngn::arrinfo_t<real_t>(),
-          make_arrinfo(Cx),
-          this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
-          make_arrinfo(Cz)
-        );
+      prtcls->sync_in(
+        make_arrinfo(this->mem->advectee(ix::th)),
+        make_arrinfo(this->mem->advectee(ix::rv)),
+        libcloudphxx::lgrngn::arrinfo_t<real_t>(),
+        make_arrinfo(Cx),
+        this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
+        make_arrinfo(Cz)
+      );
     }
     this->mem->barrier();
 
@@ -551,8 +560,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
             &particles_t<real_t, CUDA>::step_cond, 
             dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
             params.cloudph_opts,
-            make_arrinfo(this->mem->advectee(ix::th)),
-            make_arrinfo(this->mem->advectee(ix::rv)),
+            make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
+            make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
             std::map<enum libcloudphxx::lgrngn::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
           );
         else if(params.backend == multi_CUDA)
@@ -561,8 +570,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
             &particles_t<real_t, multi_CUDA>::step_cond, 
             dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
             params.cloudph_opts,
-            make_arrinfo(this->mem->advectee(ix::th)),
-            make_arrinfo(this->mem->advectee(ix::rv)),
+            make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
+            make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
             std::map<enum libcloudphxx::lgrngn::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
           );
         assert(ftr.valid());
@@ -571,16 +580,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       {
         prtcls->step_cond(
           params.cloudph_opts,
-          make_arrinfo(this->mem->advectee(ix::th)),
-          make_arrinfo(this->mem->advectee(ix::rv))
+          make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
+          make_arrinfo(rv_post_cond(this->domain).reindex(this->zero))
         );
-        // microphysics could have led to rv < 0 ?
-        negtozero(this->mem->advectee(ix::rv), "rv after step sync");
-
-        nancheck(this->mem->advectee(ix::th), "th after step sync");
-        nancheck(this->mem->advectee(ix::rv), "rv after step sync");
-        negcheck(this->mem->advectee(ix::th), "th after step sync");
-        negcheck(this->mem->advectee(ix::rv), "rv after step sync");
       }
 
       parent_t::tend = parent_t::clock::now();
