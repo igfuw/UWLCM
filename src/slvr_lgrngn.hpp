@@ -437,20 +437,20 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       } else assert(!ftr.valid()); 
 #endif
     }
+    this->mem->barrier();
 
     // add microphysics contribution to th and rv
     this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
     this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
+    // microphysics could have led to rv < 0 ?
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
       
     if (this->rank == 0) 
     {
-      // microphysics could have led to rv < 0 ?
-      negtozero(this->mem->advectee(ix::rv), "rv after step sync");
-      nancheck(this->mem->advectee(ix::th), "th after step sync");
-      nancheck(this->mem->advectee(ix::rv), "rv after step sync");
-      negcheck(this->mem->advectee(ix::th), "th after step sync");
-      negcheck(this->mem->advectee(ix::rv), "rv after step sync");
-      
       // running asynchronous stuff
       {
         using libcloudphxx::lgrngn::particles_t;
@@ -483,7 +483,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       }
     }
-    this->mem->barrier();
   }
 
   void hook_mixed_rhs_ante_step()
@@ -494,11 +493,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
     // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
     // turn all negative rv into rv = 0... CHEATING
-    negtozero(this->mem->advectee(ix::rv), "rv before step sync");
-    nancheck(this->mem->advectee(ix::th), "th before step sync");
-    nancheck(this->mem->advectee(ix::rv), "rv before step sync");
-    negcheck(this->mem->advectee(ix::th), "th before step sync");
-    negcheck(this->mem->advectee(ix::rv), "rv before step sync");
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
 
     rv_pre_cond(this->ijk) = this->state(ix::rv)(this->ijk); 
     th_pre_cond(this->ijk) = this->state(ix::th)(this->ijk); 
@@ -539,13 +538,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
         make_arrinfo(Cz)
       );
-    }
-    this->mem->barrier();
 
-    // start sync/async run of step_cond
-    // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
-    if (this->rank == 0) 
-    {
+      // start sync/async run of step_cond
+      // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
       using libcloudphxx::lgrngn::particles_t;
       using libcloudphxx::lgrngn::CUDA;
       using libcloudphxx::lgrngn::multi_CUDA;
@@ -599,10 +594,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->apply_rhs(this->dt);
     // no negtozero after apply, because only w changed here
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
-    nancheck(this->mem->advectee(ix::th), "th after step sync");
-    nancheck(this->mem->advectee(ix::rv), "rv after step sync");
-    negcheck(this->mem->advectee(ix::th), "th after step sync");
-    negcheck(this->mem->advectee(ix::rv), "rv after step sync");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
   }
   
   void record_all()
