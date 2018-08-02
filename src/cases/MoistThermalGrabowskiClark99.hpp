@@ -171,6 +171,7 @@ namespace setup
         params.buoyancy_wet = true;
         params.subsidence = false;
         params.friction = false;
+        params.radiation = false;
     //    params.n_iters=1;
       }
     
@@ -255,8 +256,8 @@ namespace setup
         {
           real_t zz = k * dz;  
           // predictor
-           real_t rhob=pre_ref(k-1) / rg / (T(k-1)*(1.+a*rv_e(k-1)));
-           pre_ref(k)=pre_ref(k-1) - gg*rhob*dz;
+           real_t rhob=pre_ref(k-1) / rg / (T(k-1)*(1.+a*rv_e(k-1))); // density of air at k-1
+           pre_ref(k)=pre_ref(k-1) - gg*rhob*dz; // estimate of pre at k (dp = -g * rho * dz)
     // iteration for T and qv:
            rv_e(k)=rv_e(k-1);
            T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap); 
@@ -287,7 +288,7 @@ namespace setup
             esw=ee0*exp(d * delt);
             qvs=a * esw /(pre_ref(k)-esw);
             rv_e(k)=env_RH*qvs;
-           T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
+            T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
             T(k)=T(k)/(1.+a*rv_e(k));
           }
           rv_e(k) =  RH_T_p_to_rv(env_RH, T(k) * si::kelvins, pre_ref(k) * si::pascals); // cheating!
