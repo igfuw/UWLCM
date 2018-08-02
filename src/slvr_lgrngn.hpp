@@ -488,17 +488,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   void hook_mixed_rhs_ante_step()
   {
 
-    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
-    this->apply_rhs(this->dt);
-
-    // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
-    // turn all negative rv into rv = 0... CHEATING
-    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
-    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
-    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
-    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
-
     rv_pre_cond(this->ijk) = this->state(ix::rv)(this->ijk); 
     th_pre_cond(this->ijk) = this->state(ix::th)(this->ijk); 
 
@@ -586,6 +575,17 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       parent_t::tbeg = parent_t::clock::now();
     }
     this->mem->barrier();
+
+    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
+    this->apply_rhs(this->dt);
+
+    // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
+    // turn all negative rv into rv = 0... CHEATING
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
   }
 
   void hook_mixed_rhs_post_step()
