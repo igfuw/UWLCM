@@ -35,6 +35,7 @@ namespace setup
         params.buoyancy_wet = false;
         params.subsidence = false;
         params.friction = false;
+        params.radiation = false;
       }
   
       template <class index_t>

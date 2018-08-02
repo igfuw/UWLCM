@@ -128,6 +128,7 @@ namespace setup
         params.buoyancy_wet = true;
         params.subsidence = true;
         params.friction = true;
+        params.radiation = true;
       }
   
   
@@ -183,15 +184,16 @@ namespace setup
         real_t dz = (Z / si::metres) / (nz-1);
   
         r_t rt;
+        // input sounding at z=0, for moist air, no liquid water
         T(0) = th_l(0.) / si::kelvins *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
         pre(0) = p_0 / si::pascals;
         th_e(0) = th_l(0.) / si::kelvins;
         rv_e(0) = rt(0.);
   
         real_t tt0 = 273.17;
-        real_t rv = 461;
+        real_t rv = 461; // specific gas constant for vapor
         real_t ee0 = 611.;
-        real_t a = R_d<real_t>() / rv / si::joules * si::kelvins * si::kilograms;
+        real_t a = R_d<real_t>() / rv / si::joules * si::kelvins * si::kilograms; // aka epsilon
         real_t b = l_tri<real_t>() / si::joules * si::kilograms / rv / tt0;
         real_t c = l_tri<real_t>() / c_pd<real_t>() / si::kelvins;
         real_t d = l_tri<real_t>() / si::joules * si::kilograms / rv;
@@ -199,17 +201,18 @@ namespace setup
   
         for(int k=1; k<nz; ++k)
         {
-          real_t bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(k-1));
-          real_t rho1 = pre(k-1) / bottom;
-          pre(k) = pre(k-1) - rho1 * 9.81 * dz;
-          real_t thetme = pow(p_1000<real_t>() / si::pascals / pre(k), f);
-          real_t thi = 1. / (th_l(k * dz) / si::kelvins);
+          real_t bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(k-1)); // (p / rho) of moist air at k-1
+          real_t rho1 = pre(k-1) / bottom; // rho at k-1
+          pre(k) = pre(k-1) - rho1 * 9.81 * dz; // estimate of pre at k (dp = -g * rho * dz)
+          real_t thetme = pow(p_1000<real_t>() / si::pascals / pre(k), f); // 1/Exner
+          real_t thi = 1. / (th_l(k * dz) / si::kelvins); // 1/theta_std
           real_t y = b * thetme * tt0 * thi; 
-          real_t ees = ee0 * exp(b-y);
-          real_t qvs = a * ees / (pre(k) - ees); 
-          real_t cf1 = thetme*thetme*thi*thi;
-          cf1 *= c * d * pre(k) / (pre(k) - ees);
-          real_t delta = (rt(k*dz) - qvs) / (1 + qvs * cf1);
+          real_t ees = ee0 * exp(b-y); // saturation vapor pressure (Tetens equation or what?)
+          real_t qvs = a * ees / (pre(k) - ees);  // saturation vapor mixing ratio = R_d / R_v * ees / p_d
+// calculate linearized condensation rate
+          real_t cf1 = thetme*thetme*thi*thi;  // T^{-2}
+          cf1 *= c * d * pre(k) / (pre(k) - ees); // = l_tri^2 / (C_pd * R_v * T^2) * p/p_d
+          real_t delta = (rt(k*dz) - qvs) / (1 + qvs * cf1); // how much supersaturated is the air (divided by sth)
           if(delta < 0.) delta = 0.;
           rv_e(k) = rt(k*dz) - delta;
           th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
@@ -236,6 +239,7 @@ namespace setup
         real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0));
         real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
+        // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / th_e(0);  // this is correct?
         // rhod profile
         rhod = rho_surf * exp(- st_avg * k * dz) * pow(
                  1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
@@ -256,6 +260,18 @@ namespace setup
         z_0 = user_params.z_rlx_sclr;
         hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
         hgt_fctr_sclr(0) = 1;
+      }
+
+      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
+      {
+        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+          surf_flux_sens = 16.; // [W/m^2]
+      }
+
+      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
+      {
+        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+          surf_flux_lat = 93.; // [W/m^2]
       }
 
       // ctor
