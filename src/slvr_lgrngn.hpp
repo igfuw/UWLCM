@@ -29,6 +29,18 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
                            &th_pre_cond,
                            &th_post_cond;
 
+  void diag_rl()
+  {
+    if(this->rank != 0) return;
+
+    prtcls->diag_all();
+    prtcls->diag_wet_mom(3);
+    auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
+    rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+    nancheck(rl, "rl after copying from diag_wet_mom(3)");
+    rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+  }
+
   // helper methods
   void diag()
   {
@@ -375,7 +387,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   }
 
   void hook_mixed_rhs_ante_loop()
-  {} // empty, because update_rhs called before each step; defined, to avoid assert from default hook_mixed_rhs_ante_loop
+  {
+    diag_rl(); // init r_l
+  } 
 
 #if defined(STD_FUTURE_WORKS)
   std::future<void> ftr;
@@ -399,15 +413,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       } else assert(!ftr.valid()); 
 #endif
-
-      // store liquid water content to be used in update_rhs (if done in update_rhs, it fails on async runs)
-      prtcls->diag_all();
-      prtcls->diag_wet_mom(3);
-      auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
-      rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
-      nancheck(rl, "rl after copying from diag_wet_mom(3)");
-      rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
-
     }
     this->mem->barrier();
     parent_t::hook_ante_step(); // includes RHS, which in turn launches sync_in and step_cond
@@ -448,6 +453,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
     negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+
+    // store liquid water content (post-cond, pre-adve and pre-subsidence)
+    diag_rl();
       
     if (this->rank == 0) 
     {
@@ -483,6 +491,29 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       }
     }
+    this->mem->barrier();
+
+    // subsidence of rl
+    // TODO: very similar code to subsidence function in forcings.hppp
+    if(params.subsidence)
+    {
+      auto& tmp1(this->tmp1);
+      auto& r_l(this->r_l);
+      const auto& ijk(this->ijk);
+      const auto& params(this->params);
+      auto& F(this->F);
+
+      tmp1(ijk) = r_l(ijk);
+      // fill halos for gradient calculation
+      // TODO: no need to xchng in horizontal, which potentially causes MPI communication
+      this->xchng_sclr(tmp1, this->ijk, this->halo);
+      this->vert_grad_cnt(tmp1, F, params.dz);
+      F(ijk).reindex(this->zero) *= - (*params.w_LS)(this->vert_idx);
+      r_l(ijk) += F(ijk) * this->dt;
+    }
+
+    // advect r_l (1st-order)
+    this->self_advec_donorcell(this->r_l);
   }
 
   void hook_mixed_rhs_ante_step()
