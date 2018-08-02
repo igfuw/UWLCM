@@ -95,10 +95,6 @@ class Plotter_t<2> : public PlotterCommon
   Plotter_t(const string &file):
     parent_t(file)
   {
-    // read number of timesteps
-    this->h5f.openDataSet("T").getSpace().getSimpleExtentDims(n, NULL);
-    this->map["t"] = n[0];
-
     // read number of cells
     this->h5f.openDataSet("X").getSpace().getSimpleExtentDims(n, NULL); // X gives cell-border coordinates (+1)
     this->map["x"] = n[0]-1;
