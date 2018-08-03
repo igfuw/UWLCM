@@ -227,6 +227,12 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   {
     params.flag_coal = params.cloudph_opts.coal;
 
+    // use stat_field array to temporarily store 1d pressure profile in a 3d field
+    // beacuse we need 3d field to init particles
+    auto& p_e_nd = this->stat_field;
+
+    p_e_nd(this->ijk) = this->p_e(this->vert_idx);
+
     // TODO: barrier?
     this->mem->barrier();
     if (this->rank == 0) 
@@ -285,19 +291,11 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         params.cloudph_opts_init
       ));
 
-      // temporary array of densities - prtcls cant be init'd with 1D profile
-      typename parent_t::arr_t rhod(this->mem->advectee(ix::th).shape()); // TODO: replace all rhod arrays with this->mem->G
-      rhod = (*params.rhod)(this->vert_idx);
-
-      // temporary array of pressure - prtcls cant be init'd with 1D profile
-      typename parent_t::arr_t p_e(this->mem->advectee(ix::th).shape()); 
-      p_e = (*params.p_e)(this->vert_idx);
-
       prtcls->init(
         make_arrinfo(this->mem->advectee(ix::th)),
         make_arrinfo(this->mem->advectee(ix::rv)),
-        make_arrinfo(rhod)
-        ,make_arrinfo(p_e)
+        make_arrinfo((*this->mem->G)(this->domain).reindex(this->zero)),
+        make_arrinfo(p_e_nd(this->domain).reindex(this->zero))
       ); 
 
       // writing diagnostic data for the initial condition
@@ -375,6 +373,14 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   {
     parent_t::hook_ante_step(); // includes output
     this->mem->barrier();
+
+    // using fluxes array to temporarily store Courant number fields
+    auto& C = this->flux;
+
+    this->GCtoC(C);
+
+    this->mem->barrier();
+
     if (this->rank == 0) 
     {
       // assuring previous async step finished ...
@@ -401,21 +407,13 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
 
       {
-        // temporarily Cx & Cz are multiplied by this->rhod ...
-        auto 
-          Cx = this->mem->GC[0](this->Cx_domain).reindex(this->zero).copy(),
-          Cy = this->mem->GC[1](this->Cy_domain).reindex(this->zero).copy(),
-          Cz = this->mem->GC[ix::w](this->Cz_domain).reindex(this->zero).copy(); 
+        auto Cx = C[0](this->Cx_domain).reindex(this->zero);
+        auto Cy = C[1](this->Cy_domain).reindex(this->zero);
+        auto Cz = C[this->n_dims - 1](this->Cz_domain).reindex(this->zero);
+
         nancheck(Cx, "Cx after copying from mpdata");
         nancheck(Cy, "Cy after copying from mpdata");
         nancheck(Cz, "Cz after copying from mpdata");
-
-        // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
-        {
-          Cx.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
-          Cy.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
-          Cz.reindex(this->zero) /= (*params.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
-        }
 
         // running synchronous stuff
         parent_t::tbeg = parent_t::clock::now();
