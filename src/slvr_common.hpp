@@ -42,6 +42,8 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
                            &beta;    // 'implicit' rhs part - coefficient of the value at n+1
 
+  setup::arr_1D_t th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr;
+
   // surface precip stuff
   std::ofstream f_puddle; // output precipitation file
   
@@ -259,12 +261,12 @@ class slvr_common : public slvr_dim<ct_params_t>
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
-      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
+      this->vip_rhs[it](this->ijk) += 
         where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
           -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+          hgt_fctr_vctr(this->vert_idx)                                       // hgt_fctr 
         );
 /*
  *
@@ -366,7 +368,16 @@ class slvr_common : public slvr_dim<ct_params_t>
     r_l(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
-    F(args.mem->tmp[__FILE__][0][1])
+    F(args.mem->tmp[__FILE__][0][1]),
+    th_e((*p.th_e)(this->vert_rng)),
+    p_e((*p.p_e)(this->vert_rng)),
+    rv_e((*p.rv_e)(this->vert_rng)),
+    th_ref((*p.th_ref)(this->vert_rng)),
+    pre_ref((*p.pre_ref)(this->vert_rng)),
+    rhod((*p.rhod)(this->vert_rng)),
+    w_LS((*p.w_LS)(this->vert_rng)),
+    hgt_fctr_sclr((*p.hgt_fctr_sclr)(this->vert_rng)),
+    hgt_fctr_vctr((*p.hgt_fctr_vctr)(this->vert_rng))
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain

@@ -40,9 +40,9 @@ void slvr_common<ct_params_t>::rv_src()
 
     // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
     if(params.ForceParameters.surf_latent_flux_in_watts_per_square_meter)
-      alpha(ijk).reindex(this->zero) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
+      alpha(ijk) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * rhod(this->vert_idx);
 //    else
-  //    alpha(ijk).reindex(this->zero) *= -1; // negative gradient means inflow
+  //    alpha(ijk) *= -1; // negative gradient means inflow
 
     // large-scale vertical wind
     subsidence(ix::rv); // TODO: in case 1, rv here should be in step n+1, calc it explicitly as rv + 0.5 * dt * rhs(rv); 
@@ -55,8 +55,8 @@ void slvr_common<ct_params_t>::rv_src()
 
   beta(ijk) = 0.;
   // nudging, todo: use some other coeff than vab_coeff
-//  alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
-//  beta(ijk) = - (*this->mem->vab_coeff)(ijk);
+  //alpha(ijk) += (*this->mem->vab_coeff)(ijk) * rv_e(this->vert_idx); // TODO: its a constant, cache it
+  //beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
 template <class ct_params_t>
@@ -99,11 +99,9 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     }
   
     // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
-      calc_c_p()(rv(ijk).reindex(this->zero)) * 
-      (*params.rhod)(this->vert_idx);
+    alpha(ijk) /=  calc_exner()(p_e(this->vert_idx)) * calc_c_p()(rv(ijk)) * rhod(this->vert_idx);
 
-      nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
+    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surf flux if it is specified as mean(theta*w)
     if(!params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
@@ -129,7 +127,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 
   beta(ijk) = 0.;
   // nudging, todo: use some other coeff than vab_coeff
-  //alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.th_e)(this->vert_idx);
+  //alpha(ijk) += (*this->mem->vab_coeff)(ijk) * th_e(this->vert_idx);
   //beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 

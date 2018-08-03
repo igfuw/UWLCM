@@ -47,8 +47,18 @@ class slvr_dim<
 
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
   blitz::secondIndex vert_idx;
+  const rng_t &vert_rng = this->j;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::u};
+
+  void GCtoC(arrvec_t<typename parent_t::arr_t> &C)
+  {
+    using namespace arakawa_c;
+    const auto &i(this->i), &j(this->j);
+    const auto &im(this->im), &jm(this->jm);
+    C[0](im + h, j) = this->mem->GC[0](im + h, j) / (0.5 * ((*this->mem->G)(im, j) + (*this->mem->G)(im + 1, j)));
+    C[1](i, jm + h) = this->mem->GC[1](i, jm + h) / (0.5 * ((*this->mem->G)(i, jm) + (*this->mem->G)(i, jm + 1)));
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -92,7 +102,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    abs(this->state(ix::vip_i)(this->i, 0).reindex({0}))
+    abs(this->state(ix::vip_i)(this->i, 0))
   )
 
   // ctor
@@ -102,7 +112,7 @@ class slvr_dim<
   ) :
     parent_t(args, p)
   {
-    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_i)(this->i, 0).reindex({0})));
+    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_i)(this->i, 0)));
   }
 };
 
@@ -129,8 +139,19 @@ class slvr_dim<
 
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
   blitz::thirdIndex vert_idx;
+  const rng_t &vert_rng = this->k;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::u, ix::v};
+
+  void GCtoC(arrvec_t<typename parent_t::arr_t> &C)
+  {
+    using namespace arakawa_c;
+    const auto &i(this->i), &j(this->j), &k(this->k);
+    const auto &im(this->im), &jm(this->jm), &km(this->km);
+    C[0](im + h, j, k) = this->mem->GC[0](im + h, j, k) / (0.5 * ((*this->mem->G)(im, j, k) + (*this->mem->G)(im + 1, j, k)));
+    C[1](i, jm + h, k) = this->mem->GC[1](i, jm + h, k) / (0.5 * ((*this->mem->G)(i, jm, k) + (*this->mem->G)(i, jm + 1, k)));
+    C[2](i, j, km + h) = this->mem->GC[2](i, j, km + h) / (0.5 * ((*this->mem->G)(i, j, km) + (*this->mem->G)(i, j, km + 1)));
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -173,7 +194,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    sqrt(pow2(this->state(ix::vip_i)(this->i, this->j, 0).reindex({0,0})) + pow2(this->state(ix::vip_j)(this->i, this->j, 0).reindex({0,0})))
+    sqrt(pow2(this->state(ix::vip_i)(this->i, this->j, 0)) + pow2(this->state(ix::vip_j)(this->i, this->j, 0)))
   )
 
   // ctor
@@ -183,8 +204,8 @@ class slvr_dim<
   ) : 
     parent_t(args, p)
   {
-    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_i)(this->i, this->j, 0).reindex({0,0})));
-    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_j)(this->i, this->j, 0).reindex({0,0})));
+    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_i)(this->i, this->j, 0)));
+    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_j)(this->i, this->j, 0)));
   }
 };
 
