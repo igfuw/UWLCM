@@ -17,22 +17,41 @@
 
 #include "opts_lgrngn.hpp"
 #include "opts_blk_1m.hpp"
+
 #include "panic.hpp"
 #include <map>
 
 // copy external profiles into rt_parameters
 // TODO: more elegant way
 template<class params_t>
-void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p)
+void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p, const int halo)
 {
-  p.hgt_fctr_sclr = new setup::arr_1D_t(hgt_s.dataFirst(), hgt_s.shape(), blitz::neverDeleteData);
-  p.hgt_fctr_vctr = new setup::arr_1D_t(hgt_v.dataFirst(), hgt_v.shape(), blitz::neverDeleteData);
-  p.th_e = new setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
-  p.rv_e = new setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
-  p.th_ref = new setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
-  p.pre_ref = new setup::arr_1D_t(pre_ref.dataFirst(), pre_ref.shape(), blitz::neverDeleteData);
-  p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
-  p.w_LS = new setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
+  const auto nz = p.grid_size.back();
+
+  std::vector<std::pair<std::reference_wrapper<setup::arr_1D_t*>, std::reference_wrapper<setup::arr_1D_t>>> tobecopied = {
+    {p.hgt_fctr_sclr, hgt_s  },
+    {p.hgt_fctr_vctr, hgt_v  },
+    {p.th_e         , th_e   },
+    {p.p_e          , p_e    },
+    {p.rv_e         , rv_e   },
+    {p.th_ref       , th_ref },
+    {p.pre_ref      , pre_ref},
+    {p.rhod         , rhod   },
+    {p.w_LS         , w_LS   }
+  };
+
+  for (auto dst_src : tobecopied)
+  {
+    auto a = new setup::arr_1D_t(blitz::Range(-halo, nz - 1 + halo));
+    dst_src.first.get() = new setup::arr_1D_t(a->dataFirst(), a->shape(), blitz::neverDeleteData);
+    dst_src.first.get()->reindexSelf(a->base());
+
+    // copy profile data
+    for (int k = 0; k < nz; ++k)
+    {
+      (*dst_src.first.get())(k) = dst_src.second.get()(k);
+    }
+  }
 }
 
 // 2D model run logic - the same for any microphysics
@@ -102,13 +121,14 @@ void run(int nx, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p, solver_t::halo);
+
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -122,17 +142,17 @@ void run(int nx, int nz, const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -213,13 +233,13 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p, solver_t::halo);
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -235,17 +255,17 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -338,6 +358,7 @@ struct ct_params_2D_sd : ct_params_common
     u, w, th, rv, 
     vip_i=u, vip_j=w, vip_den=-1
   }; };
+  enum { delayed_step = opts::bit(ix::th) | opts::bit(ix::rv) };
 };
 
 struct ct_params_3D_sd : ct_params_common
@@ -348,6 +369,7 @@ struct ct_params_3D_sd : ct_params_common
     u, v, w, th, rv, 
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
+  enum { delayed_step = opts::bit(ix::th) | opts::bit(ix::rv) };
 };
 
 struct ct_params_2D_blk_1m : ct_params_common
@@ -424,13 +446,15 @@ int main(int argc, char** argv)
       ("nt", po::value<int>()->default_value(3600) , "timestep count")
       ("rng_seed", po::value<int>()->default_value(-1) , "rng seed, negative for random")
       ("dt", po::value<setup::real_t>()->required() , "timestep length")
-      ("z_rlx_sclr", po::value<setup::real_t>()->default_value(10) , "scalars surface flux charasteristic heihjt")
+      ("z_rlx_sclr", po::value<setup::real_t>()->default_value(25) , "scalars surface flux charasteristic heihjt")
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
       ("serial", po::value<bool>()->default_value(false), "force advection and microphysics to be computed on single thread")
       ("th_src", po::value<bool>()->default_value(true) , "temp src")
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
+      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1m)")
+      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1m)")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
@@ -489,6 +513,8 @@ int main(int argc, char** argv)
     // handling sources flags
     user_params.th_src = vm["th_src"].as<bool>();
     user_params.rv_src = vm["rv_src"].as<bool>();
+    user_params.rc_src = vm["rc_src"].as<bool>();
+    user_params.rr_src = vm["rr_src"].as<bool>();
     user_params.uv_src = vm["uv_src"].as<bool>();
     user_params.w_src = vm["w_src"].as<bool>();
 
@@ -513,7 +539,7 @@ int main(int argc, char** argv)
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
       run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
 
-    // TODO: not only micro can be wrong
+  // TODO: not only micro can be wrong
     else throw 
       po::validation_error(
         po::validation_error::invalid_option_value, micro, "micro" 

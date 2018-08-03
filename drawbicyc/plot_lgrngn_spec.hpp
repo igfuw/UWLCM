@@ -4,21 +4,33 @@
 #include "bins.hpp"
 #include <map>
 
+namespace
+{
+  po::variables_map vm;
+};
 
 //plot spectra positions
 template<class Plotter_t>
-void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots, int at)
+void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots)
 {
+  // read opts
+  po::options_description opts("spectra plotting options");
+  opts.add_options()
+    ("spectra_step", po::value<int>()->required() , "time step number at which spectra are plotted")
+  ;
+  handle_opts(opts, vm);
+  const int spectra_step = vm["spectra_step"].as<int>();
+
   auto& n = plotter.map;
   Gnuplot gp;
 
   try{
   // cloud water content
-  auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3;
+  auto tmp = plotter.h5load_ract_timestep(spectra_step * n["outfreq"]) * 1e3;
 
   std::string title = "cloud water mixing ratio [g/kg]";
-  gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-  init(gp, plotter.file + "_spectra_positions_at" + zeropad(at) + ".svg", 1, 1, n, 2.); 
+  gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(spectra_step) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+  init(gp, plotter.file + "_spectra_positions_at" + zeropad(spectra_step) + ".svg", 1, 1, n, 2.); 
 
   {   
     for (auto &fcs : focus_3d)
@@ -60,8 +72,10 @@ void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots, int at)
 
 //plot spectra
 template<class Plotter_t>
-void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
+void plot_lgrngn_spec(Plotter_t plotter, Plots plots)
 {
+  const int spectra_step = vm["spectra_step"].as<int>();
+
   const double r_c_adiab = 7.8; // adiabatic water content [g/kg] coming from Wojtek
   auto& n = plotter.map;
   for(auto elem : n)
@@ -71,10 +85,10 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
   Gnuplot gp;
 //  int off = 2; // TODO!!!
   int off = 0; // TODO!!!
-  string file = plotter.file + "_spectra_at" + zeropad(at) + ".svg";
+  string file = plotter.file + "_spectra_at" + zeropad(spectra_step) + ".svg";
 
-  int hor = min<int>(focus_3d.size(), 2);
-  int ver = double(focus_3d.size()) / 2. + 0.99999;
+  int hor = min<int>(focus_3d.size(), 5);
+  int ver = double(focus_3d.size()) / 5. + 0.99999;
 
   init_prof(gp, file, ver, hor);
 
@@ -82,7 +96,6 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
   gp << "set xrange [0:30]\n";
   gp << "set yrange [0:50]\n";
   gp << "set xlabel 'r [μm]'\n"; 
-  gp << "set ylabel 'n [cm^{-3} μm^{-1}]'\n"; 
 
   // read in density
   auto tmp = plotter.h5load(plotter.file + "/const.h5", "G");
@@ -90,19 +103,27 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
 
   // focus to the gridbox from where the size distribution is plotted
   char lbl = 'a';
+  bool setylabel = 1;
   for (auto &fcs : focus_3d)
   {
+    if(setylabel)
+    {
+      gp << "set ylabel 'n [cm^{-3} μm^{-1}]'\n"; 
+      setylabel = 0;
+    }
+    else
+      gp << "unset ylabel\n"; 
     const int &x = fcs[0], &y = fcs[1], &z = fcs[2];
     const blitz::RectDomain<3> focusBox({x-box_size, y-box_size, z-box_size}, {x+box_size, y+box_size, z+box_size});
 
-    gp << "set label 1 '(" << lbl << ")' at graph .1, .93 font ',20'\n";
+    gp << "set label 1 '(" << lbl << ")' at graph .1, .93 font \",15\"\n";
     lbl += 1;
 
     // calc ratio of water content to adiabatic water content
     {
-      auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3;
+      auto tmp = plotter.h5load_ract_timestep(spectra_step * n["outfreq"]) * 1e3;
       double ratio = mean(tmp(focusBox)) / r_c_adiab;
-      gp << "set label 4 'r_c / r_c^{adiab} = " << std::setprecision(2) << ratio << "' at graph .2, .93 font ',20'\n";
+      gp << "set label 4 'AF = " << std::fixed << std::setprecision(2) << ratio << "' at graph .2, .63 font \",15\"\n";
     }
 
     // calc mean and std dev of radius of acivated droplets in the box
@@ -111,7 +132,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
     double act_rw_std_dev = 0.; 
     try
     {
-      auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+      auto tmp = plotter.h5load_timestep("actrw_rw_mom0", spectra_step * n["outfreq"]);
       typename Plotter_t::arr_t snap(tmp); 
       act_conc = mean(snap(focusBox));
     }
@@ -119,7 +140,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
     // mean droplet radius in the box
     try
     {
-      auto tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
+      auto tmp = plotter.h5load_timestep("actrw_rw_mom1", spectra_step * n["outfreq"]);
       typename Plotter_t::arr_t snap(tmp); // 1st raw moment / mass [m / kg]
       if(act_conc > 0)
         act_rw_mean = mean(snap(focusBox)) / act_conc;
@@ -130,13 +151,13 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
     // std deviation of distribution of radius in the box
     try
     {
-      auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+      auto tmp = plotter.h5load_timestep("actrw_rw_mom0", spectra_step * n["outfreq"]);
       typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
-      tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
+      tmp = plotter.h5load_timestep("actrw_rw_mom1", spectra_step * n["outfreq"]);
       typename Plotter_t::arr_t first_raw_mom(tmp); // 1st raw moment / mass [m / kg]
-      tmp = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
+      tmp = plotter.h5load_timestep("actrw_rw_mom2", spectra_step * n["outfreq"]);
       typename Plotter_t::arr_t second_raw_mom(tmp); // 2nd raw moment / mass [m^2 / kg]
-      tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
+      tmp = plotter.h5load_timestep("sd_conc", spectra_step * n["outfreq"]);
       typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
       if(act_conc > 0)
       {
@@ -165,8 +186,8 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
     catch(...) {;}
 
 
-    gp << "set label 2 '<r>_{act} = " << std::setprecision(2) << act_rw_mean * 1e6 <<"µm' at graph .1, .83 font '15'\n";
-    gp << "set label 3 'σ(r)_{act} = " << std::setprecision(2) << act_rw_std_dev * 1e6 <<"µm' at graph .1, .73 font ',15'\n";
+    gp << "set label 2 '<r> = " << std::fixed << std::setprecision(2) << act_rw_mean * 1e6 <<" µm' at graph .2, .83 font \",15\"\n";
+    gp << "set label 3 'σ = " << std::fixed << std::setprecision(2) << act_rw_std_dev * 1e6 <<" µm' at graph .2, .73 font \",15\"\n";
 
 
     std::map<float, float> focus_w;
@@ -178,7 +199,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
     for (int i = 0; i < nsw; ++i)
     {
       const string name = "rw_rng" + zeropad(i + off) + "_mom0";
-      auto tmp_w = plotter.h5load_timestep(name, at * n["outfreq"]);
+      auto tmp_w = plotter.h5load_timestep(name, spectra_step * n["outfreq"]);
 
       focus_w[(left_edges_rw[i] + left_edges_rw[i+1]) / 2. / 1e-6 / si::metres] =
         sum((tmp_w*rhod)(focusBox))
@@ -187,7 +208,7 @@ void plot_lgrngn_spec(Plotter_t plotter, Plots plots, int at)
         / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
     }
     const string name = "rw_rng" + zeropad(nsw + off) + "_mom0";
-    auto tmp_w = plotter.h5load_timestep(name, at * n["outfreq"]);
+    auto tmp_w = plotter.h5load_timestep(name, spectra_step * n["outfreq"]);
 
     notice_macro("setting-up plot parameters");
     std::cout << "larger drops conc: " << (tmp_w * rhod)(x,y,z) * 1e-6 << endl;

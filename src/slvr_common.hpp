@@ -6,7 +6,6 @@
 #include <libcloudph++/git_revision.h>
 #include "../git_revision.h"
 
-
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
 {
@@ -20,8 +19,11 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
   // timing fields
-  clock::time_point tbeg, tend, tbeg1, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tasync, tasync_wait, tloop, tvip_rhs;
+  // TODO: timing slows down simulations
+  //       either remove it and use profiling tools (e.g. vtune)
+  //       or add some compile-time flag to turn it off
+  clock::time_point tbeg, tend, tbeg_loop;
+  std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tvip_rhs, tnondelayed_step;
 
   int spinup; // number of timesteps
 
@@ -39,6 +41,8 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &F,       // forcings helper
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
                            &beta;    // 'implicit' rhs part - coefficient of the value at n+1
+
+  setup::arr_1D_t th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr;
 
   // surface precip stuff
   std::ofstream f_puddle; // output precipitation file
@@ -257,19 +261,43 @@ class slvr_common : public slvr_dim<ct_params_t>
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
-      F(this->ijk).reindex(this->zero) = 
+      this->vip_rhs[it](this->ijk) += 
         where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
-          -pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+          hgt_fctr_vctr(this->vert_idx)                                       // hgt_fctr 
+        );
+/*
+ *
+      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
+        where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
+          -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
           (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
         );
+*/
 
       // du/dt = sum of kinematic momentum fluxes * dt
-      this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
+//      this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
       // multiplied by 2 here because it is later multiplied by 0.5 * dt
-      this->vip_rhs[it](this->ijk) *= -2;
+  //    this->vip_rhs[it](this->ijk) *= -2;
+  //
     }
+
+/*
+    for (int j = this->j.first(); j <= this->j.last(); ++j)
+    {   
+      this->vip_rhs[0](this->i, j).reindex({0}) +=  where(U_ground(blitz::tensor::i) == 0., 0., 
+                                         -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
+                                         this->vip_ground[0](blitz::tensor::i) /              // u_i at z=0
+                                         U_ground(blitz::tensor::i) *  // |U| at z=0
+                                         (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+                                       );
+    }   
+*/
+
     this->mem->barrier();
     if(this->rank == 0)
     {
@@ -298,8 +326,10 @@ class slvr_common : public slvr_dim<ct_params_t>
           << "custom vip_rhs: " << tvip_rhs.count() << " ("<< setup::real_t(tvip_rhs.count())/tloop.count()*100 <<"%)" << std::endl
           << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
           << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
+          << "nondelayed step: " << tnondelayed_step.count() << " ("<< setup::real_t(tnondelayed_step.count())/tloop.count()*100 <<"%)" << std::endl
           << "async: " << tasync.count() << " ("<< setup::real_t(tasync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
+          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
+          << "sync_wait: " << tsync_wait.count() << " ("<< setup::real_t(tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
       }
     }
   }
@@ -311,7 +341,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet, radiation;
-    setup::arr_1D_t *th_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
+    bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
+    setup::arr_1D_t *th_e, *p_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
@@ -337,7 +368,16 @@ class slvr_common : public slvr_dim<ct_params_t>
     r_l(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
-    F(args.mem->tmp[__FILE__][0][1])
+    F(args.mem->tmp[__FILE__][0][1]),
+    th_e((*p.th_e)(this->vert_rng)),
+    p_e((*p.p_e)(this->vert_rng)),
+    rv_e((*p.rv_e)(this->vert_rng)),
+    th_ref((*p.th_ref)(this->vert_rng)),
+    pre_ref((*p.pre_ref)(this->vert_rng)),
+    rhod((*p.rhod)(this->vert_rng)),
+    w_LS((*p.w_LS)(this->vert_rng)),
+    hgt_fctr_sclr((*p.hgt_fctr_sclr)(this->vert_rng)),
+    hgt_fctr_vctr((*p.hgt_fctr_vctr)(this->vert_rng))
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain

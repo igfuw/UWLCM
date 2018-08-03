@@ -17,7 +17,14 @@ struct calc_T
   BZ_DECLARE_FUNCTOR2(calc_T)
 };
 
-// forcing functions
+struct calc_exner
+{
+  setup::real_t operator()(setup::real_t p) const
+  {return libcloudphxx::common::theta_std::exner<setup::real_t>(p * si::pascals);}
+  BZ_DECLARE_FUNCTOR(calc_exner)
+};
+
+// common forcing functions
 // TODO: make functions return blitz arrays to avoid unnecessary copies
 template <class ct_params_t>
 void slvr_common<ct_params_t>::rv_src()
@@ -28,11 +35,14 @@ void slvr_common<ct_params_t>::rv_src()
     // surface flux
     surf_latent();
     // sum of rv flux
-    this->vert_grad_fwd(F, alpha, params.dz);
+    //this->vert_grad_fwd(F, alpha, params.dz);
+    alpha(ijk) = F(ijk);
 
     // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
     if(params.ForceParameters.surf_latent_flux_in_watts_per_square_meter)
-      alpha(ijk).reindex(this->zero) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
+      alpha(ijk) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * rhod(this->vert_idx);
+//    else
+  //    alpha(ijk) *= -1; // negative gradient means inflow
 
     // large-scale vertical wind
     subsidence(ix::rv); // TODO: in case 1, rv here should be in step n+1, calc it explicitly as rv + 0.5 * dt * rhs(rv); 
@@ -45,8 +55,8 @@ void slvr_common<ct_params_t>::rv_src()
 
   beta(ijk) = 0.;
   // nudging, todo: use some other coeff than vab_coeff
-//  alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
-//  beta(ijk) = - (*this->mem->vab_coeff)(ijk);
+  //alpha(ijk) += (*this->mem->vab_coeff)(ijk) * rv_e(this->vert_idx); // TODO: its a constant, cache it
+  //beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
 template <class ct_params_t>
@@ -57,6 +67,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
   {
     // -- heating --
     // surface flux
+    /*
     if(params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
     {
       surf_sens();
@@ -66,33 +77,41 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     }
     else
       beta(ijk) = 0.;
+    */
 
     // radiation
     radiation(rv);
     nancheck(beta(ijk), "radiation");
     // add fluxes from radiation and surface
-    F(ijk) += beta(ijk);
-      nancheck(F(ijk), "sensible surf forcing + radiation");
+//    F(ijk) += beta(ijk);
+  //    nancheck(F(ijk), "sensible surf forcing + radiation");
     // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
     this->vert_grad_fwd(F, alpha, params.dz);
-      nancheck(alpha(ijk), "sum of th flux");
-  
-    // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) *= this->state(ix::th)(ijk).reindex(this->zero) / 
-      calc_c_p()(rv(ijk).reindex(this->zero)) / 
-      calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
-      (*params.rhod)(this->vert_idx);
+    alpha(ijk) *= -1; // negative gradient means inflow
+    nancheck(alpha(ijk), "sum of th flux");
 
-      nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
+    if(params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
+    {
+      surf_sens();
+      nancheck(F(ijk), "sensible surf forcing");
+      // beta as tmp storage
+      alpha(ijk) += F(ijk);
+    }
+  
+    // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+    alpha(ijk) /=  calc_exner()(p_e(this->vert_idx)) * calc_c_p()(rv(ijk)) * rhod(this->vert_idx);
+
+    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surf flux if it is specified as mean(theta*w)
     if(!params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
     {
       surf_sens();
       nancheck(F(ijk), "sensible surf forcing");
-      this->vert_grad_fwd(F, beta, params.dz);
-      nancheck(beta(ijk), "grad of sensible surf forcing");
-      alpha(ijk) += beta(ijk);
+//      this->vert_grad_fwd(F, beta, params.dz);
+  //    nancheck(beta(ijk), "grad of sensible surf forcing");
+  //    alpha(ijk) += - beta(ijk); // negative gradient of upward flux means inflow
+      alpha(ijk) += F(ijk);
     }
   
     // large-scale vertical wind
@@ -108,7 +127,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 
   beta(ijk) = 0.;
   // nudging, todo: use some other coeff than vab_coeff
-  //alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.th_e)(this->vert_idx);
+  //alpha(ijk) += (*this->mem->vab_coeff)(ijk) * th_e(this->vert_idx);
   //beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
@@ -126,5 +145,3 @@ void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
 
   alpha(ijk) += F(ijk);
 }
-
-
