@@ -52,6 +52,10 @@ void plot_series(Plotter_t plotter, Plots plots)
   Array<int, 1> com_z_idx(last_timestep - first_timestep + 1), 
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
+  // save time steps to the series file
+  oprof_file << plotter.timesteps;
+
+
   for (auto &plt : plots.series)
   {
     bool plot_std_dev = 0;

@@ -45,13 +45,6 @@ void setopts_micro(
   rt_params.cloudph_opts.r_eps = 1e-6;
 
   // output variables
-  rt_params.outvars = {
-    // <TODO>: make it common among all three micro?
-    {solver_t::ix::th, {"th", "[K]"}},
-    {solver_t::ix::rv, {"rv", "[kg kg-1]"}},
-    // </TODO>
-    {solver_t::ix::rc, {"rc", "[kg kg-1]"}},
-    {solver_t::ix::rr, {"rr", "[kg kg-1]"}},
-    {solver_t::ix::w, {"w", "[m/s]"}}
-  };
+  rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
+  rt_params.outvars.insert({solver_t::ix::rr, {"rr", "[kg kg-1]"}});
 }
