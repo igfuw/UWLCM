@@ -10,7 +10,8 @@
 #include <libmpdata++/concurr/openmp.hpp>
 #include "setup.hpp"
 
-#include "cases/DYCOMS98.hpp"
+#include "cases/DYCOMS_RF01.hpp"
+#include "cases/DYCOMS_RF02.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/LasherTrapp2001.hpp"
@@ -77,8 +78,10 @@ void run(int nx, int nz, const user_params_t &user_params)
     case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dry_thermal")
     case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_openmp_rigid_t>()); 
-  else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "dycoms_rf01")
+    case_ptr.reset(new setup::dycoms_rf01::DycomsRf01_2d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "dycoms_rf02")
+    case_ptr.reset(new setup::dycoms_rf02::DycomsRf02_2d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001_2d<concurr_openmp_rigid_t>()); 
 
@@ -188,8 +191,10 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
     case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_3d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "dry_thermal")
     case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_openmp_rigid_t>()); 
-  else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "dycoms_rf01")
+    case_ptr.reset(new setup::dycoms_rf01::DycomsRf01_3d<concurr_openmp_rigid_t>()); 
+  else if (user_params.model_case == "dycoms_rf02")
+    case_ptr.reset(new setup::dycoms_rf02::DycomsRf02_3d<concurr_openmp_rigid_t>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001_3d<concurr_openmp_rigid_t>()); 
 
@@ -417,7 +422,7 @@ int main(int argc, char** argv)
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
-      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, lasher_trapp")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02, lasher_trapp")
       ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")

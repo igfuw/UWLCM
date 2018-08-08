@@ -16,11 +16,11 @@ std::map<std::string, double> h5n(
   map["t"] = n[0];
 
   {
-    auto h5d = h5f.openGroup("advection");
+    auto h5d_adv = h5f.openGroup("advection");
 
     float dt;
     {
-      auto attr = h5d.openAttribute("dt");
+      auto attr = h5d_adv.openAttribute("dt");
       attr.read(attr.getDataType(), &dt);
     }
     map["dt"] = dt;

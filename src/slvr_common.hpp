@@ -240,7 +240,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
   }
 
-
   void vip_rhs_expl_calc()
   {
     parent_t::vip_rhs_expl_calc();
@@ -254,17 +253,22 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename parent_t::arr_sub_t U_ground(this->shape(this->hrzntl_subdomain));
     U_ground = this->calc_U_ground();
 
+    typename parent_t::real_t u_hlpr;
+    if(params.ForceParameters.calc_u_fric)
+      u_hlpr = params.ForceParameters.u_fric_param;
+    else
+      u_hlpr = pow(params.ForceParameters.u_fric,2);
+
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
       F(this->ijk).reindex(this->zero) = 
         where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
-          -pow(params.ForceParameters.u_fric,2) *  // const, cache it
-          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+          - u_hlpr *                                                      // const, cache it
+          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /      // u_i at z=0
+          U_ground(blitz::tensor::i, blitz::tensor::j) *                  // |U| at z=0
+          (*params.hgt_fctr_vctr)(this->vert_idx)                         // hgt_fctr 
         );
-
       // du/dt = sum of kinematic momentum fluxes * dt
       this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
       // multiplied by 2 here because it is later multiplied by 0.5 * dt

@@ -4,7 +4,7 @@
 
 namespace setup 
 {
-  namespace dycoms
+  namespace dycoms_rf02
   {
     namespace hydrostatic = libcloudphxx::common::hydrostatic;
     namespace theta_std = libcloudphxx::common::theta_std;
@@ -108,7 +108,7 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98 : public CasesCommon<concurr_t>
+    class DycomsRf02 : public CasesCommon<concurr_t>
     {
 
       protected:
@@ -275,8 +275,11 @@ namespace setup
       }
 
       // ctor
-      Dycoms98()
+      DycomsRf02()
       {
+        this->ForceParameters.u_fric = 0.25; // m/s friction velocity
+        this->ForceParameters.calc_u_fric=false;
+
         //aerosol bimodal lognormal dist. - DYCOMS
         this->mean_rd1 = real_t(.011e-6) * si::metres,
         this->mean_rd2 = real_t(.06e-6) * si::metres;
@@ -289,7 +292,7 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98_2d : public Dycoms98<concurr_t>
+    class DycomsRf02_2d : public DycomsRf02<concurr_t>
     {
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params)
       {
@@ -309,7 +312,7 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98_3d : public Dycoms98<concurr_t>
+    class DycomsRf02_3d : public DycomsRf02<concurr_t>
     {
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
       {
