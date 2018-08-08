@@ -16,9 +16,9 @@ namespace setup
       p_0 = 101780 * si::pascals;
     const quantity<si::length, real_t> 
       z_0  = 0    * si::metres,
-      Z    = 1500 * si::metres, // DYCOMS: 1500
-      X    = 6400 * si::metres, // DYCOMS: 6400
-      Y    = 6400 * si::metres; // DYCOMS: 6400
+      Z    = 1500 * si::metres,
+      X    = 6400 * si::metres,
+      Y    = 6400 * si::metres;
     const real_t z_abs = 1250;
     const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx_vctr = 1 * si::metres;
