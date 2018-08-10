@@ -14,7 +14,7 @@ int main(int ac, char** av)
   if (ac != 2) error_macro("expecting one argument - CMAKE_BINARY_DIR");
 
   string outdir;
-  string opts_common = 
+  string opts_common =
     "--outfreq=1000 --nt=2 --spinup=1 --dt=0.1 --serial=true"; // dt=1 caused blk1m dycoms to freeze on pressure solver
   vector<string> opts_dim({
     "--nx=4 --nz=4",
@@ -23,6 +23,7 @@ int main(int ac, char** av)
   string opts_dim_lgrngn_3d =  "--nx=40 --ny=40 --nz=40"; // = 4 caused multiplicity overflows in the Lagrangian 3D
   vector<string> opts_micro({
     "--micro=blk_1m --outdir=out_blk_1m"  ,
+    "--micro=blk_2m --outdir=out_blk_2m"  ,
     "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100"
   });
   vector<string> opts_case({
@@ -45,7 +46,7 @@ int main(int ac, char** av)
           if((opts_c == opts_case[1]) && opts_d == opts_dim[1])
           {
             std::cout << "skipping 3d dry thermal tests" << std::endl;
-            continue; 
+            continue;
           }
           // larger domain for 3d lgrngn
           if(opts_d == opts_dim[1] && opts_m == opts_micro[1])
@@ -57,7 +58,7 @@ int main(int ac, char** av)
           ostringstream cmd;
           cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p;
           notice_macro("about to call: " << cmd.str())
-  
+
           if (EXIT_SUCCESS != system(cmd.str().c_str()))
             error_macro("model run failed: " << cmd.str())
         }
