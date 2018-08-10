@@ -1,4 +1,4 @@
-/** 
+/**
  * @file
  * @copyright University of Warsaw
  * @section LICENSE
@@ -16,6 +16,7 @@
 
 #include "opts_lgrngn.hpp"
 #include "opts_blk_1m.hpp"
+#include "opts_blk_2m.hpp"
 #include "panic.hpp"
 #include <map>
 
@@ -39,38 +40,38 @@ template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
 {
   using concurr_openmp_rigid_t = concurr::openmp<
-    solver_t, 
+    solver_t,
     bcond::cyclic, bcond::cyclic,
-    bcond::rigid,  bcond::rigid 
+    bcond::rigid,  bcond::rigid
   >;
 
   using concurr_openmp_cyclic_t = concurr::openmp<
-    solver_t, 
+    solver_t,
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic
   >;
 
   using concurr_any_t = concurr::any<
-    typename solver_t::real_t, 
+    typename solver_t::real_t,
     solver_t::n_dims
   >;
 
-  using case_ptr_t = 
+  using case_ptr_t =
     std::unique_ptr<
       setup::CasesCommon<
         concurr_openmp_rigid_t
       >
     >;
 
-  case_ptr_t case_ptr; 
+  case_ptr_t case_ptr;
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_openmp_rigid_t>());
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_openmp_rigid_t>());
   else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_openmp_rigid_t>());
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -88,7 +89,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
@@ -119,7 +120,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
   set_sigaction();
- 
+
   // timestepping
   slv->advance(user_params.nt);
 }
@@ -129,40 +130,40 @@ template <class solver_t>
 void run(int nx, int ny, int nz, const user_params_t &user_params)
 {
   using concurr_openmp_rigid_t = concurr::openmp<
-    solver_t, 
+    solver_t,
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic,
-    bcond::rigid,  bcond::rigid 
+    bcond::rigid,  bcond::rigid
   >;
 
   using concurr_openmp_cyclic_t = concurr::openmp<
-    solver_t, 
+    solver_t,
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic,
     bcond::cyclic, bcond::cyclic
   >;
 
   using concurr_any_t = concurr::any<
-    typename solver_t::real_t, 
+    typename solver_t::real_t,
     solver_t::n_dims
   >;
 
-  using case_ptr_t = 
+  using case_ptr_t =
     std::unique_ptr<
       setup::CasesCommon<
         concurr_openmp_rigid_t
       >
     >;
 
-  case_ptr_t case_ptr; 
+  case_ptr_t case_ptr;
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_3d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_3d<concurr_openmp_rigid_t>());
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_openmp_rigid_t>());
   else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_openmp_rigid_t>());
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -180,7 +181,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
@@ -212,7 +213,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
   set_sigaction();
- 
+
   // timestepping
   slv->advance(user_params.nt);
 }
@@ -241,17 +242,17 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // solver instantiation
   std::unique_ptr<
     concurr::any<
-      typename solver_t::real_t, 
+      typename solver_t::real_t,
       solver_t::n_dims
     >
   > slv;
   if (user_params.serial)
   {
     using concurr_t = concurr::serial<
-      solver_t, 
+      solver_t,
       bcond::cyclic, bcond::cyclic,
       bcond::cyclic, bcond::cyclic,
-      bcond::rigid,  bcond::rigid 
+      bcond::rigid,  bcond::rigid
     >;
     slv.reset(new concurr_t(p));
 
@@ -261,10 +262,10 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   else
   {
     using concurr_t = concurr::openmp<
-      solver_t, 
+      solver_t,
       bcond::cyclic, bcond::cyclic,
       bcond::cyclic, bcond::cyclic,
-      bcond::rigid,  bcond::rigid 
+      bcond::rigid,  bcond::rigid
     >;
     slv.reset(new concurr_t(p));
 
@@ -275,7 +276,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // setup panic pointer and the signal handler
   panic = slv->panic_ptr();
   set_sigaction();
- 
+
   // timestepping
   slv->advance(user_params.nt);
 }
@@ -286,7 +287,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 struct ct_params_common : ct_params_default_t
 {
   using real_t = setup::real_t;
-  enum { rhs_scheme = solvers::trapez }; 
+  enum { rhs_scheme = solvers::trapez };
   enum { prs_scheme = solvers::cr };
   enum { vip_vab = solvers::expl };
 };
@@ -296,7 +297,7 @@ struct ct_params_2D_sd : ct_params_common
   enum { n_dims = 2 };
   enum { n_eqns = 4 };
   struct ix { enum {
-    u, w, th, rv, 
+    u, w, th, rv,
     vip_i=u, vip_j=w, vip_den=-1
   }; };
 };
@@ -306,7 +307,7 @@ struct ct_params_3D_sd : ct_params_common
   enum { n_dims = 3 };
   enum { n_eqns = 5 };
   struct ix { enum {
-    u, v, w, th, rv, 
+    u, v, w, th, rv,
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
 };
@@ -326,9 +327,28 @@ struct ct_params_3D_blk_1m : ct_params_common
   enum { n_dims = 3 };
   enum { n_eqns = 7 };
   struct ix { enum {
-    u, v, w, th, rv, rc, rr, 
+    u, v, w, th, rv, rc, rr,
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
+};
+
+struct ct_params_2D_blk_2m : ct_params_common
+{
+  enum { n_dims = 2 };
+  enum { n_eqns = 8 };
+  struct ix { enum {
+    u, w, th, rv, rc, rr, nc, nr,
+    vip_i=u, vip_j=w, vip_den=-1
+  }; };
+};
+ struct ct_params_3D_blk_2m : ct_params_common
+{
+  enum { n_dims = 3 };
+  enum { n_eqns = 9 };
+  struct ix { enum {
+    u, v, w, th, rv, rc, rr, nc, nr,
+     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
+   }; };
 };
 
 // function used to modify ct_params before running
@@ -366,7 +386,7 @@ void run_hlpr(bool piggy, std::string type, Args&&... args)
 }
 
 
-// all starts here with handling general options 
+// all starts here with handling general options
 int main(int argc, char** argv)
 {
   omp_set_nested(1); // to allow openmp calls from libcloudphxx multi_CUDA backend
@@ -401,18 +421,18 @@ int main(int argc, char** argv)
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
 
     // hendling the "help" option
-    if (ac == 1 || (vm.count("help") && !vm.count("micro"))) 
+    if (ac == 1 || (vm.count("help") && !vm.count("micro")))
     {
       std::cout << opts_main;
       exit(EXIT_SUCCESS);
     }
 
     // checking if all required options present
-    po::notify(vm); 
+    po::notify(vm);
 
     // instantiating user params container
     user_params_t user_params;
-    
+
     if (!vm.count("help"))
     {
       if (!vm.count("outdir")) throw po::required_option("outdir");
@@ -421,23 +441,23 @@ int main(int argc, char** argv)
       user_params.outfreq = vm["outfreq"].as<int>();
     }
 
-    int 
+    int
       nx = vm["nx"].as<int>(),
       ny = vm["ny"].as<int>(),
       nz = vm["nz"].as<int>();
 
     user_params.nt = vm["nt"].as<int>(),
     user_params.spinup = vm["spinup"].as<int>();
- 
+
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();
     if(user_params.rng_seed < 0) //if negative, get random seed
     {
-      std::random_device rd; 
+      std::random_device rd;
       user_params.rng_seed = rd();
     }
     std::cout << "rng seed: " << user_params.rng_seed << std::endl;
-   
+
     //handling timestep length
     user_params.dt = vm["dt"].as<setup::real_t>();
 
@@ -474,10 +494,16 @@ int main(int argc, char** argv)
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
       run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
 
+    else if (micro == "blk_2m" && ny == 0) // 2D two-moment
+      run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, user_params.model_case, nx, nz, user_params);
+
+    else if (micro == "blk_2m" && ny > 0) // 3D two-moment
+      run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+
     // TODO: not only micro can be wrong
-    else throw 
+    else throw
       po::validation_error(
-        po::validation_error::invalid_option_value, micro, "micro" 
+        po::validation_error::invalid_option_value, micro, "micro"
       );
   }
 }

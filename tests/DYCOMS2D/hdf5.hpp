@@ -16,11 +16,11 @@ std::map<std::string, double> h5n(
   map["t"] = n[0];
 
   {
-    auto h5d = h5f.openGroup("advection");
+    auto h5d_adv = h5f.openGroup("advection");
 
     float dt;
     {
-      auto attr = h5d.openAttribute("dt");
+      auto attr = h5d_adv.openAttribute("dt");
       attr.read(attr.getDataType(), &dt);
     }
     map["dt"] = dt;
@@ -43,7 +43,7 @@ std::map<std::string, double> h5n(
   H5::DataSet h5d = h5f.openDataSet("X");
   H5::DataSpace h5s = h5d.getSpace();
 
-  if (h5s.getSimpleExtentNdims() != 2) 
+  if (h5s.getSimpleExtentNdims() != 2)
     error_macro("need 2 dimensions")
 
   enum {x,z};
@@ -51,14 +51,14 @@ std::map<std::string, double> h5n(
 
   blitz::Array<float, 2> tmp(n[x], n[z]);
 
-  hsize_t 
-    cnt[2] = { n[x],  n[z] }, 
+  hsize_t
+    cnt[2] = { n[x],  n[z] },
     off[2] = { 0,     0    };
   h5s.selectHyperslab( H5S_SELECT_SET, cnt, off);
 
   hsize_t ext[2] = {
-    hsize_t(tmp.extent(0)), 
-    hsize_t(tmp.extent(1)) 
+    hsize_t(tmp.extent(0)),
+    hsize_t(tmp.extent(1))
   };
   h5d.read(tmp.data(), H5::PredType::NATIVE_FLOAT, H5::DataSpace(2, ext), h5s);
   map["dx"] = tmp(1,0) - tmp(0,0);
@@ -70,7 +70,7 @@ std::map<std::string, double> h5n(
 }
 
 auto h5load(
-  const string &file, 
+  const string &file,
   const string &dataset,
   int at
 ) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
@@ -82,7 +82,7 @@ auto h5load(
   H5::DataSet h5d = h5f.openDataSet(dataset);
   H5::DataSpace h5s = h5d.getSpace();
 
-  if (h5s.getSimpleExtentNdims() != 2) 
+  if (h5s.getSimpleExtentNdims() != 2)
     error_macro("need 2 dimensions")
 
   hsize_t n[2];
@@ -91,14 +91,14 @@ auto h5load(
 
   blitz::Array<float, 2> tmp(n[x], n[z]);
 
-  hsize_t 
-    cnt[2] = { n[x],  n[z] }, 
+  hsize_t
+    cnt[2] = { n[x],  n[z] },
     off[2] = { 0,     0    };
   h5s.selectHyperslab( H5S_SELECT_SET, cnt, off);
 
   hsize_t ext[2] = {
-    hsize_t(tmp.extent(0)), 
-    hsize_t(tmp.extent(1)) 
+    hsize_t(tmp.extent(0)),
+    hsize_t(tmp.extent(1))
   };
   h5d.read(tmp.data(), H5::PredType::NATIVE_FLOAT, H5::DataSpace(2, ext), h5s);
 
