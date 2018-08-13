@@ -63,7 +63,7 @@ rzt = np.zeros((301)) # group idx/ height idx
 
 
 groups = np.arange(14)
-ihght = np.arange(0, 1.2, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
+ihght = np.arange(0, 1.6, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
 
 ivar_arr = np.ndarray(shape=(14, len(ihght))) # to store interpolated average over time, group idx / height idx
 #ivar_arr = np.ndarray(shape=(14, 13)) # group index / time index
@@ -151,10 +151,23 @@ for var in dycoms_vars:
   axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(mvar_arr, ihght, color='black')
 #  axes = axarr[x, y].gca()
-  axarr[x, y].set_ylim([0,1.2])
+  axarr[x, y].set_ylim([0,1.6])
+  if var == "thetal":
+    axarr[x, y].set_xlim([288.2,289.2])
+  if var == "qt":
+    axarr[x, y].set_xlim([9,10.4])
+  if var == "ql":
+    axarr[x, y].set_xlim([0,.7])
+  if var == "w_var":
+    axarr[x, y].set_xlim([-0.1,.8])
+  if var == "w_skw":
+    axarr[x, y].set_xlim([-0.15,.15])
   if var == "ss":
-    #axarr[x, y].set_xlim(xmin=-1)
     axarr[x, y].set_xlim([-2,1])
+
+
+#dycoms_vars = ["thetal", "qt", "ql", "w_var", "w_skw", "precip", "ss", "cfrac", "ndrop_cld"]
+
 #
 #  for g in groups:
 #    axarr[x, y].plot(mvar_arr[g])#[mvar_arr[g]<1e35])
@@ -225,6 +238,6 @@ for empty in emptyplots:
 # show legends
 for x in np.arange(nplotx):
   for y in np.arange(nploty):
-    axarr[x,y].legend()
+    axarr[x,y].legend(loc="upper center")
 plt.show()
 
