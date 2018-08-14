@@ -28,7 +28,6 @@ void slvr_common<ct_params_t>::rv_src()
     // surface flux
     surf_latent();
     // sum of rv flux
-    //this->vert_grad_fwd(F, alpha, params.dz);
     alpha(ijk) = F(ijk);
 
     // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]

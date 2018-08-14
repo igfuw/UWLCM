@@ -66,7 +66,6 @@ groups = np.arange(14)
 ihght = np.arange(0, 1.6, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
 
 ivar_arr = np.ndarray(shape=(14, len(ihght))) # to store interpolated average over time, group idx / height idx
-#ivar_arr = np.ndarray(shape=(14, 13)) # group index / time index
 
 # mean val
 mvar_arr = np.ndarray(shape=(len(ihght)))
@@ -118,12 +117,9 @@ for var in dycoms_vars:
         i_hght_index += 1
       time_index += 1
     ivar_arr[g,:] /= (13-5) 
-#    axarr[0, 0].plot(ivar_arr[g,:], ihght)
 
   # calc statistics from groups
 
- # mean_iter = 0
-  #mvar_arr[mean_iter] = ivar_arr[ivar_arr < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
   for zi in np.arange(len(ihght)):
     ivar_arr_1d = ivar_arr[:,zi]
     mvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
@@ -131,26 +127,13 @@ for var in dycoms_vars:
     maxvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].max()
     q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
     q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
-  #mvar_arr[zi] = np.mean(ivar_arr[:,:], axis=0)
-#  minvar_arr[:] = np.min(ivar_arr[:,:], axis=0)
-#  maxvar_arr[:] = np.max(ivar_arr[:,:], axis=0)
-#  q1var_arr[:] = np.percentile(ivar_arr[:,:], 25, axis=0)
-#  q3var_arr[:] = np.percentile(ivar_arr[:,:], 75, axis=0)
- # mean_iter+=1
 
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
 
-#  for g in groups:
-#    print var
-#    print var_arr[g, 0:ntime[g]]
-#    if var_arr[g,0] < 1e35: # netcdf fill values are erad as ca. 9e36
-#      axarr[x, y].plot(time[g,0:ntime[g]] / 3600., var_arr[g,0:ntime[g]])
-  
   axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
   axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(mvar_arr, ihght, color='black')
-#  axes = axarr[x, y].gca()
   axarr[x, y].set_ylim([0,1.6])
   if var == "thetal":
     axarr[x, y].set_xlim([288.2,289.2])
@@ -164,13 +147,6 @@ for var in dycoms_vars:
     axarr[x, y].set_xlim([-0.15,.15])
   if var == "ss":
     axarr[x, y].set_xlim([-2,1])
-
-
-#dycoms_vars = ["thetal", "qt", "ql", "w_var", "w_skw", "precip", "ss", "cfrac", "ndrop_cld"]
-
-#
-#  for g in groups:
-#    axarr[x, y].plot(mvar_arr[g])#[mvar_arr[g]<1e35])
 
   plot_iter += 1
 
@@ -189,7 +165,6 @@ for no in file_no:
 label_counter = 0
 for file_name in profiles_files_names:
   
-  # dycoms_vars = ["thetal", "qt", "ql", "w_var", "w_skw", "precip", "ss", "cfrac", "ndrop_cld", "qr"]
   try:
     profiles_file = open(file_name, "r")
     my_pos = read_my_array(profiles_file)
