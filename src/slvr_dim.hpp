@@ -58,13 +58,6 @@ class slvr_dim<
     // top nad bottom cells are two times lower
     out(this->i, this->j.last()) *= 2; 
     out(this->i, 0) *= 2; 
-
-    // we don't want surf fluxes to change values at the ground ? (j=0)
-    /*
-    out(this->i, 0) = 0; 
-    // instead, the flux from 0-th level goes to the first level above the gfround
-    out(this->i, 1) = ( in(this->i, 2) - in(this->i, 0)) / (1.5*dz);
-    */
   }
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
@@ -74,7 +67,6 @@ class slvr_dim<
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
-    //out(this->i, this->j.last()) *= 2; 
     // set to 0 at top level to have no subsidence there - TODO: it messes with other possible uses of this function 
     out(this->i, this->j.last()) = 0; 
   }
@@ -140,13 +132,6 @@ class slvr_dim<
     // top and bottom cells are two times lower
     out(this->i, this->j, this->k.last()) *= 2; 
     out(this->i, this->j, 0) *= 2; 
-
-/*
-    // we don't want surf fluxes to change values at the ground
-    out(this->i, this->j, 0) = 0; 
-    // instead, the flux from 0-th level goes to the first level above the gfround
-    out(this->i, this->j, 1) = ( in(this->i, this->j, 2) - in(this->i, this->j, 0)) / (1.5*dz);
-*/
   }
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
