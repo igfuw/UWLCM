@@ -23,9 +23,6 @@ void slvr_common<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename p
       (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) * (
         (th(ijk).reindex(this->zero) - (*params.th_e)(this->vert_idx)) / (*params.th_ref)(this->vert_idx)
       );
-
-//  this->smooth(tmp1, F);
-//  F(ijk) = tmp1(ijk);
 }
 
 template <class ct_params_t>
@@ -89,8 +86,6 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
         (0.25 * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 4./3) +
         (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 1./3))
         , 0);
-  //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
-  //  this->smooth(tmp1, F);
   }
   else
     F(ijk)=0.;
@@ -105,9 +100,6 @@ void slvr_common<ct_params_t>::surf_sens()
   params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
   F(ijk).reindex(this->zero) = surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) 
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
-
-//  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
-  //this->smooth(tmp1, F);
 }
 
 template <class ct_params_t>
@@ -119,9 +111,6 @@ void slvr_common<ct_params_t>::surf_latent()
   params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
   F(ijk).reindex(this->zero) = surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
-
-//  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
-  //this->smooth(tmp1, F);
 }
 
 template <class ct_params_t>

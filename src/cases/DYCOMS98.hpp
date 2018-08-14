@@ -252,19 +252,7 @@ namespace setup
         // subsidence rate
         w_LS = w_LS_fctr()(k * dz);
   
-        // surface sources relaxation factors
-        // for vectors
-        /*
-        real_t z_0 = z_rlx_vctr / si::metres;
-        hgt_fctr_vctr = exp(- (k-0.5) * dz / z_0); // z=0 at k=1/2
-        hgt_fctr_vctr(0) = 1;
-        // for scalars
-        z_0 = user_params.z_rlx_sclr;
-        hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
-        hgt_fctr_sclr(0) = 1;
-        */
- 
-        // calc divergence directly
+        // calc surf flux divergence directly
         real_t z_0 = z_rlx_vctr / si::metres;
         hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
         // for scalars
