@@ -22,6 +22,25 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
+  // helpers for calculating RHS from condensation, probably some of the could be avoided e.g. if step_cond returnd deltas and not changed fields 
+  // or if change in theta was calculated from change in rv  
+  typename parent_t::arr_t &rv_pre_cond,
+                           &rv_post_cond,
+                           &th_pre_cond,
+                           &th_post_cond;
+
+  void diag_rl()
+  {
+    if(this->rank != 0) return;
+
+    prtcls->diag_all();
+    prtcls->diag_wet_mom(3);
+    auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
+    rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+    nancheck(rl, "rl after copying from diag_wet_mom(3)");
+    rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+  }
+
   // helper methods
   void diag()
   {
@@ -368,7 +387,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   }
 
   void hook_mixed_rhs_ante_loop()
-  {} // empty, because update_rhs called before each step; defined, to avoid assert from default hook_mixed_rhs_ante_loop
+  {
+    diag_rl(); // init r_l
+  } 
 
 #if defined(STD_FUTURE_WORKS)
   std::future<void> ftr;
@@ -392,18 +413,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       } else assert(!ftr.valid()); 
 #endif
-
-      // store liquid water content to be used in update_rhs (if done in update_rhs, it fails on async runs)
-      prtcls->diag_all();
-      prtcls->diag_wet_mom(3);
-      auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
-      rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
-      nancheck(rl, "rl after copying from diag_wet_mom(3)");
-      rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
-
     }
     this->mem->barrier();
-    parent_t::hook_ante_step(); // includes output
+    parent_t::hook_ante_step(); // includes RHS, which in turn launches sync_in and step_cond
   }
 
 
@@ -425,19 +437,28 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         assert(ftr.valid());
         parent_t::tbeg = parent_t::clock::now();
         ftr.get();
-        // microphysics could have led to rv < 0 ?
-        // TODO: repeated above, unify
-        negtozero(this->mem->advectee(ix::rv), "rv after step sync");
-
-        nancheck(this->mem->advectee(ix::th), "th after step sync");
-        nancheck(this->mem->advectee(ix::rv), "rv after step sync");
-        negcheck(this->mem->advectee(ix::th), "th after step sync");
-        negcheck(this->mem->advectee(ix::rv), "rv after step sync");
         parent_t::tend = parent_t::clock::now();
         parent_t::tsync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
       } else assert(!ftr.valid()); 
 #endif
+    }
+    this->mem->barrier();
+
+    // add microphysics contribution to th and rv
+    this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
+    this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
+    // microphysics could have led to rv < 0 ?
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+
+    // store liquid water content (post-cond, pre-adve and pre-subsidence)
+    diag_rl();
       
+    if (this->rank == 0) 
+    {
       // running asynchronous stuff
       {
         using libcloudphxx::lgrngn::particles_t;
@@ -471,10 +492,37 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       }
     }
     this->mem->barrier();
+
+    // subsidence of rl
+    // TODO: very similar code to subsidence function in forcings.hppp
+    if(params.subsidence)
+    {
+      auto& tmp1(this->tmp1);
+      auto& r_l(this->r_l);
+      const auto& ijk(this->ijk);
+      const auto& params(this->params);
+      auto& F(this->F);
+
+      tmp1(ijk) = r_l(ijk);
+      // fill halos for gradient calculation
+      // TODO: no need to xchng in horizontal, which potentially causes MPI communication
+      this->xchng_sclr(tmp1, this->ijk, this->halo);
+      this->vert_grad_cnt(tmp1, F, params.dz);
+      F(ijk).reindex(this->zero) *= - (*params.w_LS)(this->vert_idx);
+      r_l(ijk) += F(ijk) * this->dt;
+    }
+
+    // advect r_l (1st-order)
+    this->self_advec_donorcell(this->r_l);
   }
 
   void hook_mixed_rhs_ante_step()
   {
+
+    rv_pre_cond(this->ijk) = this->state(ix::rv)(this->ijk); 
+    th_pre_cond(this->ijk) = this->state(ix::th)(this->ijk); 
+
+    this->mem->barrier();
 
     // pass Eulerian fields to microphysics 
     if (this->rank == 0) 
@@ -502,33 +550,17 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       using libcloudphxx::lgrngn::CUDA;
       using libcloudphxx::lgrngn::multi_CUDA;
 
-        prtcls->sync_in(
-          make_arrinfo(this->mem->advectee(ix::th)),
-          make_arrinfo(this->mem->advectee(ix::rv)),
-          libcloudphxx::lgrngn::arrinfo_t<real_t>(),
-          make_arrinfo(Cx),
-          this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
-          make_arrinfo(Cz)
-        );
-    }
-    this->mem->barrier();
+      prtcls->sync_in(
+        make_arrinfo(this->mem->advectee(ix::th)),
+        make_arrinfo(this->mem->advectee(ix::rv)),
+        libcloudphxx::lgrngn::arrinfo_t<real_t>(),
+        make_arrinfo(Cx),
+        this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
+        make_arrinfo(Cz)
+      );
 
-    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
-    this->apply_rhs(this->dt);
-
-    // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
-    // turn all negative rv into rv = 0... CHEATING
-    negtozero(this->mem->advectee(ix::rv), "rv before step sync");
-    nancheck(this->mem->advectee(ix::th), "th before step sync");
-    nancheck(this->mem->advectee(ix::rv), "rv before step sync");
-    negcheck(this->mem->advectee(ix::th), "th before step sync");
-    negcheck(this->mem->advectee(ix::rv), "rv before step sync");
-
-    this->mem->barrier();
-    // start sync/async run of step_cond
-    // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
-    if (this->rank == 0) 
-    {
+      // start sync/async run of step_cond
+      // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
       using libcloudphxx::lgrngn::particles_t;
       using libcloudphxx::lgrngn::CUDA;
       using libcloudphxx::lgrngn::multi_CUDA;
@@ -543,8 +575,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
             &particles_t<real_t, CUDA>::step_cond, 
             dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
             params.cloudph_opts,
-            make_arrinfo(this->mem->advectee(ix::th)),
-            make_arrinfo(this->mem->advectee(ix::rv)),
+            make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
+            make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
             std::map<enum libcloudphxx::lgrngn::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
           );
         else if(params.backend == multi_CUDA)
@@ -553,8 +585,8 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
             &particles_t<real_t, multi_CUDA>::step_cond, 
             dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
             params.cloudph_opts,
-            make_arrinfo(this->mem->advectee(ix::th)),
-            make_arrinfo(this->mem->advectee(ix::rv)),
+            make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
+            make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
             std::map<enum libcloudphxx::lgrngn::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
           );
         assert(ftr.valid());
@@ -563,16 +595,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       {
         prtcls->step_cond(
           params.cloudph_opts,
-          make_arrinfo(this->mem->advectee(ix::th)),
-          make_arrinfo(this->mem->advectee(ix::rv))
+          make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
+          make_arrinfo(rv_post_cond(this->domain).reindex(this->zero))
         );
-        // microphysics could have led to rv < 0 ?
-        negtozero(this->mem->advectee(ix::rv), "rv after step sync");
-
-        nancheck(this->mem->advectee(ix::th), "th after step sync");
-        nancheck(this->mem->advectee(ix::rv), "rv after step sync");
-        negcheck(this->mem->advectee(ix::th), "th after step sync");
-        negcheck(this->mem->advectee(ix::rv), "rv after step sync");
       }
 
       parent_t::tend = parent_t::clock::now();
@@ -581,6 +606,17 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       parent_t::tbeg = parent_t::clock::now();
     }
     this->mem->barrier();
+
+    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
+    this->apply_rhs(this->dt);
+
+    // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
+    // turn all negative rv into rv = 0... CHEATING
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
   }
 
   void hook_mixed_rhs_post_step()
@@ -589,10 +625,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->apply_rhs(this->dt);
     // no negtozero after apply, because only w changed here
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
-    nancheck(this->mem->advectee(ix::th), "th after step sync");
-    nancheck(this->mem->advectee(ix::rv), "rv after step sync");
-    negcheck(this->mem->advectee(ix::th), "th after step sync");
-    negcheck(this->mem->advectee(ix::rv), "rv after step sync");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
   }
   
   void record_all()
@@ -638,10 +674,20 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     const rt_params_t &p
   ) : 
     parent_t(args, p),
-    params(p)
+    params(p),
+    rv_pre_cond(args.mem->tmp[__FILE__][0][0]),
+    rv_post_cond(args.mem->tmp[__FILE__][0][1]),
+    th_pre_cond(args.mem->tmp[__FILE__][0][2]),
+    th_post_cond(args.mem->tmp[__FILE__][0][3])
   {
 
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
+
+  static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
+  {
+    parent_t::alloc(mem, n_iters);
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 4);
+  }
 
 };
