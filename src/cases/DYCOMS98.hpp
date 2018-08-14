@@ -21,7 +21,7 @@ namespace setup
       Y    = 6400 * si::metres; // DYCOMS: 6400
     const real_t z_abs = 1250;
     const real_t z_i = 795; //initial inversion height
-    const quantity<si::length, real_t> z_rlx_vctr = 1 * si::metres;
+    const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
   
     // liquid water potential temperature at height z
     quantity<si::temperature, real_t> th_l(const real_t &z)
@@ -167,8 +167,9 @@ namespace setup
   
   
       // calculate the initial environmental theta and rv profiles
-      // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
+      // alse set w_LS and hgt_fctrs
+      // TODO: move hgt_fctrs from cases to main code
       void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -251,15 +252,12 @@ namespace setup
         // subsidence rate
         w_LS = w_LS_fctr()(k * dz);
   
-        // surface sources relaxation factors
-        // for vectors
+        // calc surf flux divergence directly
         real_t z_0 = z_rlx_vctr / si::metres;
-        hgt_fctr_vctr = exp(- (k-0.5) * dz / z_0); // z=0 at k=1/2
-        hgt_fctr_vctr(0) = 1;
+        hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
         // for scalars
         z_0 = user_params.z_rlx_sclr;
-        hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
-        hgt_fctr_sclr(0) = 1;
+        hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
       }
 
       void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)

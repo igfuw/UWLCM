@@ -37,7 +37,8 @@ std::vector<std::string> profs_dycoms({
 //, "act_conc"
 ,"clfrac"
 //, "N_c", 
-//"sat_RH"
+,"cl_nc"
+,"sat_RH"
 }); // rtot has to be first
 
 std::vector<std::string> profs_moist_thermal({

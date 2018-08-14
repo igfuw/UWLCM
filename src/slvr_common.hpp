@@ -218,9 +218,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         {
           for(auto type : this->hori_vel)
           {
-            subsidence(type); // TODO: in case 1 type here should be in step n+1, calc it explicitly as type + 0.5 * dt * rhs(type);
-                              //       could also be calculated implicitly, but we would need implicit type^n+1 in other cells
-                              //       also include absorber in type^n+1 estimate...
+            subsidence(type); 
             rhs.at(type)(ijk) += F(ijk);
           }
         }
@@ -257,19 +255,15 @@ class slvr_common : public slvr_dim<ct_params_t>
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
-      F(this->ijk).reindex(this->zero) = 
+      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
         where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
-          -pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
           (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
         );
-
-      // du/dt = sum of kinematic momentum fluxes * dt
-      this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
-      // multiplied by 2 here because it is later multiplied by 0.5 * dt
-      this->vip_rhs[it](this->ijk) *= -2;
     }
+
     this->mem->barrier();
     if(this->rank == 0)
     {

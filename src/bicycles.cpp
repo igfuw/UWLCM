@@ -256,71 +256,6 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   concurr->advance(user_params.nt);
 }
 
-// 3D model run logic - the same for any microphysics; TODO: still a lot of common code with 2D run
-#if 0
-template <class solver_t>
-void run(int nx, int ny, int nz, const user_params_t &user_params)
-{
-  // instantiation of structure containing simulation parameters
-  typename solver_t::rt_params_t p;
-
-  // output and simulation parameters
-  p.grid_size = {nx, ny, nz};
-
-  setup::setopts(p, nx, ny, nz, user_params);
-  setopts_micro<solver_t>(p, user_params);
-
-  // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz);
-  // assign their values
-  setup::env_prof(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
-  // pass them to rt_params
-  copy_profiles(th_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
-
-  // solver instantiation
-  std::unique_ptr<
-    concurr::any<
-      typename solver_t::real_t, 
-      solver_t::n_dims
-    >
-  > concurr;
-  if (user_params.serial)
-  {
-    using concurr_t = concurr::serial<
-      solver_t, 
-      bcond::cyclic, bcond::cyclic,
-      bcond::cyclic, bcond::cyclic,
-      bcond::rigid,  bcond::rigid 
-    >;
-    concurr.reset(new concurr_t(p));
-
-    // initial condition
-    setup::intcond3d(*static_cast<concurr_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
-  }
-  else
-  {
-    using concurr_t = concurr::openmp<
-      solver_t, 
-      bcond::cyclic, bcond::cyclic,
-      bcond::cyclic, bcond::cyclic,
-      bcond::rigid,  bcond::rigid 
-    >;
-    concurr.reset(new concurr_t(p));
-
-    // initial condition
-    setup::intcond3d(*static_cast<concurr_t*>(concurr.get()), rhod, th_e, rv_e, user_params.rng_seed);
-  }
-
-  // setup panic pointer and the signal handler
-  panic = concurr->panic_ptr();
-  set_sigaction();
- 
-  // timestepping
-  concurr->advance(user_params.nt);
-}
-
-#endif
-
 // libmpdata++'s compile-time parameters
 struct ct_params_common : ct_params_default_t
 {
@@ -424,7 +359,7 @@ int main(int argc, char** argv)
       ("nt", po::value<int>()->default_value(3600) , "timestep count")
       ("rng_seed", po::value<int>()->default_value(-1) , "rng seed, negative for random")
       ("dt", po::value<setup::real_t>()->required() , "timestep length")
-      ("z_rlx_sclr", po::value<setup::real_t>()->default_value(10) , "scalars surface flux charasteristic heihjt")
+      ("z_rlx_sclr", po::value<setup::real_t>()->default_value(25) , "scalars surface flux charasteristic heihjt")
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
