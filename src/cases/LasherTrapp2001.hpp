@@ -29,7 +29,7 @@ namespace setup
       X    = 10000 * si::metres, // DYCOMS: 6400
       Y    = 10000 * si::metres; // DYCOMS: 6400
     const real_t z_abs = 7000;
-    const quantity<si::length, real_t> z_rlx_vctr = 1 * si::metres;
+    const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
 
     // env profiles of th and rv from the sounding
     arr_1D_t th_dry_env;
@@ -215,15 +215,12 @@ namespace setup
 
         th_e = th_dry_env; // actual env profile of theta_dry
   
-        // surface sources relaxation factors
-        // for vectors
+        // calc divergence directly
         real_t z_0 = z_rlx_vctr / si::metres;
-        hgt_fctr_vctr = exp(- (k-0.5) * dz / z_0); // z=0 at k=1/2
-        hgt_fctr_vctr(0) = 1;
+        hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
         // for scalars
         z_0 = user_params.z_rlx_sclr;
-        hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
-        hgt_fctr_sclr(0) = 1;
+        hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
       }
 
       // functions that set surface fluxes per timestep
