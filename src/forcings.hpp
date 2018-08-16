@@ -102,10 +102,9 @@ void slvr_common<ct_params_t>::surf_sens_impl(iles_tag)
   params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
   //F(ijk).reindex(this->zero) = surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) 
   //                             * (*params.hgt_fctr_sclr)(this->vert_idx);
-  for (auto k = this->k.first(); k <= this->k.last(); ++k)
+  for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    F(this->hrzntl_slice(k)) = - // "-" because negative gradient means inflow 
-      surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr_sclr)(k);
+    F(this->hrzntl_slice(k)) = surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr_sclr)(k);
   }
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
@@ -131,10 +130,9 @@ void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
   params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
   //F(ijk).reindex(this->zero) = surf_flux_lat(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j)  
   //                             * (*params.hgt_fctr_sclr)(this->vert_idx);
-  for (auto k = this->k.first(); k <= this->k.last(); ++k)
+  for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    F(this->hrzntl_slice(k)) = -
-      surf_flux_lat(this->hrzntl_slice(0)) * (*params.hgt_fctr_sclr)(k);
+    F(this->hrzntl_slice(k)) = surf_flux_lat(this->hrzntl_slice(0)) * (*params.hgt_fctr_sclr)(k);
   }
 
 //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
