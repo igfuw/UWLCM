@@ -32,13 +32,19 @@ namespace setup
     using libcloudphxx::common::theta_std::p_1000;
 
 
-    // RH T and p to rv
+    // RH T and p to rv assuming RH = r_v / r_vs
+    quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
+    {
+      return  RH * const_cp::r_vs<real_t>(T, p);
+    }
+
+/*
+    // RH T and p to rv assuming RH = p_v / p_vs
     quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
     {
       return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
     }
 
-/*
     // rv(RH, th_dry, rhod)
     real_t RH_th_rhod_to_rv(const real_t &RH, const real_t &th_dry, const real_t &rhod)
     {
