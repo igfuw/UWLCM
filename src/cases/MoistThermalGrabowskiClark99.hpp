@@ -355,6 +355,10 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
+
+        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
+        arr_1D_t T(th_e * pow(p_d_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
+
         using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(2); 
         real_t dz = (Z / si::metres) / (nz-1); 
@@ -362,7 +366,7 @@ namespace setup
         real_t dx = (X / si::metres) / (nx-1); 
         int ny = solver.advectee().extent(1); 
         real_t dy = (Y / si::metres) / (ny-1); 
-        solver.advectee(ix::rv) = prtrb_rv(th_e, rhod, dz)(
+        solver.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
           sqrt(
             pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
             pow(blitz::tensor::j * dy - (Y / si::metres / 2.), 2) + 
