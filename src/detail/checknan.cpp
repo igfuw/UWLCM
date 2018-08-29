@@ -29,7 +29,7 @@
 namespace nancheck_hlprs
 {
   template<class arr_t>
-  void nancheck_hlpr(const arr_t &arr, std::string name)
+  void nancheck_hlpr(const arr_t &arr, const std::string &name)
   {
     if(!std::isfinite(sum(arr))) 
     {
@@ -43,7 +43,7 @@ namespace nancheck_hlprs
   }
 
   template<class arr_t>
-  void nancheck2_hlpr(const arr_t &arrcheck, const arr_t &arrout, std::string name)
+  void nancheck2_hlpr(const arr_t &arrcheck, const arr_t &arrout, const std::string &name)
   {
     if(!std::isfinite(sum(arrcheck))) 
     {
@@ -58,7 +58,7 @@ namespace nancheck_hlprs
   }
 
   template<class arr_t>
-  void negcheck_hlpr(const arr_t &arr, std::string name)
+  void negcheck_hlpr(const arr_t &arr, const std::string &name)
   {
     if(min(arr) < 0.) 
     {
@@ -72,7 +72,7 @@ namespace nancheck_hlprs
   }
 
   template<class arr_t>
-  void negtozero_hlpr(arr_t arr, std::string name)
+  void negtozero_hlpr(arr_t arr, const std::string &name)
   {
     if(min(arr) < 0.) 
     {
