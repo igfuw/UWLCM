@@ -287,12 +287,14 @@ namespace setup
         th_e = th_e / (1. + a * rv_e);
     
         // turn standard potential temp into dry potential temp
+/*
         for(int k=0; k<nz; ++k)
         {
           quantity<si::dimensionless, real_t> si_rv_e = rv_e(k);
           th_e(k) = libcloudphxx::common::theta_dry::std2dry(th_e(k) * si::kelvins, si_rv_e) / si::kelvins; 
           real_t p_d = pre_ref(k) - libcloudphxx::common::moist_air::p_v<real_t>(pre_ref(k) * si::pascals, rv_e(k))  / si::pascals;
         }
+*/
         th_ref = th_e;//th_std_fctr(th_std_0 / si::kelvins)(k * dz);
       }
 
@@ -323,8 +325,8 @@ namespace setup
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
 
-        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
-        arr_1D_t T(th_e * pow(p_d_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
+//        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
+        arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
         using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w); 
@@ -362,8 +364,8 @@ namespace setup
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
 
-        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
-        arr_1D_t T(th_e * pow(p_d_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
+//        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
+        arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
         using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(2); 
