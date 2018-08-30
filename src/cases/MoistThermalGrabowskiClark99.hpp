@@ -184,7 +184,7 @@ namespace setup
       public:
       // calculate the initial environmental theta and rv profiles as Wojtek does it
       // i.e. for stable virtual standard potential temperature
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, arr_1D_t& mix_len, int nz, const user_params_t &user_params)
       // pre_ref - total pressure
       // th_e - dry potential temp
       // th_ref - dry potential temp refrence profile

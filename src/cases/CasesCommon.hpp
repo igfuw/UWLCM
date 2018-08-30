@@ -64,7 +64,7 @@ namespace setup
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) {assert(false);};
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed) =0;
-    virtual void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params) =0;
+    virtual void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, arr_1D_t& mix_len, int nz, const user_params_t &user_params) =0;
     virtual void update_surf_flux_sens(typename concurr_t::solver_t::arr_t &surf_flux_sens, int timestep, real_t dt) {if(timestep==0) surf_flux_sens = 0.;}; 
     virtual void update_surf_flux_lat(typename concurr_t::solver_t::arr_t &surf_flux_lat, int timestep, real_t dt) {if(timestep==0) surf_flux_lat = 0.;};
 

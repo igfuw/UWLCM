@@ -8,6 +8,7 @@
 #include <libmpdata++/bcond/cyclic_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
 #include <libmpdata++/bcond/gndsky_3d.hpp>
+#include <libmpdata++/bcond/gndsky_2d.hpp>
 #include <libmpdata++/concurr/openmp.hpp>
 #include "setup.hpp"
 
@@ -22,10 +23,21 @@
 #include "panic.hpp"
 #include <map>
 
+template<class params_t>
+void copy_profiles_sgs(setup::arr_1D_t &mix_len, params_t &p, iles_tag) {}
+
+template<class params_t>
+void copy_profiles_sgs(setup::arr_1D_t &mix_len, params_t &p, smg_tag)
+{
+  p.mix_len = new setup::arr_1D_t(mix_len.dataFirst(), mix_len.shape(), blitz::neverDeleteData);
+}
+
 // copy external profiles into rt_parameters
 // TODO: more elegant way
-template<class params_t>
-void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p)
+template<class params_t, class sgs_tag>
+void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref,
+                   setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v,
+                   setup::arr_1D_t &hgt_s, setup::arr_1D_t& mix_len, params_t &p, sgs_tag tag)
 {
   p.hgt_fctr_sclr = new setup::arr_1D_t(hgt_s.dataFirst(), hgt_s.shape(), blitz::neverDeleteData);
   p.hgt_fctr_vctr = new setup::arr_1D_t(hgt_v.dataFirst(), hgt_v.shape(), blitz::neverDeleteData);
@@ -36,19 +48,9 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t 
   p.pre_ref = new setup::arr_1D_t(pre_ref.dataFirst(), pre_ref.shape(), blitz::neverDeleteData);
   p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
   p.w_LS = new setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
+  copy_profiles_sgs(mix_len, p, tag);
 }
 
-//struct iles_tag {};
-//struct sgs_tag {};
-//
-//template<class params_t, class case_ptr_t>
-//void set_sgs_params_hlpr(params_t&, const case_ptr_t&, iles_tag) {}
-
-//template<class params_t, class case_ptr_t>
-//void set_sgs_params_hlpr(params_t& p, const case_ptr_t &ptr, sgs_tag)
-//{
-//  ptr->setopts_sgs(p);
-//}
 
 // 2D model run logic - the same for any microphysics
 template <class solver_t>
@@ -63,7 +65,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   using concurr_openmp_rigid_t = concurr::openmp<
     solver_t, 
     bcond::cyclic, bcond::cyclic,
-    bcond::rigid,  bcond::rigid 
+    bcond::gndsky,  bcond::gndsky
   >;
 
   using concurr_openmp_cyclic_t = concurr::openmp<
@@ -116,13 +118,14 @@ void run(int nx, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1),
+                  w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), mix_len(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, p, typename solver_t::sgs_tag{});
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -234,13 +237,14 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1),
+    w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), mix_len(nz);
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, p, typename solver_t::sgs_tag{});
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -584,14 +588,14 @@ int main(int argc, char** argv)
     //if (micro == "lgrngn" && ny == 0) // 2D super-droplet
     //  run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, sgs, nx, nz, user_params);
 
-    if (micro == "lgrngn" && ny > 0) // 3D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
+    //else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+    //  run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
 
-    //else if (micro == "blk_1m" && ny == 0) // 2D one-moment
-    //  run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, sgs, nx, nz, user_params);
+    if (micro == "blk_1m" && ny == 0) // 2D one-moment
+      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, sgs, nx, nz, user_params);
 
-    //else if (micro == "blk_1m" && ny > 0) // 3D one-moment
-    //  run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
+    else if (micro == "blk_1m" && ny > 0) // 3D one-moment
+      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
 
   // TODO: not only micro can be wrong
     else throw 

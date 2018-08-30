@@ -119,7 +119,7 @@ namespace setup
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, arr_1D_t &mix_len, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
