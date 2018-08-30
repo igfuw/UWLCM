@@ -113,6 +113,21 @@ namespace setup
     class Dycoms98 : public CasesCommon<concurr_t>
     {
       protected:
+      
+      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
+      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
+                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles>::type* = 0)
+      {}
+
+      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
+      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
+                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::smg>::type* = 0)
+      {
+        params.c_m = 0.0856;
+        params.smg_c = 0.165;
+        params.prandtl_num = 0.42;
+        params.cdrag = 0.;
+      }
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -132,6 +147,8 @@ namespace setup
         params.subsidence = true;
         params.friction = true;
         params.radiation = true;
+
+        setopts_sgs(params);
       }
   
       template <class index_t>
@@ -169,7 +186,7 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, arr_1D_t& mix_len, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -284,6 +301,9 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         // for scalars
         z_0 = user_params.z_rlx_sclr;
         hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
+
+        auto delta = dz;
+        mix_len = min(max(k, 1) * dz * 0.845, delta);
       }
 
       void update_surf_flux_sens(typename concurr_t::solver_t::arr_t &surf_flux_sens, int timestep, real_t dt)
@@ -335,21 +355,6 @@ std::cout << "lwp env: " << lwp_env << std::endl;
     template<class concurr_t>
     class Dycoms98_3d : public Dycoms98<concurr_t>
     {
-      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
-      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
-                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles>::type* = 0)
-      {}
-
-      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
-      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
-                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::smg>::type* = 0)
-      {
-        params.c_m = 0.0856;
-        params.smg_c = 0.165;
-        params.prandtl_num = 0.42;
-        params.cdrag = 0.;
-      }
-      
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
