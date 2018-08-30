@@ -85,6 +85,13 @@ class slvr_dim<
     // set to 0 at top level to have no subsidence there - TODO: it messes with other possible uses of this function 
     out(this->i, this->j.last()) = 0; 
   }
+  
+  void vert_grad_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  {
+    in(this->i, this->j.last() + 1) = in(this->i, this->j.last());
+    in(this->i, this->j.first() - 1) = in(this->i, this->j.first());
+    out(this->i, this->j + h) = libmpdataxx::formulae::nabla::grad_cmpct<1>(in, this->j, this->i, dz);
+  }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
   {
