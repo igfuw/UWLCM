@@ -184,7 +184,7 @@ for file_name in profiles_files_names:
     
   
     plot_iter=0
-    plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel='$\theta_l$[K]', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel=r'$\theta_l$[K]', varlabel=profiles_labels[label_counter])
     plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='q$_{tot}$[g/kg]', varlabel=profiles_labels[label_counter])
     plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='q$_{l}$[g/kg]', varlabel=profiles_labels[label_counter])
     plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='wvar', varlabel=profiles_labels[label_counter])
