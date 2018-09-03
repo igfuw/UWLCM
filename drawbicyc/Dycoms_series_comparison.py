@@ -30,7 +30,7 @@ def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabe
   return plot_iter
 
 
-nplotx = 3
+nplotx = 4
 nploty= 2
 
 # init the plot
@@ -43,7 +43,10 @@ dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scala
 time = dycoms_file.variables["time"][:,1,1,:].copy() 
 ntime = dycoms_file.variables["ntime"][:,1,1].copy()
 
-dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi"]
+dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi", "zb"]
+
+nemptyplots = nploty - len(dycoms_vars) % nploty
+emptyplots = np.arange(nploty - nemptyplots, nploty)
 
 groups = np.arange(14)
 itime = np.arange(0, 21600, 60)
@@ -144,6 +147,7 @@ for file_name in series_files_names:
   my_sp = read_my_array(series_file)
   read_my_array(series_file) # discard accumulated precip
   my_act_cond = read_my_array(series_file)
+  my_zb = read_my_array(series_file)
   
   # rescale time to hours
   my_times = my_times / 3600.
@@ -154,18 +158,23 @@ for file_name in series_files_names:
   #dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi"]
   linestyles = ['--', '-.', ':']
   plot_iter=0
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP (g / m$^{2}$)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance (m$^{2}$ / s$^2$)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='Surface precip. (mm / day)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ (cm$^{-3}$)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, xlabel='time (h)', ylabel='Cloud fraction', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='time (h)', ylabel='Entrainment rate (cm / s)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g / m$^{2}$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ / s$^2$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='Time [h]', ylabel='Entrainment rate [cm / s]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_zb, xlabel='Time [h]', ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
   label_counter+=1
 
 # show legends on each subplot
 #for x in np.arange(nplotx):
 #  for y in np.arange(nploty):
 #    axarr[x,y].legend()
+
+# hide axes on empty plots
+for empty in emptyplots:
+  axarr[nplotx-1, empty].axis('off')
 
 #single legend for the whole figure
 handles, labels = axarr[0,0].get_legend_handles_labels()
