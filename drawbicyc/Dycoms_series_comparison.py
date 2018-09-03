@@ -154,12 +154,12 @@ for file_name in series_files_names:
   #dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi"]
   linestyles = ['--', '-.', ':']
   plot_iter=0
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP (g / m$^{2}$)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance (m$^{2}$ / s$^2$)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='Surface precip. (mm / day)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ (cm$^{-3}$)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, xlabel='time (h)', ylabel='Cloud fraction', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='time (h)', ylabel='Entrainment rate (cm / s)', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g / m$^{2}$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ / s$^2$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, xlabel='Time [h]', ylabel='Cloud fraction', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='Time [h]', ylabel='Entrainment rate [cm / s]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
   label_counter+=1
 
 # show legends on each subplot
