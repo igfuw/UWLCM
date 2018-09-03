@@ -5,7 +5,8 @@ const std::vector<std::string> series_dycoms({
  "surf_precip", 
 //"mass_dry", 
  "acc_precip",
- "cl_nc"//,
+ "cl_nc",
+ "cloud_base"
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
 });
