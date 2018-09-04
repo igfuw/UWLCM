@@ -4,7 +4,9 @@ import numpy as np
 from sys import argv
 import sys
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from bisect import bisect_left
+
 
 
 def read_my_array(file_obj):
@@ -18,7 +20,7 @@ def read_my_array(file_obj):
 
 
 
-dycoms_vars = ["thetal", "qt", "ql", "w_var", "w_skw", "precip", "ss", "cfrac", "ndrop_cld"]
+dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld"]
 
 # init the plot
 nplotx = 2 #int(len(dycoms_vars)/5 + 1)
@@ -156,7 +158,8 @@ dycoms_file.close()
 #read my results
 profiles_files_names = []
 profiles_labels = []
-file_no = np.arange(1, len(sys.argv)-1 / 2, 2)
+file_no = np.arange(1, len(sys.argv)-1 , 2)
+print file_no
 for no in file_no:
   profiles_files_names.append(argv[no])
   profiles_labels.append(argv[no+1])
@@ -189,12 +192,12 @@ for file_name in profiles_files_names:
     plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel=r'$\theta_l$ [K]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='$q_{t}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='$q_{l}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='Variance of $w$ [m$^2$ / s$^2$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='Third moment of $w$ [m$^3$ / s$^3$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='Precipitation flux [W / m$^2$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='Supersaturation [%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='Cloud fraction', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='Cloud droplet concentration [1 / cm$^3$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='Precip. flux [W m$^{-2}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='$S$ [%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c [$cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
 
   except:
     print 'error opening file: ', file_name
@@ -210,9 +213,34 @@ for file_name in profiles_files_names:
     my_ss = 0
   label_counter = label_counter+1
 
+# legend font size
+plt.rcParams.update({'font.size': 9})
+
 # hide axes on empty plots
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')
+
+# hide vertical tic labels
+x_empty_label = np.arange(nplotx)
+y_empty_label = np.arange(1, nploty)
+for x in x_empty_label:
+  for y in y_empty_label:
+    axarr[x,y].set_yticklabels([])
+
+#axes = plt.gca()
+#axes.tick_params(direction='in')
+x_arr = np.arange(nplotx)
+y_arr = np.arange(nploty)
+for x in x_arr:
+  for y in y_arr:
+    #tics inside
+    axarr[x,y].tick_params(direction='in', which='both', top=1, right=1)
+    #minor tics
+    axarr[x,y].xaxis.set_minor_locator(AutoMinorLocator())
+    axarr[x,y].yaxis.set_minor_locator(AutoMinorLocator())
+    #labels and tics font size
+    for item in ([axarr[x,y].xaxis.label, axarr[x,y].yaxis.label] + axarr[x,y].get_xticklabels() + axarr[x,y].get_yticklabels()):
+      item.set_fontsize(8)
 
 ## show legends
 #for x in np.arange(nplotx):
@@ -223,5 +251,10 @@ for empty in emptyplots:
 handles, labels = axarr[0,0].get_legend_handles_labels()
 fig.legend(handles, labels, handlelength=4, loc='lower center')
 
-plt.show()
+#figure size
+fig.set_size_inches(7.874, 8)# 5.214)#20.75,13.74)
+
+
+#plt.show()
+fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)
 
