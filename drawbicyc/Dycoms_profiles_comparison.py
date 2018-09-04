@@ -29,13 +29,13 @@ print nplotx, nploty, nemptyplots
 print emptyplots
 fig, axarr = plt.subplots(nplotx, nploty )
 
-def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None ):
+def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2)):
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
   if varlabel != None:
-    axarr[x, y].plot(time, val, label=varlabel)
+    axarr[x, y].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=2, dashes=dashes)
   else:
-    axarr[x, y].plot(time, val)
+    axarr[x, y].plot(time, val, linestyle=linestyle, linewidth=2, dashes=dashes)
   if xlabel:
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
@@ -134,17 +134,17 @@ for var in dycoms_vars:
   axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
   axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(mvar_arr, ihght, color='black')
-  axarr[x, y].set_ylim([0,1.6])
-  if var == "thetal":
-    axarr[x, y].set_xlim([288.2,289.2])
-  if var == "qt":
-    axarr[x, y].set_xlim([9,10.4])
-  if var == "ql":
-    axarr[x, y].set_xlim([0,.7])
-  if var == "w_var":
-    axarr[x, y].set_xlim([-0.1,.8])
-  if var == "w_skw":
-    axarr[x, y].set_xlim([-0.15,.15])
+  axarr[x, y].set_ylim([0,1.2])
+  #if var == "thetal":
+  #  axarr[x, y].set_xlim([288.2,289.2])
+  #if var == "qt":
+  #  axarr[x, y].set_xlim([9,10.4])
+  #if var == "ql":
+  #  axarr[x, y].set_xlim([0,.7])
+  #if var == "w_var":
+  #  axarr[x, y].set_xlim([-0.1,.8])
+  #if var == "w_skw":
+  #  axarr[x, y].set_xlim([-0.15,.15])
   if var == "ss":
     axarr[x, y].set_xlim([-2,1])
 
@@ -183,16 +183,19 @@ for file_name in profiles_files_names:
     profiles_file.close()
     
   
+    linestyles = ['--', '-.', ':']
+    dashList = [(4,2),(1,1),(5,2,1,2),(6,4)] 
     plot_iter=0
-    plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel=r'$\theta_l$[K]', varlabel=profiles_labels[label_counter])
-    plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='q$_{tot}$[g/kg]', varlabel=profiles_labels[label_counter])
-    plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='q$_{l}$[g/kg]', varlabel=profiles_labels[label_counter])
-    plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='wvar', varlabel=profiles_labels[label_counter])
-    plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='w3rd', varlabel=profiles_labels[label_counter])
-    plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='prflux', varlabel=profiles_labels[label_counter])
-    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='S', varlabel=profiles_labels[label_counter])
-    plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='cl frac', varlabel=profiles_labels[label_counter])
-    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='nc', varlabel=profiles_labels[label_counter])
+    plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel=r'$\theta_l$ [K]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='$q_{t}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='$q_{l}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel='Variance of $w$ [m$^2$ / s$^2$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='Third moment of $w$ [m$^3$ / s$^3$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='Precipitation flux [W / m$^2$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='Supersaturation [%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='Cloud fraction', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='Cloud droplet concentration [1 / cm$^3$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+
   except:
     print 'error opening file: ', file_name
     my_pos = 0
@@ -210,9 +213,15 @@ for file_name in profiles_files_names:
 # hide axes on empty plots
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')
-# show legends
-for x in np.arange(nplotx):
-  for y in np.arange(nploty):
-    axarr[x,y].legend(loc="upper center")
+
+## show legends
+#for x in np.arange(nplotx):
+#  for y in np.arange(nploty):
+#    axarr[x,y].legend(loc="upper center")
+
+#single legend for the whole figure
+handles, labels = axarr[0,0].get_legend_handles_labels()
+fig.legend(handles, labels, handlelength=4, loc='lower center')
+
 plt.show()
 
