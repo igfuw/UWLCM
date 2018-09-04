@@ -35,9 +35,9 @@ def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabe
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
   if varlabel != None:
-    axarr[x, y].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=2, dashes=dashes)
+    axarr[x, y].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=1, dashes=dashes)
   else:
-    axarr[x, y].plot(time, val, linestyle=linestyle, linewidth=2, dashes=dashes)
+    axarr[x, y].plot(time, val, linestyle=linestyle, linewidth=1, dashes=dashes)
   if xlabel:
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
@@ -141,12 +141,12 @@ for var in dycoms_vars:
   #  axarr[x, y].set_xlim([288.2,289.2])
   #if var == "qt":
   #  axarr[x, y].set_xlim([9,10.4])
-  #if var == "ql":
-  #  axarr[x, y].set_xlim([0,.7])
-  #if var == "w_var":
-  #  axarr[x, y].set_xlim([-0.1,.8])
-  #if var == "w_skw":
-  #  axarr[x, y].set_xlim([-0.15,.15])
+  if var == "ql":
+    axarr[x, y].set_xlim([0,.7])
+  if var == "w_var":
+    axarr[x, y].set_xlim([-0.1,.8])
+  if var == "w_skw":
+    axarr[x, y].set_xlim([-0.15,.15])
   if var == "ss":
     axarr[x, y].set_xlim([-2,1])
 
@@ -187,7 +187,7 @@ for file_name in profiles_files_names:
     
   
     linestyles = ['--', '-.', ':']
-    dashList = [(4,2),(1,1),(5,2,1,2),(6,4)] 
+    dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
     plot_iter=0
     plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel=r'$\theta_l$ [K]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='$q_{t}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
@@ -197,7 +197,7 @@ for file_name in profiles_files_names:
     plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='$S$ [%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c [$cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
 
   except:
     print 'error opening file: ', file_name
@@ -214,7 +214,7 @@ for file_name in profiles_files_names:
   label_counter = label_counter+1
 
 # legend font size
-plt.rcParams.update({'font.size': 9})
+plt.rcParams.update({'font.size': 8})
 
 # hide axes on empty plots
 for empty in emptyplots:
@@ -249,12 +249,17 @@ for x in x_arr:
 
 #single legend for the whole figure
 handles, labels = axarr[0,0].get_legend_handles_labels()
-fig.legend(handles, labels, handlelength=4, loc='lower center')
+lgd = fig.legend(handles, labels, handlelength=4, loc='lower center', bbox_to_anchor=(0.45,0))
+
 
 #figure size
-fig.set_size_inches(7.874, 8)# 5.214)#20.75,13.74)
+fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
+#distances between subplots and from bottom of the plot
+fig.subplots_adjust(bottom=0.15 + (len(labels) - 2) * 0.02, hspace=0.25)
+
+#fig.tight_layout(pad=0, w_pad=0, h_pad=0)
 
 
 #plt.show()
-fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)
+fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
 
