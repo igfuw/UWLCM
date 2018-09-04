@@ -16,12 +16,12 @@ def read_my_array(file_obj):
   arr = map(float,line)
   return np.array(arr)
 
-def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None, linestyle='-'):
+def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None, linestyle='-', dashes=(5,2)):
   #, linestyle=":"):
   x = int(plot_iter / 2)
   y = plot_iter % 2
   axarr[x, y].set_xlim([0,6])
-  axarr[x, y].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=2)
+  axarr[x, y].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=2, dashes=dashes)
   if xlabel:
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
@@ -154,17 +154,16 @@ for file_name in series_files_names:
   
   series_file.close()
   
-  
-  #dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi"]
   linestyles = ['--', '-.', ':']
+  dashList = [(4,2),(1,1),(5,2,1,2),(6,4)] 
   plot_iter=0
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g / m$^{2}$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ / s$^2$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='Time [h]', ylabel='Entrainment rate [cm / s]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_zb, xlabel='Time [h]', ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], linestyle = linestyles[label_counter % len(linestyles)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g / m$^{2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ / s$^2$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='Time [h]', ylabel='Entrainment rate [cm / s]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_zb, xlabel='Time [h]', ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   label_counter+=1
 
 # show legends on each subplot
@@ -178,7 +177,7 @@ for empty in emptyplots:
 
 #single legend for the whole figure
 handles, labels = axarr[0,0].get_legend_handles_labels()
-fig.legend(handles, labels, loc='lower center')
+fig.legend(handles, labels, handlelength=4, loc='lower center')
 
 plt.show()
 
