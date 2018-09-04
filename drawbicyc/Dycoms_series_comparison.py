@@ -179,5 +179,8 @@ for empty in emptyplots:
 handles, labels = axarr[0,0].get_legend_handles_labels()
 fig.legend(handles, labels, handlelength=4, loc='lower center')
 
-plt.show()
+#figure size
+fig.set_size_inches(20.75,13.74)
 
+#plt.show()
+fig.savefig("foo.pdf", bbox_inches='tight', dpi=200)
