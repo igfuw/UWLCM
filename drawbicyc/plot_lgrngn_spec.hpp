@@ -11,7 +11,7 @@ namespace
 
 //plot spectra positions
 template<class Plotter_t>
-void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots)
+void plot_lgrngn_spec_positions(Plotter_t plotter)
 {
   // read opts
   po::options_description opts("spectra plotting options");
@@ -72,7 +72,7 @@ void plot_lgrngn_spec_positions(Plotter_t plotter, Plots plots)
 
 //plot spectra
 template<class Plotter_t>
-void plot_lgrngn_spec(Plotter_t plotter, Plots plots)
+void plot_lgrngn_spec(Plotter_t plotter)
 {
   const int spectra_step = vm["spectra_step"].as<int>();
 
