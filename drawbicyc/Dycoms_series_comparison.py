@@ -160,7 +160,7 @@ for file_name in series_files_names:
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g / m$^{2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ / s$^2$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='N$_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='Cloud droplet concentration [1 / cm$^{3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='Time [h]', ylabel='Entrainment rate [cm / s]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_zb, xlabel='Time [h]', ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
