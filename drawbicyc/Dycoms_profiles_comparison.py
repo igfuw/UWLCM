@@ -18,14 +18,15 @@ def read_my_array(file_obj):
   arr = map(float,line)
   return np.array(arr)
 
-
-
-dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld"]
+dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "ndrop_cld_zoom"]
 
 # init the plot
 nplotx = 2 #int(len(dycoms_vars)/5 + 1)
 nploty = int(float(len(dycoms_vars))/float(nplotx) + 0.5)
-nemptyplots = nploty - len(dycoms_vars) % nploty
+if len(dycoms_vars) % nploty == 0:
+  nemptyplots=0
+else:
+  nemptyplots = nploty - len(dycoms_vars) % nploty
 emptyplots = np.arange(nploty - nemptyplots, nploty)
 print nplotx, nploty, nemptyplots
 print emptyplots
@@ -80,6 +81,26 @@ q3var_arr = np.ndarray(shape=(len(ihght)))
 
 plot_iter = 0
 for var in dycoms_vars:
+  x = int(plot_iter / nploty)
+  y = plot_iter % nploty
+
+  #if var == "thetal":
+  #  axarr[x, y].set_xlim([288.2,289.2])
+  #if var == "qt":
+  #  axarr[x, y].set_xlim([9,10.4])
+  if var == "ql":
+    axarr[x, y].set_xlim([0,.7])
+  if var == "w_var":
+    axarr[x, y].set_xlim([-0.1,.8])
+  if var == "w_skw":
+    axarr[x, y].set_xlim([-0.15,.15])
+  if var == "ss":
+    axarr[x, y].set_xlim([-2,1])
+  if var=="ndrop_cld_zoom":
+    axarr[x, y].set_xlim([50,80])
+
+  if var=="ndrop_cld_zoom":
+    var="ndrop_cld"
   var_arr = dycoms_file.variables[var][:,1,1,:,:].copy() 
 
   for g in groups:
@@ -130,25 +151,10 @@ for var in dycoms_vars:
     q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
     q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
 
-  x = int(plot_iter / nploty)
-  y = plot_iter % nploty
-
   axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
   axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(mvar_arr, ihght, color='black')
   axarr[x, y].set_ylim([0,1.2])
-  #if var == "thetal":
-  #  axarr[x, y].set_xlim([288.2,289.2])
-  #if var == "qt":
-  #  axarr[x, y].set_xlim([9,10.4])
-  if var == "ql":
-    axarr[x, y].set_xlim([0,.7])
-  if var == "w_var":
-    axarr[x, y].set_xlim([-0.1,.8])
-  if var == "w_skw":
-    axarr[x, y].set_xlim([-0.15,.15])
-  if var == "ss":
-    axarr[x, y].set_xlim([-2,1])
 
   plot_iter += 1
 
@@ -197,6 +203,7 @@ for file_name in profiles_files_names:
     plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='$S$ [%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
 
   except:
