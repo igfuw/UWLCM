@@ -4,6 +4,7 @@ import numpy as np
 from sys import argv
 import sys
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from bisect import bisect_left
 
 
@@ -16,12 +17,16 @@ def read_my_array(file_obj):
   arr = map(float,line)
   return np.array(arr)
 
+
+nplotx = 2
+nploty= 3
+
 def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None, linestyle='-', dashes=(5,2)):
   #, linestyle=":"):
-  x = int(plot_iter / 2)
-  y = plot_iter % 2
+  x = int(plot_iter / nploty)
+  y = plot_iter % nploty
   axarr[x, y].set_xlim([0,6])
-  axarr[x, y].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=2, dashes=dashes)
+  axarr[x, y].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=1, dashes=dashes)
   if xlabel:
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
@@ -29,9 +34,6 @@ def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabe
   plot_iter = plot_iter+1
   return plot_iter
 
-
-nplotx = 4
-nploty= 2
 
 # init the plot
 fig, axarr = plt.subplots(nplotx,nploty)
@@ -43,9 +45,12 @@ dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scala
 time = dycoms_file.variables["time"][:,1,1,:].copy() 
 ntime = dycoms_file.variables["ntime"][:,1,1].copy()
 
-dycoms_vars = ["lwp", "w2_max", "precip", "ndrop_cld", "cfrac", "zi", "zb"]
+dycoms_vars = ["lwp", "zi", "w2_max", "precip", "ndrop_cld", "zb"]# "cfrac"]
 
-nemptyplots = nploty - len(dycoms_vars) % nploty
+if len(dycoms_vars) % nploty == 0:
+  nemptyplots = 0
+else:
+  nemptyplots = nploty - len(dycoms_vars) % nploty
 emptyplots = np.arange(nploty - nemptyplots, nploty)
 
 groups = np.arange(14)
@@ -109,8 +114,8 @@ for var in dycoms_vars:
     q3var_arr[mean_iter] = np.percentile(ivar_arr[ivar_arr < 1e35], 75)
     mean_iter+=1
 
-  x = int(plot_iter / 2)
-  y = plot_iter % 2
+  x = int(plot_iter / nploty)
+  y = plot_iter % nploty
 
 #  for g in groups:
 #    print var
@@ -130,7 +135,7 @@ dycoms_file.close()
 #read my results
 series_files_names = []
 series_labels = []
-file_no = np.arange(1, len(sys.argv)-1 / 2, 2)
+file_no = np.arange(1, len(sys.argv)-1 , 2)
 for no in file_no:
   series_files_names.append(argv[no])
   series_labels.append(argv[no+1])
@@ -155,14 +160,14 @@ for file_name in series_files_names:
   series_file.close()
   
   linestyles = ['--', '-.', ':']
-  dashList = [(4,2),(1,1),(5,2,1,2),(6,4)] 
+  dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
   plot_iter=0
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g / m$^{2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ / s$^2$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, ylabel='Cloud droplet concentration [1 / cm$^{3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, xlabel='Time [h]', ylabel='Entrainment rate [cm / s]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g m$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, ylabel='Entrainment rate [cm $s^{-1}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ s$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, xlabel='Time [h]', ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, xlabel='Time [h]', ylabel='$N_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_zb, xlabel='Time [h]', ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   label_counter+=1
 
@@ -171,16 +176,46 @@ for file_name in series_files_names:
 #  for y in np.arange(nploty):
 #    axarr[x,y].legend()
 
+# legend font size
+plt.rcParams.update({'font.size': 8})
+
 # hide axes on empty plots
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')
 
+# hide hrzntl tic labels
+x_empty_label = np.arange(0, nplotx-1)
+y_empty_label = np.arange(nploty)
+for x in x_empty_label:
+  for y in y_empty_label:
+    axarr[x,y].set_xticklabels([])
+
+#axes = plt.gca()
+#axes.tick_params(direction='in')
+x_arr = np.arange(nplotx)
+y_arr = np.arange(nploty)
+for x in x_arr:
+  for y in y_arr:
+    #tics inside
+    axarr[x,y].tick_params(direction='in', which='both', top=1, right=1)
+    #minor tics
+    axarr[x,y].xaxis.set_minor_locator(AutoMinorLocator())
+    axarr[x,y].yaxis.set_minor_locator(AutoMinorLocator())
+    #labels and tics font size
+    for item in ([axarr[x,y].xaxis.label, axarr[x,y].yaxis.label] + axarr[x,y].get_xticklabels() + axarr[x,y].get_yticklabels()):
+      item.set_fontsize(8)
+
 #single legend for the whole figure
 handles, labels = axarr[0,0].get_legend_handles_labels()
-fig.legend(handles, labels, handlelength=4, loc='lower center')
+
+lgd = fig.legend(handles, labels, handlelength=4, loc='lower center', bbox_to_anchor=(0.45,0))
 
 #figure size
-fig.set_size_inches(20.75,13.74)
+fig.set_size_inches(7.874, 5. + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
+#distances between subplots and from bottom of the plot
+fig.subplots_adjust(bottom=0.18 + (len(labels) - 2) * 0.03, hspace=0.1, wspace=0.4)
+
+#fig.tight_layout(pad=0, w_pad=0, h_pad=0)
 
 #plt.show()
-fig.savefig("foo.pdf", bbox_inches='tight', dpi=200)
+fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
