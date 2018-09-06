@@ -209,14 +209,18 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
         gp << "set title 'ultra-gccn-based droplets mean wet radius (downdraughts only)'\n";
       }
-      if (plt == "act_conc")
+      if (plt == "act_conc_up")
       {
         // 0th-mom (concentration) of droplets with RH > Sc
         {
+          // disabled, since UWLCM doesnt store actRH anymore
+/*
           auto tmp = plotter.h5load_timestep("actRH_rd_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap;
           res_tmp *= rhod / 1e6; // per cm^3
+*/
+          res_tmp=0;
         }
         // updraft only
         {
@@ -241,7 +245,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res_prof2 += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
         gp << "set title 'activated droplets concentation [1/cm^3] (updrafts)'\n";
       }
-      if (plt == "act_rd")
+      if (plt == "act_rd_up")
       {
 	// RH > Sc droplets first dry mom
         {
@@ -336,7 +340,16 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = (snap -1) * 100;
         }
-/*
+        res += res_tmp;
+        gp << "set title 'supersaturation RH-based'\n";
+      }
+      else if (plt == "sat_RH_up")
+      {
+        {
+          auto tmp = plotter.h5load_RH_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = (snap -1) * 100;
+        }
  // for mean over updraught cells
         {
           auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
@@ -344,17 +357,14 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
         }
-*/
         // mean only over updraught cells
-//        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-//        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
 
 //        mean over all cells
 //        res_prof += plotter.horizontal_sum(res_tmp);
 
-        res += res_tmp;
-        //gp << "set title 'supersaturation RH-based in updrafts only'\n";
-        gp << "set title 'supersaturation RH-based'\n";
+        gp << "set title 'supersaturation RH-based in updrafts only'\n";
 //        gp << "set yrange [0.45:1.]\n";
   //      gp << "set xrange [0.000:*]\n";
       }
@@ -509,9 +519,9 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     }
 
 
-    if (plt != "act_rd" && plt != "act_conc")
+    if (plt != "act_rd_up" && plt != "act_conc_up")
     {
-      if (plt == "ugccn_rw_down" || /*plt == "sat_RH" ||*/ plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
+      if (plt == "ugccn_rw_down" || plt == "sat_RH_up" | plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
         res_prof /= last_timestep - first_timestep + 1;
       else
         res_prof = plotter.horizontal_mean(res); // average in x
