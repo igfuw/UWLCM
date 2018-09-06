@@ -62,8 +62,8 @@ script:
   - cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
   - make
   - sudo make install
-  # rename libcloudphxx to pretend it's in Release mode, since UWLCM will be built in Release mode
-  - sudo mv /usr/lib/libcloudphxx_lgrngn_relwithdbg.so /usr/lib/libcloudphxx_lgrngn.so
+  # copy libcloudphxx to pretend it's in Release mode, since UWLCM will be built in Release mode
+  - sudo cp /usr/lib/libcloudphxx_lgrngn_relwithdbg.so /usr/lib/libcloudphxx_lgrngn.so
   - cd ../..
 
   # install libmpdataxx
