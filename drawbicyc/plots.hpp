@@ -39,8 +39,10 @@ std::vector<std::string> profs_dycoms({
 //, "N_c", 
 ,"cl_nc"
 ,"sat_RH"
-,"sat_RH_up"
-, "act_conc_up" // act_conc_up last, since it produces two time series (for RH- and rw-based activation)
+//,"sat_RH_up"
+//, "act_conc_up" 
+//, "nc_up" 
+//, "nc_down" 
 }); // rtot has to be first
 
 std::vector<std::string> profs_moist_thermal({
