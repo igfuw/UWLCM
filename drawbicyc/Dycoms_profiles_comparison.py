@@ -19,7 +19,7 @@ def read_my_array(file_obj):
   return np.array(arr)
 
 dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "ndrop_cld_zoom"]
-nplots = len(dycoms_vars) + 2 # 2 updraft profiles without dycoms results
+nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
 nplotx = 2 #int(nplots/5 + 1)
@@ -208,17 +208,17 @@ for file_name in profiles_files_names:
     plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='$S$ [%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    # xrange of the ss_up plot
-    x = int(plot_iter / nploty)
-    y = plot_iter % nploty
-    axarr[x, y].set_xlim([-2,1])
-    axarr[x, y].set_ylim([0,1.2])
-    plot_iter = plot_my_array(axarr, plot_iter, my_ss_up, my_pos, xlabel='updraft S', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    # xrange of the nact_up plot
-    x = int(plot_iter / nploty)
-    y = plot_iter % nploty
-    axarr[x, y].set_ylim([0,1.2])
-    plot_iter = plot_my_array(axarr, plot_iter, my_nact_up, my_pos, xlabel='updraft n act', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    ## xrange of the ss_up plot
+    #x = int(plot_iter / nploty)
+    #y = plot_iter % nploty
+    #axarr[x, y].set_xlim([-2,1])
+    #axarr[x, y].set_ylim([0,1.2])
+    #plot_iter = plot_my_array(axarr, plot_iter, my_ss_up, my_pos, xlabel='updraft S', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    ## xrange of the nact_up plot
+    #x = int(plot_iter / nploty)
+    #y = plot_iter % nploty
+    #axarr[x, y].set_ylim([0,1.2])
+    #plot_iter = plot_my_array(axarr, plot_iter, my_nact_up, my_pos, xlabel='updraft n act', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
 
 
   except:
