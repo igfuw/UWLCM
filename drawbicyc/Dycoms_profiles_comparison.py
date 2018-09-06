@@ -187,8 +187,8 @@ for file_name in profiles_files_names:
     my_clfrac = read_my_array(profiles_file)
     my_nc = read_my_array(profiles_file)
     my_ss = read_my_array(profiles_file)
-    my_ss_up = read_my_array(profiles_file)
-    my_nact_up = read_my_array(profiles_file)
+    #my_ss_up = read_my_array(profiles_file)
+    #my_nact_up = read_my_array(profiles_file)
 
     print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
   
