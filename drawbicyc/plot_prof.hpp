@@ -244,6 +244,50 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
         gp << "set title 'activated droplets concentation [1/cm^3] (updrafts)'\n";
       }
+      if (plt == "nc_up")
+      {
+        // updraft only
+        {
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = isupdraught(snap);
+        }
+        // mean only over updraught cells
+        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+
+        {
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+          res_tmp *= rhod / 1e6; // per cm^3
+        }
+        // updraft only
+        res_tmp *= res_tmp2;
+        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
+      }
+      if (plt == "nc_down")
+      {
+        // updraft only
+        {
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = isdowndraught(snap);
+        }
+        // mean only over updraught cells
+        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+
+        {
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+          res_tmp *= rhod / 1e6; // per cm^3
+        }
+        // updraft only
+        res_tmp *= res_tmp2;
+        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
+      }
       if (plt == "act_rd_up")
       {
 	// RH > Sc droplets first dry mom
@@ -520,7 +564,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     }
 
     // do the plotting
-    if (plt == "ugccn_rw_down" || plt == "act_rd_up" || plt == "act_conc_up" || plt == "sat_RH_up" | plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
+    if (plt == "ugccn_rw_down" || plt == "act_rd_up" || plt == "act_conc_up" || plt == "sat_RH_up" | plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc" || plt == "nc_up" || plt == "nc_down") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
       res_prof /= last_timestep - first_timestep + 1;
     else
       res_prof = plotter.horizontal_mean(res); // average in x
