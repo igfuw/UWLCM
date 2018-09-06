@@ -62,6 +62,8 @@ script:
   - cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
   - make
   - sudo make install
+  # rename libcloudphxx to pretend it's in Release mode, since UWLCM will be built in Release mode
+  - sudo mv /usr/local/libcloudphxx_lgrngn_relwithdbg.so /usr/local/libcloudphxx_lgrngn.so
   - cd ../..
 
   # install libmpdataxx
@@ -73,11 +75,11 @@ script:
   - sudo make install
   - cd ../../..
 
-  # UWLCM in RelWithDebInfo mode, moist thermal case
+  # UWLCM in Release mode (not RelWithDebInfo, because in blk_1m it would print lots of rr<0 warnings flooding travis terminal), moist thermal case
   - cd UWLCM
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  - cmake .. -DCMAKE_BUILD_TYPE=Release
   - VERBOSE=1 make
   - OMP_NUM_THREADS=6 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
