@@ -63,7 +63,7 @@ script:
   - make
   - sudo make install
   # rename libcloudphxx to pretend it's in Release mode, since UWLCM will be built in Release mode
-  - sudo mv /usr/local/libcloudphxx_lgrngn_relwithdbg.so /usr/local/libcloudphxx_lgrngn.so
+  - sudo mv /usr/lib/libcloudphxx_lgrngn_relwithdbg.so /usr/lib/libcloudphxx_lgrngn.so
   - cd ../..
 
   # install libmpdataxx
