@@ -35,11 +35,12 @@ const std::vector<std::string> series_moist_thermal({
 std::vector<std::string> profs_dycoms({
 "00rtot", "rliq", "thl", "wvar", 
 "w3rd", "prflux"
-//, "act_conc"
 ,"clfrac"
 //, "N_c", 
 ,"cl_nc"
 ,"sat_RH"
+,"sat_RH_up"
+, "act_conc_up" // act_conc_up last, since it produces two time series (for RH- and rw-based activation)
 }); // rtot has to be first
 
 std::vector<std::string> profs_moist_thermal({
