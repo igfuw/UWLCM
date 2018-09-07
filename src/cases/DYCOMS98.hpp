@@ -317,13 +317,29 @@ std::cout << "lwp env: " << lwp_env << std::endl;
       void update_surf_flux_sens(typename concurr_t::solver_t::arr_t &surf_flux_sens, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+        {
           surf_flux_sens = 16.; // [W/m^2]
+          // for simulations with sgs scheme convert surface flux to required sign convention and units
+          if (concurr_t::solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles)
+          {
+            auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+            surf_flux_sens /= -conv_fctr_sens; // [K * kg / (m^2 * s)]
+          }
+        }
       }
 
       void update_surf_flux_lat(typename concurr_t::solver_t::arr_t &surf_flux_lat, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+        {
           surf_flux_lat = 93.; // [W/m^2]
+          // for simulations with sgs scheme convert surface flux to required sign convention and units
+          if (concurr_t::solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles)
+          {
+            auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+            surf_flux_lat /= -conv_fctr_lat; // [kg / (m^2 * s)]
+          }
+        }
       }
 
       // ctor
