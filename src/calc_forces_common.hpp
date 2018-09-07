@@ -39,7 +39,7 @@ void slvr_common<ct_params_t>::rv_src()
 
     // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
     if(params.ForceParameters.surf_latent_flux_in_watts_per_square_meter)
-      alpha(ijk).reindex(this->zero) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
+      alpha(ijk).reindex(this->zero) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(0);//this->vert_idx);
 
     // large-scale vertical wind
     subsidence(ix::rv);
@@ -80,9 +80,9 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     }
   
     // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
+    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(0)) * 
       calc_c_p()(rv(ijk).reindex(this->zero)) * 
-      (*params.rhod)(this->vert_idx);
+      (*params.rhod)(0);
 
     nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
