@@ -514,6 +514,7 @@ int main(int argc, char** argv)
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
       ("sgs", po::value<bool>()->default_value(false) , "is subgrid-scale model on")
+      ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale model delta")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;
@@ -577,6 +578,7 @@ int main(int argc, char** argv)
     bool piggy = vm["piggy"].as<bool>();
     
     bool sgs = vm["sgs"].as<bool>();
+    user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();

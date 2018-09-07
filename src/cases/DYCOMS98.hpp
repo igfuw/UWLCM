@@ -302,8 +302,16 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         z_0 = user_params.z_rlx_sclr;
         hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
 
-        auto delta = dz;
-        mix_len = min(max(k, 1) * dz * 0.845, delta);
+        real_t sgs_delta;
+        if (user_params.sgs_delta > 0)
+        {
+          sgs_delta = user_params.sgs_delta;
+        }
+        else
+        {
+          sgs_delta = dz;
+        }
+        mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
       }
 
       void update_surf_flux_sens(typename concurr_t::solver_t::arr_t &surf_flux_sens, int timestep, real_t dt)
