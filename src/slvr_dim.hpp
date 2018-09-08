@@ -92,6 +92,13 @@ class slvr_dim<
     in(this->i, this->j.first() - 1) = in(this->i, this->j.first());
     out(this->i, this->j + h) = libmpdataxx::formulae::nabla::grad_cmpct<1>(in, this->j, this->i, dz);
   }
+  
+  void vert_aver_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t coeff = 1)
+  {
+    // assumes filled halos
+    using libmpdataxx::arakawa_c::h;
+    out(this->i, this->j) = coeff * (in(this->i, this->j - h) + in(this->i, this->j + h)) / 2;
+  }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
   {
@@ -185,6 +192,13 @@ class slvr_dim<
     in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last());
     in(this->i, this->j, this->k.first() - 1) = in(this->i, this->j, this->k.first());
     out(this->i, this->j, this->k + h) = libmpdataxx::formulae::nabla::grad_cmpct<2>(in, this->k, this->i, this->j, dz);
+  }
+
+  void vert_aver_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t coeff = 1)
+  {
+    // assumes filled halos
+    using libmpdataxx::arakawa_c::h;
+    out(this->i, this->j, this->k) = coeff * (in(this->i, this->j, this->k - h) + in(this->i, this->j, this->k + h)) / 2;
   }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
