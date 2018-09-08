@@ -494,6 +494,36 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res += snap;
         gp << "set title '3rd mom of w [m^3 / s^3]'\n";
       }
+      else if (plt == "tke")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("tke", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'tke [TODO]'\n";
+      }
+      else if (plt == "sgs_tht_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_tht_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs_tht_flux [TODO]'\n";
+      }
+      else if (plt == "sgs_rv_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_rv_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs_rv_flux [TODO]'\n";
+      }
 //      else assert(false);
     } // time loop
     res /= last_timestep - first_timestep + 1;
