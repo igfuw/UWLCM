@@ -37,6 +37,8 @@ class slvr_common : public slvr_dim<ct_params_t>
   // array with sensible and latent heat surface flux
   blitz::Array<real_t, parent_t::n_dims> &surf_flux_sens;
   blitz::Array<real_t, parent_t::n_dims> &surf_flux_lat;
+  // surface flux array filled with zeros ... TODO: add a way to set zero flux directly in libmpdata
+  blitz::Array<real_t, parent_t::n_dims> &surf_flux_zero;
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -52,6 +54,8 @@ class slvr_common : public slvr_dim<ct_params_t>
   // spinup stuff
   virtual bool get_rain() = 0;
   virtual void set_rain(bool) = 0;
+  
+  virtual void sgs_scalar_forces(const std::vector<int>&) {}
 
   void hook_ante_loop(int nt) 
   {
@@ -380,16 +384,18 @@ class slvr_common : public slvr_dim<ct_params_t>
     beta(args.mem->tmp[__FILE__][0][4]),
     F(args.mem->tmp[__FILE__][0][1]),
     surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
-    surf_flux_lat(args.mem->tmp[__FILE__][1][1])
+    surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
+    surf_flux_zero(args.mem->tmp[__FILE__][1][2])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
+    surf_flux_zero = 0.;
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 2, "", true); // surf_flux_sens, surf_flux_lat
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 3, "", true); // surf_flux_sens, surf_flux_lat, surf_flux_zero
   }
 };

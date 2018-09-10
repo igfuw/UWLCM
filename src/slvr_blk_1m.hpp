@@ -224,6 +224,11 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   {
     //condevap(); // treat saturation adjustment as post-advection, pre-rhs adjustment
     parent_t::hook_post_step(); // includes the above forcings
+
+    if (ct_params_t::sgs_scheme != libmpdataxx::solvers::iles)
+    {
+      this->sgs_scalar_forces({ix::rc, ix::rr});
+    }
   }
 
   libcloudphxx::blk_1m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
