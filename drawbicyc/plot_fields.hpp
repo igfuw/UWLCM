@@ -205,6 +205,26 @@ void plot_fields(Plotter_t plotter, Plots plots)
         }
         catch(...){}
       }   
+      else if (plt == "lib_pres")
+      {   
+        try{
+	std::string title = "libcloud pressure [Pa]"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        auto tmp = plotter.h5load_timestep("libcloud_pressure", at * n["outfreq"]);
+        plotter.plot(gp, tmp);
+        }
+        catch(...){}
+      }   
+      else if (plt == "lib_temp")
+      {   
+        try{
+	std::string title = "libcloud temperature [K]"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        auto tmp = plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]);
+        plotter.plot(gp, tmp);
+        }
+        catch(...){}
+      }   
       else if (plt == "supersat")
       {   
         try{

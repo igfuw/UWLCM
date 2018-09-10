@@ -17,7 +17,14 @@ struct calc_T
   BZ_DECLARE_FUNCTOR2(calc_T)
 };
 
-// forcing functions
+struct calc_exner
+{
+  setup::real_t operator()(setup::real_t p) const
+  {return libcloudphxx::common::theta_std::exner<setup::real_t>(p * si::pascals);}
+  BZ_DECLARE_FUNCTOR(calc_exner)
+};
+
+// common forcing functions
 // TODO: make functions return blitz arrays to avoid unnecessary copies
 template <class ct_params_t>
 void slvr_common<ct_params_t>::rv_src()
@@ -32,7 +39,7 @@ void slvr_common<ct_params_t>::rv_src()
 
     // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
     if(params.ForceParameters.surf_latent_flux_in_watts_per_square_meter)
-      alpha(ijk).reindex(this->zero) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
+      alpha(ijk).reindex(this->zero) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(0);//this->vert_idx);
 
     // large-scale vertical wind
     subsidence(ix::rv);
@@ -58,27 +65,36 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 
     // radiation
     radiation(rv);
-    nancheck(beta(ijk), "radiation");
+    nancheck(F(ijk), "radiation");
     // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
     this->vert_grad_fwd(F, alpha, params.dz);
     alpha(ijk) *= -1; // negative gradient means inflow
     nancheck(alpha(ijk), "sum of th flux");
+  
+    // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
+      calc_c_p()(rv(ijk).reindex(this->zero)) * 
+      (*params.rhod)(this->vert_idx);
+
+    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surface flux
     if(params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
     {
       surf_sens();
       nancheck(F(ijk), "sensible surf forcing");
+
+      constexpr int perm_no=ix::w; // 1 for 2D, 2 for 3D
+      auto ground = idxperm::pi<perm_no>(0, this->hrzntl_subdomain);
+  
+      // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+      F(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(0)) * 
+        calc_c_p()(rv(ijk).reindex(this->zero)) *  // TODO: should be rv(ground) here!
+        (*params.rhod)(0);
+
+      nancheck(F(ijk), "sens surf force theta change");
       alpha(ijk) += F(ijk);
     }
-  
-    // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) *= this->state(ix::th)(ijk).reindex(this->zero) / 
-      calc_c_p()(rv(ijk).reindex(this->zero)) / 
-      calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
-      (*params.rhod)(this->vert_idx);
-
-    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surf flux if it is specified as mean(theta*w)
     if(!params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
@@ -104,16 +120,17 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 }
 
 template <class ct_params_t>
-void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv)
+void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv, const int at)
 {
   const auto &ijk = this->ijk;
   // buoyancy
+  // TODO: buoyancy is now calculated twice, at n and at n+1, make it so that it is calculated once (will need to remove zeroing-out of w rhs in parent:update-rhs)
   buoyancy(th, rv);
-  alpha(ijk) = F(ijk);
-  // large-scale vertical wind
-  subsidence(ix::w); 
-
-  alpha(ijk) += F(ijk);
+  alpha(ijk) = 0.5 * F(ijk); // halved, because it is applied trapezoidaly
+  if(at == 0) // subsidence added explicitly, so updated only at n
+  {
+    // large-scale vertical wind
+    subsidence(ix::w); 
+    alpha(ijk) += F(ijk);
+  }
 }
-
-
