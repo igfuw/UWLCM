@@ -774,6 +774,12 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
     }
+    else if (plt == "tke")
+    {
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+      gp << "set title 'turbulent kinetic energy (resolved) [kg / s^2]'\n";
+    }
 
     gp << "plot '-' with l";
     if(plot_std_dev)

@@ -512,7 +512,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp = snap;
         }
         res += res_tmp;
-        gp << "set title 'sgs_tht_flux [TODO]'\n";
+        gp << "set title 'sgs tht flux [TODO]'\n";
       }
       else if (plt == "sgs_rv_flux")
       {
@@ -522,7 +522,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp = snap;
         }
         res += res_tmp;
-        gp << "set title 'sgs_rv_flux [TODO]'\n";
+        gp << "set title 'sgs rv flux [TODO]'\n";
+      }
+      else if (plt == "sgs_rc_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_rc_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs rc flux [TODO]'\n";
       }
 //      else assert(false);
     } // time loop
