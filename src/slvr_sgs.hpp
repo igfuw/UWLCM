@@ -104,7 +104,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   
   void record_flux(int s)
   {
-    if (s != ix::th && s != ix::rv) return;
+    if (s != ix::th && s != ix::rv && s != ix::rc) return;
 
     if (this->timestep % static_cast<int>(this->outfreq) == 0)
     {
@@ -116,7 +116,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
         auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
         conv_fctr = conv_fctr_sens;
       }
-      else if (s == ix::rv)
+      else if (s == ix::rv || s == ix::rc)
       {
         auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
         conv_fctr = conv_fctr_lat;
@@ -124,9 +124,24 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
       this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], hlpr[1], conv_fctr);
       this->mem->barrier();
+
+      std::string name;
+      if (s == ix::th)
+      {
+        name = "sgs_tht_flux";
+      }
+      else if (s == ix::rv)
+      {
+        name = "sgs_rv_flux";
+      }
+      else if (s == ix::rc)
+      {
+        name = "sgs_rc_flux";
+      }
+
       if (this->rank == 0)
       {
-        this->record_aux_dsc(s == ix::th ? "sgs_tht_flux" : "sgs_rv_flux", hlpr[1]);
+        this->record_aux_dsc(name, hlpr[1]);
       }
       this->mem->barrier();
     }
