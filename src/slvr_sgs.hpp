@@ -15,15 +15,15 @@ class slvr_sgs : public slvr_common<ct_params_t>
   real_t prandtl_num;
 
   typename parent_t::arr_t &rcdsn_num, &tdef_sq;
-  arrvec_t<typename parent_t::arr_t> &grad_tht, &grad_rv, &hlpr;
+  arrvec_t<typename parent_t::arr_t> &tmp_grad, &hlpr;
 
   template <int nd = ct_params_t::n_dims> 
   void calc_rcdsn_num(typename std::enable_if<nd == 2>::type* = 0)
   {
     auto g = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared);
     rcdsn_num(this->ijk).reindex(this->zero) = g * 0.5 * (
-                                       grad_tht[ct_params_t::n_dims - 1](this->i, this->j - h).reindex(this->zero)
-                                     + grad_tht[ct_params_t::n_dims - 1](this->i, this->j + h).reindex(this->zero)
+                                       tmp_grad[ct_params_t::n_dims - 1](this->i, this->j - h).reindex(this->zero)
+                                     + tmp_grad[ct_params_t::n_dims - 1](this->i, this->j + h).reindex(this->zero)
                                      ) / ((*this->params.th_ref)(this->vert_idx) * tdef_sq(this->ijk).reindex(this->zero));
   }
 
@@ -34,8 +34,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
     //if (this->rank == 0) std::cout << "in rcdsn: " << this->params.th_ref << std::endl;
     //auto test = max((*this->params.th_ref)(this->vert_idx));
     rcdsn_num(this->ijk).reindex(this->zero) = g * 0.5 * (
-                                       grad_tht[ct_params_t::n_dims - 1](this->i, this->j, this->k - h).reindex(this->zero)
-                                     + grad_tht[ct_params_t::n_dims - 1](this->i, this->j, this->k + h).reindex(this->zero)
+                                       tmp_grad[ct_params_t::n_dims - 1](this->i, this->j, this->k - h).reindex(this->zero)
+                                     + tmp_grad[ct_params_t::n_dims - 1](this->i, this->j, this->k + h).reindex(this->zero)
                                      ) / ((*this->params.th_ref)(this->vert_idx) * tdef_sq(this->ijk).reindex(this->zero));
   }
 
@@ -48,7 +48,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     auto& tht = this->state(ix::th);
     this->xchng_pres(tht, this->ijk);
 
-    this->vert_grad_cmpct(tht, grad_tht[ct_params_t::n_dims - 1], params.dz);
+    this->vert_grad_cmpct(tht, tmp_grad[ct_params_t::n_dims - 1], params.dz);
     
     tdef_sq(this->ijk) = formulae::stress::calc_tdef_sq_cmpct<ct_params_t::n_dims>(this->tau, this->ijk);
 
@@ -100,19 +100,36 @@ class slvr_sgs : public slvr_common<ct_params_t>
       //}
     }
     this->mem->barrier();
+  }
+  
+  void record_flux(int s)
+  {
+    if (s != ix::th && s != ix::rv) return;
 
-    //formulae::stress::multiply_vctr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(grad_tht,
-    //                                                                              1.0 / prandtl_num,
-    //                                                                              this->k_m,
-    //                                                                              *this->mem->G,
-    //                                                                              this->ijk);
+    if (this->timestep % static_cast<int>(this->outfreq) == 0)
+    {
 
-    //this->xchng_sgs_vctr(grad_tht, hflux_srfc, this->ijk);
-    //// hack, convinient place to update the heat flux forcing
-    //this->hflux_frc(this->ijk) = formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(grad_tht,
-    //                                                                                                   *this->mem->G,
-    //                                                                                                   this->ijk,
-    //                                                                                                   this->dijk
+      real_t conv_fctr = 1.;
+
+      if (s == ix::th)
+      {
+        auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+        conv_fctr = conv_fctr_sens;
+      }
+      else if (s == ix::rv)
+      {
+        auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+        conv_fctr = conv_fctr_lat;
+      }
+
+      this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], hlpr[1], conv_fctr);
+      this->mem->barrier();
+      if (this->rank == 0)
+      {
+        this->record_aux_dsc(s == ix::th ? "sgs_tht_flux" : "sgs_rv_flux", hlpr[1]);
+      }
+      this->mem->barrier();
+    }
   }
   
   void save_sgs_fields()
@@ -121,19 +138,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
     {
       hlpr[0](this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
                                                     / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
-     
-      auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-      auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-
-          //auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-          //surf_flux_sens /= -conv_fctr_sens;
-          //
-          //auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-          //surf_flux_lat /= -conv_fctr_lat;
-
-
-      this->vert_aver_cmpct(grad_tht[ct_params_t::n_dims - 1], hlpr[1], conv_fctr_sens);
-      this->vert_aver_cmpct(grad_rv[ct_params_t::n_dims - 1], hlpr[2], conv_fctr_lat);
 
       this->mem->barrier();
       if (this->rank == 0)
@@ -143,8 +147,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
         std::cout << "test tht: " << min(this->state(ix::th)(this->domain)) << ' ' << max(this->state(ix::th)(this->domain)) << std::endl;
         std::cout << "test rv: " << min(this->state(ix::rv)(this->domain)) << ' ' << max(this->state(ix::rv)(this->domain)) << std::endl;
 
-        std::cout << "conv_fctr_sens: " << conv_fctr_sens << std::endl;
-        std::cout << "conv_fctr_lat: " << conv_fctr_lat << std::endl;
         //std::cout << "test tht1: " << grad_tht[1](0, -1) << std::endl;
         //std::cout << "test tht2: " << grad_tht[1](0, 0) << std::endl;
         //std::cout << "test tht3: " << grad_tht[1](0, 1) << std::endl;
@@ -154,87 +156,79 @@ class slvr_sgs : public slvr_common<ct_params_t>
         //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
         std::cout << "recording sgs" << std::endl;
         this->record_aux_dsc("tke", hlpr[0]);
-        this->record_aux_dsc("sgs_tht_flux", hlpr[1]);
-        this->record_aux_dsc("sgs_rv_flux", hlpr[2]);
         this->record_aux_dsc("p", this->Phi);
       }
       this->mem->barrier();
     }
   }
   
-  void sgs_forces()
+  void sgs_scalar_forces(const std::vector<int> &sclr_indices) override
   {
-    auto& tht = this->state(ix::th);
-    auto& rv = this->state(ix::rv);
-
-    this->xchng_pres(tht, this->ijk);
-    this->xchng_pres(rv, this->ijk);
-
-    formulae::nabla::calc_grad_cmpct<parent_t::n_dims>(grad_tht, tht, this->ijk, this->ijkm, this->dijk);
-    formulae::nabla::calc_grad_cmpct<parent_t::n_dims>(grad_rv, rv, this->ijk, this->ijkm, this->dijk);
-
-    //this->mem->barrier();
-    //if (this->rank == 0)
-    //{
-    //  //std::cout << "test tht: " << tht(0, rng_t(0, 300)) << std::endl;
-    //  //std::cout << "test grad_tht: " << grad_tht[1](0, rng_t(0, 300)) << std::endl;
-    //  //std::cout << this->timestep << " grad tht near the ground: " << 0.5 * (grad_tht[1](0, 1) + grad_tht[1](0, 0)) << std::endl;
-    //}
-    //this->mem->barrier();
-
-    this->mem->barrier();
-    
-    formulae::stress::multiply_vctr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(grad_tht,
-                                                                                  1.0 / prandtl_num,
-                                                                                  this->k_m,
-                                                                                  *this->mem->G,
-                                                                                  this->ijk);
-    
-    formulae::stress::multiply_vctr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(grad_rv,
-                                                                                  1.0 / prandtl_num,
-                                                                                  this->k_m,
-                                                                                  *this->mem->G,
-                                                                                  this->ijk);
-    //this->mem->barrier();
-    //if (this->rank == 0)
-    //{
-    //  std::cout << "test grad_tht after: " << grad_tht[1](0, rng_t(0, 300)) << std::endl;
-    //}
-    //this->mem->barrier();
-
-   //const auto surf_ij = this->hrzntl_slice(0);
-   //auto conv_fctr = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-   //this->surf_flux_sens(surf_ij) /= conv_fctr;
-   //this->surf_flux_lat(surf_ij) /= conv_fctr;
-
-
-    this->xchng_sgs_vctr(grad_tht, this->surf_flux_sens, this->ijk);
-    this->xchng_sgs_vctr(grad_rv , this->surf_flux_lat , this->ijk);
-    
-    save_sgs_fields();
-    
-    hlpr[0](this->ijk) = 2 *
-      formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(grad_tht,
-                                                                            *this->mem->G,
-                                                                            this->ijk,
-                                                                            this->dijk);
-
-    hlpr[1](this->ijk) = 2 * 
-      formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(grad_rv,
-                                                                            *this->mem->G,
-                                                                            this->ijk,
-                                                                            this->dijk);
-    
-    this->rhs.at(ix::th)(this->ijk) += 2 * hlpr[0](this->ijk);
-    this->rhs.at(ix::rv)(this->ijk) += 2 * hlpr[1](this->ijk);
-
-    if (this->rank == 0)
+    for (const auto s : sclr_indices)
     {
-      std::cout << "timestep: " << this->timestep << std::endl;
-      std::cout << "prandtl num: " << prandtl_num << std::endl;
-      std::cout << "th sgs forces: " << min(hlpr[0](this->domain)) << ' ' << max(hlpr[0](this->domain)) << std::endl;
-      std::cout << "rv sgs forces: " << min(hlpr[1](this->domain)) << ' ' << max(hlpr[1](this->domain)) << std::endl;
+      auto& field = this->state(s);
+
+      this->xchng_pres(field, this->ijk);
+
+      formulae::nabla::calc_grad_cmpct<parent_t::n_dims>(tmp_grad, field, this->ijk, this->ijkm, this->dijk);
+
+      // document why
+      this->mem->barrier();
+      
+      formulae::stress::multiply_vctr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(tmp_grad,
+                                                                                    1.0 / prandtl_num,
+                                                                                    this->k_m,
+                                                                                    *this->mem->G,
+                                                                                    this->ijk);
+      if (s == ix::th)
+      {
+        this->xchng_sgs_vctr(tmp_grad, this->surf_flux_sens, this->ijk);
+      }
+      else if (s == ix::rv)
+      {
+        this->xchng_sgs_vctr(tmp_grad , this->surf_flux_lat , this->ijk);
+      }
+      else
+      {
+        this->xchng_sgs_vctr(tmp_grad , this->surf_flux_zero, this->ijk);
+      }
+
+      record_flux(s);
+
+      //hlpr[1](this->ijk) = 2 * 
+      //  formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(tmp_grad,
+      //                                                                        *this->mem->G,
+      //                                                                        this->ijk,
+      //                                                                        this->dijk);
+      //
+      //this->rhs.at(s)(this->ijk) += 2 * hlpr[1](this->ijk);
+    
+      this->rhs.at(s)(this->ijk) += 2 * formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
+                                          tmp_grad,
+                                          *this->mem->G,
+                                          this->ijk,
+                                          this->dijk
+                                    );
     }
+    
+    
+    //hlpr[0](this->ijk) = 2 *
+
+    //hlpr[1](this->ijk) = 2 * 
+    //  formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(grad_rv,
+    //                                                                        *this->mem->G,
+    //                                                                        this->ijk,
+    //                                                                        this->dijk);
+    //
+    //this->rhs.at(ix::rv)(this->ijk) += 2 * hlpr[1](this->ijk);
+
+    //if (this->rank == 0)
+    //{
+    //  std::cout << "timestep: " << this->timestep << std::endl;
+    //  std::cout << "prandtl num: " << prandtl_num << std::endl;
+    //  std::cout << "th sgs forces: " << min(hlpr[0](this->domain)) << ' ' << max(hlpr[0](this->domain)) << std::endl;
+    //  std::cout << "rv sgs forces: " << min(hlpr[1](this->domain)) << ' ' << max(hlpr[1](this->domain)) << std::endl;
+    //}
   }
 
   void hook_ante_loop(int nt) 
@@ -250,7 +244,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
   void hook_post_step()
   {
     parent_t::hook_post_step();
-    sgs_forces();
+    save_sgs_fields();
+    sgs_scalar_forces({ix::th, ix::rv});
   }
 
   public:
@@ -274,17 +269,15 @@ class slvr_sgs : public slvr_common<ct_params_t>
     prandtl_num(p.prandtl_num),
     rcdsn_num(args.mem->tmp[__FILE__][0][0]),
     tdef_sq(args.mem->tmp[__FILE__][0][1]),
-    grad_tht(args.mem->tmp[__FILE__][1]),
-    grad_rv(args.mem->tmp[__FILE__][2]),
-    hlpr(args.mem->tmp[__FILE__][3])
+    tmp_grad(args.mem->tmp[__FILE__][1]),
+    hlpr(args.mem->tmp[__FILE__][2])
   {}
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // rcdsn_num, tdef_sq
-    parent_t::alloc_tmp_vctr(mem, __FILE__); // grad_tht
-    parent_t::alloc_tmp_vctr(mem, __FILE__); // grad_rv
+    parent_t::alloc_tmp_vctr(mem, __FILE__); // tmp_grad
     parent_t::alloc_tmp_sclr(mem, __FILE__, 4); // hlpr
   }
 };
