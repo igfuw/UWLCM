@@ -65,26 +65,36 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 
     // radiation
     radiation(rv);
-    nancheck(beta(ijk), "radiation");
+    nancheck(F(ijk), "radiation");
     // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
     this->vert_grad_fwd(F, alpha, params.dz);
     alpha(ijk) *= -1; // negative gradient means inflow
     nancheck(alpha(ijk), "sum of th flux");
+  
+    // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
+      calc_c_p()(rv(ijk).reindex(this->zero)) * 
+      (*params.rhod)(this->vert_idx);
+
+    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surface flux
     if(params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
     {
       surf_sens();
       nancheck(F(ijk), "sensible surf forcing");
+
+      constexpr int perm_no=ix::w; // 1 for 2D, 2 for 3D
+      auto ground = idxperm::pi<perm_no>(0, this->hrzntl_subdomain);
+  
+      // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+      F(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(0)) * 
+        calc_c_p()(rv(ijk).reindex(this->zero)) *  // TODO: should be rv(ground) here!
+        (*params.rhod)(0);
+
+      nancheck(F(ijk), "sens surf force theta change");
       alpha(ijk) += F(ijk);
     }
-  
-    // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(0)) * 
-      calc_c_p()(rv(ijk).reindex(this->zero)) * 
-      (*params.rhod)(0);
-
-    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surf flux if it is specified as mean(theta*w)
     if(!params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
