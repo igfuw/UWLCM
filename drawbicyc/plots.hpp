@@ -44,6 +44,7 @@ std::vector<std::string> profs_dycoms({
 ,"sgs_tht_flux"
 ,"sgs_rv_flux"
 ,"sgs_rc_flux"
+,"sgs_u_flux"
 }); // rtot has to be first
 
 std::vector<std::string> profs_moist_thermal({
