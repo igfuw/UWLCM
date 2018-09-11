@@ -38,6 +38,31 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                      + tmp_grad[ct_params_t::n_dims - 1](this->i, this->j, this->k + h).reindex(this->zero)
                                      ) / ((*this->params.th_ref)(this->vert_idx) * tdef_sq(this->ijk).reindex(this->zero));
   }
+  
+  template <int nd = ct_params_t::n_dims> 
+  void calc_sgs_momenta_fluxes(typename std::enable_if<nd == 2>::type* = 0)
+  {
+    this->hlpr[1](this->ijk) = ( this->tau[2](this->i - h, this->j - h)
+                               + this->tau[2](this->i + h, this->j - h)
+                               + this->tau[2](this->i + h, this->j + h)
+                               + this->tau[2](this->i - h, this->j + h)
+                               ) / 4;
+  }
+  
+  template <int nd = ct_params_t::n_dims> 
+  void calc_sgs_momenta_fluxes(typename std::enable_if<nd == 3>::type* = 0)
+  {
+    this->hlpr[1](this->ijk) = ( this->tau[4](this->i - h, this->j, this->k - h)
+                               + this->tau[4](this->i + h, this->j, this->k - h)
+                               + this->tau[4](this->i + h, this->j, this->k + h)
+                               + this->tau[4](this->i - h, this->j, this->k + h)
+                               ) / 4;
+    this->hlpr[2](this->ijk) = ( this->tau[5](this->i, this->j - h, this->k - h)
+                               + this->tau[5](this->i, this->j + h, this->k - h)
+                               + this->tau[5](this->i, this->j + h, this->k + h)
+                               + this->tau[5](this->i, this->j - h, this->k + h)
+                               ) / 4;
+  }
 
 
   void multiply_sgs_visc()
@@ -153,6 +178,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
     {
       hlpr[0](this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
                                                     / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
+  
+      calc_sgs_momenta_fluxes();
 
       this->mem->barrier();
       if (this->rank == 0)
@@ -171,6 +198,11 @@ class slvr_sgs : public slvr_common<ct_params_t>
         //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
         std::cout << "recording sgs" << std::endl;
         this->record_aux_dsc("tke", hlpr[0]);
+        this->record_aux_dsc("sgs_u_flux", hlpr[1]);
+        if (ct_params_t::n_dims > 2)
+        {
+          this->record_aux_dsc("sgs_v_flux", hlpr[2]);
+        }
         this->record_aux_dsc("p", this->Phi);
       }
       this->mem->barrier();

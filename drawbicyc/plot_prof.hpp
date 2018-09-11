@@ -534,6 +534,16 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res += res_tmp;
         gp << "set title 'sgs rc flux [TODO]'\n";
       }
+      else if (plt == "sgs_u_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_u_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs u flux [TODO]'\n";
+      }
 //      else assert(false);
     } // time loop
     res /= last_timestep - first_timestep + 1;
