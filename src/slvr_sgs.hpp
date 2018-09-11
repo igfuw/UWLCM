@@ -197,6 +197,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
         //std::cout << "test tht6: " << this->k_m(0, 0) << std::endl;
         //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
         std::cout << "recording sgs" << std::endl;
+        this->record_aux_dsc("k_m", this->k_m);
         this->record_aux_dsc("tke", hlpr[0]);
         this->record_aux_dsc("sgs_u_flux", hlpr[1]);
         if (ct_params_t::n_dims > 2)

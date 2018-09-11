@@ -41,6 +41,7 @@ std::vector<std::string> profs_dycoms({
 ,"cl_nc"
 ,"sat_RH"
 ,"tke"
+,"k_m"
 ,"sgs_tht_flux"
 ,"sgs_rv_flux"
 ,"sgs_rc_flux"
