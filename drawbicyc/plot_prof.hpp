@@ -504,6 +504,16 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res += res_tmp;
         gp << "set title 'tke [TODO]'\n";
       }
+      else if (plt == "k_m")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("k_m", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'k_m [TODO]'\n";
+      }
       else if (plt == "sgs_tht_flux")
       {
         {
