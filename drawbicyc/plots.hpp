@@ -52,7 +52,8 @@ std::vector<std::string> fields_dycoms({
 "th", "rv",     
 "u", "w", 
 "sd_conc",//, "r_dry", 
-"RH", "supersat"
+"RH", "supersat",
+"lib_pres", "lib_temp"
 });
 
 std::vector<std::string> fields_moist_thermal({

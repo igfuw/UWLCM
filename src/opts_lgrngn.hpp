@@ -11,7 +11,7 @@
 
 #include "opts_common.hpp"
 #include "slvr_lgrngn.hpp"
-#include "calc_forces.hpp"
+#include "calc_forces_common.hpp"
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
@@ -53,6 +53,7 @@ void setopts_micro(
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
     // free parameters
     ("exact_sstp_cond", po::value<bool>()->default_value(rt_params.cloudph_opts_init.exact_sstp_cond), "exact(per-particle) logic for substeps for condensation")
+    ("sd_conc_large_tail", po::value<bool>()->default_value(rt_params.cloudph_opts_init.sd_conc_large_tail), "add SDs to better represent the large tail")
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
@@ -146,6 +147,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
   rt_params.cloudph_opts_init.exact_sstp_cond = vm["exact_sstp_cond"].as<bool>();
+  rt_params.cloudph_opts_init.sd_conc_large_tail = vm["sd_conc_large_tail"].as<bool>();
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
 
@@ -159,7 +161,9 @@ void setopts_micro(
     rt_params.cloudph_opts_init.kernel_parameters.push_back(ReL);
   }
   // terminal velocity choice
-  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard77fast;
+  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_nonspherical;
+
+  rt_params.cloudph_opts_init.RH_formula = libcloudphxx::lgrngn::RH_formula_t::rv_cc; // use rv to be consistent with Lipps Hemler
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
