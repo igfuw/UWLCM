@@ -71,10 +71,10 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       std::cout << at * n["outfreq"] << std::endl;
       if (plt == "rliq")
       {
-	// liquid water content (cloud + rain, missing droplets with r<0.5um!)
-        //res += plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-        res += plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-        res += plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
+	// liquid water content
+        res += plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
+        res += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+        res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
         gp << "set title 'liquid water [g/kg]'\n";
       }
       if (plt == "gccn_rw")
@@ -332,7 +332,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       else if (plt == "sat_RH")
       {
         {
-          auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
+          auto tmp = plotter.h5load_RH_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = (snap -1) * 100;
         }
@@ -360,26 +360,11 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       }
       else if (plt == "00rtot")
       {
-        {
-          auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp += snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp += snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp += snap;
-        }
+        res_tmp = plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
+        res_tmp += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+        res_tmp += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
+        res_tmp += plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3; // vapour
+
         res += res_tmp;
         res_prof = plotter.horizontal_mean(res_tmp); // average in x
         // find instantaneous inversion height
@@ -390,7 +375,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// cloud drops concentration [1/cm^3]
         {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -404,7 +389,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -425,34 +410,23 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 	// liquid potential temp [K]
         {
           auto &ql(res_tmp2);
-          auto &T(res_tmp);
-          {
-            auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3;
-            typename Plotter_t::arr_t snap(tmp);
-            ql = snap; 
-          }
-          {
-            auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
-            typename Plotter_t::arr_t snap(tmp);
-            ql += snap; 
-          }
-          {
-            auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
-            typename Plotter_t::arr_t snap(tmp);
-            ql += snap; 
-          }
+          ql  = plotter.h5load_ra_timestep(at * n["outfreq"]); // aerosol
+          ql  += plotter.h5load_rc_timestep(at * n["outfreq"]); // cloud
+          ql  += plotter.h5load_rr_timestep(at * n["outfreq"]); // rain
           // ql is now q_l (liq water content)
 //          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
   //        typename Plotter_t::arr_t th_d(tmp); 
-          typename Plotter_t::arr_t th_d(plotter.h5load_timestep("th", at * n["outfreq"]));
+          typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
           ///auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
           typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
+
+          typename Plotter_t::arr_t T(plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
           // init pressure, from rv just to get correct size
-          typename Plotter_t::arr_t p(rv); 
-          T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
+//          typename Plotter_t::arr_t p(rv); 
+  //        T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
           // TODO: env pressure should be used below!
-          p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
-          res += pow(p_1000 / p, R_d / c_pd) * (T - ql * L / c_p); 
+    //      p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
+          res += th / T * (T - ql * L / c_p); 
 //          res += ql;
         }
         gp << "set title 'liquid potential temp [K]'\n";
@@ -461,7 +435,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// cloud fraction (cloudy if N_c > 20/cm^3)
         {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -474,12 +448,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// precipitation flux(doesnt include vertical volicty w!)
         { 
-          auto tmp = plotter.h5load_timestep("precip_rate", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap = snap *  4./3 * 3.14 * 1e3 // to get mass
-                     / plotter.CellVol    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
-                     * 2264.76e3;      // latent heat of evaporation [J/kg]
-          res += snap; 
+          res += plotter.h5load_prflux_timestep(at * n["outfreq"]);
         }
 	// add vertical velocity to precipitation flux (3rd mom of cloud drops * w)
 /*

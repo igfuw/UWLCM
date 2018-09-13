@@ -17,7 +17,14 @@ struct calc_T
   BZ_DECLARE_FUNCTOR2(calc_T)
 };
 
-// forcing functions
+struct calc_exner
+{
+  setup::real_t operator()(setup::real_t p) const
+  {return libcloudphxx::common::theta_std::exner<setup::real_t>(p * si::pascals);}
+  BZ_DECLARE_FUNCTOR(calc_exner)
+};
+
+// common forcing functions
 // TODO: make functions return blitz arrays to avoid unnecessary copies
 template <class ct_params_t>
 void slvr_common<ct_params_t>::rv_src()
@@ -72,10 +79,9 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       alpha(ijk) += F(ijk);
     }
   
-    // change of theta[K/s] = heating[W/m^3] * theta[K] / T[K] / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) *= this->state(ix::th)(ijk).reindex(this->zero) / 
-      calc_c_p()(rv(ijk).reindex(this->zero)) / 
-      calc_T()(this->state(ix::th)(ijk).reindex(this->zero), (*params.rhod)(this->vert_idx)) /
+    // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
+      calc_c_p()(rv(ijk).reindex(this->zero)) * 
       (*params.rhod)(this->vert_idx);
 
     nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
@@ -115,5 +121,3 @@ void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
 
   alpha(ijk) += F(ijk);
 }
-
-
