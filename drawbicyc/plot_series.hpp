@@ -749,7 +749,7 @@ void plot_series(Plotter_t plotter, Plots plots)
     else if (plt == "lwp")
     {
       gp << "set title 'liquid water path [g / m^2]'\n";
-      res_prof *= (n["dz"] - 1) * n["z"]; // top and bottom cells are smaller
+      res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
     }
