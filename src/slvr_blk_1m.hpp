@@ -47,12 +47,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     this->mem->barrier(); 
   }
 
-  void zero_if_uninitialised(int e)
-  {
-    if (!finite(sum(this->state(e)(this->ijk)))) 
-      this->state(e)(this->ijk) = 0;
-  }
-
   protected:
   
   // accumulated water falling out of domain
@@ -94,9 +88,9 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
-    // if uninitialised fill with zeros
-    zero_if_uninitialised(ix::rc);
-    zero_if_uninitialised(ix::rr);
+    // fill with zeros
+    this->state(ix::rc)(this->ijk) = 0;
+    this->state(ix::rr)(this->ijk) = 0;
  
     // init the p_e array
     p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
