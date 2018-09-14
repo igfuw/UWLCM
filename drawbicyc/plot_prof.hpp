@@ -410,22 +410,23 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 	// liquid potential temp [K]
         {
           auto &ql(res_tmp2);
-          auto &T(res_tmp);
           ql  = plotter.h5load_ra_timestep(at * n["outfreq"]); // aerosol
           ql  += plotter.h5load_rc_timestep(at * n["outfreq"]); // cloud
           ql  += plotter.h5load_rr_timestep(at * n["outfreq"]); // rain
           // ql is now q_l (liq water content)
 //          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
   //        typename Plotter_t::arr_t th_d(tmp); 
-          typename Plotter_t::arr_t th_d(plotter.h5load_timestep("th", at * n["outfreq"]));
+          typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
           ///auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
           typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
+
+          typename Plotter_t::arr_t T(plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
           // init pressure, from rv just to get correct size
-          typename Plotter_t::arr_t p(rv); 
-          T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
+//          typename Plotter_t::arr_t p(rv); 
+  //        T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
           // TODO: env pressure should be used below!
-          p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
-          res += pow(p_1000 / p, R_d / c_pd) * (T - ql * L / c_p); 
+    //      p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
+          res += th / T * (T - ql * L / c_p); 
 //          res += ql;
         }
         gp << "set title 'liquid potential temp [K]'\n";
