@@ -87,11 +87,23 @@ namespace setup
        
         rhod = 1;
         th_e = 300;
-        //p_e  = pow((rhod * si::kilograms / si::cubic_metres) * R_d<real_t>() * (th_e * si::kelvins) * pow(p_1000<real_t>(), R_d_over_c_pd<real_t>()), 1. / (R_d_over_c_pd<real_t>() + 1)) / si::pascals;
-//        const quantity<si::dimensionless, real_t> p_theta = (quantity<si::mass_density, real_t>(rhod * si::kilograms / si::cubic_metres) * R_d<real_t>() * quantity<si::temperature, real_t>(th_e * si::kelvins))/si::pascals;
-        const quantity<si::pressure, real_t> p_theta = (quantity<si::mass_density, real_t>(1. * si::kilograms / si::cubic_metres) * R_d<real_t>() * quantity<si::temperature, real_t>(300. * si::kelvins));
-        /*const quantity<si::dimensionless, real_t>*/ real_t p = pow( real_t(p_theta / si::pascals) * pow(real_t(p_1000<real_t>() / si::pascals), R_d_over_c_pd<real_t>()), 1. / (R_d_over_c_pd<real_t>() + 1)) ;// * pow(p_1000<real_t>(), R_d_over_c_pd<real_t>()));//, 1. / (R_d_over_c_pd<real_t>() + 1)) / si::pascals;
-        p_e = p; // total env pressure
+
+        const quantity<si::temperature, real_t> T(
+          libcloudphxx::common::theta_dry::T(
+            quantity<si::temperature, real_t>(300 * si::kelvins),
+            quantity<si::mass_density, real_t>(1 * si::kilograms / si::cubic_metres)
+          )
+        );
+
+        const quantity<si::pressure, real_t> p(
+          libcloudphxx::common::theta_dry::p(
+            quantity<si::mass_density, real_t>(1 * si::kilograms / si::cubic_metres),
+            quantity<si::dimensionless, real_t>(0.),
+            T
+          )
+        );
+        p_e = real_t(p / si::pascals); // total env pressure
+
         th_ref = 300;
       }
     };

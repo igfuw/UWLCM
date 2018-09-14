@@ -53,7 +53,7 @@ namespace setup
     {
       real_t operator()(const real_t &z) const
       {
-        return theta_dry::std2dry<real_t>(th_l(z), r_t()(z)) / si::kelvins;
+        return th_l(z) / si::kelvins;
       }
       BZ_DECLARE_FUNCTOR(th_dry_fctr);
     };
@@ -252,7 +252,7 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         st(notopbot) = (th_e(notopbot+1) - th_e(notopbot-1)) / th_e(notopbot);
         real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
         // reference theta
-        th_ref = th_e(0) * exp(st_avg * k * dz);
+        th_ref = th_e(0) * (1. + 0.608 * rv_e(0)) * exp(st_avg * k * dz);
       //  th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) // calc dry theta at z=0 
       //           * exp(st_avg * k * dz);
         // virtual temp at surface
@@ -277,25 +277,13 @@ std::cout << "lwp env: " << lwp_env << std::endl;
 
 
         // theta_std env prof to theta_dry_e
-        for(int k=1; k<nz; ++k)
-          th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
+//        for(int k=1; k<nz; ++k)
+  //        th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
   
         // subsidence rate
         w_LS = w_LS_fctr()(k * dz);
   
-        // surface sources relaxation factors
-        // for vectors
-        /*
-        real_t z_0 = z_rlx_vctr / si::metres;
-        hgt_fctr_vctr = exp(- (k-0.5) * dz / z_0); // z=0 at k=1/2
-        hgt_fctr_vctr(0) = 1;
-        // for scalars
-        z_0 = user_params.z_rlx_sclr;
-        hgt_fctr_sclr = exp(- (k-0.5) * dz / z_0);
-        hgt_fctr_sclr(0) = 1;
-        */
- 
-        // calc divergence directly
+        // calc surf flux divergence directly
         real_t z_0 = z_rlx_vctr / si::metres;
         hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
         // for scalars

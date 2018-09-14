@@ -12,20 +12,17 @@ void slvr_common<ct_params_t>::buoyancy(typename parent_t::arr_t &th, typename p
   namespace moist_air = libcloudphxx::common::moist_air;
   const real_t eps = moist_air::R_v<real_t>() / moist_air::R_d<real_t>() - 1.;
   if(params.buoyancy_wet)
-    tmp1(ijk).reindex(this->zero) = 
+    F(ijk).reindex(this->zero) = 
       (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) * (
         (th(ijk).reindex(this->zero) - (*params.th_e)(this->vert_idx)) / (*params.th_ref)(this->vert_idx)
         + eps * (rv(ijk).reindex(this->zero) - (*params.rv_e)(this->vert_idx)) 
         - r_l(ijk).reindex(this->zero)
       );
   else
-    tmp1(ijk).reindex(this->zero) = 
+    F(ijk).reindex(this->zero) = 
       (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) * (
         (th(ijk).reindex(this->zero) - (*params.th_e)(this->vert_idx)) / (*params.th_ref)(this->vert_idx)
       );
-
-//  this->smooth(tmp1, F);
-  F(ijk) = tmp1(ijk);
 }
 
 template <class ct_params_t>
@@ -89,8 +86,6 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
         (0.25 * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 4./3) +
         (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 1./3))
         , 0);
-  //  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
-  //  this->smooth(tmp1, F);
   }
   else
     F(ijk)=0.;

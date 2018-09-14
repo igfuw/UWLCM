@@ -43,7 +43,7 @@ class slvr_dim<
   rng_t hrzntl_domain = this->mem->grid_size[0];
   rng_t hrzntl_subdomain = this->i;
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
-  idx_t<2> Cy_domain;
+  idx_t<2> Cy_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h}); // just fill in with Cz_domain to avoid some asserts
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
 
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
@@ -65,13 +65,6 @@ class slvr_dim<
     // top nad bottom cells are two times lower
     out(this->i, this->j.last()) *= 2; 
     out(this->i, 0) *= 2; 
-
-    // we don't want surf fluxes to change values at the ground ? (j=0)
-    /*
-    out(this->i, 0) = 0; 
-    // instead, the flux from 0-th level goes to the first level above the gfround
-    out(this->i, 1) = ( in(this->i, 2) - in(this->i, 0)) / (1.5*dz);
-    */
   }
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
@@ -81,7 +74,6 @@ class slvr_dim<
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
-    //out(this->i, this->j.last()) *= 2; 
     // set to 0 at top level to have no subsidence there - TODO: it messes with other possible uses of this function 
     out(this->i, this->j.last()) = 0; 
   }
@@ -167,13 +159,6 @@ class slvr_dim<
     // top and bottom cells are two times lower
     out(this->i, this->j, this->k.last()) *= 2; 
     out(this->i, this->j, 0) *= 2; 
-
-/*
-    // we don't want surf fluxes to change values at the ground
-    out(this->i, this->j, 0) = 0; 
-    // instead, the flux from 0-th level goes to the first level above the gfround
-    out(this->i, this->j, 1) = ( in(this->i, this->j, 2) - in(this->i, this->j, 0)) / (1.5*dz);
-*/
   }
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
