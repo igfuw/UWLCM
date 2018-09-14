@@ -16,27 +16,65 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
   typename parent_t::arr_t &rcdsn_num, &tdef_sq;
   arrvec_t<typename parent_t::arr_t> &tmp_grad, &hlpr;
-
-  template <int nd = ct_params_t::n_dims> 
-  void calc_rcdsn_num(typename std::enable_if<nd == 2>::type* = 0)
+  
+  void calc_rcdsn_num()
   {
-    auto g = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared);
-    rcdsn_num(this->ijk).reindex(this->zero) = g * 0.5 * (
-                                       tmp_grad[ct_params_t::n_dims - 1](this->i, this->j - h).reindex(this->zero)
-                                     + tmp_grad[ct_params_t::n_dims - 1](this->i, this->j + h).reindex(this->zero)
-                                     ) / ((*this->params.th_ref)(this->vert_idx) * tdef_sq(this->ijk).reindex(this->zero));
-  }
+    using libmpdataxx::arakawa_c::h;
 
-  template <int nd = ct_params_t::n_dims> 
-  void calc_rcdsn_num(typename std::enable_if<nd == 3>::type* = 0)
-  {
-    auto g = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared);
-    //if (this->rank == 0) std::cout << "in rcdsn: " << this->params.th_ref << std::endl;
-    //auto test = max((*this->params.th_ref)(this->vert_idx));
-    rcdsn_num(this->ijk).reindex(this->zero) = g * 0.5 * (
-                                       tmp_grad[ct_params_t::n_dims - 1](this->i, this->j, this->k - h).reindex(this->zero)
-                                     + tmp_grad[ct_params_t::n_dims - 1](this->i, this->j, this->k + h).reindex(this->zero)
-                                     ) / ((*this->params.th_ref)(this->vert_idx) * tdef_sq(this->ijk).reindex(this->zero));
+    const auto g = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared);
+
+    const auto dz = params.dz;
+    const auto& tht = this->state(ix::th);
+    const auto& rv = this->state(ix::rv);
+    const auto& rc = this->state(ix::rc);
+   
+    // libcloudph stuff
+    const auto l_tri = libcloudphxx::common::const_cp::l_tri<setup::real_t>() * si::kilograms / si::joules;
+    const auto eps = libcloudphxx::common::moist_air::eps<setup::real_t>();// / si::dimensionless;
+    const auto c_pd = libcloudphxx::common::moist_air::c_pd<setup::real_t>() * si::kilograms * si::kelvins / si::joules;
+    const auto R_d = libcloudphxx::common::moist_air::R_d<setup::real_t>() * si::kilograms  * si::kelvins/ si::joules;
+    using libcloudphxx::common::theta_std::exner;
+
+    // some constant coefficients
+    const auto cf1 = (1 - eps) / eps;
+    const auto cf2 = l_tri / R_d;
+    const auto cf3 = l_tri / c_pd;
+    const auto cf4 = eps * cf2 * cf3;
+
+    // TODO: loops are bad, very bad !
+    for (int k = this->vert_rng.first(); k <= this->vert_rng.last() - 1; ++k)
+    {
+      const auto th_ref_kph = 0.5 * ((*this->params.th_ref)(k + 1) + (*this->params.th_ref)(k));
+      const auto dthtdz_kph = (tht(this->hrzntl_slice(k + 1)) - tht(this->hrzntl_slice(k))) / dz;
+      const auto rv_kph = 0.5 * (rv(this->hrzntl_slice(k + 1)) + rv(this->hrzntl_slice(k)));
+      const auto drvdz_kph = (rv(this->hrzntl_slice(k + 1)) - rv(this->hrzntl_slice(k))) / dz;
+      
+      const auto N2unsat = g * (dthtdz_kph / th_ref_kph + cf1 * (1 + cf1 * rv_kph) * drvdz_kph);
+     
+      const auto T_kp1 = tht(this->hrzntl_slice(k + 1)) * exner((*this->params.p_e)(k + 1) * si::pascals);
+      const auto T_k = tht(this->hrzntl_slice(k)) * exner((*this->params.p_e)(k) * si::pascals);
+      const auto T_kph = 0.5 * (T_kp1 + T_k);
+      const auto drwdz_kph = ( rv(this->hrzntl_slice(k + 1)) + rc(this->hrzntl_slice(k + 1)) 
+                             - rv(this->hrzntl_slice(k)) - rc(this->hrzntl_slice(k))         ) / dz;
+
+      const auto gamma = (1 + cf2 * rv_kph / T_kph) / (1 + cf4 * rv_kph / (T_kph * T_kph));
+      
+      const auto N2sat = g * (gamma * (dthtdz_kph / th_ref_kph + cf3 * drvdz_kph / T_kph) - drwdz_kph);
+      
+      const auto rc_kph = 0.5 * (rc(this->hrzntl_slice(k + 1)) + rc(this->hrzntl_slice(k)));
+
+      tmp_grad[ct_params_t::n_dims - 1](this->hrzntl_slice(k + h))
+      =
+      blitz::where(rc_kph > 1e-6, N2sat, N2unsat);
+    }
+
+    // boundary conditions
+    tmp_grad[ct_params_t::n_dims - 1](this->hrzntl_slice(0 - h)) = tmp_grad[ct_params_t::n_dims - 1](this->hrzntl_slice(0 + h));
+    auto lk = this->vert_rng.last();
+    tmp_grad[ct_params_t::n_dims - 1](this->hrzntl_slice(lk + h)) = tmp_grad[ct_params_t::n_dims - 1](this->hrzntl_slice(lk - h));
+    
+    this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], rcdsn_num);
+    rcdsn_num(this->ijk) /= tdef_sq(this->ijk);
   }
   
   template <int nd = ct_params_t::n_dims> 
@@ -67,14 +105,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
   void multiply_sgs_visc()
   {
-    //static_assert(static_cast<stress_diff_t>(ct_params_t::stress_diff) == compact,
-    //              "UWLCM smagorinsky model requires compact stress differencing");
+    static_assert(static_cast<libmpdataxx::solvers::stress_diff_t>(ct_params_t::stress_diff) == libmpdataxx::solvers::compact,
+                  "UWLCM smagorinsky model requires compact stress differencing");
 
-    auto& tht = this->state(ix::th);
-    this->xchng_pres(tht, this->ijk);
-
-    this->vert_grad_cmpct(tht, tmp_grad[ct_params_t::n_dims - 1], params.dz);
-    
     tdef_sq(this->ijk) = formulae::stress::calc_tdef_sq_cmpct<ct_params_t::n_dims>(this->tau, this->ijk);
 
     calc_rcdsn_num();
