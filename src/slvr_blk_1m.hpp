@@ -163,6 +163,17 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
         rhod = (*this->mem->G)(this->ijk),
         &p_e_arg = p_e(this->ijk);
       libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p_e_arg, th, rv, rc, rr);
+      // can't evaporate more rr than there is
+      // -(dot_rr + dot_rc) = evaporation_rate (note that dot_rc and dot_rr are = 0 before rhs_cellwise_nwtrph)
+      auto evap_rate = this->tmp1(this->ijk);
+      evap_rate = -(dot_rr + dot_rc);
+      evap_rate = where(evap_rate * this->dt > rr, evap_rate - rr / this->dt, 0.); // evap_rate now stores the change of evapopration rate due to rr limitation
+      dot_rr += evap_rate;
+      dot_rv -= evap_rate;
+      auto T = this->tmp2(this->ijk);
+      T = th * calc_exner()(p_e_arg);
+      dot_th += calc_l_v()(T) / (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kelvins * si::kilograms / si::joules * calc_exner()(p_e_arg)) * evap_rate;
+
     }
 
     // forcing

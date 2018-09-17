@@ -8,7 +8,8 @@
 #include <libmpdata++/bcond/cyclic_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
 #include <libmpdata++/concurr/openmp.hpp>
-#include "setup.hpp"
+#include "detail/setup.hpp"
+#include "detail/libcloudphxx_functors.cpp"
 
 #include "cases/DYCOMS98.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
