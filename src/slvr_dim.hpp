@@ -56,6 +56,11 @@ class slvr_dim<
   {
       return idx_t<2>({this->i, rng_t(k, k)});
   }
+  
+  auto hrzntl_slice(const typename parent_t::arr_t &a, int k)
+  {
+      return blitz::safeToReturn(a(idx_t<2>({this->i, rng_t(k, k)})) + 0);
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -149,6 +154,11 @@ class slvr_dim<
   idx_t<3> hrzntl_slice(int k)
   {
       return idx_t<3>({this->i, this->j, rng_t(k, k)});
+  }
+
+  auto hrzntl_slice(const typename parent_t::arr_t &a, int k)
+  {
+      return blitz::safeToReturn(a(idx_t<3>({this->i, this->j, rng_t(k, k)})) + 0);
   }
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
