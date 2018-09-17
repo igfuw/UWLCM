@@ -11,6 +11,16 @@ namespace setup
     namespace theta_dry = libcloudphxx::common::theta_dry;
     namespace lognormal = libcloudphxx::common::lognormal;
 
+    const quantity<si::pressure, real_t> p_0 = 101780 * si::pascals;
+    const quantity<si::length, real_t> 
+      z_0  = 0    * si::metres,
+      Z    = 1500 * si::metres;
+    const quantity<si::length, real_t> X[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
+    const quantity<si::length, real_t> Y[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
+    const real_t z_abs = 1250;
+    const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
+    const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
+
     template<class concurr_t, int RF>
     class Dycoms : public CasesCommon<concurr_t>
     {
@@ -18,24 +28,14 @@ namespace setup
                     "only setups based on the first and the second DYCOMS research flights are available");
 
       protected:
-
-      static constexpr quantity<si::pressure, real_t> p_0 = 101780 * si::pascals;
-      static constexpr quantity<si::length, real_t> 
-        z_0  = 0    * si::metres,
-        Z    = 1500 * si::metres,
-        X    = (RF == 1 ? 3360 : 6400) * si::metres,
-        Y    = (RF == 1 ? 3360 : 6400) * si::metres;
-      static constexpr real_t z_abs = 1250;
-      static constexpr real_t z_i = RF == 1 ? 840 : 795; //initial inversion height
-      static constexpr quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
   
       // liquid water potential temperature at height z
       static quantity<si::temperature, real_t> th_l(const real_t &z)
       {
         const quantity<si::temperature, real_t>
           th_below = real_t(RF == 1 ? 289 : 288.3) * si::kelvins,
-          th_above = real_t(RF == 1 ? 297.5 : 295 + pow(z - z_i, real_t(1./3))) * si::kelvins; 
-        return z < z_i ? th_below : th_above;
+          th_above = real_t(RF == 1 ? 297.5 : 295 + pow(z - z_i[RF - 1], real_t(1./3))) * si::kelvins; 
+        return z < z_i[RF - 1] ? th_below : th_above;
       }
     
       // water mixing ratio at height z
@@ -46,8 +46,8 @@ namespace setup
           const quantity<si::dimensionless, real_t>
             rt_below = RF == 1 ? 9.5e-3 : 9.45e-3;
           const quantity<si::dimensionless, real_t>
-            rt_above = RF == 1 ? 1.5e-3 : (5. - 3. * (1. - exp((z_i - z)/500.))) * 1e-3;
-          return z < z_i ? rt_below : rt_above;
+            rt_above = RF == 1 ? 1.5e-3 : (5. - 3. * (1. - exp((z_i[RF - 1] - z)/500.))) * 1e-3;
+          return z < z_i[RF - 1] ? rt_below : rt_above;
         }
         BZ_DECLARE_FUNCTOR(r_t);
       };
@@ -293,13 +293,11 @@ std::cout << "lwp env: " << lwp_env << std::endl;
     template<class concurr_t, int RF>
     class Dycoms_2d : public Dycoms<concurr_t, RF>
     {
-      using parent_t = Dycoms<concurr_t, RF>;
-
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (parent_t::X / si::metres) / (nx-1); 
-        params.dj = (parent_t::Z / si::metres) / (nz-1);
+        params.di = (X[RF - 1] / si::metres) / (nx-1); 
+        params.dj = (Z / si::metres) / (nz-1);
         params.dz = params.dj;
       }
 
@@ -315,8 +313,6 @@ std::cout << "lwp env: " << lwp_env << std::endl;
     template<class concurr_t, int RF>
     class Dycoms_3d : public Dycoms<concurr_t, RF>
     {
-      using parent_t = Dycoms<concurr_t, RF>;
-      
       // southerly wind
       struct v
       {
@@ -330,9 +326,9 @@ std::cout << "lwp env: " << lwp_env << std::endl;
       void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (parent_t::X / si::metres) / (nx-1); 
-        params.dj = (parent_t::Y / si::metres) / (ny-1);
-        params.dk = (parent_t::Z / si::metres) / (nz-1);
+        params.di = (X[RF - 1] / si::metres) / (nx-1); 
+        params.dj = (Y[RF - 1] / si::metres) / (ny-1);
+        params.dk = (Z / si::metres) / (nz-1);
         params.dz = params.dk;
       }
 
@@ -344,7 +340,7 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
-        real_t dz = (parent_t::Z / si::metres) / (nz-1); 
+        real_t dz = (Z / si::metres) / (nz-1); 
   
         solver.advectee(ix::v)= v()(k * dz);
         solver.vab_relaxed_state(1) = solver.advectee(ix::v);
