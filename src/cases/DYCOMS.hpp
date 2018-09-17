@@ -1,6 +1,7 @@
 #pragma once
 #include <random>
 #include "CasesCommon.hpp"
+#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
 
 namespace setup 
 {
@@ -28,6 +29,21 @@ namespace setup
                     "only setups based on the first and the second DYCOMS research flights are available");
 
       protected:
+
+      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
+      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
+                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles>::type* = 0)
+      {}
+
+      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
+      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
+                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::smg>::type* = 0)
+      {
+        params.c_m = 0.0856;
+        params.smg_c = 0.165;
+        params.prandtl_num = 0.42;
+        params.cdrag = 0.;
+      }
   
       // liquid water potential temperature at height z
       static quantity<si::temperature, real_t> th_l(const real_t &z)
@@ -121,8 +137,10 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = true;
-        params.friction = true;
+        params.friction = false;
         params.radiation = true;
+
+        setopts_sgs(params);
       }
   
       template <class index_t>
@@ -160,7 +178,7 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, arr_1D_t &mix_len, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -263,18 +281,45 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         // for scalars
         z_0 = user_params.z_rlx_sclr;
         hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
+
+        real_t sgs_delta;
+        if (user_params.sgs_delta > 0)
+        {
+          sgs_delta = user_params.sgs_delta;
+        }
+        else
+        {
+          sgs_delta = dz;
+        }
+        mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
       }
 
-      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
+      void update_surf_flux_sens(typename concurr_t::solver_t::arr_t &surf_flux_sens, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+        {
           surf_flux_sens = RF == 1 ? 15. : 16.; // [W/m^2]
+          // for simulations with sgs scheme convert surface flux to required sign convention and units
+          if (concurr_t::solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles)
+          {
+            auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+            surf_flux_sens /= -conv_fctr_sens; // [K * kg / (m^2 * s)]
+          }
+        }
       }
 
-      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
+      void update_surf_flux_lat(typename concurr_t::solver_t::arr_t &surf_flux_lat, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
+        {
           surf_flux_lat = RF == 1 ? 115. : 93.; // [W/m^2]
+          // for simulations with sgs scheme convert surface flux to required sign convention and units
+          if (concurr_t::solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles)
+          {
+            auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+            surf_flux_lat /= -conv_fctr_lat; // [kg / (m^2 * s)]
+          }
+        }
       }
 
       // ctor
