@@ -33,8 +33,9 @@ namespace setup
       static quantity<si::temperature, real_t> th_l(const real_t &z)
       {
         const quantity<si::temperature, real_t>
-          th_below = real_t(RF == 1 ? 289 : 288.3) * si::kelvins,
-          th_above = real_t(RF == 1 ? 297.5 : 295 + pow(z - z_i[RF - 1], real_t(1./3))) * si::kelvins; 
+          th_below = real_t(RF == 1 ? 289 : 288.3) * si::kelvins;
+        const real_t th_above_hlpr = (RF == 1 ? 297.5 : 295) + pow(z - z_i[RF - 1], real_t(1./3));
+        const quantity<si::temperature, real_t> th_above = th_above_hlpr * si::kelvins; 
         return z < z_i[RF - 1] ? th_below : th_above;
       }
     
@@ -44,7 +45,7 @@ namespace setup
         quantity<si::dimensionless, real_t> operator()(const real_t &z) const
         {
           const quantity<si::dimensionless, real_t>
-            rt_below = RF == 1 ? 9.5e-3 : 9.45e-3;
+            rt_below = RF == 1 ? 9.0e-3 : 9.45e-3;
           const quantity<si::dimensionless, real_t>
             rt_above = RF == 1 ? 1.5e-3 : (5. - 3. * (1. - exp((z_i[RF - 1] - z)/500.))) * 1e-3;
           return z < z_i[RF - 1] ? rt_below : rt_above;
