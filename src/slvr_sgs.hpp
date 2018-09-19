@@ -74,7 +74,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     tmp_grad[ct_params_t::n_dims - 1](this->hrzntl_slice(lk + h)) = tmp_grad[ct_params_t::n_dims - 1](this->hrzntl_slice(lk - h));
     
     this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], rcdsn_num);
-    rcdsn_num(this->ijk) /= tdef_sq(this->ijk);
+    rcdsn_num(this->ijk) /= max(1e-15, tdef_sq(this->ijk)); // TODO: is 1e-15 sensible epsilon here ?
   }
   
   template <int nd = ct_params_t::n_dims> 
@@ -141,7 +141,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
     this->mem->barrier();
     if (this->rank == 0)
     {
-      //std::cout << "resolved energy: " << 0.5 * sum(pow2(this->vips()[0](this->domain)) + pow2(this->vips()[1](this->domain)))  << std::endl;
       std::cout << "tdef_sq: " << min(tdef_sq(this->domain)) << " " << max(tdef_sq(this->domain)) << std::endl;
       std::cout << "rcdsn: " << min(rcdsn_num(this->domain)) << " " << max(rcdsn_num(this->domain)) << std::endl;
       std::cout << "k_m:   " << min(this->k_m(this->domain)) << " " << max(this->k_m(this->domain)) << std::endl;
