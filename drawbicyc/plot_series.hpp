@@ -550,7 +550,7 @@ void plot_series(Plotter_t plotter, Plots plots)
             res_prof(at) += blitz::sum(mean);
           }
           
-          res_prof(at) *= n["dz"];
+          res_prof(at) *= 0.5 * n["dz"];
         }
         catch(...) {;}
       }
