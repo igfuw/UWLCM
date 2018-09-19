@@ -221,7 +221,16 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
     if (ct_params_t::sgs_scheme != libmpdataxx::solvers::iles)
     {
-      this->sgs_scalar_forces({ix::rc, ix::rr});
+      std::vector<int> vars;
+      if (params.user_params.rc_src)
+      {
+        vars.push_back(ix::rc);
+      }
+      if (params.user_params.rr_src)
+      {
+        vars.push_back(ix::rr);
+      }
+      this->sgs_scalar_forces(vars);
     }
   }
 
