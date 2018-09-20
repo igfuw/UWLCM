@@ -169,7 +169,12 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 	rr   = this->state(ix::rr)(this->ijk),
         rhod = (*this->mem->G)(this->ijk),
         &p_e_arg = p_e(this->ijk);
-      libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(opts, dot_th, dot_rv, dot_rc, dot_rr, rhod, p_e_arg, th, rv, rc, rr);
+      libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(
+          opts,
+          dot_th, dot_rv, dot_rc, dot_rr,
+          rhod, p_e_arg, th, rv, rc, rr,
+          this->dt
+      );
     }
 
     // forcing
