@@ -205,7 +205,7 @@ for file_name in profiles_files_names:
     plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='Precip. flux [W m$^{-2}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='$S$ [%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='supersaturation [%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     ## xrange of the ss_up plot
