@@ -6,7 +6,10 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from bisect import bisect_left
+from matplotlib import rc
 
+# activate latex text rendering
+rc('text', usetex=True)
 
 def read_my_array(file_obj):
   file_obj.readline() # discarded line with size of the array
@@ -163,7 +166,7 @@ for file_name in series_files_names:
   dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
   plot_iter=0
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g m$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, ylabel='Entrainment rate [cm $s^{-1}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, ylabel='Entrainment rate [cm s$^{-1}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ s$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, xlabel='Time [h]', ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, xlabel='Time [h]', ylabel='$N_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
