@@ -39,9 +39,9 @@ std::vector<std::string> profs_dycoms({
 //, "N_c", 
 ,"cl_nc"
 ,"sat_RH"
+//, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
-//, "nc_up" 
 //, "nc_down" 
 }); // rtot has to be first
 
