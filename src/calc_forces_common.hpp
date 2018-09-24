@@ -79,12 +79,12 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       alpha(ijk) += F(ijk);
     }
   
-    // change of T[K/s] = heating[W/m^3] / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) /= 
+    // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
       calc_c_p()(rv(ijk).reindex(this->zero)) * 
       (*params.rhod)(this->vert_idx);
 
-    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of T");
+    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surf flux if it is specified as mean(theta*w)
     if(!params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
@@ -93,9 +93,6 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       nancheck(F(ijk), "sensible surf forcing");
       alpha(ijk) += F(ijk);
     }
-
-    // change of theta = change of T / exner
-    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)); 
   
     // large-scale vertical wind
     subsidence(ix::th); 
