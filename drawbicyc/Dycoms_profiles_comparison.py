@@ -24,7 +24,7 @@ dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", 
 nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
-nplotx = 2 #int(nplots/5 + 1)
+nplotx = 2 #int(nplots/6 + 0.5)
 nploty = int(float(nplots)/float(nplotx) + 0.5)
 if nplots % nploty == 0:
   nemptyplots=0
@@ -98,7 +98,7 @@ for var in dycoms_vars:
   if var == "w_skw":
     axarr[x, y].set_xlim([-0.15,.15])
   if var == "ss":
-    axarr[x, y].set_xlim([-2,1])
+    axarr[x, y].set_xlim([-5,1])
   if var=="ndrop_cld_zoom":
     axarr[x, y].set_xlim([50,80])
 
@@ -189,8 +189,8 @@ for file_name in profiles_files_names:
     my_clfrac = read_my_array(profiles_file)
     my_nc = read_my_array(profiles_file)
     my_ss = read_my_array(profiles_file)
-    #my_ss_up = read_my_array(profiles_file)
-    #my_nact_up = read_my_array(profiles_file)
+#    my_nc_up = read_my_array(profiles_file)
+#    my_ss_up = read_my_array(profiles_file)
 
     print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
   
@@ -210,17 +210,17 @@ for file_name in profiles_files_names:
     plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='supersaturation [\%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    ## xrange of the ss_up plot
-    #x = int(plot_iter / nploty)
-    #y = plot_iter % nploty
-    #axarr[x, y].set_xlim([-2,1])
-    #axarr[x, y].set_ylim([0,1.2])
-    #plot_iter = plot_my_array(axarr, plot_iter, my_ss_up, my_pos, xlabel='updraft S', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    ## xrange of the nact_up plot
-    #x = int(plot_iter / nploty)
-    #y = plot_iter % nploty
-    #axarr[x, y].set_ylim([0,1.2])
-    #plot_iter = plot_my_array(axarr, plot_iter, my_nact_up, my_pos, xlabel='updraft n act', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#    # xrange of the nc_up plot
+#    x = int(plot_iter / nploty)
+#    y = plot_iter % nploty
+#    axarr[x, y].set_ylim([0,1.2])
+#    plot_iter = plot_my_array(axarr, plot_iter, my_nc_up, my_pos, xlabel='updraft nc', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#    # xrange of the ss_up plot
+#    x = int(plot_iter / nploty)
+#    y = plot_iter % nploty
+#    axarr[x, y].set_xlim([-5,1])
+#    axarr[x, y].set_ylim([0,1.2])
+#    plot_iter = plot_my_array(axarr, plot_iter, my_ss_up, my_pos, xlabel='updraft S', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
 
 
   except:
