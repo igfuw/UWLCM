@@ -280,6 +280,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_post_step()
   {
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step");
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
 
@@ -302,6 +303,7 @@ class slvr_common : public slvr_dim<ct_params_t>
           << "sync_wait: " << tsync_wait.count() << " ("<< setup::real_t(tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
       }
     }
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at end of slvr_common::hook_post_step");
   }
 
   public:

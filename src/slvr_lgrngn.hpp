@@ -426,6 +426,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     }
     this->mem->barrier();
     parent_t::hook_ante_step(); // includes RHS, which in turn launches sync_in and step_cond
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after at the end of hook_ante_step");
   }
 
 
@@ -463,6 +464,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
     negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+
 
     // store liquid water content (post-cond, pre-adve and pre-subsidence)
     diag_rl();
@@ -524,10 +526,12 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
     // advect r_l (1st-order)
     this->self_advec_donorcell(this->r_l);
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at the end of ante delayed step");
   }
 
   void hook_mixed_rhs_ante_step()
   {
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of mixed_rhs_ante_step");
 
     rv_pre_cond(this->ijk) = this->state(ix::rv)(this->ijk); 
     th_pre_cond(this->ijk) = this->state(ix::th)(this->ijk); 
@@ -631,7 +635,9 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
   void hook_mixed_rhs_post_step()
   {
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after advection");
     this->update_rhs(this->rhs, this->dt, 1);
+    negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
     this->apply_rhs(this->dt);
     // no negtozero after apply, because only w changed here
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
