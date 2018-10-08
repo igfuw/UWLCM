@@ -78,7 +78,7 @@ script:
   - mkdir build
   - cd build
   - cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
-  - VERBOSE=1 travis_wait make
+  - VERBOSE=1 make
   - OMP_NUM_THREADS=6 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 
   
