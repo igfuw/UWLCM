@@ -338,28 +338,28 @@ struct ct_params_3D_blk_1m : ct_params_common
 
 // function used to modify ct_params before running
 template<template<class... Args_slvr> class slvr, class ct_params_dim_micro, class... Args>
-void run_hlpr(bool piggy, std::string type, bool sgs, Args&&... args)
+void run_hlpr(bool piggy, const std::string &type, bool sgs, Args&&... args)
 {
   if(!piggy) // no piggybacking
   {
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
-    //if(type == "moist_thermal") // use abs option in moist_thermal
-    //{
-    //  struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-    //  if (sgs)
-    //  {
-    //    struct ct_params_final : ct_params_opts
-    //    { 
-    //      enum { sgs_scheme = solvers::smg};
-    //      enum { stress_diff = solvers::compact};
-    //    };
-    //    run<slvr<ct_params_final>>(args...);
-    //  }
-    //  else
-    //  {
-    //  }
-    //}
-    //else // default is the iga | fct option
+    if(type == "moist_thermal") // use abs option in moist_thermal
+    {
+      struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
+      if (sgs)
+      {
+        struct ct_params_final : ct_params_opts
+        { 
+          enum { sgs_scheme = solvers::smg};
+          enum { stress_diff = solvers::compact};
+        };
+        run<slvr<ct_params_final>>(args...);
+      }
+      else
+      {
+      }
+    }
+    else // default is the iga | fct option
     {
       struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
       if (sgs)
@@ -378,46 +378,46 @@ void run_hlpr(bool piggy, std::string type, bool sgs, Args&&... args)
       }
     }
   }
-  //else // piggybacking
-  //{
-  //  struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
-  //  if(type == "moist_thermal") // use abs option in moist_thermal
-  //  {
-  //    struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-  //    if (sgs)
-  //    {
-  //      struct ct_params_final : ct_params_opts
-  //      { 
-  //        enum { sgs_scheme = solvers::smg};
-  //        enum { stress_diff = solvers::compact};
-  //      };
-  //      run<slvr<ct_params_final>>(args...);
-  //    }
-  //    else
-  //    {
-  //      struct ct_params_final : ct_params_opts {};
-  //      run<slvr<ct_params_final>>(args...);
-  //    }
-  //  }
-  //  else // default is the iga | fct option
-  //  {
-  //    struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-  //    if (sgs)
-  //    {
-  //      struct ct_params_final : ct_params_opts
-  //      { 
-  //        enum { sgs_scheme = solvers::smg};
-  //        enum { stress_diff = solvers::compact};
-  //      };
-  //      run<slvr<ct_params_final>>(args...);
-  //    }
-  //    else
-  //    {
-  //      struct ct_params_final : ct_params_opts {};
-  //      run<slvr<ct_params_final>>(args...);
-  //    }
-  //  }
-  //}
+  else // piggybacking
+  {
+    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
+    if(type == "moist_thermal") // use abs option in moist_thermal
+    {
+      struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
+      if (sgs)
+      {
+        struct ct_params_final : ct_params_opts
+        { 
+          enum { sgs_scheme = solvers::smg};
+          enum { stress_diff = solvers::compact};
+        };
+        run<slvr<ct_params_final>>(args...);
+      }
+      else
+      {
+        struct ct_params_final : ct_params_opts {};
+        run<slvr<ct_params_final>>(args...);
+      }
+    }
+    else // default is the iga | fct option
+    {
+      struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
+      if (sgs)
+      {
+        struct ct_params_final : ct_params_opts
+        { 
+          enum { sgs_scheme = solvers::smg};
+          enum { stress_diff = solvers::compact};
+        };
+        run<slvr<ct_params_final>>(args...);
+      }
+      else
+      {
+        struct ct_params_final : ct_params_opts {};
+        run<slvr<ct_params_final>>(args...);
+      }
+    }
+  }
 }
 
 
@@ -526,11 +526,11 @@ int main(int argc, char** argv)
     user_params.model_case = vm["case"].as<std::string>();
 
     // run the simulation
-    //if (micro == "lgrngn" && ny == 0) // 2D super-droplet
-    //  run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, sgs, nx, nz, user_params);
+    if (micro == "lgrngn" && ny == 0) // 2D super-droplet
+      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, sgs, nx, nz, user_params);
 
-    //else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
-    //  run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
+    else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
 
     if (micro == "blk_1m" && ny == 0) // 2D one-moment
       run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, sgs, nx, nz, user_params);
