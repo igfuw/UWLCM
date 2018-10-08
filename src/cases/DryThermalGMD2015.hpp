@@ -38,6 +38,8 @@ namespace setup
         params.subsidence = false;
         params.friction = false;
         params.radiation = false;
+
+        this->setopts_sgs(params);
       }
   
       template <class index_t>

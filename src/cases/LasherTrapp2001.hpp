@@ -68,6 +68,8 @@ namespace setup
         params.subsidence = false;
         params.friction = true;
         params.radiation = false;
+
+        this->setopts_sgs(params);
       }
   
   

@@ -1,7 +1,7 @@
 #pragma once
 #include <random>
 #include "CasesCommon.hpp"
-#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
+//#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
 
 namespace setup 
 {
@@ -29,21 +29,6 @@ namespace setup
                     "only setups based on the first and the second DYCOMS research flights are available");
 
       protected:
-
-      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
-      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
-                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles>::type* = 0)
-      {}
-
-      template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
-      void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
-                       typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::smg>::type* = 0)
-      {
-        params.c_m = 0.0856;
-        params.smg_c = 0.165;
-        params.prandtl_num = 0.42;
-        params.cdrag = 0.;
-      }
   
       // liquid water potential temperature at height z
       static quantity<si::temperature, real_t> th_l(const real_t &z)
@@ -140,7 +125,7 @@ namespace setup
         params.friction = false;
         params.radiation = true;
 
-        setopts_sgs(params);
+        this->setopts_sgs(params);
       }
   
       template <class index_t>
