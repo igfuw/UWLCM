@@ -160,6 +160,8 @@ namespace setup
         params.friction = false;
         params.radiation = false;
     //    params.n_iters=1;
+
+        this->setopts_sgs(params);
       }
     
       template <class index_t>

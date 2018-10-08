@@ -6,6 +6,8 @@
 #include <libcloudph++/common/theta_std.hpp>
 #include <libcloudph++/common/theta_dry.hpp>
 
+#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
+
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
 
@@ -68,6 +70,22 @@ namespace setup
     virtual void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, arr_1D_t& mix_len, int nz, const user_params_t &user_params) =0;
     virtual void update_surf_flux_sens(typename concurr_t::solver_t::arr_t &surf_flux_sens, int timestep, real_t dt) {if(timestep==0) surf_flux_sens = 0.;}; 
     virtual void update_surf_flux_lat(typename concurr_t::solver_t::arr_t &surf_flux_lat, int timestep, real_t dt) {if(timestep==0) surf_flux_lat = 0.;};
+
+
+    template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
+    void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
+                     typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles>::type* = 0)
+    {}
+
+    template<class ct_params_t = typename concurr_t::solver_t::ct_params_t_>
+    void setopts_sgs(typename concurr_t::solver_t::rt_params_t &params,
+                     typename std::enable_if<ct_params_t::sgs_scheme == libmpdataxx::solvers::smg>::type* = 0)
+    {
+      params.c_m = 0.0856;
+      params.smg_c = 0.165;
+      params.prandtl_num = 0.42;
+      params.cdrag = 0.;
+    }
 
     // ctor
     // TODO: these are DYCOMS definitions, move them there
