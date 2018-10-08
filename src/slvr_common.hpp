@@ -56,6 +56,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   virtual void set_rain(bool) = 0;
   
   virtual void sgs_scalar_forces(const std::vector<int>&) {}
+  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) = 0;
 
   void hook_ante_loop(int nt) 
   {

@@ -81,6 +81,11 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
 
+  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) final
+  {
+    return this->state(ix::rc);
+  }
+
   void record_all()
   {
     // plain (no xdmf) hdf5 output
