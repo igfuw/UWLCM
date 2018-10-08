@@ -26,7 +26,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
     const auto dz = params.dz;
     const auto& tht = this->state(ix::th);
     const auto& rv = this->state(ix::rv);
-    const auto& rc = this->state(ix::rc);
+    // depending on microphysics we either have rc already (blk_m1) or have to diagnose it (lgrngn)
+    const auto& rc = this->get_rc(this->hlpr[1]);
    
     // libcloudph stuff
     const auto l_tri = libcloudphxx::common::const_cp::l_tri<setup::real_t>() * si::kilograms / si::joules;
@@ -120,10 +121,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                  0
                                 );
     this->k_m(this->hrzntl_slice(0)) = this->k_m(this->hrzntl_slice(1));
-
-    //this->k_m(this->ijk).reindex(this->zero) = pow(this->smg_c * (*this->params.mix_len)(this->vert_idx), 2)
-    //                                         * sqrt(tdef_sq(this->ijk).reindex(this->zero));
-
     this->xchng_sclr(this->k_m, this->ijk, 1);
     
 
@@ -161,7 +158,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   
   void record_flux(int s)
   {
-    if (s != ix::th && s != ix::rv && s != ix::rc) return;
+    //if (s != ix::th && s != ix::rv && s != ix::rc) return;
 
     if (this->timestep % static_cast<int>(this->outfreq) == 0)
     {
@@ -173,7 +170,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
         auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
         conv_fctr = conv_fctr_sens;
       }
-      else if (s == ix::rv || s == ix::rc)
+      else if (s == ix::rv)// || s == ix::rc)
       {
         auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
         conv_fctr = conv_fctr_lat;
@@ -191,10 +188,10 @@ class slvr_sgs : public slvr_common<ct_params_t>
       {
         name = "sgs_rv_flux";
       }
-      else if (s == ix::rc)
-      {
-        name = "sgs_rc_flux";
-      }
+      //else if (s == ix::rc)
+      //{
+      //  name = "sgs_rc_flux";
+      //}
 
       if (this->rank == 0)
       {
@@ -274,14 +271,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
       }
 
       record_flux(s);
-
-      //hlpr[1](this->ijk) = 2 * 
-      //  formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(tmp_grad,
-      //                                                                        *this->mem->G,
-      //                                                                        this->ijk,
-      //                                                                        this->dijk);
-      //
-      //this->rhs.at(s)(this->ijk) += 2 * hlpr[1](this->ijk);
     
       this->rhs.at(s)(this->ijk) += 2 * formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
                                           tmp_grad,
@@ -290,25 +279,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                           this->dijk
                                     );
     }
-    
-    
-    //hlpr[0](this->ijk) = 2 *
-
-    //hlpr[1](this->ijk) = 2 * 
-    //  formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(grad_rv,
-    //                                                                        *this->mem->G,
-    //                                                                        this->ijk,
-    //                                                                        this->dijk);
-    //
-    //this->rhs.at(ix::rv)(this->ijk) += 2 * hlpr[1](this->ijk);
-
-    //if (this->rank == 0)
-    //{
-    //  std::cout << "timestep: " << this->timestep << std::endl;
-    //  std::cout << "prandtl num: " << prandtl_num << std::endl;
-    //  std::cout << "th sgs forces: " << min(hlpr[0](this->domain)) << ' ' << max(hlpr[0](this->domain)) << std::endl;
-    //  std::cout << "rv sgs forces: " << min(hlpr[1](this->domain)) << ' ' << max(hlpr[1](this->domain)) << std::endl;
-    //}
   }
 
   void hook_ante_loop(int nt) 
