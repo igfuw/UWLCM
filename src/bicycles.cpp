@@ -345,19 +345,8 @@ void run_hlpr(bool piggy, const std::string &type, bool sgs, Args&&... args)
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
     if(type == "moist_thermal") // use abs option in moist_thermal
     {
-      struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      if (sgs)
-      {
-        struct ct_params_final : ct_params_opts
-        { 
-          enum { sgs_scheme = solvers::smg};
-          enum { stress_diff = solvers::compact};
-        };
-        run<slvr<ct_params_final>>(args...);
-      }
-      else
-      {
-      }
+      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
+      run<slvr<ct_params_final>>(args...);
     }
     else // default is the iga | fct option
     {
@@ -383,21 +372,8 @@ void run_hlpr(bool piggy, const std::string &type, bool sgs, Args&&... args)
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
     if(type == "moist_thermal") // use abs option in moist_thermal
     {
-      struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      if (sgs)
-      {
-        struct ct_params_final : ct_params_opts
-        { 
-          enum { sgs_scheme = solvers::smg};
-          enum { stress_diff = solvers::compact};
-        };
-        run<slvr<ct_params_final>>(args...);
-      }
-      else
-      {
-        struct ct_params_final : ct_params_opts {};
-        run<slvr<ct_params_final>>(args...);
-      }
+      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
+      run<slvr<ct_params_final>>(args...);
     }
     else // default is the iga | fct option
     {
