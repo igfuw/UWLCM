@@ -133,15 +133,17 @@ for var in dycoms_vars:
   axarr[x, y].fill_between(itime_h, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(itime_h, mvar_arr, color='black')
   # plot precip of bin models
-  if var == "precip":
-    DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
-    DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
- #   print DHARMA_time, DHARMA_precip
-    axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1)
-    RAMS_time = time[RAMS_it,0:ntime[RAMS_it]].copy() / 3600.
-    RAMS_precip = var_arr[RAMS_it,0:ntime[RAMS_it]].copy()
-  #  print RAMS_time, RAMS_precip
-    axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1)
+  print argv[len(sys.argv)-1]
+  if argv[len(sys.argv)-1] == "show":
+    if var == "precip":
+      DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
+      DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
+   #   print DHARMA_time, DHARMA_precip
+      axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1)
+      RAMS_time = time[RAMS_it,0:ntime[RAMS_it]].copy() / 3600.
+      RAMS_precip = var_arr[RAMS_it,0:ntime[RAMS_it]].copy()
+    #  print RAMS_time, RAMS_precip
+      axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1)
 
   plot_iter += 1
 
@@ -151,7 +153,7 @@ dycoms_file.close()
 #read my results
 series_files_names = []
 series_labels = []
-file_no = np.arange(1, len(sys.argv)-1 , 2)
+file_no = np.arange(1, len(sys.argv)-2 , 2)
 for no in file_no:
   series_files_names.append(argv[no])
   series_labels.append(argv[no+1])
@@ -234,4 +236,4 @@ fig.subplots_adjust(bottom=0.18 + (len(labels) - 2) * 0.03, hspace=0.1, wspace=0
 #fig.tight_layout(pad=0, w_pad=0, h_pad=0)
 
 #plt.show()
-fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
+fig.savefig(argv[len(sys.argv)-2], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
