@@ -71,6 +71,9 @@ q1var_arr = np.ndarray(shape=(len(itime)))
 q3var_arr = np.ndarray(shape=(len(itime)))
 
 plot_iter = 0
+# positions of bin models
+DHARMA_it = 3 # DHARMA_BO, with coalescence efficiency = 1
+RAMS_it = 7
 for var in dycoms_vars:
   var_arr = dycoms_file.variables[var][:,1,1,:].copy()
 
@@ -129,6 +132,16 @@ for var in dycoms_vars:
   axarr[x, y].fill_between(itime_h, minvar_arr, maxvar_arr, color='0.9')
   axarr[x, y].fill_between(itime_h, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(itime_h, mvar_arr, color='black')
+  # plot precip of bin models
+  if var == "precip":
+    DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
+    DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
+ #   print DHARMA_time, DHARMA_precip
+    axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1)
+    RAMS_time = time[RAMS_it,0:ntime[RAMS_it]].copy() / 3600.
+    RAMS_precip = var_arr[RAMS_it,0:ntime[RAMS_it]].copy()
+  #  print RAMS_time, RAMS_precip
+    axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1)
 
   plot_iter += 1
 
