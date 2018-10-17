@@ -133,7 +133,6 @@ for var in dycoms_vars:
   axarr[x, y].fill_between(itime_h, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(itime_h, mvar_arr, color='black')
   # plot precip of bin models
-  print argv[len(sys.argv)-1]
   if argv[len(sys.argv)-1] == "show":
     if var == "precip":
       DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
