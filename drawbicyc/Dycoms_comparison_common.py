@@ -29,7 +29,7 @@ def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None,
   if ylabel:
     axarr[x, y].set_ylabel(ylabel)
 
-def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
+def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True):
   # read dycoms results
   dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.profiles.nc", "r")
   dycoms_series_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
@@ -80,7 +80,7 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
   if var == "ss":
     axarr[x, y].set_xlim([-5,1])
   if var=="ndrop_cld_zoom":
-    axarr[x, y].set_xlim([40,80])
+    axarr[x, y].set_xlim([50,80])
   
   if var=="ndrop_cld_zoom":
     var="ndrop_cld"
@@ -129,11 +129,11 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
     if show_bin and g == DHARMA_it:
       DHARMA_prof = ivar_arr[g,:]
       DHARMA_pos = ihght[:]
-      axarr[x, y].plot(DHARMA_prof[DHARMA_prof < 1e35], DHARMA_pos[DHARMA_pos < 1e35], color='red', linewidth=1)
+      axarr[x, y].plot(DHARMA_prof[DHARMA_prof < 1e35], DHARMA_pos[DHARMA_pos < 1e35], linewidth=1, label="DHARMA", color='red')
     if show_bin and g == RAMS_it:
       RAMS_prof = ivar_arr[g,:]
       RAMS_pos = ihght[:]
-      axarr[x, y].plot(RAMS_prof[RAMS_prof < 1e35], RAMS_pos[RAMS_pos < 1e35], color='green', linewidth=1)
+      axarr[x, y].plot(RAMS_prof[RAMS_prof < 1e35], RAMS_pos[RAMS_pos < 1e35], linewidth=1, label="RAMS", color='green')
   
   # calc statistics from groups
   
@@ -145,10 +145,11 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
     q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
     q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
   
-  axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
-  axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
-  axarr[x, y].plot(mvar_arr, ihght, color='black')
   axarr[x, y].set_ylim([0,1.2])
+  if reference:
+    axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
+    axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
+    axarr[x, y].plot(mvar_arr, ihght, color='black')
   
   
   dycoms_file.close()
@@ -156,10 +157,10 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
   #read my results
   profiles_files_names = []
   profiles_labels = []
-  file_no = np.arange(1, len(sys.argv)-1 , 2)
+  file_no = np.arange(1, len(sys.argv)-2 , 2)
   print file_no
   for no in file_no:
-    profiles_files_names.append(argv[no])
+    profiles_files_names.append(argv[no]+suffix)
     profiles_labels.append(argv[no+1])
   
   
@@ -236,7 +237,7 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
   plot_iter += 1
   return plot_iter
 
-def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
+def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=''):
 
   # read dycoms results
   dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
@@ -323,11 +324,11 @@ def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
     DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
     DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
   #  print DHARMA_time, DHARMA_precip
-    axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1)
+    axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1, label="DHARMA")
     RAMS_time = time[RAMS_it,0:ntime[RAMS_it]].copy() / 3600.
     RAMS_precip = var_arr[RAMS_it,0:ntime[RAMS_it]].copy()
    # print RAMS_time, RAMS_precip
-    axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1)
+    axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1, label="RAMS")
 
   
   dycoms_file.close()
@@ -338,12 +339,13 @@ def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False):
   series_labels = []
   file_no = np.arange(1, len(sys.argv)-1 , 2)
   for no in file_no:
-    series_files_names.append(argv[no])
+    series_files_names.append(argv[no] + suffix)
     series_labels.append(argv[no+1])
   
   label_counter=0
   for file_name in series_files_names:
     
+    print file_name, var
     series_file = open(file_name, "r")
     my_times = read_my_array(series_file)
     my_max_w_var = read_my_array(series_file)
