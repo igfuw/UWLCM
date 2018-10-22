@@ -17,7 +17,10 @@ fig, axarr = plt.subplots(nplotx, nploty )
 
 plot_iter=0
 for var in dycoms_vars:
-  plot_iter = plot_profiles(var, plot_iter, nplotx, nploty, axarr)
+  if var == "thetal" or var == "w_var":
+    plot_iter = plot_profiles(var, plot_iter, nplotx, nploty, axarr, ylabel='$z/z_i$')
+  else:
+    plot_iter = plot_profiles(var, plot_iter, nplotx, nploty, axarr)
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
