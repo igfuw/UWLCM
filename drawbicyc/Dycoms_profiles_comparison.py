@@ -20,20 +20,6 @@ def read_my_array(file_obj):
   arr = map(float,line)
   return np.array(arr)
 
-dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "ndrop_cld_zoom"]
-nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
-
-# init the plot
-nplotx = 2 #int(nplots/6 + 0.5)
-nploty = int(float(nplots)/float(nplotx) + 0.5)
-if nplots % nploty == 0:
-  nemptyplots=0
-else:
-  nemptyplots = nploty - nplots % nploty
-emptyplots = np.arange(nploty - nemptyplots, nploty)
-print nplotx, nploty, nemptyplots
-print emptyplots
-fig, axarr = plt.subplots(nplotx, nploty )
 
 def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2)):
   x = int(plot_iter / nploty)
@@ -46,47 +32,42 @@ def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabe
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
     axarr[x, y].set_ylabel(ylabel)
-  plot_iter = plot_iter+1
-  return plot_iter
 
 
-# read dycoms results
-
-dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.profiles.nc", "r")
-dycoms_series_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
-time = dycoms_file.variables["time"][:].copy() 
-zt = dycoms_file.variables["zt"][:,1,1,:].copy() 
-nzt = dycoms_file.variables["nzt"][:,1,1].copy()
-
-series_time = dycoms_series_file.variables["time"][:, 1, 1, :].copy() 
-series_zi = dycoms_series_file.variables["zi"][:, 1, 1, :].copy() 
-series_ntime = dycoms_series_file.variables["ntime"][:, 1, 1].copy() 
-
-ntime = 13
-
-# at each time, zt needs to be rescaled by inversion height, this rescaled value will be stored here
-rzt = np.zeros((301)) # group idx/ height idx
-
-
-groups = np.arange(14)
-ihght = np.arange(0, 1.6, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
-
-ivar_arr = np.ndarray(shape=(14, len(ihght))) # to store interpolated average over time, group idx / height idx
-
-# mean val
-mvar_arr = np.ndarray(shape=(len(ihght)))
-# extrema
-minvar_arr = np.ndarray(shape=(len(ihght)))
-maxvar_arr = np.ndarray(shape=(len(ihght)))
-# middle two quartiles
-q1var_arr = np.ndarray(shape=(len(ihght)))
-q3var_arr = np.ndarray(shape=(len(ihght)))
-
-plot_iter = 0
-for var in dycoms_vars:
+def plot_profiles(var, plot_iter, nplotx, nploty, show_bin=False):
+  # read dycoms results
+  dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.profiles.nc", "r")
+  dycoms_series_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
+  time = dycoms_file.variables["time"][:].copy() 
+  zt = dycoms_file.variables["zt"][:,1,1,:].copy() 
+  nzt = dycoms_file.variables["nzt"][:,1,1].copy()
+  
+  series_time = dycoms_series_file.variables["time"][:, 1, 1, :].copy() 
+  series_zi = dycoms_series_file.variables["zi"][:, 1, 1, :].copy() 
+  series_ntime = dycoms_series_file.variables["ntime"][:, 1, 1].copy() 
+  
+  ntime = 13
+  
+  # at each time, zt needs to be rescaled by inversion height, this rescaled value will be stored here
+  rzt = np.zeros((301)) # group idx/ height idx
+  
+  groups = np.arange(14)
+  ihght = np.arange(0, 1.6, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
+  
+  ivar_arr = np.ndarray(shape=(14, len(ihght))) # to store interpolated average over time, group idx / height idx
+  
+  # mean val
+  mvar_arr = np.ndarray(shape=(len(ihght)))
+  # extrema
+  minvar_arr = np.ndarray(shape=(len(ihght)))
+  maxvar_arr = np.ndarray(shape=(len(ihght)))
+  # middle two quartiles
+  q1var_arr = np.ndarray(shape=(len(ihght)))
+  q3var_arr = np.ndarray(shape=(len(ihght)))
+  
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
-
+  
   #if var == "thetal":
   #  axarr[x, y].set_xlim([288.2,289.2])
   #if var == "qt":
@@ -100,12 +81,12 @@ for var in dycoms_vars:
   if var == "ss":
     axarr[x, y].set_xlim([-5,1])
   if var=="ndrop_cld_zoom":
-    axarr[x, y].set_xlim([50,80])
-
+    axarr[x, y].set_xlim([40,80])
+  
   if var=="ndrop_cld_zoom":
     var="ndrop_cld"
   var_arr = dycoms_file.variables[var][:,1,1,:,:].copy() 
-
+  
   for g in groups:
     ivar_arr[g,:] = 0.
     time_index = 0
@@ -123,7 +104,7 @@ for var in dycoms_vars:
         series_time_index = bisect_left(series_time[g, 0:series_ntime[g]], t)
         #series_time_index = np.where(series_time[g,0:series_ntime[g]]==t) 
         rzt[:] = zt[g, :] / series_zi[g, series_time_index]
-
+  
       # interpolate to same height positions and add to the mean over time fir this group
       i_hght_index = 0
       for it in ihght:
@@ -143,9 +124,9 @@ for var in dycoms_vars:
         i_hght_index += 1
       time_index += 1
     ivar_arr[g,:] /= (13-5) 
-
+  
   # calc statistics from groups
-
+  
   for zi in np.arange(len(ihght)):
     ivar_arr_1d = ivar_arr[:,zi]
     mvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
@@ -153,94 +134,120 @@ for var in dycoms_vars:
     maxvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].max()
     q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
     q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
-
+  
   axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
   axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(mvar_arr, ihght, color='black')
   axarr[x, y].set_ylim([0,1.2])
-
-  plot_iter += 1
-
-dycoms_file.close()
-
-
-#read my results
-profiles_files_names = []
-profiles_labels = []
-file_no = np.arange(1, len(sys.argv)-1 , 2)
-print file_no
-for no in file_no:
-  profiles_files_names.append(argv[no])
-  profiles_labels.append(argv[no+1])
-
-
-label_counter = 0
-for file_name in profiles_files_names:
   
-  try:
-    profiles_file = open(file_name, "r")
-    my_pos = read_my_array(profiles_file)
-    my_rtot = read_my_array(profiles_file)
-    my_rliq = read_my_array(profiles_file)
-    my_thl = read_my_array(profiles_file)
-    my_wvar = read_my_array(profiles_file)
-    my_w3rd = read_my_array(profiles_file)
-    my_prflux = read_my_array(profiles_file)
-    my_clfrac = read_my_array(profiles_file)
-    my_nc = read_my_array(profiles_file)
-    my_ss = read_my_array(profiles_file)
-#    my_nc_up = read_my_array(profiles_file)
-#    my_ss_up = read_my_array(profiles_file)
-
-    print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
   
-    profiles_file.close()
+  dycoms_file.close()
+
+  #read my results
+  profiles_files_names = []
+  profiles_labels = []
+  file_no = np.arange(1, len(sys.argv)-1 , 2)
+  print file_no
+  for no in file_no:
+    profiles_files_names.append(argv[no])
+    profiles_labels.append(argv[no+1])
+  
+  
+  label_counter = 0
+  for file_name in profiles_files_names:
     
+    try:
+      profiles_file = open(file_name, "r")
+      my_pos = read_my_array(profiles_file)
+      my_rtot = read_my_array(profiles_file)
+      my_rliq = read_my_array(profiles_file)
+      my_thl = read_my_array(profiles_file)
+      my_wvar = read_my_array(profiles_file)
+      my_w3rd = read_my_array(profiles_file)
+      my_prflux = read_my_array(profiles_file)
+      my_clfrac = read_my_array(profiles_file)
+      my_nc = read_my_array(profiles_file)
+      my_ss = read_my_array(profiles_file)
+  #    my_nc_up = read_my_array(profiles_file)
+  #    my_ss_up = read_my_array(profiles_file)
   
-    linestyles = ['--', '-.', ':']
-    dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
-    plot_iter=0
-    plot_iter = plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel=r'$\theta_l$ [K]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='$q_{t}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='$q_{l}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='Cloud fraction', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='Precip. flux [W m$^{-2}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='supersaturation [\%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-    plot_iter = plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-#    # xrange of the nc_up plot
-#    x = int(plot_iter / nploty)
-#    y = plot_iter % nploty
-#    axarr[x, y].set_ylim([0,1.2])
-#    plot_iter = plot_my_array(axarr, plot_iter, my_nc_up, my_pos, xlabel='updraft nc', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-#    # xrange of the ss_up plot
-#    x = int(plot_iter / nploty)
-#    y = plot_iter % nploty
-#    axarr[x, y].set_xlim([-5,1])
-#    axarr[x, y].set_ylim([0,1.2])
-#    plot_iter = plot_my_array(axarr, plot_iter, my_ss_up, my_pos, xlabel='updraft S', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
+    
+      profiles_file.close()
+      
+    
+      linestyles = ['--', '-.', ':']
+      dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
+      if var == "thetal":
+        plot_my_array(axarr, plot_iter, my_thl, my_pos, xlabel=r'$\theta_l$ [K]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "qt":
+        plot_my_array(axarr, plot_iter, my_rtot, my_pos, xlabel='$q_{t}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "ql":
+        plot_my_array(axarr, plot_iter, my_rliq, my_pos, xlabel='$q_{l}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "cfrac":
+        plot_my_array(axarr, plot_iter, my_clfrac, my_pos, xlabel='Cloud fraction', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "precip":
+        plot_my_array(axarr, plot_iter, my_prflux, my_pos, xlabel='Precip. flux [W m$^{-2}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "w_var":
+        plot_my_array(axarr, plot_iter, my_wvar, my_pos, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "w_skw":
+        plot_my_array(axarr, plot_iter, my_w3rd, my_pos, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "ss":
+        plot_my_array(axarr, plot_iter, my_ss, my_pos, xlabel='supersaturation [\%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "ndrop_cld":
+        plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "ndrop_cod_zoom":
+        plot_my_array(axarr, plot_iter, my_nc, my_pos, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  #    # xrange of the nc_up plot
+  #    x = int(plot_iter / nploty)
+  #    y = plot_iter % nploty
+  #    axarr[x, y].set_ylim([0,1.2])
+  #    plot_iter = plot_my_array(axarr, plot_iter, my_nc_up, my_pos, xlabel='updraft nc', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  #    # xrange of the ss_up plot
+  #    x = int(plot_iter / nploty)
+  #    y = plot_iter % nploty
+  #    axarr[x, y].set_xlim([-5,1])
+  #    axarr[x, y].set_ylim([0,1.2])
+  #    plot_iter = plot_my_array(axarr, plot_iter, my_ss_up, my_pos, xlabel='updraft S', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  
+    except:
+      print 'error opening file: ', file_name
+      my_pos = 0
+      my_rtot = 0
+      my_rliq = 0
+      my_thl = 0
+      my_wvar = 0
+      my_w3rd = 0
+      my_prflux = 0
+      my_clfrac = 0
+      my_nc = 0
+      my_ss = 0
+    label_counter = label_counter+1
+  plot_iter += 1
+  return plot_iter
 
 
-  except:
-    print 'error opening file: ', file_name
-    my_pos = 0
-    my_rtot = 0
-    my_rliq = 0
-    my_thl = 0
-    my_wvar = 0
-    my_w3rd = 0
-    my_prflux = 0
-    my_clfrac = 0
-    my_nc = 0
-    my_ss = 0
-  label_counter = label_counter+1
+dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "ndrop_cld_zoom"]
+nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
+
+# init the plot
+nplotx = 2 #int(nplots/6 + 0.5)
+nploty = int(float(nplots)/float(nplotx) + 0.5)
+fig, axarr = plt.subplots(nplotx, nploty )
+
+plot_iter=0
+for var in dycoms_vars:
+  plot_iter = plot_profiles(var, plot_iter, nplotx, nploty)
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
 
 # hide axes on empty plots
+if nplots % nploty == 0:
+  nemptyplots=0
+else:
+  nemptyplots = nploty - nplots % nploty
+emptyplots = np.arange(nploty - nemptyplots, nploty)
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')
 
