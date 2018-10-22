@@ -21,8 +21,6 @@ def read_my_array(file_obj):
   return np.array(arr)
 
 
-nplotx = 2
-nploty= 3
 
 def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabel=None, linestyle='-', dashes=(5,2)):
   #, linestyle=":"):
@@ -34,47 +32,32 @@ def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabe
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
     axarr[x, y].set_ylabel(ylabel)
-  plot_iter = plot_iter+1
-  return plot_iter
 
 
-# init the plot
-fig, axarr = plt.subplots(nplotx,nploty)
+def plot_series(var, empty_plots, plot_iter, nplotx, nploty, show_bin=False):
 
-
-# read dycoms results
-
-dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
-time = dycoms_file.variables["time"][:,1,1,:].copy() 
-ntime = dycoms_file.variables["ntime"][:,1,1].copy()
-
-dycoms_vars = ["lwp", "zi", "w2_max", "precip", "ndrop_cld", "zb"]# "cfrac"]
-
-if len(dycoms_vars) % nploty == 0:
-  nemptyplots = 0
-else:
-  nemptyplots = nploty - len(dycoms_vars) % nploty
-emptyplots = np.arange(nploty - nemptyplots, nploty)
-
-groups = np.arange(14)
-itime = np.arange(0, 21600, 60)
-# time in hours
-itime_h = itime / 3600.
-ivar_arr = np.ndarray(shape=(14))
-# mean val
-mvar_arr = np.ndarray(shape=(len(itime)))
-# extrema
-minvar_arr = np.ndarray(shape=(len(itime)))
-maxvar_arr = np.ndarray(shape=(len(itime)))
-# middle two quartiles
-q1var_arr = np.ndarray(shape=(len(itime)))
-q3var_arr = np.ndarray(shape=(len(itime)))
-
-plot_iter = 0
-# positions of bin models
-DHARMA_it = 3 # DHARMA_BO, with coalescence efficiency = 1
-RAMS_it = 7
-for var in dycoms_vars:
+  # read dycoms results
+  dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
+  time = dycoms_file.variables["time"][:,1,1,:].copy() 
+  ntime = dycoms_file.variables["ntime"][:,1,1].copy()
+  
+  groups = np.arange(14)
+  itime = np.arange(0, 21600, 60)
+  # time in hours
+  itime_h = itime / 3600.
+  ivar_arr = np.ndarray(shape=(14))
+  # mean val
+  mvar_arr = np.ndarray(shape=(len(itime)))
+  # extrema
+  minvar_arr = np.ndarray(shape=(len(itime)))
+  maxvar_arr = np.ndarray(shape=(len(itime)))
+  # middle two quartiles
+  q1var_arr = np.ndarray(shape=(len(itime)))
+  q3var_arr = np.ndarray(shape=(len(itime)))
+  
+  # positions of bin models
+  DHARMA_it = 3 # DHARMA_BO, with coalescence efficiency = 1
+  RAMS_it = 7
   var_arr = dycoms_file.variables[var][:,1,1,:].copy()
 
   # calc entrainment rate
@@ -122,19 +105,19 @@ for var in dycoms_vars:
 
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
-
-#  for g in groups:
-#    print var
-#    print var_arr[g, 0:ntime[g]]
-#    if var_arr[g,0] < 1e35: # netcdf fill values are erad as ca. 9e36
-#      axarr[x, y].plot(time[g,0:ntime[g]] / 3600., var_arr[g,0:ntime[g]])
   
+  #  for g in groups:
+  #    print var
+  #    print var_arr[g, 0:ntime[g]]
+  #    if var_arr[g,0] < 1e35: # netcdf fill values are erad as ca. 9e36
+  #      axarr[x, y].plot(time[g,0:ntime[g]] / 3600., var_arr[g,0:ntime[g]])
+    
   axarr[x, y].fill_between(itime_h, minvar_arr, maxvar_arr, color='0.9')
   axarr[x, y].fill_between(itime_h, q1var_arr, q3var_arr, color='0.7')
   axarr[x, y].plot(itime_h, mvar_arr, color='black')
-  # plot precip of bin models
-  if argv[len(sys.argv)-1] == "show":
-    if var == "precip":
+  # plot precip and NC of bin models
+  if show_bin:
+    if False:#True:# var == "precip" or var == "ndrop_cld":
       DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
       DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
    #   print DHARMA_time, DHARMA_precip
@@ -144,49 +127,79 @@ for var in dycoms_vars:
     #  print RAMS_time, RAMS_precip
       axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1)
 
-  plot_iter += 1
-
-dycoms_file.close()
-
-
-#read my results
-series_files_names = []
-series_labels = []
-file_no = np.arange(1, len(sys.argv)-2 , 2)
-for no in file_no:
-  series_files_names.append(argv[no])
-  series_labels.append(argv[no+1])
-
-label_counter=0
-for file_name in series_files_names:
   
-  series_file = open(file_name, "r")
-  my_times = read_my_array(series_file)
-  my_max_w_var = read_my_array(series_file)
-  my_cfrac = read_my_array(series_file)
-  my_lwp = read_my_array(series_file)
-  my_er = read_my_array(series_file)
-  my_sp = read_my_array(series_file)
-  read_my_array(series_file) # discard accumulated precip
-  my_act_cond = read_my_array(series_file)
-  my_zb = read_my_array(series_file)
+  dycoms_file.close()
   
-  # rescale time to hours
-  my_times = my_times / 3600.
   
-  series_file.close()
+  #read my results
+  series_files_names = []
+  series_labels = []
+  file_no = np.arange(1, len(sys.argv)-1 , 2)
+  for no in file_no:
+    series_files_names.append(argv[no])
+    series_labels.append(argv[no+1])
   
-  linestyles = ['--', '-.', ':']
-  dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
-  plot_iter=0
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g m$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_er, ylabel='Entrainment rate [cm s$^{-1}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ s$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_sp, xlabel='Time [h]', ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_act_cond, xlabel='Time [h]', ylabel='$N_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-#  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  plot_iter = plot_my_array(axarr, plot_iter, my_times, my_zb, xlabel='Time [h]', ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  label_counter+=1
+  label_counter=0
+  for file_name in series_files_names:
+    
+    series_file = open(file_name, "r")
+    my_times = read_my_array(series_file)
+    my_max_w_var = read_my_array(series_file)
+    my_cfrac = read_my_array(series_file)
+    my_lwp = read_my_array(series_file)
+    my_er = read_my_array(series_file)
+    my_sp = read_my_array(series_file)
+    read_my_array(series_file) # discard accumulated precip
+    my_act_cond = read_my_array(series_file)
+    my_zb = read_my_array(series_file)
+    
+    # rescale time to hours
+    my_times = my_times / 3600.
+    
+    series_file.close()
+    
+    linestyles = ['--', '-.', ':']
+    dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
+    if var == "lwp":
+      plot_my_array(axarr, plot_iter, my_times, my_lwp, ylabel='LWP [g m$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    if var == "zi":
+      plot_my_array(axarr, plot_iter, my_times, my_er, ylabel='Entrainment rate [cm s$^{-1}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    if var == "w2_max":
+      plot_my_array(axarr, plot_iter, my_times, my_max_w_var, ylabel='Max. $w$ variance [m$^{2}$ s$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    if var == "precip":
+      plot_my_array(axarr, plot_iter, my_times, my_sp, xlabel='Time [h]', ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    if var == "ndrop_cld":
+      plot_my_array(axarr, plot_iter, my_times, my_act_cond, xlabel='Time [h]', ylabel='$N_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    if var == "zb":
+      plot_my_array(axarr, plot_iter, my_times, my_zb, xlabel='Time [h]', ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+  # plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+    label_counter+=1
+
+  plot_iter = plot_iter + 1
+  return plot_iter
+
+
+
+# init the plot
+nplotx = 2
+nploty= 3
+fig, axarr = plt.subplots(nplotx,nploty)
+
+
+dycoms_vars = ["lwp", "zi", "w2_max", "precip", "ndrop_cld", "zb"]# "cfrac"]
+
+if len(dycoms_vars) % nploty == 0:
+  nemptyplots = 0
+else:
+  nemptyplots = nploty - len(dycoms_vars) % nploty
+emptyplots = np.arange(nploty - nemptyplots, nploty)
+
+plot_iter = 0
+
+for var in dycoms_vars:
+  plot_iter = plot_series(var, emptyplots, plot_iter,nplotx, nploty)
+  print plot_iter
+
 
 # show legends on each subplot
 #for x in np.arange(nplotx):
@@ -235,4 +248,4 @@ fig.subplots_adjust(bottom=0.18 + (len(labels) - 2) * 0.03, hspace=0.1, wspace=0
 #fig.tight_layout(pad=0, w_pad=0, h_pad=0)
 
 #plt.show()
-fig.savefig(argv[len(sys.argv)-2], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
+fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
