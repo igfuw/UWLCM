@@ -29,7 +29,7 @@ def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None,
   if ylabel:
     axarr[x, y].set_ylabel(ylabel)
 
-def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True):
+def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True, ylabel=''):
   # read dycoms results
   dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.profiles.nc", "r")
   dycoms_series_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
@@ -190,25 +190,25 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
       linestyles = ['--', '-.', ':']
       dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
       if var == "thetal":
-        plot_my_array(axarr, plot_iter, my_thl, my_pos, nploty, xlabel=r'$\theta_l$ [K]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_thl, my_pos, nploty, xlabel=r'$\theta_l$ [K]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "qt":
-        plot_my_array(axarr, plot_iter, my_rtot, my_pos, nploty, xlabel='$q_{t}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_rtot, my_pos, nploty, xlabel='$q_{t}$ [g/kg]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "ql":
-        plot_my_array(axarr, plot_iter, my_rliq, my_pos, nploty, xlabel='$q_{l}$ [g/kg]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_rliq, my_pos, nploty, xlabel='$q_{l}$ [g/kg]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "cfrac":
-        plot_my_array(axarr, plot_iter, my_clfrac, my_pos, nploty, xlabel='Cloud fraction', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_clfrac, my_pos, nploty, xlabel='Cloud fraction', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "precip":
-        plot_my_array(axarr, plot_iter, my_prflux, my_pos, nploty, xlabel='Precip. flux [W m$^{-2}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_prflux, my_pos, nploty, xlabel='Precip. flux [W m$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "w_var":
-        plot_my_array(axarr, plot_iter, my_wvar, my_pos, nploty, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel='$z/z_i$', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_wvar, my_pos, nploty, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "w_skw":
-        plot_my_array(axarr, plot_iter, my_w3rd, my_pos, nploty, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_w3rd, my_pos, nploty, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "ss":
-        plot_my_array(axarr, plot_iter, my_ss, my_pos, nploty, xlabel='supersaturation [\%]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_ss, my_pos, nploty, xlabel='supersaturation [\%]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "ndrop_cld":
-        plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "ndrop_cod_zoom":
-        plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   #    # xrange of the nc_up plot
   #    x = int(plot_iter / nploty)
   #    y = plot_iter % nploty
@@ -237,7 +237,7 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
   plot_iter += 1
   return plot_iter
 
-def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=''):
+def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', xlabel=''):
 
   # read dycoms results
   dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
@@ -366,17 +366,17 @@ def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=''
     linestyles = ['--', '-.', ':']
     dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
     if var == "lwp":
-      plot_my_array(axarr, plot_iter, my_times, my_lwp, nploty, ylabel='LWP [g m$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      plot_my_array(axarr, plot_iter, my_times, my_lwp, nploty, xlabel=xlabel, ylabel='LWP [g m$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     if var == "zi":
-      plot_my_array(axarr, plot_iter, my_times, my_er, nploty, ylabel='Entrainment rate [cm s$^{-1}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      plot_my_array(axarr, plot_iter, my_times, my_er, nploty, xlabel=xlabel, ylabel='Entrainment rate [cm s$^{-1}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     if var == "w2_max":
-      plot_my_array(axarr, plot_iter, my_times, my_max_w_var, nploty, ylabel='Max. $w$ variance [m$^{2}$ s$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      plot_my_array(axarr, plot_iter, my_times, my_max_w_var, nploty, xlabel=xlabel, ylabel='Max. $w$ variance [m$^{2}$ s$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     if var == "precip":
-      plot_my_array(axarr, plot_iter, my_times, my_sp, nploty, xlabel='Time [h]', ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      plot_my_array(axarr, plot_iter, my_times, my_sp, nploty, xlabel=xlabel, ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     if var == "ndrop_cld":
-      plot_my_array(axarr, plot_iter, my_times, my_act_cond, nploty, xlabel='Time [h]', ylabel='$N_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      plot_my_array(axarr, plot_iter, my_times, my_act_cond, nploty, xlabel=xlabel, ylabel='$N_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     if var == "zb":
-      plot_my_array(axarr, plot_iter, my_times, my_zb, nploty, xlabel='Time [h]', ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      plot_my_array(axarr, plot_iter, my_times, my_zb, nploty, xlabel=xlabel, ylabel='Cloud base height [m]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   # plot_my_array(axarr, plot_iter, my_times, my_cfrac, ylabel='Cloud fraction', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     label_counter+=1
 

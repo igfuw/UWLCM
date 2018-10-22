@@ -14,7 +14,10 @@ dycoms_vars = ["lwp", "zi", "w2_max", "precip", "ndrop_cld", "zb"]# "cfrac"]
 plot_iter = 0
 
 for var in dycoms_vars:
-  plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr)
+  if var == "precip" or var == "ndrop_cld" or var == "zb":
+    plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr, xlabel = 'Time [h]')
+  else:
+    plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr)
 
 
 # show legends on each subplot
