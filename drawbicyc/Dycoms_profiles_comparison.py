@@ -4,7 +4,10 @@ from Dycoms_comparison_common import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "ndrop_cld_zoom"]
+if sys.argv[len(sys.argv)-1] == "True":
+  dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "ndrop_cld_zoom"]
+else:
+  dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld"]
 nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
@@ -69,5 +72,5 @@ fig.subplots_adjust(bottom=0.15 + (len(labels) - 2) * 0.02, hspace=0.25)
 
 
 #plt.show()
-fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
+fig.savefig(argv[len(sys.argv)-2], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
 
