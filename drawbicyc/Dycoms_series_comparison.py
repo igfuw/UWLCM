@@ -34,7 +34,7 @@ def plot_my_array(axarr, plot_iter, time, val, xlabel=None, ylabel=None, varlabe
     axarr[x, y].set_ylabel(ylabel)
 
 
-def plot_series(var, empty_plots, plot_iter, nplotx, nploty, show_bin=False):
+def plot_series(var, plot_iter, nplotx, nploty, show_bin=False):
 
   # read dycoms results
   dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
@@ -185,20 +185,12 @@ nplotx = 2
 nploty= 3
 fig, axarr = plt.subplots(nplotx,nploty)
 
-
 dycoms_vars = ["lwp", "zi", "w2_max", "precip", "ndrop_cld", "zb"]# "cfrac"]
-
-if len(dycoms_vars) % nploty == 0:
-  nemptyplots = 0
-else:
-  nemptyplots = nploty - len(dycoms_vars) % nploty
-emptyplots = np.arange(nploty - nemptyplots, nploty)
 
 plot_iter = 0
 
 for var in dycoms_vars:
-  plot_iter = plot_series(var, emptyplots, plot_iter,nplotx, nploty)
-  print plot_iter
+  plot_iter = plot_series(var, plot_iter,nplotx, nploty)
 
 
 # show legends on each subplot
@@ -210,6 +202,11 @@ for var in dycoms_vars:
 plt.rcParams.update({'font.size': 8})
 
 # hide axes on empty plots
+if len(dycoms_vars) % nploty == 0:
+  nemptyplots = 0
+else:
+  nemptyplots = nploty - len(dycoms_vars) % nploty
+emptyplots = np.arange(nploty - nemptyplots, nploty)
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')
 
