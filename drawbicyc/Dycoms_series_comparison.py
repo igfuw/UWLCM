@@ -117,15 +117,14 @@ def plot_series(var, plot_iter, nplotx, nploty, show_bin=False):
   axarr[x, y].plot(itime_h, mvar_arr, color='black')
   # plot precip and NC of bin models
   if show_bin:
-    if False:#True:# var == "precip" or var == "ndrop_cld":
-      DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
-      DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
-   #   print DHARMA_time, DHARMA_precip
-      axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1)
-      RAMS_time = time[RAMS_it,0:ntime[RAMS_it]].copy() / 3600.
-      RAMS_precip = var_arr[RAMS_it,0:ntime[RAMS_it]].copy()
-    #  print RAMS_time, RAMS_precip
-      axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1)
+    DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
+    DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
+  #  print DHARMA_time, DHARMA_precip
+    axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1)
+    RAMS_time = time[RAMS_it,0:ntime[RAMS_it]].copy() / 3600.
+    RAMS_precip = var_arr[RAMS_it,0:ntime[RAMS_it]].copy()
+   # print RAMS_time, RAMS_precip
+    axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1)
 
   
   dycoms_file.close()

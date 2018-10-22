@@ -46,6 +46,10 @@ def plot_profiles(var, plot_iter, nplotx, nploty, show_bin=False):
   series_zi = dycoms_series_file.variables["zi"][:, 1, 1, :].copy() 
   series_ntime = dycoms_series_file.variables["ntime"][:, 1, 1].copy() 
   
+  # positions of bin models
+  DHARMA_it = 3 # DHARMA_BO, with coalescence efficiency = 1
+  RAMS_it = 7
+  
   ntime = 13
   
   # at each time, zt needs to be rescaled by inversion height, this rescaled value will be stored here
@@ -123,7 +127,18 @@ def plot_profiles(var, plot_iter, nplotx, nploty, show_bin=False):
             ivar_arr[g, i_hght_index] +=  prev_var_arr + (it - prev_hght) / (rzt[rzt_hght_idx] - prev_hght) * (var_arr[g, time_index, rzt_hght_idx]- prev_var_arr)
         i_hght_index += 1
       time_index += 1
+
     ivar_arr[g,:] /= (13-5) 
+
+    # plot precip and NC of bin models
+    if show_bin and g == DHARMA_it:
+      DHARMA_prof = ivar_arr[g,:]
+      DHARMA_pos = ihght[:]
+      axarr[x, y].plot(DHARMA_prof[DHARMA_prof < 1e35], DHARMA_pos[DHARMA_pos < 1e35], color='red', linewidth=1)
+    if show_bin and g == RAMS_it:
+      RAMS_prof = ivar_arr[g,:]
+      RAMS_pos = ihght[:]
+      axarr[x, y].plot(RAMS_prof[RAMS_prof < 1e35], RAMS_pos[RAMS_pos < 1e35], color='green', linewidth=1)
   
   # calc statistics from groups
   
