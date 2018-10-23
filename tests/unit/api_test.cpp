@@ -17,7 +17,7 @@ int main(int ac, char** av)
   string opts_common = 
     "--outfreq=1000 --nt=2 --spinup=1 --dt=0.1 --serial=true"; // dt=1 caused blk1m dycoms to freeze on pressure solver
   vector<string> opts_dim({
-    "--nx=4 --nz=4",
+    "--nx=4 --nz=20",
     "--nx=4 --ny=4 --nz=4"
   });
   string opts_dim_lgrngn_3d =  "--nx=40 --ny=40 --nz=40"; // = 4 caused multiplicity overflows in the Lagrangian 3D
