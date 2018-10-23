@@ -358,7 +358,7 @@ void run_hlpr(bool piggy, const std::string &type, bool sgs, Args&&... args)
       //    enum { sgs_scheme = solvers::smg};
       //    enum { stress_diff = solvers::compact};
       //  };
-        run<slvr<ct_params_final>>(args...);
+      //  run<slvr<ct_params_final>>(args...);
       //}
       //else
       //{
