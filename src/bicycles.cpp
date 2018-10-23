@@ -508,7 +508,7 @@ int main(int argc, char** argv)
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
       run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, sgs, nx, ny, nz, user_params);
 
-    if (micro == "blk_1m" && ny == 0) // 2D one-moment
+    else if (micro == "blk_1m" && ny == 0) // 2D one-moment
       run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, sgs, nx, nz, user_params);
 
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
