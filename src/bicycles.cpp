@@ -378,20 +378,20 @@ void run_hlpr(bool piggy, const std::string &type, bool sgs, Args&&... args)
     else // default is the iga | fct option
     {
       struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      if (sgs)
-      {
-        struct ct_params_final : ct_params_opts
-        { 
-          enum { sgs_scheme = solvers::smg};
-          enum { stress_diff = solvers::compact};
-        };
-        run<slvr<ct_params_final>>(args...);
-      }
-      else
-      {
+      //if (sgs)
+      //{
+      //  struct ct_params_final : ct_params_opts
+      //  { 
+      //    enum { sgs_scheme = solvers::smg};
+      //    enum { stress_diff = solvers::compact};
+      //  };
+      //  run<slvr<ct_params_final>>(args...);
+      //}
+      //else
+      //{
         struct ct_params_final : ct_params_opts {};
         run<slvr<ct_params_final>>(args...);
-      }
+      //}
     }
   }
 }
