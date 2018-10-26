@@ -15,13 +15,12 @@ int main(int ac, char** av)
 
   string outdir;
   string opts_common = 
-    "--outfreq=1000 --nt=2 --spinup=1 --dt=0.1 --serial=true"; // dt=1 caused blk1m dycoms to freeze on pressure solver
+    "--outfreq=1000 --nt=2 --spinup=1 --dt=0.00001 --serial=true"; // low dt to avoid pressure solver getting stuck
   vector<string> opts_dim({
     "--nx=4 --nz=4",
     "--nx=4 --ny=4 --nz=4"
   });
   string opts_dim_lgrngn_3d =  "--nx=40 --ny=40 --nz=40"; // = 4 caused multiplicity overflows in the Lagrangian 3D
-  string opts_dim_blk_1m_dycoms_2d =  "--nx=40 --nz=40"; // = 4 made pressure solver stuck due to -rl_e component in buoyancy
   vector<string> opts_micro({
     "--micro=blk_1m --outdir=out_blk_1m"  ,
     "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100"
@@ -48,17 +47,12 @@ int main(int ac, char** av)
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue; 
           }
-          // larger domain for 3d lgrngn
+          // more cells in 3d lgrngn to avoid n overflow
           if(opts_d == opts_dim[1] && opts_m == opts_micro[1])
           {
             opts_d = opts_dim_lgrngn_3d;
             if(opts_p == opts_piggy[2])
               opts_p = opts_pig_from_lgrngn;
-          }
-          // larger domain for blk_1m dycoms
-          if(opts_d == opts_dim[0] && opts_m == opts_micro[0] && opts_c == opts_case[2])
-          {
-            opts_d = opts_dim_blk_1m_dycoms_2d;
           }
           ostringstream cmd;
           cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p;
