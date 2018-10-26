@@ -84,6 +84,16 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     this->write_xmfs();
   }
 
+  // for now, make mixed in blk_1m work like euler_a
+  void hook_mixed_rhs_ante_loop()
+  {}
+  void hook_mixed_rhs_ante_step()
+  {
+    update_rhs(this->rhs, this->dt, 0); 
+    this->apply_rhs(this->dt); 
+  }
+  void hook_mixed_rhs_post_step()
+  {}
 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
@@ -119,6 +129,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       this->record_aux_const("rt_params rr_src", params.rr_src);  
     }
   }
+
 
   void hook_ante_step()
   {
