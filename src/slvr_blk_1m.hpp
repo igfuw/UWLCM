@@ -216,6 +216,14 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   {
     //condevap(); // treat saturation adjustment as post-advection, pre-rhs adjustment
     parent_t::hook_post_step(); // includes the above forcings
+          for (int d = 0; d < parent_t::n_dims; ++d)
+          {
+            std::cerr << "vel " << d << " " << parent_t::vips()[d](this->ijk);
+          }
+std::cerr << "th " << this->state(ix::rv)(this->ijk);
+std::cerr << "rv " << this->state(ix::rv)(this->ijk);
+std::cerr << "rc " << this->state(ix::rc)(this->ijk);
+std::cerr << "rr " << this->state(ix::rr)(this->ijk);
   }
 
   libcloudphxx::blk_1m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
