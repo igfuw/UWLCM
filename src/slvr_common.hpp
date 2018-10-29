@@ -63,7 +63,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(this->rank==0)
       f_puddle.open(this->outdir+"/prec_vol.dat");
 
-    // record user_params
+    // record user_params and profiles
     if(this->rank==0)
     {
       this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, -44);  
@@ -98,6 +98,13 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params subsidence", params.subsidence);  
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
+     
+      // recording profiles
+      this->record_prof_const("th_e", params.th_e->data()); 
+      this->record_prof_const("p_e", params.p_e->data()); 
+      this->record_prof_const("rv_e", params.rv_e->data()); 
+      this->record_prof_const("th_ref", params.th_ref->data()); 
+      this->record_prof_const("rhod", params.rhod->data()); 
     }
  
     // initialize surf fluxes with timestep==0
