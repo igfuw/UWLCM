@@ -44,11 +44,13 @@ int main(int ac, char** av)
       for (auto &opts_c : opts_case)
         for (auto &opts_p : opts_piggy) // piggy has to be last to prevent overwriting of vel_out
         {
+/*
           if((opts_c == opts_case[1]) && opts_d == opts_dim[1])
           {
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue; 
           }
+
           // more cells in 3d lgrngn to avoid n overflow
           if(opts_d == opts_dim[1] && opts_m == opts_micro[1])
           {
@@ -56,6 +58,7 @@ int main(int ac, char** av)
             if(opts_p == opts_piggy[2])
               opts_p = opts_pig_from_lgrngn;
           }
+*/
           // more cells in blk_1m dycoms to avoid perssure solver freezes
 //          if(opts_m == opts_micro[0] && opts_c == opts_case[2])
           if(opts_m == opts_micro[0] && opts_c == opts_case[0])
