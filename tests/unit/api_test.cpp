@@ -22,8 +22,8 @@ int main(int ac, char** av)
   });
   string opts_dim_lgrngn_3d =  "--nx=40 --ny=40 --nz=40"; // = 4 caused multiplicity overflows in the Lagrangian 3D
   vector<string> opts_micro({
-    "--micro=blk_1m --outdir=out_blk_1m"  ,
-    "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100"
+    "--micro=blk_1m --outdir=out"  ,
+    "--async=false --micro=lgrngn --outdir=out --backend=serial --sd_conc=8 --z_rlx_sclr=100"
   });
   vector<string> opts_case({
     "--case=moist_thermal",
@@ -33,9 +33,9 @@ int main(int ac, char** av)
   vector<string> opts_piggy({
     "--piggy=0",
     "--piggy=0 --save_vel=1",
-    "--piggy=1 --vel_in=out_blk_1m/velocity_out.dat"  // take vel file from blk, cause it's ran first
+    "--piggy=1 --vel_in=out/velocity_out.dat"  // take vel file from blk, cause it's ran first
   });
-  string opts_pig_from_lgrngn = "--piggy=1 --vel_in=out_lgrngn/velocity_out.dat"; // 3d dycoms lgrgn has more cells, se we cant piggyback on blk_1m
+  string opts_pig_from_lgrngn = "--piggy=1 --vel_in=out/velocity_out.dat";
 
   for (auto &opts_d : opts_dim)
     for (auto &opts_m : opts_micro)
