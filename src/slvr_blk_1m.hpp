@@ -142,6 +142,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after first half of rhs");
     negtozero(this->mem->advectee(ix::rc)(this->ijk), "rc after first half of rhs");
     negtozero(this->mem->advectee(ix::rr)(this->ijk), "rr after first half of rhs");
+    this->mem->barrier();
 
     condevap(); // treat saturation adjustment as pre-advection, post-half-rhs adjustment
     // store rl for buoyancy
