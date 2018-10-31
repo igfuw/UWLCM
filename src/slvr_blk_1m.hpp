@@ -84,12 +84,8 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     this->write_xmfs();
   }
 
-/*
   void hook_mixed_rhs_ante_loop()
-  {
-    update_rhs(this->rhs, this->dt / 2, 0); 
-  }
-*/
+  {}
   void hook_mixed_rhs_ante_step()
   {
     update_rhs(this->rhs, this->dt, 0); 
