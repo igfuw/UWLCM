@@ -151,7 +151,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     using ix = typename ct_params_t::ix;
 
     const auto &ijk = this->ijk;
-    auto ix_w = this->vip_ixs[ct_params_t::n_dims - 1]; // index of the vertical dimension
 
     // forcing
     switch (at)
@@ -171,7 +170,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         if(params.w_src && (!ct_params_t::piggy))
         {
           w_src(this->state(ix::th), this->state(ix::rv), 0);
-          rhs.at(ix_w)(ijk) += alpha(ijk);
+          rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
         // horizontal velocity sources 
@@ -241,7 +240,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     {
       nancheck(rhs.at(ix::th)(this->domain), "RHS of th after rhs_update");
       nancheck(rhs.at(ix::rv)(this->domain), "RHS of rv after rhs_update");
-      nancheck(rhs.at(ix_w)(this->domain), "RHS of w after rhs_update");
+      nancheck(rhs.at(ix::w)(this->domain), "RHS of w after rhs_update");
       for(auto type : this->hori_vel)
         {nancheck(rhs.at(type)(this->domain), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
       tend = clock::now();

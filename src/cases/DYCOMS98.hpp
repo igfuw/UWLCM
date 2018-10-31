@@ -190,6 +190,7 @@ namespace setup
         p_e(0) = p_0 / si::pascals;
         th_e(0) = th_l(0.) / si::kelvins;
         rv_e(0) = rt(0.);
+        rl_e(0) = 0.;
   
         real_t tt0 = 273.17;
         real_t rv = 461; // specific gas constant for vapor
@@ -200,7 +201,7 @@ namespace setup
         real_t d = l_tri<real_t>() / si::joules * si::kilograms / rv;
         real_t f = R_d_over_c_pd<real_t>(); 
 
-real_t lwp_env = 0;
+        real_t lwp_env = 0;
   
         for(int k=1; k<nz; ++k)
         {
@@ -225,10 +226,8 @@ real_t lwp_env = 0;
           bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k) * (1 + 0.61 * rv_e(k)); // (p / rho) of moist air at k-1
           rho1 = p_e(k) / bottom; // rho at k-1
           lwp_env  += delta * rho1;
-std::cout << k << " env_prof temp: " << T(k)  << " env prof delta: " << delta << std::endl;
         }
         lwp_env = lwp_env * 5  * 1e3;
-std::cout << "lwp env: " << lwp_env << std::endl;
   
         // compute reference state theta and rhod
         blitz::firstIndex k;
