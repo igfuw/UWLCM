@@ -84,19 +84,21 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     this->write_xmfs();
   }
 
-  // for now, make mixed in blk_1m work like trapez
+/*
   void hook_mixed_rhs_ante_loop()
   {
     update_rhs(this->rhs, this->dt / 2, 0); 
   }
+*/
   void hook_mixed_rhs_ante_step()
   {
-    this->apply_rhs(this->dt / 2); 
+    update_rhs(this->rhs, this->dt, 0); 
+    this->apply_rhs(this->dt); 
   }
   void hook_mixed_rhs_post_step()
   {
-    update_rhs(this->rhs, this->dt / 2, 1); 
-    this->apply_rhs(this->dt / 2); 
+    update_rhs(this->rhs, this->dt, 1); 
+    this->apply_rhs(this->dt); 
   }
 
   // deals with initial supersaturation
@@ -109,7 +111,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     // init the p_e array
     p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
 
-    // deal with initial supersaturation
+    // deal with initial supersaturation, TODO: don't do it here (vide slvr_lgrngn)
     condevap();
 
     parent_t::hook_ante_loop(nt); // forcings after adjustments
@@ -143,7 +145,14 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     negtozero(this->mem->advectee(ix::rc)(this->ijk), "rc after first half of rhs");
     negtozero(this->mem->advectee(ix::rr)(this->ijk), "rr after first half of rhs");
 
-    condevap(); // treat saturation adjustment as pre-advection, post-half-rhs adjustment
+    // store rl for buoyancy
+    //this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
+  }
+
+  void hook_ante_delayed_step()
+  {
+    parent_t::hook_ante_delayed_step();
+    condevap(); 
     // store rl for buoyancy
     //this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
   }
@@ -164,6 +173,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
     // cell-wise
     // TODO: rozne cell-wise na n i n+1 ?
+    if(at == 0)
     {
       auto 
 	dot_th = rhs.at(ix::th)(this->ijk),
@@ -181,7 +191,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
           opts,
           dot_th, dot_rv, dot_rc, dot_rr,
           rhod, p_e_arg, th, rv, rc, rr,
-          this->dt
+          dt
       );
     }
 
@@ -205,6 +215,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       case (1):
       // trapezoidal rhs^n+1
       {
+/*
         // ---- cloud water sources ----
         rc_src();
         rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
@@ -212,7 +223,8 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
         // ---- rain water sources ----
         rr_src();
         rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
-       
+  
+*/     
         break;
       }
     }
@@ -305,26 +317,29 @@ class slvr_blk_1m<
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
     this->mem->barrier();
-    if(this->rank == 0)
-      this->tbeg = clock::now();
-
-    // column-wise
-    for (int i = this->i.first(); i <= this->i.last(); ++i)
+    if(at == 0)
     {
-      auto 
-	dot_rr = rhs.at(parent_t::ix::rr)(i, this->j);
-      const auto 
-        rhod   = (*this->mem->G)(i, this->j),
-	rr     = this->state(parent_t::ix::rr)(i, this->j);
-      this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
-    }
+      if(this->rank == 0)
+        this->tbeg = clock::now();
 
-    this->mem->barrier();
-    if(this->rank == 0)
-    {
-      nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
-      this->tend = clock::now();
-      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+      // column-wise
+      for (int i = this->i.first(); i <= this->i.last(); ++i)
+      {
+        auto 
+          dot_rr = rhs.at(parent_t::ix::rr)(i, this->j);
+        const auto 
+          rhod   = (*this->mem->G)(i, this->j),
+          rr     = this->state(parent_t::ix::rr)(i, this->j);
+        this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
+      }
+
+      this->mem->barrier();
+      if(this->rank == 0)
+      {
+        nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
+        this->tend = clock::now();
+        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+      }
     }
   }
 };
@@ -358,27 +373,30 @@ class slvr_blk_1m<
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
     this->mem->barrier();
-    if(this->rank == 0)
-      this->tbeg = clock::now();
-
-    // column-wise
-    for (int i = this->i.first(); i <= this->i.last(); ++i)
-      for (int j = this->j.first(); j <= this->j.last(); ++j)
-      {
-        auto 
-  	dot_rr = rhs.at(parent_t::ix::rr)(i, j, this->k);
-        const auto 
-        rhod   = (*this->mem->G)(i, j, this->k),
-  	rr     = this->state(parent_t::ix::rr)(i, j, this->k);
-        this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
-      }
-
-    this->mem->barrier();
-    if(this->rank == 0)
+    if(at == 0)
     {
-      nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
-      this->tend = clock::now();
-      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+      if(this->rank == 0)
+        this->tbeg = clock::now();
+
+      // column-wise
+      for (int i = this->i.first(); i <= this->i.last(); ++i)
+        for (int j = this->j.first(); j <= this->j.last(); ++j)
+        {
+          auto 
+          dot_rr = rhs.at(parent_t::ix::rr)(i, j, this->k);
+          const auto 
+          rhod   = (*this->mem->G)(i, j, this->k),
+          rr     = this->state(parent_t::ix::rr)(i, j, this->k);
+          this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
+        }
+
+      this->mem->barrier();
+      if(this->rank == 0)
+      {
+        nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
+        this->tend = clock::now();
+        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+      }
     }
   }
 };
