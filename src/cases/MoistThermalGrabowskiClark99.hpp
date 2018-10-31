@@ -163,7 +163,7 @@ namespace setup
       }
     
       template <class index_t>
-      void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed, index_t index)
+      void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
       {
         using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
@@ -190,7 +190,7 @@ namespace setup
       public:
       // calculate the initial environmental theta and rv profiles as Wojtek does it
       // i.e. for stable virtual standard potential temperature
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       // pre_ref - total pressure
       // th_e - dry potential temp
       // th_ref - dry potential temp refrence profile
@@ -229,6 +229,7 @@ namespace setup
         real_t qvs = a * esw / ((p_0 / si::pascals) -esw);
         //rv_e(0) = env_RH * qvs;
         rv_e(0) = rv_0;// env_RH * qvs;
+        rl_e = 0.;
         real_t th_e_surf = th_std_0 / si::kelvins * (1 + a * rv_e(0)); // virtual potential temp
 
         th_e = th_std_fctr(th_e_surf)(k * dz);
@@ -320,10 +321,10 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
-        this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
+        this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
 
 //        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
@@ -359,10 +360,10 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
-        this->intcond_hlpr(solver, rhod, th_e, rv_e, rng_seed, k);
+        this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
 
 //        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
