@@ -456,15 +456,17 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->mem->barrier();
 
     // add microphysics contribution to th and rv
-    this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
-    this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
-    // microphysics could have led to rv < 0 ?
-    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
-    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
-    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
-    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
-
+    if(params.cloudph_opts.cond)
+    {
+      this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
+      this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
+      // microphysics could have led to rv < 0 ?
+      negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+      nancheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
+      nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+      negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
+      negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+    }
 
     // store liquid water content (post-cond, pre-adve and pre-subsidence)
     diag_rl();
