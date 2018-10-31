@@ -15,7 +15,7 @@ int main(int ac, char** av)
 
   string outdir;
   string opts_common = 
-    "--outfreq=1000 --nt=2 --spinup=1 --dt=0.1 --serial=true"; // dt=1 caused blk1m dycoms to freeze on pressure solver
+    "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3"; 
   vector<string> opts_dim({
     "--nx=4 --nz=4",
     "--nx=4 --ny=4 --nz=4"
@@ -47,7 +47,8 @@ int main(int ac, char** av)
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue; 
           }
-          // larger domain for 3d lgrngn
+
+          // more cells in 3d lgrngn to avoid n overflow
           if(opts_d == opts_dim[1] && opts_m == opts_micro[1])
           {
             opts_d = opts_dim_lgrngn_3d;
