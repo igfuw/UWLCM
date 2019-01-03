@@ -42,7 +42,7 @@ class slvr_dim<
   rng_t hrzntl_domain = this->mem->grid_size[0];
   rng_t hrzntl_subdomain = this->i;
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
-  idx_t<2> Cy_domain;
+  idx_t<2> Cy_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h}); // just fill in with Cz_domain to avoid some asserts
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
 
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
@@ -52,11 +52,12 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
+    // extrapolate upward, top cell is two times lower
+    in(this->i, this->j.last() + 1) = 1.5*in(this->i, this->j.last()) - .5 * in(this->i, this->j.last()-1); 
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j)) / dz;
-    // top and bottom cells are two times lower
-    out(this->i, 0) *= 2; 
+    // top nad bottom cells are two times lower
     out(this->i, this->j.last()) *= 2; 
+    out(this->i, 0) *= 2; 
   }
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
@@ -66,7 +67,8 @@ class slvr_dim<
     out(this->i, this->j) = ( in(this->i, this->j+1) - in(this->i, this->j-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, 0) *= 2; 
-    out(this->i, this->j.last()) *= 2; 
+    // set to 0 at top level to have no subsidence there - TODO: it messes with other possible uses of this function 
+    out(this->i, this->j.last()) = 0; 
   }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
@@ -124,11 +126,12 @@ class slvr_dim<
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
-    in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
+    // extrapolate upward
+    in(this->i, this->j, this->k.last() + 1) = 1.5*in(this->i, this->j, this->k.last()) - 0.5*in(this->i, this->j, this->k.last()-1); 
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k)) / dz;
     // top and bottom cells are two times lower
-    out(this->i, this->j, 0) *= 2; 
     out(this->i, this->j, this->k.last()) *= 2; 
+    out(this->i, this->j, 0) *= 2; 
   }
 
   void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
@@ -138,7 +141,8 @@ class slvr_dim<
     out(this->i, this->j, this->k) = ( in(this->i, this->j, this->k+1) - in(this->i, this->j, this->k-1)) / 2./ dz;
     // top and bottom cells are two times lower
     out(this->i, this->j, 0) *= 2; 
-    out(this->i, this->j, this->k.last()) *= 2; 
+    //out(this->i, this->j, this->k.last()) *= 2; 
+    out(this->i, this->j, this->k.last()) = 0; 
   }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
