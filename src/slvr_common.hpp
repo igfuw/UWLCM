@@ -6,7 +6,6 @@
 #include <libcloudph++/git_revision.h>
 #include "../git_revision.h"
 
-
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
 {
@@ -20,8 +19,11 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
   // timing fields
-  clock::time_point tbeg, tend, tbeg1, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tasync, tasync_wait, tloop, tvip_rhs;
+  // TODO: timing slows down simulations
+  //       either remove it and use profiling tools (e.g. vtune)
+  //       or add some compile-time flag to turn it off
+  clock::time_point tbeg, tend, tbeg_loop;
+  std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tvip_rhs, tnondelayed_step;
 
   int spinup; // number of timesteps
 
@@ -62,7 +64,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(this->rank==0)
       f_puddle.open(this->outdir+"/prec_vol.dat");
 
-    // record user_params
+    // record user_params and profiles
     if(this->rank==0)
     {
       this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, -44);  
@@ -97,6 +99,13 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params subsidence", params.subsidence);  
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
+     
+      // recording profiles
+      this->record_prof_const("th_e", params.th_e->data()); 
+      this->record_prof_const("p_e", params.p_e->data()); 
+      this->record_prof_const("rv_e", params.rv_e->data()); 
+      this->record_prof_const("th_ref", params.th_ref->data()); 
+      this->record_prof_const("rhod", params.rhod->data()); 
     }
  
     // initialize surf fluxes with timestep==0
@@ -143,7 +152,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     using ix = typename ct_params_t::ix;
 
     const auto &ijk = this->ijk;
-    auto ix_w = this->vip_ixs[ct_params_t::n_dims - 1]; // index of the vertical dimension
 
     // forcing
     switch (at)
@@ -163,7 +171,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         if(params.w_src && (!ct_params_t::piggy))
         {
           w_src(this->state(ix::th), this->state(ix::rv));
-          rhs.at(ix_w)(ijk) += alpha(ijk);
+          rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
         // horizontal velocity sources 
@@ -218,9 +226,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         {
           for(auto type : this->hori_vel)
           {
-            subsidence(type); // TODO: in case 1 type here should be in step n+1, calc it explicitly as type + 0.5 * dt * rhs(type);
-                              //       could also be calculated implicitly, but we would need implicit type^n+1 in other cells
-                              //       also include absorber in type^n+1 estimate...
+            subsidence(type); 
             rhs.at(type)(ijk) += F(ijk);
           }
         }
@@ -232,7 +238,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     {
       nancheck(rhs.at(ix::th)(this->domain), "RHS of th after rhs_update");
       nancheck(rhs.at(ix::rv)(this->domain), "RHS of rv after rhs_update");
-      nancheck(rhs.at(ix_w)(this->domain), "RHS of w after rhs_update");
+      nancheck(rhs.at(ix::w)(this->domain), "RHS of w after rhs_update");
       for(auto type : this->hori_vel)
         {nancheck(rhs.at(type)(this->domain), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
       tend = clock::now();
@@ -257,19 +263,15 @@ class slvr_common : public slvr_dim<ct_params_t>
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
-      F(this->ijk).reindex(this->zero) = 
+      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
         where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
-          -pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
           (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
         );
-
-      // du/dt = sum of kinematic momentum fluxes * dt
-      this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
-      // multiplied by 2 here because it is later multiplied by 0.5 * dt
-      this->vip_rhs[it](this->ijk) *= -2;
     }
+
     this->mem->barrier();
     if(this->rank == 0)
     {
@@ -298,8 +300,10 @@ class slvr_common : public slvr_dim<ct_params_t>
           << "custom vip_rhs: " << tvip_rhs.count() << " ("<< setup::real_t(tvip_rhs.count())/tloop.count()*100 <<"%)" << std::endl
           << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
           << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
+          << "nondelayed step: " << tnondelayed_step.count() << " ("<< setup::real_t(tnondelayed_step.count())/tloop.count()*100 <<"%)" << std::endl
           << "async: " << tasync.count() << " ("<< setup::real_t(tasync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
+          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
+          << "sync_wait: " << tsync_wait.count() << " ("<< setup::real_t(tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
       }
     }
   }
@@ -311,7 +315,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet, radiation;
-    setup::arr_1D_t *th_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
+    bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
+    setup::arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
