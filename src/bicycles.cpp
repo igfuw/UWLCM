@@ -263,7 +263,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 struct ct_params_common : ct_params_default_t
 {
   using real_t = setup::real_t;
-  enum { rhs_scheme = solvers::trapez }; 
+  enum { rhs_scheme = solvers::mixed }; 
   enum { prs_scheme = solvers::cr };
   enum { vip_vab = solvers::expl };
 };
