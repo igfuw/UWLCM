@@ -30,11 +30,14 @@ namespace setup
         params.uv_src = false;
         params.th_src = false;
         params.rv_src = false;
+        params.rc_src = false;
+        params.rr_src = false;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = false;
         params.subsidence = false;
         params.friction = false;
+        params.radiation = false;
       }
   
       template <class index_t>
@@ -75,10 +78,32 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
-      void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
+        using libcloudphxx::common::theta_std::p_1000;
+        using libcloudphxx::common::moist_air::R_d;
+        using libcloudphxx::common::moist_air::c_pd;
+        using libcloudphxx::common::moist_air::R_d_over_c_pd;
+       
         rhod = 1;
         th_e = 300;
+
+        const quantity<si::temperature, real_t> T(
+          libcloudphxx::common::theta_dry::T(
+            quantity<si::temperature, real_t>(300 * si::kelvins),
+            quantity<si::mass_density, real_t>(1 * si::kilograms / si::cubic_metres)
+          )
+        );
+
+        const quantity<si::pressure, real_t> p(
+          libcloudphxx::common::theta_dry::p(
+            quantity<si::mass_density, real_t>(1 * si::kilograms / si::cubic_metres),
+            quantity<si::dimensionless, real_t>(0.),
+            T
+          )
+        );
+        p_e = real_t(p / si::pascals); // total env pressure
+
         th_ref = 300;
       }
     };
@@ -97,7 +122,7 @@ namespace setup
       }
   
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
@@ -120,7 +145,7 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);

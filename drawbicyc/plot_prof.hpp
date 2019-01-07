@@ -41,13 +41,15 @@ void plot_profiles(Plotter_t plotter, Plots plots)
   int last_timestep =  vm["prof_end"].as<int>() / n["dt"] / n["outfreq"];
 
   // some ugly constants
-  const double p_1000 = 1000.;
+  const double p_1000 = 100000.;
   const double L = 2.5e6;
   const double R_d = 287.;
   const double c_p = 1004;
   const double c_pd = c_p;
 
   double z_i;
+
+  bool res_pos_out_done = false;
 
   for (auto &plt : plots.profs)
   {
@@ -69,10 +71,10 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       std::cout << at * n["outfreq"] << std::endl;
       if (plt == "rliq")
       {
-	// liquid water content (cloud + rain, missing droplets with r<0.5um!)
-        //res += plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-        res += plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-        res += plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
+	// liquid water content
+        res += plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
+        res += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+        res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
         gp << "set title 'liquid water [g/kg]'\n";
       }
       if (plt == "gccn_rw")
@@ -330,49 +332,39 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       else if (plt == "sat_RH")
       {
         {
-          auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
+          auto tmp = plotter.h5load_RH_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap -1;
+          res_tmp = (snap -1) * 100;
         }
+/*
+ // for mean over updraught cells
         {
           auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
         }
+*/
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+//        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+//        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+
+//        mean over all cells
+//        res_prof += plotter.horizontal_sum(res_tmp);
 
         res += res_tmp;
-        gp << "set title 'supersaturation RH-based in updrafts only'\n";
-        gp << "set yrange [0.45:1.]\n";
-        gp << "set xrange [0.000:*]\n";
+        //gp << "set title 'supersaturation RH-based in updrafts only'\n";
+        gp << "set title 'supersaturation RH-based'\n";
+//        gp << "set yrange [0.45:1.]\n";
+  //      gp << "set xrange [0.000:*]\n";
       }
       else if (plt == "00rtot")
       {
-	// total water content (vapor + cloud + rain, missing droplets with r<0.5um!)
-	 /*
-        {
-          auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap; 
-        }*/
-        {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.1416 * 1e3 * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp += snap; 
-        }
-        {
-          auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp += snap;
-        }
+        res_tmp = plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
+        res_tmp += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+        res_tmp += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
+        res_tmp += plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3; // vapour
+
         res += res_tmp;
         res_prof = plotter.horizontal_mean(res_tmp); // average in x
         // find instantaneous inversion height
@@ -383,7 +375,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// cloud drops concentration [1/cm^3]
         {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -391,27 +383,51 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         }
         gp << "set title 'cloud droplets ( 0.5um < r < 25um) concentration [1/cm^3]'\n";
       }
+      else if (plt == "cl_nc")
+      {
+	// cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          typename Plotter_t::arr_t snap2;
+          snap2.resize(snap.shape());
+          snap2=snap;
+          snap = iscloudy(snap); // cloudiness mask
+          snap2 *= snap;
+
+          // mean only over cloudy cells
+          res_pos = plotter.horizontal_sum(snap); // number of cloudy cells on a given level
+          res_prof += where(res_pos > 0 , plotter.horizontal_sum(snap2) / res_pos, 0);
+        }
+        catch(...){;}
+      }
       else if (plt == "thl")
       {
 	// liquid potential temp [K]
         {
-          {
-            auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
-            typename Plotter_t::arr_t snap(tmp);
-            res_tmp2 = snap; 
-          }
-          {
-            auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3 * 3.14 * 1e3;
-            typename Plotter_t::arr_t snap(tmp);
-            res_tmp2 += snap; 
-          }
-          // res_tmp2 is now q_l (liq water content)
-          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp); // snap is theta_dry
-          res_tmp = pow(snap * pow(rhod * R_d / (p_1000 * 100), R_d / c_pd), c_pd / (c_pd - R_d)); // res_tmp is now temperature; 1 bar = 100 000Pa
-          snap *= (res_tmp - res_tmp2 * L / c_p) / res_tmp; 
-          res += snap; 
-//          res += res_tmp2;
+          auto &ql(res_tmp2);
+          ql  = plotter.h5load_ra_timestep(at * n["outfreq"]); // aerosol
+          ql  += plotter.h5load_rc_timestep(at * n["outfreq"]); // cloud
+          ql  += plotter.h5load_rr_timestep(at * n["outfreq"]); // rain
+          // ql is now q_l (liq water content)
+//          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
+  //        typename Plotter_t::arr_t th_d(tmp); 
+          typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
+          ///auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
+          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
+
+          typename Plotter_t::arr_t T(plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
+          // init pressure, from rv just to get correct size
+//          typename Plotter_t::arr_t p(rv); 
+  //        T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
+          // TODO: env pressure should be used below!
+    //      p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
+          res += th / T * (T - ql * L / c_p); 
+//          res += ql;
         }
         gp << "set title 'liquid potential temp [K]'\n";
       }
@@ -419,7 +435,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// cloud fraction (cloudy if N_c > 20/cm^3)
         {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -432,12 +448,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       {
 	// precipitation flux(doesnt include vertical volicty w!)
         { 
-          auto tmp = plotter.h5load_timestep("precip_rate", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap = snap *  4./3 * 3.14 * 1e3 // to get mass
-                     / plotter.CellVol    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
-                     * 2264.76e3;      // latent heat of evaporation [J/kg]
-          res += snap; 
+          res += plotter.h5load_prflux_timestep(at * n["outfreq"]);
         }
 	// add vertical velocity to precipitation flux (3rd mom of cloud drops * w)
 /*
@@ -491,17 +502,23 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
     std::cout << "average inversion height " << z_i;
     res_pos = i * n["dz"] / z_i; 
+    if(!res_pos_out_done)
+    {
+      oprof_file << res_pos;
+      res_pos_out_done = true;
+    }
+
 
     if (plt != "act_rd" && plt != "act_conc")
     {
-      if (plt == "ugccn_rw_down" || plt == "sat_RH" || plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up")
+      if (plt == "ugccn_rw_down" || /*plt == "sat_RH" ||*/ plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
         res_prof /= last_timestep - first_timestep + 1;
       else
         res_prof = plotter.horizontal_mean(res); // average in x
 
 
       // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
-      res_prof(0) = res_prof(1);
+//      res_prof(0) = res_prof(1);
 
       gp << "plot '-' with line\n";
       gp.send1d(boost::make_tuple(res_prof, res_pos));
@@ -520,8 +537,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       res_prof /= last_timestep - first_timestep + 1;
       res_prof2 /= last_timestep - first_timestep + 1;
       // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
-      res_prof(0) = res_prof(1);
-      res_prof2(0) = res_prof2(1);
+//      res_prof(0) = res_prof(1);
+  //    res_prof2(0) = res_prof2(1);
       gp.send1d(boost::make_tuple(res_prof, res_pos));
       gp.send1d(boost::make_tuple(res_prof2, res_pos));
       oprof_file << res_prof ;
