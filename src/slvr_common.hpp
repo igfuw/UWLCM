@@ -6,7 +6,6 @@
 #include <libcloudph++/git_revision.h>
 #include "../git_revision.h"
 
-
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
 {
@@ -20,17 +19,23 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
   // timing fields
-  clock::time_point tbeg, tend, tbeg1, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tasync, tasync_wait, tloop, tvip_rhs;
+  // TODO: timing slows down simulations
+  //       either remove it and use profiling tools (e.g. vtune)
+  //       or add some compile-time flag to turn it off
+  clock::time_point tbeg, tend, tbeg_loop;
+  std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tvip_rhs, tnondelayed_step;
 
   int spinup; // number of timesteps
 
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
+  // array with sensible and latent heat surface flux
+  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_sens;
+  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_lat;
+
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
-                           &tmp2,
                            &r_l,
                            &F,       // forcings helper
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
@@ -58,7 +63,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(this->rank==0)
       f_puddle.open(this->outdir+"/prec_vol.dat");
 
-    // record user_params
+    // record user_params and profiles
     if(this->rank==0)
     {
       this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, -44);  
@@ -93,7 +98,18 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params subsidence", params.subsidence);  
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
+     
+      // recording profiles
+      this->record_prof_const("th_e", params.th_e->data()); 
+      this->record_prof_const("p_e", params.p_e->data()); 
+      this->record_prof_const("rv_e", params.rv_e->data()); 
+      this->record_prof_const("th_ref", params.th_ref->data()); 
+      this->record_prof_const("rhod", params.rhod->data()); 
     }
+ 
+    // initialize surf fluxes with timestep==0
+    params.update_surf_flux_sens(surf_flux_sens, 0, this->dt);
+    params.update_surf_flux_lat(surf_flux_lat, 0, this->dt);
   }
 
   void hook_ante_step()
@@ -116,7 +132,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   void radiation(typename parent_t::arr_t &rv);
   void rv_src();
   void th_src(typename parent_t::arr_t &rv);
-  void w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv);
+  void w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv, const int at);
   void surf_sens();
   void surf_latent();
   void subsidence(const int&);
@@ -127,7 +143,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     const int &at
   )
   {
-    parent_t::update_rhs(rhs, dt, at);
+    parent_t::update_rhs(rhs, dt, at); // zero-out rhs
     this->mem->barrier();
     if(this->rank == 0)
       tbeg = clock::now();
@@ -135,7 +151,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     using ix = typename ct_params_t::ix;
 
     const auto &ijk = this->ijk;
-    auto ix_w = this->vip_ixs[ct_params_t::n_dims - 1]; // index of the vertical dimension
 
     // forcing
     switch (at)
@@ -154,8 +169,8 @@ class slvr_common : public slvr_dim<ct_params_t>
         // vertical velocity sources
         if(params.w_src && (!ct_params_t::piggy))
         {
-          w_src(this->state(ix::th), this->state(ix::rv));
-          rhs.at(ix_w)(ijk) += alpha(ijk);
+          w_src(this->state(ix::th), this->state(ix::rv), 0);
+          rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
         // horizontal velocity sources 
@@ -175,17 +190,17 @@ class slvr_common : public slvr_dim<ct_params_t>
       // trapezoidal rhs^n+1
       {
         // ---- water vapor sources ----
-        rv_src();
-        rhs.at(ix::rv)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk)) / (1. - 0.5 * this->dt * beta(ijk));
+//        rv_src();
+//        rhs.at(ix::rv)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk)) / (1. - 0.5 * this->dt * beta(ijk));
         // TODO: alpha should also take (possibly impolicit) estimate of rv^n+1 too
         //       becomes important when nudging is introduced?
 
 
         // ---- potential temp sources ----
-        tmp2(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+//        tmp2(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
         // todo: once rv_src beta!=0 (e.g. nudging), rv^n+1 estimate should be implicit here
-        th_src(tmp2);
-        rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk));
+//        th_src(tmp2);
+//        rhs.at(ix::th)(ijk) += (alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk)) / (1. - 0.5 * this->dt * beta(ijk));
         // TODO: alpha should also take (possibly impolicit) estimate of th^n+1 too
         //       becomes important when nudging is introduced?
 
@@ -193,29 +208,30 @@ class slvr_common : public slvr_dim<ct_params_t>
         if(params.w_src && (!ct_params_t::piggy))
         {
           // temporarily use beta to store the th^n+1 estimate
-          beta(ijk) = this->state(ix::th)(ijk) + 0.5 * this->dt * rhs.at(ix::th)(ijk);
+//          beta(ijk) = this->state(ix::th)(ijk) + 0.5 * this->dt * rhs.at(ix::th)(ijk);
           // todo: oncethv_src beta!=0 (e.g. nudging), th^n+1 estimate should be implicit here
 
           // temporarily use F to store the rv^n+1 estimate
-          F(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
+  //        F(ijk) = this->state(ix::rv)(ijk) + 0.5 * this->dt * rhs.at(ix::rv)(ijk);
           // todo: once rv_src beta!=0 (e.g. nudging), rv^n+1 estimate should be implicit here
 
-          w_src(beta, F);
+    //      w_src(beta, F, 1);
+          w_src(this->state(ix::th), this->state(ix::rv), 1);
           rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
         // horizontal velocity sources 
         // large-scale vertical wind
+/*
         if(params.uv_src)
         {
           for(auto type : this->hori_vel)
           {
-            subsidence(type); // TODO: in case 1 type here should be in step n+1, calc it explicitly as type + 0.5 * dt * rhs(type);
-                              //       could also be calculated implicitly, but we would need implicit type^n+1 in other cells
-                              //       also include absorber in type^n+1 estimate...
+            subsidence(type); 
             rhs.at(type)(ijk) += F(ijk);
           }
         }
+*/
         break;
       }
     }
@@ -224,7 +240,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     {
       nancheck(rhs.at(ix::th)(this->domain), "RHS of th after rhs_update");
       nancheck(rhs.at(ix::rv)(this->domain), "RHS of rv after rhs_update");
-      nancheck(rhs.at(ix_w)(this->domain), "RHS of w after rhs_update");
+      nancheck(rhs.at(ix::w)(this->domain), "RHS of w after rhs_update");
       for(auto type : this->hori_vel)
         {nancheck(rhs.at(type)(this->domain), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
       tend = clock::now();
@@ -249,17 +265,15 @@ class slvr_common : public slvr_dim<ct_params_t>
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
-      F(this->ijk).reindex(this->zero) = 
-        -pow(params.ForceParameters.u_fric,2) *  // const, cache it
-        this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-        U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-        (*params.hgt_fctr_vctr)(this->vert_idx);                                       // hgt_fctr
-
-      // du/dt = sum of kinematic momentum fluxes * dt
-      this->vert_grad_fwd(F, this->vip_rhs[it], params.dz);
-      // multiplied by 2 here because it is later multiplied by 0.5 * dt
-      this->vip_rhs[it](this->ijk) *= -2;
+      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
+        where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
+          -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+        );
     }
+
     this->mem->barrier();
     if(this->rank == 0)
     {
@@ -272,6 +286,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_post_step()
   {
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step");
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
 
@@ -288,10 +303,13 @@ class slvr_common : public slvr_dim<ct_params_t>
           << "custom vip_rhs: " << tvip_rhs.count() << " ("<< setup::real_t(tvip_rhs.count())/tloop.count()*100 <<"%)" << std::endl
           << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
           << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
+          << "nondelayed step: " << tnondelayed_step.count() << " ("<< setup::real_t(tnondelayed_step.count())/tloop.count()*100 <<"%)" << std::endl
           << "async: " << tasync.count() << " ("<< setup::real_t(tasync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
+          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
+          << "sync_wait: " << tsync_wait.count() << " ("<< setup::real_t(tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
       }
     }
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at end of slvr_common::hook_post_step");
   }
 
   public:
@@ -300,11 +318,16 @@ class slvr_common : public slvr_dim<ct_params_t>
   { 
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
-    bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet;
-    setup::arr_1D_t *th_e, *rv_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
+    bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet, radiation;
+    bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
+    setup::arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
+
+    // functions for updating surface fluxes per timestep
+    std::function<void(typename parent_t::arr_sub_t&, int, real_t)> update_surf_flux_sens;
+    std::function<void(typename parent_t::arr_sub_t&, int, real_t)> update_surf_flux_lat;
   };
 
   // per-thread copy of params
@@ -319,19 +342,20 @@ class slvr_common : public slvr_dim<ct_params_t>
     params(p),
     spinup(p.spinup),
     tmp1(args.mem->tmp[__FILE__][0][0]),
-    tmp2(args.mem->tmp[__FILE__][0][5]),
     r_l(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
     F(args.mem->tmp[__FILE__][0][1])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    surf_flux_lat.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 5);
   }
 };

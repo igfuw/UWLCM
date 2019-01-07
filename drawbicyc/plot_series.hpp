@@ -52,6 +52,10 @@ void plot_series(Plotter_t plotter, Plots plots)
   Array<int, 1> com_z_idx(last_timestep - first_timestep + 1), 
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
+  // save time steps to the series file
+  oprof_file << plotter.timesteps;
+
+
   for (auto &plt : plots.series)
   {
     bool plot_std_dev = 0;
@@ -79,6 +83,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 
       if (plt == "clfrac")
       {
+/*
         try
         {
           // cloud fraction (cloudy if q_c > 0.1 g/kg)
@@ -87,6 +92,16 @@ void plot_series(Plotter_t plotter, Plots plots)
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
           res_prof(at) = blitz::mean(res_tmp); 
+        }
+*/
+        try
+        {
+          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3; //g/kg
+          typename Plotter_t::arr_t snap(tmp); 
+          snap *= rhod; // water per cubic metre (should be wet density...)
+          plotter.k_i = blitz::sum(snap, plotter.LastIndex) * n["dz"]; // LWP [g/m2] in the column 
+          plotter.k_i = where(plotter.k_i > 20 , 1 , 0); // cloudiness as in Ackermann et al. 
+          res_prof(at) = blitz::mean(plotter.k_i);
         }
         catch(...){;}
       }
@@ -711,7 +726,7 @@ void plot_series(Plotter_t plotter, Plots plots)
     else if (plt == "lwp")
     {
       gp << "set title 'liquid water path [g / m^2]'\n";
-      res_prof *= (n["dz"] - 1) * n["z"]; // top and bottom cells are smaller
+      res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
     }
