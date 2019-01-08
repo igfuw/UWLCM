@@ -17,10 +17,10 @@ struct user_params_t
   int nt, outfreq, spinup, rng_seed;
   setup::real_t dt, z_rlx_sclr;
   std::string outdir, model_case;
-  bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
+  bool th_src, rv_src, rc_src, rr_src, uv_src, w_src, nc_src, nr_src;
 };
 
-namespace setup 
+namespace setup
 {
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
   namespace theta_std = libcloudphxx::common::theta_std;
@@ -58,14 +58,14 @@ namespace setup
       n2_stp = real_t(46.98e6) / si::cubic_metres;  // gives 40e6 at surface of moist thermal
     real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
-    // hygroscopicity kappa of the aerosol 
+    // hygroscopicity kappa of the aerosol
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
 
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) {assert(false);};
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
     virtual void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params) =0;
-    virtual void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt) {if(timestep==0) surf_flux_sens = 0.;}; 
+    virtual void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt) {if(timestep==0) surf_flux_sens = 0.;};
     virtual void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt) {if(timestep==0) surf_flux_lat = 0.;};
 
     // ctor
@@ -84,22 +84,22 @@ namespace setup
     }
 
     protected:
-  
+
     // function enforcing cyclic values in horizontal directions
     // 2D version
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 2>::type* = 0)
     { arr(arr.extent(0) - 1, blitz::Range::all()) = arr(0, blitz::Range::all()); }
-  
+
     // 3D version
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 3>::type* = 0)
-    { 
-      arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) = 
-        arr(0, blitz::Range::all(), blitz::Range::all()); 
-      arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) = 
+    {
+      arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) =
+        arr(0, blitz::Range::all(), blitz::Range::all());
+      arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) =
         arr(blitz::Range::all(), 0, blitz::Range::all());
     }
   };

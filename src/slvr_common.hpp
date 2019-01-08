@@ -43,12 +43,14 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   // surface precip stuff
   std::ofstream f_puddle; // output precipitation file
-  
+
   // spinup stuff
   virtual bool get_rain() = 0;
   virtual void set_rain(bool) = 0;
 
-  void hook_ante_loop(int nt) 
+  void common_water_src(int, int);
+
+  void hook_ante_loop(int nt)
   {
     if (spinup > 0)
     {
@@ -57,7 +59,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     else
       set_rain(true);
 
-    parent_t::hook_ante_loop(nt); 
+    parent_t::hook_ante_loop(nt);
 
     // open file for output of precitpitation volume
     if(this->rank==0)
@@ -66,47 +68,47 @@ class slvr_common : public slvr_dim<ct_params_t>
     // record user_params and profiles
     if(this->rank==0)
     {
-      this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, -44);  
+      this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, -44);
 #ifdef LIBMPDATAXX_GIT_REVISION
-      this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, -44);  
+      this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, -44);
 #else
       throw std::runtime_error("LIBMPDATAXX_GIT_REVISION is not defined, update your libmpdata++ library");
 #endif
 #ifdef LIBCLOUDPHXX_GIT_REVISION
-      this->record_aux_const(std::string("LIBCLOUDPHXX git_revision : ") + LIBCLOUDPHXX_GIT_REVISION, -44);  
+      this->record_aux_const(std::string("LIBCLOUDPHXX git_revision : ") + LIBCLOUDPHXX_GIT_REVISION, -44);
 #else
       throw std::runtime_error("LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
-      this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
-      this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
-      this->record_aux_const("user_params nt", params.user_params.nt);  
-      this->record_aux_const("user_params dt", params.user_params.dt);  
-      this->record_aux_const("user_params outfreq", params.user_params.outfreq);  
-      this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);  
-      this->record_aux_const("user_params spinup", params.user_params.spinup);  
-      this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);  
-      this->record_aux_const("user_params z_rlx_sclr", params.user_params.z_rlx_sclr);  
-      this->record_aux_const("user_params th_src", params.user_params.th_src);  
-      this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
-      this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
-      this->record_aux_const("user_params w_src", params.user_params.w_src);  
-      this->record_aux_const("rt_params th_src", params.th_src);  
-      this->record_aux_const("rt_params rv_src", params.rv_src);  
-      this->record_aux_const("rt_params uv_src", params.uv_src);  
-      this->record_aux_const("rt_params w_src", params.w_src);  
-      this->record_aux_const("rt_params spinup", params.spinup);  
-      this->record_aux_const("rt_params subsidence", params.subsidence);  
-      this->record_aux_const("rt_params friction", params.friction);  
-      this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
-     
+      this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());
+      this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);
+      this->record_aux_const("user_params nt", params.user_params.nt);
+      this->record_aux_const("user_params dt", params.user_params.dt);
+      this->record_aux_const("user_params outfreq", params.user_params.outfreq);
+      this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);
+      this->record_aux_const("user_params spinup", params.user_params.spinup);
+      this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);
+      this->record_aux_const("user_params z_rlx_sclr", params.user_params.z_rlx_sclr);
+      this->record_aux_const("user_params th_src", params.user_params.th_src);
+      this->record_aux_const("user_params rv_src", params.user_params.rv_src);
+      this->record_aux_const("user_params uv_src", params.user_params.uv_src);
+      this->record_aux_const("user_params w_src", params.user_params.w_src);
+      this->record_aux_const("rt_params th_src", params.th_src);
+      this->record_aux_const("rt_params rv_src", params.rv_src);
+      this->record_aux_const("rt_params uv_src", params.uv_src);
+      this->record_aux_const("rt_params w_src", params.w_src);
+      this->record_aux_const("rt_params spinup", params.spinup);
+      this->record_aux_const("rt_params subsidence", params.subsidence);
+      this->record_aux_const("rt_params friction", params.friction);
+      this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);
+
       // recording profiles
-      this->record_prof_const("th_e", params.th_e->data()); 
-      this->record_prof_const("p_e", params.p_e->data()); 
-      this->record_prof_const("rv_e", params.rv_e->data()); 
-      this->record_prof_const("th_ref", params.th_ref->data()); 
-      this->record_prof_const("rhod", params.rhod->data()); 
+      this->record_prof_const("th_e", params.th_e->data());
+      this->record_prof_const("p_e", params.p_e->data());
+      this->record_prof_const("rv_e", params.rv_e->data());
+      this->record_prof_const("th_ref", params.th_ref->data());
+      this->record_prof_const("rhod", params.rhod->data());
     }
- 
+
     // initialize surf fluxes with timestep==0
     params.update_surf_flux_sens(surf_flux_sens, 0, this->dt);
     params.update_surf_flux_lat(surf_flux_lat, 0, this->dt);
@@ -119,7 +121,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       // turn autoconversion on only after spinup (if spinup was specified)
       set_rain(true);
     }
-    parent_t::hook_ante_step(); 
+    parent_t::hook_ante_step();
   }
 
 
@@ -173,7 +175,7 @@ class slvr_common : public slvr_dim<ct_params_t>
           rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
-        // horizontal velocity sources 
+        // horizontal velocity sources
         // large-scale vertical wind
         if(params.uv_src)
         {
@@ -183,7 +185,7 @@ class slvr_common : public slvr_dim<ct_params_t>
             rhs.at(type)(ijk) += F(ijk);
           }
         }
-        
+
         break;
       }
       case (1):
@@ -220,14 +222,14 @@ class slvr_common : public slvr_dim<ct_params_t>
           rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
-        // horizontal velocity sources 
+        // horizontal velocity sources
         // large-scale vertical wind
 /*
         if(params.uv_src)
         {
           for(auto type : this->hori_vel)
           {
-            subsidence(type); 
+            subsidence(type);
             rhs.at(type)(ijk) += F(ijk);
           }
         }
@@ -254,7 +256,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     parent_t::vip_rhs_expl_calc();
 
     if(!params.friction) return;
-  
+
     this->mem->barrier();
     if(this->rank == 0)
       tbeg = clock::now();
@@ -265,12 +267,12 @@ class slvr_common : public slvr_dim<ct_params_t>
     // loop over horizontal dimensions
     for(int it = 0; it < parent_t::n_dims-1; ++it)
     {
-      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
-        where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
+      this->vip_rhs[it](this->ijk).reindex(this->zero) +=
+        where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0.,
           -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
         );
     }
 
@@ -278,7 +280,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(this->rank == 0)
     {
       for(int it = 0; it < parent_t::n_dims-1; ++it)
-        {nancheck(this->vip_rhs[it](this->domain), (std::string("vip_rhs after vip_rhs_expl_calc type: ") + std::to_string(it)).c_str());} 
+        {nancheck(this->vip_rhs[it](this->domain), (std::string("vip_rhs after vip_rhs_expl_calc type: ") + std::to_string(it)).c_str());}
       tend = clock::now();
       tvip_rhs += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
@@ -290,7 +292,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
 
-    if (this->rank == 0) 
+    if (this->rank == 0)
     {
       // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
       if(this->timestep == params.nt) // timestep incremented before post_step
@@ -314,12 +316,12 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   public:
 
-  struct rt_params_t : parent_t::rt_params_t 
-  { 
+  struct rt_params_t : parent_t::rt_params_t
+  {
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet, radiation;
-    bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
+    bool rc_src, rr_src, nc_src, nr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
     setup::arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
@@ -334,10 +336,10 @@ class slvr_common : public slvr_dim<ct_params_t>
   rt_params_t params;
 
   // ctor
-  slvr_common( 
-    typename parent_t::ctor_args_t args, 
+  slvr_common(
+    typename parent_t::ctor_args_t args,
     const rt_params_t &p
-  ) : 
+  ) :
     parent_t(args, p),
     params(p),
     spinup(p.spinup),
