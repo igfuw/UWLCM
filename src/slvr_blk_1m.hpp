@@ -68,9 +68,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
   }
 
-
-  void rc_src();
-  void rr_src();
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
 
@@ -199,11 +196,11 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       case (0):
       {
         // ---- cloud water sources ----
-        rc_src();
+        this->common_water_src(ix::rc, params.rc_src);
         rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
 
         // ---- rain water sources ----
-        rr_src();
+        this->common_water_src(ix::rr, params.rr_src);
         rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
 
         break;
@@ -214,11 +211,11 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       {
 /*
         // ---- cloud water sources ----
-        rc_src();
+        common_water_src(ix::rc, params.rc_src);
         rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
 
         // ---- rain water sources ----
-        rr_src();
+        common_water_src(ix::rr, params.rr_src);
         rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
 
 */

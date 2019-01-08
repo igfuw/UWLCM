@@ -43,7 +43,7 @@ void slvr_common<ct_params_t>::rv_src()
 
     // large-scale vertical wind
     subsidence(ix::rv);
-    
+
     alpha(ijk) += F(ijk);
   }
   else
@@ -78,10 +78,10 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       nancheck(F(ijk), "sensible surf forcing");
       alpha(ijk) += F(ijk);
     }
-  
+
     // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
-      calc_c_p()(rv(ijk).reindex(this->zero)) * 
+    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) *
+      calc_c_p()(rv(ijk).reindex(this->zero)) *
       (*params.rhod)(this->vert_idx);
 
     nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
@@ -93,9 +93,9 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
       nancheck(F(ijk), "sensible surf forcing");
       alpha(ijk) += F(ijk);
     }
-  
+
     // large-scale vertical wind
-    subsidence(ix::th); 
+    subsidence(ix::th);
     nancheck(F(ijk), "subsidence");
     alpha(ijk) += F(ijk);
     nancheck(alpha(ijk), "alpha in th_src");
@@ -120,7 +120,28 @@ void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
   if(at == 0) // subsidence added explicitly, so updated only at n
   {
     // large-scale vertical wind
-    subsidence(ix::w); 
+    subsidence(ix::w);
     alpha(ijk) += F(ijk);
   }
+}
+
+// single-moment bulk forcing functions
+template <class ct_params_t>
+void slvr_common<ct_params_t>::common_water_src(int var, int src_flag)
+{
+  const auto &ijk = this->ijk;
+  if(src_flag)
+  {
+    // large-scale vertical wind
+    subsidence(var);
+
+    this->alpha(ijk) = this->F(ijk);
+  }
+  else
+    this->alpha(ijk) = 0.;
+
+  this->beta(ijk) = 0.;
+  // nudging, todo: use some other coeff than vab_coeff
+//  this->alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
+//  this->beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
