@@ -148,12 +148,12 @@ class slvr_blk_2m_common : public slvr_common<ct_params_t>
         dot_rc = rhs.at(ix::rc)(this->ijk),
         dot_rr = rhs.at(ix::rr)(this->ijk),
         dot_nc = rhs.at(ix::nc)(this->ijk),
-        dot_nr = rhs.at(ix::nr)(this->ijk),
+        dot_nr = rhs.at(ix::nr)(this->ijk);
+       const auto
         rc     = this->state(ix::rc)(this->ijk),
         rr     = this->state(ix::rr)(this->ijk),
         nc     = this->state(ix::nc)(this->ijk),
-        nr     = this->state(ix::nr)(this->ijk);
-       const auto
+        nr     = this->state(ix::nr)(this->ijk),
         rhod   = (*this->mem->G)(this->ijk),
         th     = this->state(ix::th)(this->ijk),
         rv     = this->state(ix::rv)(this->ijk),
