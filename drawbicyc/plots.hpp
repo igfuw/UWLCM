@@ -37,7 +37,8 @@ std::vector<std::string> profs_dycoms({
 //, "act_conc"
 ,"clfrac"
 //, "N_c", 
-//"sat_RH"
+,"cl_nc"
+,"sat_RH"
 }); // rtot has to be first
 
 std::vector<std::string> profs_moist_thermal({
@@ -51,7 +52,8 @@ std::vector<std::string> fields_dycoms({
 "th", "rv",     
 "u", "w", 
 "sd_conc",//, "r_dry", 
-"RH", "supersat"
+"RH", "supersat",
+"lib_pres", "lib_temp"
 });
 
 std::vector<std::string> fields_moist_thermal({
