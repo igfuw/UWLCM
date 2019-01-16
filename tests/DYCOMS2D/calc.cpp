@@ -39,8 +39,8 @@ int main(int ac, char** av)
   string opts_common = 
     "--outfreq=600 --nt=7200 --spinup=3600 --nx=33 --nz=76 --dt=1 --relax_th_rv=false"; // DYCOMS: 128x300 ; 600 21600 3600
   set<string> opts_micro({
-//    "--micro=blk_1m --outdir=out_blk_1m",
-//    "--micro=blk_2m --outdir=out_blk_2m",
+    "--micro=blk_1m --outdir=out_blk_1m",
+    "--micro=blk_2m --outdir=out_blk_2m",
     "--adv_serial=false --async=true --micro=lgrngn --outdir=out_lgrngn --backend=CUDA --sd_conc=32 --sstp_cond=1 --z_rlx_sclr=100 --sstp_coal=1"  
     " --coal=false"
       " --out_wet=\""
