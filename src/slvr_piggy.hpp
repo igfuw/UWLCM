@@ -21,6 +21,7 @@ class slvr_piggy<
 {
   private:
   bool save_vel; // should velocity field be stored for piggybacking
+  setup::real_t prs_tol; // store a copy for output purposes
 
   protected:
   using parent_t = output::hdf5_xdmf<
@@ -32,17 +33,8 @@ class slvr_piggy<
   void hook_ante_loop(int nt) 
   {
     parent_t::hook_ante_loop(nt); 
-
     if(this->rank==0)
     {
-      po::options_description opts("Driver options"); 
-      opts.add_options()
-        ("save_vel", po::value<bool>()->default_value(false), "should velocity field be stored for piggybacking")
-      ;
-      po::variables_map vm;
-      handle_opts(opts, vm);
-          
-      save_vel = vm["save_vel"].as<bool>();
       // open file for out vel
       if(save_vel)
       {
@@ -55,6 +47,7 @@ class slvr_piggy<
         }
       }
       this->record_aux_const("save_vel", save_vel);  
+      this->record_aux_const("rt_params prs_tol", prs_tol);  
     }
   }
 
@@ -72,23 +65,36 @@ class slvr_piggy<
     }
   }
 
+  struct rt_params_t : parent_t::rt_params_t 
+  {
+    bool save_vel;
+
+    // ctor
+    rt_params_t()
+    {
+      po::options_description opts("Driver options"); 
+      opts.add_options()
+        ("save_vel", po::value<bool>()->default_value(false), "should velocity field be stored for piggybacking")
+      ;
+      opts.add_options()
+        ("prs_tol", po::value<setup::real_t>()->default_value(1e-6) , "pressure solver tolerance");
+      po::variables_map vm;
+      handle_opts(opts, vm);
+          
+      save_vel = vm["save_vel"].as<bool>();
+      this->prs_tol = vm["prs_tol"].as<setup::real_t>();
+    }
+  };
+
   // ctor
   slvr_piggy(
     typename parent_t::ctor_args_t args,
-    typename parent_t::rt_params_t p
+    rt_params_t p
   ) :
-    parent_t(args, p) {}
-
-  public:
-
-  // ctor
-  struct rt_params_t : parent_t::rt_params_t 
-  {   
-    rt_params_t()
-    {
-      this->prs_tol = 1e-6;
-    }
-  }; 
+    parent_t(args, p),
+    save_vel(p.save_vel),
+    prs_tol(p.prs_tol)
+    {}
 };
 
 
