@@ -7,7 +7,9 @@ addons:
   apt:
     packages:
       - g++-6
+      - boost1.61
     sources: &sources
+      - sourceline: 'ppa:rakhimov/boost'
       - ubuntu-toolchain-r-test
       - llvm-toolchain-trusty-4.0
 
@@ -21,25 +23,27 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t trusty --no-install-recommends -y"; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
 
+    # locally installed stuff comes first
+    - export PATH=/usr/local/bin:$PATH
+
 install:
 #compiler
     - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
 
+# cmake 
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
+
+# recent boost is installed using addons functionality
+
 #libcloudphxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev cmake libboost-python1.55-dev python-numpy python-scipy libthrust-dev python-pytest; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev python-pytest; fi
 
 # newest thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
     - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then git clone --depth=1 https://github.com/boostorg/odeint.git; fi # get boost odeint > 1.58
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -f /usr/include/boost/numeric/odeint.hpp; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo rm -rf /usr/include/boost/numeric/odeint; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint.hpp /usr/include/boost/numeric/odeint.hpp; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ln -s `pwd`/odeint/include/boost/numeric/odeint  /usr/include/boost/numeric/; fi
-
 #libmpdataxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-thread1.55-dev libboost-timer1.55-dev libboost-filesystem1.55-dev libboost-iostreams1.55-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install gnuplot-nox; fi
     - sudo wget -O /usr/local/include/gnuplot-iostream.h https://raw.githubusercontent.com/dstahlke/gnuplot-iostream/master/gnuplot-iostream.h
 
@@ -48,8 +52,6 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-serial-dev hdf5-tools; fi
-# Boost program options
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost-program-options1.55-dev; fi
 
 script:
 
