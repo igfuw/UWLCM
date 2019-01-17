@@ -337,6 +337,7 @@ void run_hlpr(bool piggy, std::string type, Args&&... args)
   if(!piggy) // no piggybacking
   {
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
+/*
     if(type == "moist_thermal") // use abs option in moist_thermal
     {
       struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
@@ -344,10 +345,13 @@ void run_hlpr(bool piggy, std::string type, Args&&... args)
     }
     else // default is the iga | fct option
     {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
+*/
+      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::fct | opts::abs }; };
+      //struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
       run<slvr<ct_params_final>>(args...);
-    }
+//    }
   }
+/*
   else // piggybacking
   {
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
@@ -362,6 +366,7 @@ void run_hlpr(bool piggy, std::string type, Args&&... args)
       run<slvr<ct_params_final>>(args...);
     }
   }
+*/
 }
 
 
@@ -467,23 +472,23 @@ int main(int argc, char** argv)
     user_params.model_case = vm["case"].as<std::string>();
 
     // run the simulation
-    if (micro == "lgrngn" && ny == 0) // 2D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, nx, nz, user_params);
+//    if (micro == "lgrngn" && ny == 0) // 2D super-droplet
+  //    run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, nx, nz, user_params);
 
-    else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, nx, ny, nz, user_params);
+ //   else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+//      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, nx, ny, nz, user_params);
 
-    else if (micro == "blk_1m" && ny == 0) // 2D one-moment
-      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, nx, nz, user_params);
+ //   else if (micro == "blk_1m" && ny == 0) // 2D one-moment
+   //   run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, nx, nz, user_params);
 
-    else if (micro == "blk_1m" && ny > 0) // 3D one-moment
-      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+ //   else if (micro == "blk_1m" && ny > 0) // 3D one-moment
+  //    run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
 
-    else if (micro == "blk_2m" && ny == 0) // 2D two-moment
+    /*else*/ if (micro == "blk_2m" && ny == 0) // 2D two-moment
       run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, user_params.model_case, nx, nz, user_params);
 
-    else if (micro == "blk_2m" && ny > 0) // 3D two-moment
-      run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+  //  else if (micro == "blk_2m" && ny > 0) // 3D two-moment
+    //  run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, user_params.model_case, nx, ny, nz, user_params);
 
     // TODO: not only micro can be wrong
     else throw

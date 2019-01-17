@@ -131,6 +131,7 @@ namespace setup
         params.subsidence = true;
         params.friction = true;
         params.radiation = true;
+        params.n_iters=2;
       }
   
   
