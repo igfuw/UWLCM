@@ -24,18 +24,25 @@
 // copy external profiles into rt_parameters
 // TODO: more elegant way
 template<class params_t>
-void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &rl_e, setup::arr_1D_t &th_ref, setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v, setup::arr_1D_t &hgt_s, params_t &p)
+void copy_profiles(setup::profiles_t &profs, params_t &p)
 {
-  p.hgt_fctr_sclr = new setup::arr_1D_t(hgt_s.dataFirst(), hgt_s.shape(), blitz::neverDeleteData);
-  p.hgt_fctr_vctr = new setup::arr_1D_t(hgt_v.dataFirst(), hgt_v.shape(), blitz::neverDeleteData);
-  p.th_e = new setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
-  p.p_e = new setup::arr_1D_t(p_e.dataFirst(), p_e.shape(), blitz::neverDeleteData);
-  p.rv_e = new setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
-  p.rl_e = new setup::arr_1D_t(rl_e.dataFirst(), rl_e.shape(), blitz::neverDeleteData);
-  p.th_ref = new setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
-  p.pre_ref = new setup::arr_1D_t(pre_ref.dataFirst(), pre_ref.shape(), blitz::neverDeleteData);
-  p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
-  p.w_LS = new setup::arr_1D_t(w_LS.dataFirst(), w_LS.shape(), blitz::neverDeleteData);
+  std::vector<std::pair<std::reference_wrapper<setup::arr_1D_t*>, std::reference_wrapper<setup::arr_1D_t>>> tobecopied = {
+    {p.hgt_fctr_sclr, profs.hgt_fctr_sclr},
+    {p.hgt_fctr_vctr, profs.hgt_fctr_vctr},
+    {p.th_e         , profs.th_e         },
+    {p.p_e          , profs.p_e          },
+    {p.rv_e         , profs.rv_e         },
+    {p.rl_e         , profs.rl_e         },
+    {p.th_ref       , profs.th_ref       },
+    {p.pre_ref      , profs.pre_ref      },
+    {p.rhod         , profs.rhod         },
+    {p.w_LS         , profs.w_LS         }
+  };
+
+  for (auto dst_src : tobecopied)
+  {
+    dst_src.first.get() = new setup::arr_1D_t(dst_src.second.get().dataFirst(), dst_src.second.get().shape(), blitz::neverDeleteData);
+  }
 }
 
 // 2D model run logic - the same for any microphysics
@@ -105,13 +112,13 @@ void run(int nx, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
+  setup::profiles_t profs(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(profs, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(profs, p);
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -125,17 +132,23 @@ void run(int nx, int nz, const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
+                                                            user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
+                                                            user_params.rng_seed); // works only by chance?
   }
   else
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed);
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
+                                                            user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -216,13 +229,12 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz); 
-  // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
+  setup::profiles_t profs(nz);
 
   // assign their values
-  case_ptr->env_prof(th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, nz, user_params);
+  case_ptr->env_prof(profs, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, p);
+  copy_profiles(profs, p);
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -238,17 +250,23 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
+                                                            user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
+                                                            user_params.rng_seed); // works only by chance?
   }
   else
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed);
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
+                                                            user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
