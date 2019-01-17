@@ -34,7 +34,6 @@ void copy_profiles(setup::profiles_t &profs, params_t &p)
     {p.rv_e         , profs.rv_e         },
     {p.rl_e         , profs.rl_e         },
     {p.th_ref       , profs.th_ref       },
-    {p.pre_ref      , profs.pre_ref      },
     {p.rhod         , profs.rhod         },
     {p.w_LS         , profs.w_LS         }
   };
