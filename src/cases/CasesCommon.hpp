@@ -47,12 +47,12 @@ namespace setup
     profiles_t(int nz) :
     // rhod needs to be bigger, cause it divides vertical courant number
     // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz)
+      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz)
     {}
   };
   struct profile_ptrs_t
   {
-    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
+    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
   };
 
   template<class concurr_t>

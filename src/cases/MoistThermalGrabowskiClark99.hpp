@@ -206,8 +206,8 @@ namespace setup
     
         using setup::real_t;
         blitz::firstIndex k;
-        // temperature profsile
-        arr_1D_t T(nz);
+        // temperature and total pressure profiles
+        arr_1D_t T(nz), pre_ref(nz);
     
         setup::real_t tt0 = 273.17;
         setup::real_t rv = 461;
@@ -234,19 +234,19 @@ namespace setup
 
         profs.th_e = th_std_fctr(th_e_surf)(k * dz);
         
-        profs.pre_ref(0.) = p_0 / si::pascals;
-        profs.p_e(0) = profs.pre_ref(0);
+        pre_ref(0.) = p_0 / si::pascals;
+        profs.p_e(0) = pre_ref(0);
         T(0.) = T_0 / si::kelvins;
         
         for(int k=1; k<nz; ++k)
         {
           real_t zz = k * dz;  
           // predictor
-           real_t rhob=profs.pre_ref(k-1) / rg / (T(k-1)*(1.+a*profs.rv_e(k-1))); // density of air at k-1
-           profs.pre_ref(k)=profs.pre_ref(k-1) - gg*rhob*dz; // estimate of pre at k (dp = -g * rho * dz)
+           real_t rhob=pre_ref(k-1) / rg / (T(k-1)*(1.+a*profs.rv_e(k-1))); // density of air at k-1
+           pre_ref(k)=profs.pre_ref(k-1) - gg*rhob*dz; // estimate of pre at k (dp = -g * rho * dz)
     // iteration for T and qv:
            profs.rv_e(k)=profs.rv_e(k-1);
-           T(k)=profs.th_e(k)* pow(profs.pre_ref(k)/1.e5, cap); 
+           T(k)=profs.th_e(k)* pow(pre_ref(k)/1.e5, cap); 
            T(k)=T(k)/(1.+a*profs.rv_e(k));
           
           for(int iter=0; iter<4; ++iter)
@@ -254,17 +254,17 @@ namespace setup
             tt=T(k);
             delt=(tt-tt0)/(tt*tt0);
             esw=ee0*exp(d * delt);
-            qvs=a * esw /(profs.pre_ref(k)-esw);
+            qvs=a * esw /(pre_ref(k)-esw);
             profs.rv_e(k)=env_RH*qvs;
-           T(k)=profs.th_e(k)* pow(profs.pre_ref(k)/1.e5, cap);
+           T(k)=profs.th_e(k)* pow(pre_ref(k)/1.e5, cap);
             T(k)=T(k)/(1.+a*profs.rv_e(k));
           }
     
           // corrector
-           real_t rhon=profs.pre_ref(k) / rg / (T(k)*(1.+a*profs.rv_e(k)));
-           profs.pre_ref(k)=profs.pre_ref(k-1) - gg*(rhob+rhon) / 2. *dz;
+           real_t rhon=pre_ref(k) / rg / (T(k)*(1.+a*profs.rv_e(k)));
+           pre_ref(k)=profs.pre_ref(k-1) - gg*(rhob+rhon) / 2. *dz;
     // iteration for T and qv:
-           T(k)=profs.th_e(k)* pow(profs.pre_ref(k)/1.e5, cap);
+           T(k)=profs.th_e(k)* pow(pre_ref(k)/1.e5, cap);
            T(k)=T(k)/(1.+a*profs.rv_e(k));
           
           for(int iter=0; iter<4; ++iter)
@@ -272,13 +272,13 @@ namespace setup
             tt=T(k);
             delt=(tt-tt0)/(tt*tt0);
             esw=ee0*exp(d * delt);
-            qvs=a * esw /(profs.pre_ref(k)-esw);
+            qvs=a * esw /(pre_ref(k)-esw);
             profs.rv_e(k)=env_RH*qvs;
-            T(k)=profs.th_e(k)* pow(profs.pre_ref(k)/1.e5, cap);
+            T(k)=profs.th_e(k)* pow(pre_ref(k)/1.e5, cap);
             T(k)=T(k)/(1.+a*profs.rv_e(k));
           }
           //rv_e(k) =  RH_T_p_to_rv(env_RH, T(k) * si::kelvins, pre_ref(k) * si::pascals); // cheating!
-          profs.p_e(k) = profs.pre_ref(k);
+          profs.p_e(k) = pre_ref(k);
         }
     
         //th_ref = th_std_fctr(th_std_0 / si::kelvins)(k * dz);
