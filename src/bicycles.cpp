@@ -35,7 +35,7 @@ void copy_profiles_sgs(setup::arr_1D_t &mix_len, params_t &p, smg_tag)
 // copy external profiles into rt_parameters
 // TODO: more elegant way
 template<class params_t, class sgs_tag>
-void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &th_ref,
+void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t &rv_e, setup::arr_1D_t &rl_e, setup::arr_1D_t &th_ref,
                    setup::arr_1D_t &pre_ref, setup::arr_1D_t &rhod, setup::arr_1D_t &w_LS, setup::arr_1D_t &hgt_v,
                    setup::arr_1D_t &hgt_s, setup::arr_1D_t& mix_len, params_t &p, sgs_tag tag)
 {
@@ -44,6 +44,7 @@ void copy_profiles(setup::arr_1D_t &th_e, setup::arr_1D_t &p_e, setup::arr_1D_t 
   p.th_e = new setup::arr_1D_t(th_e.dataFirst(), th_e.shape(), blitz::neverDeleteData);
   p.p_e = new setup::arr_1D_t(p_e.dataFirst(), p_e.shape(), blitz::neverDeleteData);
   p.rv_e = new setup::arr_1D_t(rv_e.dataFirst(), rv_e.shape(), blitz::neverDeleteData);
+  p.rl_e = new setup::arr_1D_t(rl_e.dataFirst(), rl_e.shape(), blitz::neverDeleteData);
   p.th_ref = new setup::arr_1D_t(th_ref.dataFirst(), th_ref.shape(), blitz::neverDeleteData);
   p.pre_ref = new setup::arr_1D_t(pre_ref.dataFirst(), pre_ref.shape(), blitz::neverDeleteData);
   p.rhod = new setup::arr_1D_t(rhod.dataFirst(), rhod.shape(), blitz::neverDeleteData);
@@ -120,14 +121,14 @@ void run(int nx, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1),
+  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1),
                   w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), mix_len(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, nz, user_params);
+  case_ptr->env_prof(th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, p, typename solver_t::sgs_tag{});
+  copy_profiles(th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, p, typename solver_t::sgs_tag{});
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -141,17 +142,17 @@ void run(int nx, int nz, const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed);
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -241,14 +242,14 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
-  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1),
+  setup::arr_1D_t th_e(nz),  p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1),
     w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), mix_len(nz);
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, nz, user_params);
+  case_ptr->env_prof(th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, nz, user_params);
   // pass them to rt_params
-  copy_profiles(th_e, p_e, rv_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, p, typename solver_t::sgs_tag{});
+  copy_profiles(th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_vctr, hgt_fctr_sclr, mix_len, p, typename solver_t::sgs_tag{});
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -264,17 +265,17 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed); // works only by chance?
   }
   else
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, p_e, user_params.rng_seed);
+    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()), rhod, th_e, rv_e, rl_e, p_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
@@ -289,7 +290,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
 struct ct_params_common : ct_params_default_t
 {
   using real_t = setup::real_t;
-  enum { rhs_scheme = solvers::trapez }; 
+  enum { rhs_scheme = solvers::mixed }; 
   enum { prs_scheme = solvers::cr };
   enum { vip_vab = solvers::expl };
 };

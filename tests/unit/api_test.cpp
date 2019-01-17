@@ -15,15 +15,15 @@ int main(int ac, char** av)
 
   string outdir;
   string opts_common = 
-    "--outfreq=1000 --nt=2 --spinup=1 --dt=0.1 --serial=true"; // dt=1 caused blk1m dycoms to freeze on pressure solver
+    "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3"; 
   vector<string> opts_dim({
     "--nx=4 --nz=4",
     "--nx=4 --ny=4 --nz=4"
   });
   string opts_dim_lgrngn_3d =  "--nx=40 --ny=40 --nz=40"; // = 4 caused multiplicity overflows in the Lagrangian 3D
   vector<string> opts_micro({
-    "--micro=blk_1m --outdir=out_blk_1m"  ,
-    "--async=false --micro=lgrngn --outdir=out_lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100"
+    "--micro=blk_1m --outdir=out"  ,
+    "--async=false --micro=lgrngn --outdir=out --backend=serial --sd_conc=8 --z_rlx_sclr=100"
   });
   vector<string> opts_case({
     "--case=moist_thermal",
@@ -33,9 +33,9 @@ int main(int ac, char** av)
   vector<string> opts_piggy({
     "--piggy=0",
     "--piggy=0 --save_vel=1",
-    "--piggy=1 --vel_in=out_blk_1m/velocity_out.dat"  // take vel file from blk, cause it's ran first
+    "--piggy=1 --vel_in=out/velocity_out.dat"  // take vel file from blk, cause it's ran first
   });
-  string opts_pig_from_lgrngn = "--piggy=1 --vel_in=out_lgrngn/velocity_out.dat"; // 3d dycoms lgrgn has more cells, se we cant piggyback on blk_1m
+  string opts_pig_from_lgrngn = "--piggy=1 --vel_in=out/velocity_out.dat";
 
   for (auto &opts_d : opts_dim)
     for (auto &opts_m : opts_micro)
@@ -47,7 +47,8 @@ int main(int ac, char** av)
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue; 
           }
-          // larger domain for 3d lgrngn
+
+          // more cells in 3d lgrngn to avoid n overflow
           if(opts_d == opts_dim[1] && opts_m == opts_micro[1])
           {
             opts_d = opts_dim_lgrngn_3d;
