@@ -61,13 +61,19 @@ class slvr_blk_2m_common : public slvr_common<ct_params_t>
   {}
   void hook_mixed_rhs_ante_step()
   {
+    const auto nc     = this->state(ix::nc)(this->ijk);
     update_rhs(this->rhs, this->dt, 0);
+    negcheck(nc, "nc before apply rhs ante step");
     this->apply_rhs(this->dt);
+    negtozero(nc, "nc after apply rhs ante step");
   }
   void hook_mixed_rhs_post_step()
   {
+    const auto nc     = this->state(ix::nc)(this->ijk);
+    negtozero(nc, "nc before apply rhs post step");
     update_rhs(this->rhs, this->dt, 1);
     this->apply_rhs(this->dt);
+    negtozero(nc, "nc after apply rhs post step");
   }
 
   void hook_ante_loop(int nt)
@@ -158,11 +164,15 @@ class slvr_blk_2m_common : public slvr_common<ct_params_t>
         th     = this->state(ix::th)(this->ijk),
         rv     = this->state(ix::rv)(this->ijk),
         &p_e_arg = p_e(this->ijk); //TODO: use const pressure in blk_2m
+        nancheck(nc, "nc before blk_2m rhs_cellwise call");
+        negcheck(nc, "nc before blk_2m rhs_cellwise call");
        libcloudphxx::blk_2m::rhs_cellwise<real_t>(
         opts, dot_th, dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
         rhod,     th,     rv,     rc,     nc,     rr,     nr,
         this->dt
       );
+        nancheck(nc, "nc after blk_2m rhs_cellwise call");
+        negcheck(nc, "nc after blk_2m rhs_cellwise call");
     }
 
     // forcing

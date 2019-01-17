@@ -35,9 +35,10 @@ int main(int ac, char** av)
   string opts_common =
     "--outfreq=200 --nt=12000 --spinup=9600 --nx=128 --nz=300 --dt=0.75 ";
   set<string> opts_micro({
-    "--micro=blk_1m --outdir=out_blk_1m  --backend=OpenMP --z_rlx_sclr=100 --adv_serial=false --async=true --case=dycoms "
-  });
-
+    "--micro=blk_1m --outdir=out_blk_1m  --backend=OpenMP --adv_serial=false --async=true --case=dycoms",
+    "--micro=blk_2m --outdir=out_blk_2m  --backend=OpenMP --adv_serial=false --async=true --case=dycoms",
+    "--micro=lgrngn --outdir=out_lgrngn  --backend=CUDA   --adv_serial=false --async=true --case=dycoms --sd_cond=128 --sstp_cond=10" 
+ });
   for (auto &opts_m : opts_micro)
   {
     ostringstream cmd;
