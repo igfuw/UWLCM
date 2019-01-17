@@ -20,6 +20,7 @@ struct user_params_t
   bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
 };
 
+
 namespace setup 
 {
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
@@ -35,6 +36,23 @@ namespace setup
     real_t q_i, heating_kappa, F_0, F_1, rho_i, D, u_fric;
     bool surf_latent_flux_in_watts_per_square_meter;
     bool surf_sensible_flux_in_watts_per_square_meter;
+  };
+ 
+  // CAUTION: new profiles have to be added to both structs
+  // TODO: try a different design where it is not necessary ?
+  struct profiles_t
+  {
+    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr;
+
+    profiles_t(int nz) :
+    // rhod needs to be bigger, cause it divides vertical courant number
+    // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
+      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), pre_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz)
+    {}
+  };
+  struct profile_ptrs_t
+  {
+    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
   };
 
   template<class concurr_t>
@@ -64,7 +82,7 @@ namespace setup
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) {assert(false);};
     virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
-    virtual void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params) =0;
+    virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) = 0;
     virtual void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt) {if(timestep==0) surf_flux_sens = 0.;}; 
     virtual void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt) {if(timestep==0) surf_flux_lat = 0.;};
 

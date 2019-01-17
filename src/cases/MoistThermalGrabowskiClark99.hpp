@@ -190,11 +190,11 @@ namespace setup
       public:
       // calculate the initial environmental theta and rv profiles as Wojtek does it
       // i.e. for stable virtual standard potential temperature
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
       // pre_ref - total pressure
       // th_e - dry potential temp
-      // th_ref - dry potential temp refrence profile
-      // rhod - dry density profile
+      // th_ref - dry potential temp refrence profsile
+      // rhod - dry density profsile
       {
 
         setup::real_t dz = (Z / si::metres) / (nz-1);
@@ -206,7 +206,7 @@ namespace setup
     
         using setup::real_t;
         blitz::firstIndex k;
-        // temperature profile
+        // temperature profsile
         arr_1D_t T(nz);
     
         setup::real_t tt0 = 273.17;
@@ -228,64 +228,64 @@ namespace setup
         real_t esw = ee0*exp(d * delt);
         real_t qvs = a * esw / ((p_0 / si::pascals) -esw);
         //rv_e(0) = env_RH * qvs;
-        rv_e(0) = rv_0;// env_RH * qvs;
-        rl_e = 0.;
-        real_t th_e_surf = th_std_0 / si::kelvins * (1 + a * rv_e(0)); // virtual potential temp
+        profs.rv_e(0) = rv_0;// env_RH * qvs;
+        profs.rl_e = 0.;
+        real_t th_e_surf = th_std_0 / si::kelvins * (1 + a * profs.rv_e(0)); // virtual potential temp
 
-        th_e = th_std_fctr(th_e_surf)(k * dz);
+        profs.th_e = th_std_fctr(th_e_surf)(k * dz);
         
-        pre_ref(0.) = p_0 / si::pascals;
-        p_e(0) = pre_ref(0);
+        profs.pre_ref(0.) = p_0 / si::pascals;
+        profs.p_e(0) = profs.pre_ref(0);
         T(0.) = T_0 / si::kelvins;
         
         for(int k=1; k<nz; ++k)
         {
           real_t zz = k * dz;  
           // predictor
-           real_t rhob=pre_ref(k-1) / rg / (T(k-1)*(1.+a*rv_e(k-1))); // density of air at k-1
-           pre_ref(k)=pre_ref(k-1) - gg*rhob*dz; // estimate of pre at k (dp = -g * rho * dz)
+           real_t rhob=profs.pre_ref(k-1) / rg / (T(k-1)*(1.+a*profs.rv_e(k-1))); // density of air at k-1
+           profs.pre_ref(k)=profs.pre_ref(k-1) - gg*rhob*dz; // estimate of pre at k (dp = -g * rho * dz)
     // iteration for T and qv:
-           rv_e(k)=rv_e(k-1);
-           T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap); 
-           T(k)=T(k)/(1.+a*rv_e(k));
+           profs.rv_e(k)=profs.rv_e(k-1);
+           T(k)=profs.th_e(k)* pow(profs.pre_ref(k)/1.e5, cap); 
+           T(k)=T(k)/(1.+a*profs.rv_e(k));
           
           for(int iter=0; iter<4; ++iter)
           {
             tt=T(k);
             delt=(tt-tt0)/(tt*tt0);
             esw=ee0*exp(d * delt);
-            qvs=a * esw /(pre_ref(k)-esw);
-            rv_e(k)=env_RH*qvs;
-           T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
-            T(k)=T(k)/(1.+a*rv_e(k));
+            qvs=a * esw /(profs.pre_ref(k)-esw);
+            profs.rv_e(k)=env_RH*qvs;
+           T(k)=profs.th_e(k)* pow(profs.pre_ref(k)/1.e5, cap);
+            T(k)=T(k)/(1.+a*profs.rv_e(k));
           }
     
           // corrector
-           real_t rhon=pre_ref(k) / rg / (T(k)*(1.+a*rv_e(k)));
-           pre_ref(k)=pre_ref(k-1) - gg*(rhob+rhon) / 2. *dz;
+           real_t rhon=profs.pre_ref(k) / rg / (T(k)*(1.+a*profs.rv_e(k)));
+           profs.pre_ref(k)=profs.pre_ref(k-1) - gg*(rhob+rhon) / 2. *dz;
     // iteration for T and qv:
-           T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
-           T(k)=T(k)/(1.+a*rv_e(k));
+           T(k)=profs.th_e(k)* pow(profs.pre_ref(k)/1.e5, cap);
+           T(k)=T(k)/(1.+a*profs.rv_e(k));
           
           for(int iter=0; iter<4; ++iter)
           {
             tt=T(k);
             delt=(tt-tt0)/(tt*tt0);
             esw=ee0*exp(d * delt);
-            qvs=a * esw /(pre_ref(k)-esw);
-            rv_e(k)=env_RH*qvs;
-            T(k)=th_e(k)* pow(pre_ref(k)/1.e5, cap);
-            T(k)=T(k)/(1.+a*rv_e(k));
+            qvs=a * esw /(profs.pre_ref(k)-esw);
+            profs.rv_e(k)=env_RH*qvs;
+            T(k)=profs.th_e(k)* pow(profs.pre_ref(k)/1.e5, cap);
+            T(k)=T(k)/(1.+a*profs.rv_e(k));
           }
           //rv_e(k) =  RH_T_p_to_rv(env_RH, T(k) * si::kelvins, pre_ref(k) * si::pascals); // cheating!
-          p_e(k) = pre_ref(k);
+          profs.p_e(k) = profs.pre_ref(k);
         }
     
         //th_ref = th_std_fctr(th_std_0 / si::kelvins)(k * dz);
-        rhod = rho_fctr(rhod_surf)(k * dz); // rhod is dry density profile?
+        profs.rhod = rho_fctr(rhod_surf)(k * dz); // rhod is dry density profsile?
     
-        // turn virtual potential temperature env profile into env profile of standard potential temp
-        th_e = th_e / (1. + a * rv_e);
+        // turn virtual potential temperature env profsile into env profsile of standard potential temp
+        profs.th_e = profs.th_e / (1. + a * profs.rv_e);
     
         // turn standard potential temp into dry potential temp
 /*
@@ -296,7 +296,7 @@ namespace setup
           real_t p_d = pre_ref(k) - libcloudphxx::common::moist_air::p_v<real_t>(pre_ref(k) * si::pascals, rv_e(k))  / si::pascals;
         }
 */
-        th_ref = th_e;//th_std_fctr(th_std_0 / si::kelvins)(k * dz);
+        profs.th_ref = profs.th_e;//th_std_fctr(th_std_0 / si::kelvins)(k * dz);
       }
 
       // ctor
