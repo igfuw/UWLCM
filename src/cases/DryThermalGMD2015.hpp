@@ -78,15 +78,15 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::theta_std::p_1000;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
        
-        rhod = 1;
-        th_e = 300;
+        profs.rhod = 1;
+        profs.th_e = 300;
 
         const quantity<si::temperature, real_t> T(
           libcloudphxx::common::theta_dry::T(
@@ -102,9 +102,9 @@ namespace setup
             T
           )
         );
-        p_e = real_t(p / si::pascals); // total env pressure
+        profs.p_e = real_t(p / si::pascals); // total env pressure
 
-        th_ref = 300;
+        profs.th_ref = 300;
       }
     };
 
