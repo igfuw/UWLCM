@@ -172,7 +172,7 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -190,6 +190,7 @@ namespace setup
         p_e(0) = p_0 / si::pascals;
         th_e(0) = th_l(0.) / si::kelvins;
         rv_e(0) = rt(0.);
+        rl_e(0) = 0.;
   
         real_t tt0 = 273.17;
         real_t rv = 461; // specific gas constant for vapor
@@ -200,7 +201,7 @@ namespace setup
         real_t d = l_tri<real_t>() / si::joules * si::kilograms / rv;
         real_t f = R_d_over_c_pd<real_t>(); 
 
-real_t lwp_env = 0;
+        real_t lwp_env = 0;
   
         for(int k=1; k<nz; ++k)
         {
@@ -218,16 +219,15 @@ real_t lwp_env = 0;
           real_t delta = (rt(k*dz) - qvs) / (1 + qvs * cf1); // how much supersaturated is the air (divided by sth)
           if(delta < 0.) delta = 0.;
           rv_e(k) = rt(k*dz) - delta;
+          rl_e(k) = delta;
           th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
           T(k) = th_e(k) * pow(p_e(k) / (p_1000<real_t>() / si::pascals),  f);
 
           bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k) * (1 + 0.61 * rv_e(k)); // (p / rho) of moist air at k-1
           rho1 = p_e(k) / bottom; // rho at k-1
           lwp_env  += delta * rho1;
-std::cout << k << " env_prof temp: " << T(k)  << " env prof delta: " << delta << std::endl;
         }
         lwp_env = lwp_env * 5  * 1e3;
-std::cout << "lwp env: " << lwp_env << std::endl;
   
         // compute reference state theta and rhod
         blitz::firstIndex k;
@@ -256,7 +256,7 @@ std::cout << "lwp env: " << lwp_env << std::endl;
      //   real_t rho_surf = (p_0 / si::pascals) / T_surf / (1. + 29. / 18. * rv_e(0)) / 287. ; // dry air density at the surface TODO: R_d instead of 287
 
         // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf; // this is from Wojtek
-         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / th_e(0);  // this is correct? or total, not dry th_e(0) should be here?
+         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / (th_e(0)  * (1. + 0.608 * rv_e(0))); 
         // rhod profile
         rhod = rho_surf * exp(- st_avg * k * dz) * pow(
                  1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
@@ -314,7 +314,7 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         params.dz = params.dj;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
@@ -335,7 +335,7 @@ std::cout << "lwp env: " << lwp_env << std::endl;
         params.dz = params.dk;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
