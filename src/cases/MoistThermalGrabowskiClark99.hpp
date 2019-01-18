@@ -126,7 +126,7 @@ namespace setup
     {
       arr_1D_t &_T, &_p;
       real_t dz;
-      prtrb_rv(arr_1D_t _T, arr_1D_t _p, real_t dz): _T(_T), _p(_p), dz(dz) {}
+      prtrb_rv(arr_1D_t &_T, arr_1D_t &_p, real_t dz): _T(_T), _p(_p), dz(dz) {}
 
       quantity<si::dimensionless, real_t> operator()(const real_t &r, const real_t &z) const
       {
