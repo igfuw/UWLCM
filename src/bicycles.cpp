@@ -21,29 +21,6 @@
 #include "panic.hpp"
 #include <map>
 
-// copy external profiles into rt_parameters
-// TODO: more elegant way
-template<class params_t>
-void copy_profiles(setup::profiles_t &profs, params_t &p)
-{
-  std::vector<std::pair<std::reference_wrapper<setup::arr_1D_t*>, std::reference_wrapper<setup::arr_1D_t>>> tobecopied = {
-    {p.hgt_fctr_sclr, profs.hgt_fctr_sclr},
-    {p.hgt_fctr_vctr, profs.hgt_fctr_vctr},
-    {p.th_e         , profs.th_e         },
-    {p.p_e          , profs.p_e          },
-    {p.rv_e         , profs.rv_e         },
-    {p.rl_e         , profs.rl_e         },
-    {p.th_ref       , profs.th_ref       },
-    {p.rhod         , profs.rhod         },
-    {p.w_LS         , profs.w_LS         }
-  };
-
-  for (auto dst_src : tobecopied)
-  {
-    dst_src.first.get() = new setup::arr_1D_t(dst_src.second.get().dataFirst(), dst_src.second.get().shape(), blitz::neverDeleteData);
-  }
-}
-
 // 2D model run logic - the same for any microphysics
 template <class solver_t>
 void run(int nx, int nz, const user_params_t &user_params)
@@ -117,7 +94,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   // assign their values
   case_ptr->env_prof(profs, nz, user_params);
   // pass them to rt_params
-  copy_profiles(profs, p);
+  setup::copy_profiles(profs, p);
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
@@ -233,7 +210,7 @@ void run(int nx, int ny, int nz, const user_params_t &user_params)
   // assign their values
   case_ptr->env_prof(profs, nz, user_params);
   // pass them to rt_params
-  copy_profiles(profs, p);
+  setup::copy_profiles(profs, p);
 
   // set outvars
   p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});

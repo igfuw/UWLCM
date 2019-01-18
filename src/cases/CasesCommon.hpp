@@ -38,7 +38,7 @@ namespace setup
     bool surf_sensible_flux_in_watts_per_square_meter;
   };
  
-  // CAUTION: new profiles have to be added to both structs
+  // CAUTION: new profiles have to be added to both structs and in copy_profiles below
   // TODO: try a different design where it is not necessary ?
   struct profiles_t
   {
@@ -54,6 +54,28 @@ namespace setup
   {
     arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
   };
+  // copy external profiles into rt_parameters
+  // TODO: more elegant way
+  template<class params_t>
+  void copy_profiles(profiles_t &profs, params_t &p)
+  {
+    std::vector<std::pair<std::reference_wrapper<setup::arr_1D_t*>, std::reference_wrapper<setup::arr_1D_t>>> tobecopied = {
+      {p.hgt_fctr_sclr, profs.hgt_fctr_sclr},
+      {p.hgt_fctr_vctr, profs.hgt_fctr_vctr},
+      {p.th_e         , profs.th_e         },
+      {p.p_e          , profs.p_e          },
+      {p.rv_e         , profs.rv_e         },
+      {p.rl_e         , profs.rl_e         },
+      {p.th_ref       , profs.th_ref       },
+      {p.rhod         , profs.rhod         },
+      {p.w_LS         , profs.w_LS         }
+    };
+
+    for (auto dst_src : tobecopied)
+    {
+      dst_src.first.get() = new setup::arr_1D_t(dst_src.second.get().dataFirst(), dst_src.second.get().shape(), blitz::neverDeleteData);
+    }
+  }
 
   template<class concurr_t>
   class CasesCommon
