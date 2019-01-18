@@ -123,6 +123,8 @@ namespace setup
       ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
     }
 
+    virtual ~CasesCommon() = default;
+
     protected:
   
     // function enforcing cyclic values in horizontal directions
