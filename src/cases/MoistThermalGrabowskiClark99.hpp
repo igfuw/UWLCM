@@ -243,7 +243,7 @@ namespace setup
           real_t zz = k * dz;  
           // predictor
            real_t rhob=pre_ref(k-1) / rg / (T(k-1)*(1.+a*profs.rv_e(k-1))); // density of air at k-1
-           pre_ref(k)=profs.pre_ref(k-1) - gg*rhob*dz; // estimate of pre at k (dp = -g * rho * dz)
+           pre_ref(k)=pre_ref(k-1) - gg*rhob*dz; // estimate of pre at k (dp = -g * rho * dz)
     // iteration for T and qv:
            profs.rv_e(k)=profs.rv_e(k-1);
            T(k)=profs.th_e(k)* pow(pre_ref(k)/1.e5, cap); 
@@ -262,7 +262,7 @@ namespace setup
     
           // corrector
            real_t rhon=pre_ref(k) / rg / (T(k)*(1.+a*profs.rv_e(k)));
-           pre_ref(k)=profs.pre_ref(k-1) - gg*(rhob+rhon) / 2. *dz;
+           pre_ref(k)=pre_ref(k-1) - gg*(rhob+rhon) / 2. *dz;
     // iteration for T and qv:
            T(k)=profs.th_e(k)* pow(pre_ref(k)/1.e5, cap);
            T(k)=T(k)/(1.+a*profs.rv_e(k));

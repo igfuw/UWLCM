@@ -42,7 +42,7 @@ namespace setup
   // TODO: try a different design where it is not necessary ?
   struct profiles_t
   {
-    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, pre_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr;
+    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr;
 
     profiles_t(int nz) :
     // rhod needs to be bigger, cause it divides vertical courant number
