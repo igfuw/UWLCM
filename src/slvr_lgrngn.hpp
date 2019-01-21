@@ -75,7 +75,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->record_aux("precip_rate", prtcls->outbuf());
 
     // recording 1st mom of rw of gccns
-    /*
     prtcls->diag_dry_rng(2e-6, 1);
     prtcls->diag_wet_mom(1);
     this->record_aux("gccn_rw_mom1", prtcls->outbuf());
@@ -85,6 +84,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_wet_mom(0);
     this->record_aux("gccn_rw_mom0", prtcls->outbuf());
 
+    /*
     // recording 1st mom of rw of non-gccns
     prtcls->diag_dry_rng(0., 2e-6);
     prtcls->diag_wet_mom(1);
@@ -275,7 +275,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           if(params.cloudph_opts_init.sd_conc_large_tail)
             params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc; /// 1.2 to make space for large tail
           else
-            params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc; 
+            params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * (params.cloudph_opts_init.sd_conc + 38);  // 38 GCCNs
         }
         else
           params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
