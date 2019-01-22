@@ -29,7 +29,7 @@ int main(int ac, char** av)
       if (plt == "rl")
       {
 	// cloud water content
-	auto tmp = h5load(h5, "rc", at * n["outfreq"]);
+	auto tmp = h5load(h5, "rc", at * n["outfreq"]) *1e3;
         std::string title = "cloud (0.5um < r < 25um) water mixing ratio [g/kg]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 	plot(gp, tmp);
@@ -37,11 +37,11 @@ int main(int ac, char** av)
       else if (plt == "rr")
       {
 	// rain water content
-	auto tmp = h5load(h5, "rr", at * n["outfreq"]);
+	auto tmp = h5load(h5, "rr", at * n["outfreq"]) * 1e3;
 	gp << "set logscale cb\n";
  	std::string title = "rain (r > 25um) water mixing ratio [g/kg]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-//	gp << "set cbrange [1e-2:1]\n";
+        gp << "set cbrange [1e-3:1]\n";
 	plot(gp, tmp);
 	gp << "unset logscale cb\n";
       }
@@ -49,7 +49,7 @@ int main(int ac, char** av)
       {
 	std::string title = "water vapour mixing ratio [g/kg]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = h5load(h5, "rv", at * n["outfreq"]);
+        auto tmp = h5load(h5, "rv", at * n["outfreq"]) * 1e3;
         plot(gp, tmp);
       }
       else if (plt == "th")

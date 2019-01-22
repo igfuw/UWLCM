@@ -65,15 +65,12 @@ class slvr_blk_2m_common : public slvr_common<ct_params_t>
     update_rhs(this->rhs, this->dt, 0);
     negcheck(nc, "nc before apply rhs ante step");
     this->apply_rhs(this->dt);
-    negtozero(nc, "nc after apply rhs ante step");
   }
   void hook_mixed_rhs_post_step()
   {
     const auto nc     = this->state(ix::nc)(this->ijk);
-    negtozero(nc, "nc before apply rhs post step");
     update_rhs(this->rhs, this->dt, 1);
     this->apply_rhs(this->dt);
-    negtozero(nc, "nc after apply rhs post step");
   }
 
   void hook_ante_loop(int nt)
