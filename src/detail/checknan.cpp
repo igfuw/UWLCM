@@ -28,7 +28,7 @@
 // to 1e-20 (we need rv>0 in libcloud and cond substepping numerical errors colud lead to rv<0 if we would set it here to 0)
 #define negtosmall(arr, name) {arr = where(arr <= 0., 1e-20, arr);}
 #else
-#define negtosmall(arr, name) {nancheck_hlprs::negtozero_hlpr(arr, name);}
+#define negtosmall(arr, name) {nancheck_hlprs::negtosmall_hlpr(arr, name);}
 #endif
 
 #ifndef NDEBUG
@@ -37,7 +37,7 @@ namespace nancheck_hlprs
   template<class arr_t>
   void nancheck_hlpr(const arr_t &arr, const std::string &name)
   {
-    if(!std::isfinite(sum(arr))) 
+    if(!std::isfinite(sum(arr)))
     {
       #pragma omp critical
       {
@@ -51,7 +51,7 @@ namespace nancheck_hlprs
   template<class arr_t>
   void nancheck2_hlpr(const arr_t &arrcheck, const arr_t &arrout, const std::string &name)
   {
-    if(!std::isfinite(sum(arrcheck))) 
+    if(!std::isfinite(sum(arrcheck)))
     {
       #pragma omp critical
       {
@@ -66,7 +66,7 @@ namespace nancheck_hlprs
   template<class arr_t>
   void negcheck_hlpr(const arr_t &arr, const std::string &name)
   {
-    if(min(arr) < 0.) 
+    if(min(arr) < 0.)
     {
       #pragma omp critical
       {
@@ -80,7 +80,22 @@ namespace nancheck_hlprs
   template<class arr_t>
   void negtozero_hlpr(arr_t arr, const std::string &name)
   {
-    if(min(arr) < 0.) 
+    if(min(arr) < 0.)
+    {
+      #pragma omp critical
+      {
+        std::cout << "A negative number detected in: " << name << std::endl;
+        std::cout << arr;
+        std::cout << "CHEATING: turning negative values to zero" << std::endl;
+      }
+      arr = where(arr <= 0., 1e-10, arr);
+    }
+  }
+
+  template<class arr_t>
+  void negtosmall_hlpr(arr_t arr, const std::string &name)
+  {
+    if(min(arr) < 0.)
     {
       #pragma omp critical
       {
@@ -91,5 +106,7 @@ namespace nancheck_hlprs
       arr = where(arr <= 0., 1e-10, arr);
     }
   }
+
+
 };
 #endif

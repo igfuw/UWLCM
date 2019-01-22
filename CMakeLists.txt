@@ -32,6 +32,6 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
 endif()
 
 
-add_subdirectory(src) 
+add_subdirectory(src)
 add_subdirectory(drawbicyc)
 add_subdirectory(tests)
