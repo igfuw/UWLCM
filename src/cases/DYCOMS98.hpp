@@ -173,7 +173,7 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -188,10 +188,10 @@ namespace setup
         r_t rt;
         // input sounding at z=0, for moist air, no liquid water
         T(0) = th_l(0.) / si::kelvins *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
-        p_e(0) = p_0 / si::pascals;
-        th_e(0) = th_l(0.) / si::kelvins;
-        rv_e(0) = rt(0.);
-        rl_e(0) = 0.;
+        profs.p_e(0) = p_0 / si::pascals;
+        profs.th_e(0) = th_l(0.) / si::kelvins;
+        profs.rv_e(0) = rt(0.);
+        profs.rl_e(0) = 0.;
   
         real_t tt0 = 273.17;
         real_t rv = 461; // specific gas constant for vapor
@@ -206,26 +206,26 @@ namespace setup
   
         for(int k=1; k<nz; ++k)
         {
-          real_t bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * rv_e(k-1)); // (p / rho) of moist air at k-1
-          real_t rho1 = p_e(k-1) / bottom; // rho at k-1
-          p_e(k) = p_e(k-1) - rho1 * 9.81 * dz; // estimate of pre at k (dp = -g * rho * dz)
-          real_t thetme = pow(p_1000<real_t>() / si::pascals / p_e(k), f); // 1/Exner
+          real_t bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * profs.rv_e(k-1)); // (p / rho) of moist air at k-1
+          real_t rho1 = profs.p_e(k-1) / bottom; // rho at k-1
+          profs.p_e(k) = profs.p_e(k-1) - rho1 * 9.81 * dz; // estimate of pre at k (dp = -g * rho * dz)
+          real_t thetme = pow(p_1000<real_t>() / si::pascals / profs.p_e(k), f); // 1/Exner
           real_t thi = 1. / (th_l(k * dz) / si::kelvins); // 1/theta_std
           real_t y = b * thetme * tt0 * thi; 
           real_t ees = ee0 * exp(b-y); // saturation vapor pressure (Tetens equation or what?)
-          real_t qvs = a * ees / (p_e(k) - ees);  // saturation vapor mixing ratio = R_d / R_v * ees / p_d
+          real_t qvs = a * ees / (profs.p_e(k) - ees);  // saturation vapor mixing ratio = R_d / R_v * ees / p_d
 // calculate linearized condensation rate
           real_t cf1 = thetme*thetme*thi*thi;  // T^{-2}
-          cf1 *= c * d * p_e(k) / (p_e(k) - ees); // = l_tri^2 / (C_pd * R_v * T^2) * p/p_d
+          cf1 *= c * d * profs.p_e(k) / (profs.p_e(k) - ees); // = l_tri^2 / (C_pd * R_v * T^2) * p/p_d
           real_t delta = (rt(k*dz) - qvs) / (1 + qvs * cf1); // how much supersaturated is the air (divided by sth)
           if(delta < 0.) delta = 0.;
-          rv_e(k) = rt(k*dz) - delta;
-          rl_e(k) = delta;
-          th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
-          T(k) = th_e(k) * pow(p_e(k) / (p_1000<real_t>() / si::pascals),  f);
+          profs.rv_e(k) = rt(k*dz) - delta;
+          profs.rl_e(k) = delta;
+          profs.th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
+          T(k) = profs.th_e(k) * pow(profs.p_e(k) / (p_1000<real_t>() / si::pascals),  f);
 
-          bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k) * (1 + 0.61 * rv_e(k)); // (p / rho) of moist air at k-1
-          rho1 = p_e(k) / bottom; // rho at k-1
+          bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k) * (1 + 0.61 * profs.rv_e(k)); // (p / rho) of moist air at k-1
+          rho1 = profs.p_e(k) / bottom; // rho at k-1
           lwp_env  += delta * rho1;
         }
         lwp_env = lwp_env * 5  * 1e3;
@@ -236,10 +236,10 @@ namespace setup
         blitz::Range notopbot(1, nz-2);
         arr_1D_t st(nz);
         st=0;
-        st(notopbot) = (th_e(notopbot+1) - th_e(notopbot-1)) / th_e(notopbot);
+        st(notopbot) = (profs.th_e(notopbot+1) - profs.th_e(notopbot-1)) / profs.th_e(notopbot);
         real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
         // reference theta
-        th_ref = th_e(0) * (1. + 0.608 * rv_e(0)) * exp(st_avg * k * dz);
+        profs.th_ref = profs.th_e(0) * (1. + 0.608 * profs.rv_e(0)) * exp(st_avg * k * dz);
       //  th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) // calc dry theta at z=0 
       //           * exp(st_avg * k * dz);
         // virtual temp at surface
@@ -248,19 +248,20 @@ namespace setup
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::theta_std::p_1000;
   
-        real_t T_surf = th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
+        real_t T_surf = profs.th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
 
-        real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0));
+        real_t T_virt_surf = T_surf * (1. + 0.608 * profs.rv_e(0));
         real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287, its the total, not dry density!
 //        rho_surf /= (1 + rv_e(0)); // turn it into dry air density! TODO: is this correct? TODO2: approp change in the paper
 
      //   real_t rho_surf = (p_0 / si::pascals) / T_surf / (1. + 29. / 18. * rv_e(0)) / 287. ; // dry air density at the surface TODO: R_d instead of 287
 
         // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf; // this is from Wojtek
-         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / (th_e(0)  * (1. + 0.608 * rv_e(0))); 
+         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg
+                          / (profs.th_e(0)  * (1. + 0.608 * profs.rv_e(0))); 
         // rhod profile
-        rhod = rho_surf * exp(- st_avg * k * dz) * pow(
-                 1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
+        profs.rhod = rho_surf * exp(- st_avg * k * dz) * pow(
+                      1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
 
 
         // theta_std env prof to theta_dry_e
@@ -268,14 +269,14 @@ namespace setup
   //        th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
   
         // subsidence rate
-        w_LS = w_LS_fctr()(k * dz);
+        profs.w_LS = w_LS_fctr()(k * dz);
   
         // calc surf flux divergence directly
         real_t z_0 = z_rlx_vctr / si::metres;
-        hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
+        profs.hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
         // for scalars
         z_0 = user_params.z_rlx_sclr;
-        hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
+        profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
       }
 
       void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)

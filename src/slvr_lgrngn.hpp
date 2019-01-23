@@ -359,7 +359,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       this->record_aux_const("sd_conc", params.cloudph_opts_init.sd_conc);  
       this->record_aux_const("sd_conc_large_tail", params.cloudph_opts_init.sd_conc_large_tail);  
       this->record_aux_const("sd_const_multi", params.cloudph_opts_init.sd_const_multi);  
-      this->record_aux_const("sd_const_multi_dry_sizes", params.cloudph_opts_init.sd_const_multi_dry_sizes);  
       this->record_aux_const("n_sd_max", params.cloudph_opts_init.n_sd_max);  
       this->record_aux_const("adve_scheme", params.cloudph_opts_init.adve_scheme);  
       this->record_aux_const("dev_count", params.cloudph_opts_init.dev_count);  

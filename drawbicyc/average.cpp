@@ -38,14 +38,14 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
       }
       for(int k=0; k<=prof_ctr; ++k)
         iprof_file >> snap;
-
-//      std::cout << snap;
+  
       if(i==2)
+      {
         avg.resize(snap.shape());
+        avg = 0.;
+      }
       avg += snap;
-//      std::cout << avg;
       opened_files++;
-  ///    std::cout << opened_files << std::endl;
     }
     avg /= opened_files;
     std::cout << plt << " avg: " << avg;
