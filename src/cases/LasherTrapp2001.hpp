@@ -119,14 +119,13 @@ namespace setup
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
-
 
         // read the soundings
         // containers for soundings
@@ -170,7 +169,7 @@ namespace setup
         }
         if(cell_no != nz) throw std::runtime_error("The initial sounding is not high enough");
 
-        // calc derived profiles
+        // calc derived profsiles
         std::vector<real_t> th_std(nz), th_dry(nz), rv(nz);
         for(int i=0; i<nz; ++i)
         {
@@ -179,7 +178,7 @@ namespace setup
           th_dry[i] = theta_dry::std2dry<real_t>(th_std[i] * si::kelvins, quantity<si::dimensionless, real_t>(rv[i])) / si::kelvins;
         }
 
-        // create 1D blitz arrays to wrap the derived profiles, store the for use in intcond_hlpr
+        // create 1D blitz arrays to wrap the derived profsiles, store the for use in intcond_hlpr
         th_dry_env.resize(nz);
         th_std_env.resize(nz);
         p_env.resize(nz);
@@ -189,11 +188,11 @@ namespace setup
         p_env = arr_1D_t(pres_si.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
         rv_env     = arr_1D_t(rv.data(), blitz::shape(nz), blitz::neverDeleteData).copy();
 
-        // TODO: calc hydrostatic env profiles like in dycoms? w kodzie od S. L-T tego jednak nie ma...
-        p_e = p_env;
-        rv_e = rv_env;
-        rl_e = 0;
-        th_e = th_std_env; // temp to calc rhod
+        // TODO: calc hydrostatic env profsiles like in dycoms? w kodzie od S. L-T tego jednak nie ma...
+        profs.p_e = p_env;
+        profs.rv_e = rv_env;
+        profs.rl_e = 0;
+        profs.th_e = th_std_env; // temp to calc rhod
   
         // compute reference state theta and rhod
         blitz::firstIndex k;
@@ -201,32 +200,32 @@ namespace setup
         blitz::Range notopbot(1, nz-2);
         arr_1D_t st(nz);
         st=0;
-        st(notopbot) = (th_e(notopbot+1) - th_e(notopbot-1)) / th_e(notopbot);
+        st(notopbot) = (profs.th_e(notopbot+1) - profs.th_e(notopbot-1)) / profs.th_e(notopbot);
         real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
         // reference theta
-        th_ref = th_e(0) * exp(st_avg * k * dz);
+        profs.th_ref = profs.th_e(0) * exp(st_avg * k * dz);
         // virtual temp at surface
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::theta_std::p_1000;
   
-        real_t T_surf = th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
-        real_t T_virt_surf = T_surf * (1. + 0.608 * rv_e(0));
+        real_t T_surf = profs.th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
+        real_t T_virt_surf = T_surf * (1. + 0.608 * profs.rv_e(0));
         real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
-        // rhod profile
-        rhod = rho_surf * exp(- st_avg * k * dz) * pow(
-                 1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
+        // rhod profsile
+        profs.rhod = rho_surf * exp(- st_avg * k * dz) * pow(
+                     1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
 
-        th_e = th_dry_env; // actual env profile of theta_dry
+        profs.th_e = th_dry_env; // actual env profsile of theta_dry
   
         // calc divergence directly
         real_t z_0 = z_rlx_vctr / si::metres;
-        hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
+        profs.hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
         // for scalars
         z_0 = user_params.z_rlx_sclr;
-        hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
+        profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
       }
 
       // functions that set surface fluxes per timestep

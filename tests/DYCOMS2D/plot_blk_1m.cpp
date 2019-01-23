@@ -32,6 +32,7 @@ int main(int ac, char** av)
 	auto tmp = h5load(h5, "rc", at * n["outfreq"]) *1e3;
         std::string title = "cloud (0.5um < r < 25um) water mixing ratio [g/kg]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        gp << "set cbrange [0:1.2]\n";
 	plot(gp, tmp);
       }
       else if (plt == "rr")
