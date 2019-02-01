@@ -5,10 +5,8 @@
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 
-#include <libmpdata++/bcond/cyclic_3d.hpp>
-#include <libmpdata++/bcond/open_3d.hpp>
-#include <libmpdata++/concurr/openmp.hpp>
 #include "setup.hpp"
+#include "concurr_types.hpp"
 
 #include "cases/DYCOMS98.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
@@ -21,27 +19,15 @@
 #include "panic.hpp"
 #include <map>
 
-// 2D model run logic - the same for any microphysics
-template <class solver_t>
-void run(int nx, int nz, const user_params_t &user_params)
+// dimension-independent model run logic - the same for any microphysics
+template <class solver_t, int n_dims>
+void run(const int (&nps)[n_dims], const user_params_t &user_params)
 {
-  using concurr_openmp_rigid_rigid_t = concurr::openmp<
-    solver_t, 
-    bcond::rigid,  bcond::rigid,
-    bcond::rigid,  bcond::rigid 
-  >;
+  auto nz = nps[n_dims - 1];
 
-  using concurr_openmp_rigid_t = concurr::openmp<
-    solver_t, 
-    bcond::cyclic, bcond::cyclic,
-    bcond::rigid,  bcond::rigid 
-  >;
-
-  using concurr_openmp_cyclic_t = concurr::openmp<
-    solver_t, 
-    bcond::cyclic, bcond::cyclic,
-    bcond::cyclic, bcond::cyclic
-  >;
+  using concurr_openmp_cyclic_t = typename concurr_openmp_cyclic<solver_t, n_dims>::type;
+  using concurr_openmp_rigid_t = typename concurr_openmp_rigid<solver_t, n_dims>::type;
+  using concurr_openmp_cyclic_rigid_t = typename concurr_openmp_cyclic_rigid<solver_t, n_dims>::type;
 
   using concurr_any_t = concurr::any<
     typename solver_t::real_t, 
@@ -49,7 +35,7 @@ void run(int nx, int nz, const user_params_t &user_params)
   >;
 
   using case_t = setup::CasesCommon<
-    concurr_openmp_rigid_t
+    concurr_openmp_cyclic_rigid_t
   >;
 
   using case_ptr_t = std::unique_ptr<
@@ -60,13 +46,13 @@ void run(int nx, int nz, const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_2d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<concurr_openmp_cyclic_rigid_t, n_dims>()); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal_2d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal<concurr_openmp_cyclic_rigid_t, n_dims>()); 
   else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_2d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms98<concurr_openmp_cyclic_rigid_t, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
-    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001_2d<concurr_openmp_rigid_t>()); 
+    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<concurr_openmp_cyclic_rigid_t, n_dims>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;
@@ -82,9 +68,12 @@ void run(int nx, int nz, const user_params_t &user_params)
   p.user_params = user_params;
 
   // output and simulation parameters
-  p.grid_size = {nx, nz};
+  for (int d = 0; d < n_dims; ++d)
+  {
+    p.grid_size[d] = nps[d];
+  }
 
-  case_ptr->setopts(p, nx, nz, user_params);
+  case_ptr->setopts(p, nps, user_params);
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
@@ -101,6 +90,11 @@ void run(int nx, int nz, const user_params_t &user_params)
   p.outvars.insert({solver_t::ix::th, {"th", "[K]"}});
   p.outvars.insert({solver_t::ix::u, {"u", "[m/s]"}});
   p.outvars.insert({solver_t::ix::w, {"w", "[m/s]"}});
+  if (n_dims > 2)
+  {
+    // WARNING: assumes certain ordering of variables to avoid tedious template programming !
+    p.outvars.insert({1, {"v", "[m/s]"}});
+  }
 
   // solver instantiation
   std::unique_ptr<concurr_any_t> concurr;
@@ -108,139 +102,21 @@ void run(int nx, int nz, const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
                                                             profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
                                                             user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
-    concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+    concurr.reset(new concurr_openmp_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
                                                             profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
                                                             user_params.rng_seed); // works only by chance?
   }
   else
   {
-    concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed);
-  }
-
-  // setup panic pointer and the signal handler
-  panic = concurr->panic_ptr();
-  set_sigaction();
- 
-  // timestepping
-  concurr->advance(user_params.nt);
-}
-
-// 3D model run logic - the same for any microphysics; still a lot in common with 2d code...
-template <class solver_t>
-void run(int nx, int ny, int nz, const user_params_t &user_params)
-{
-  using concurr_openmp_rigid_rigid_t = concurr::openmp<
-    solver_t, 
-    bcond::rigid,  bcond::rigid,
-    bcond::rigid,  bcond::rigid,
-    bcond::rigid,  bcond::rigid 
-  >;
-
-  using concurr_openmp_rigid_t = concurr::openmp<
-    solver_t, 
-    bcond::cyclic, bcond::cyclic,
-    bcond::cyclic, bcond::cyclic,
-    bcond::rigid,  bcond::rigid 
-  >;
-
-  using concurr_openmp_cyclic_t = concurr::openmp<
-    solver_t, 
-    bcond::cyclic, bcond::cyclic,
-    bcond::cyclic, bcond::cyclic,
-    bcond::cyclic, bcond::cyclic
-  >;
-
-  using concurr_any_t = concurr::any<
-    typename solver_t::real_t, 
-    solver_t::n_dims
-  >;
-
-  using case_t = setup::CasesCommon<
-    concurr_openmp_rigid_t
-  >;
-
-  using case_ptr_t = std::unique_ptr<
-    case_t
-  >;
-
-  case_ptr_t case_ptr; 
-
-  // setup choice
-  if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_3d<concurr_openmp_rigid_t>()); 
-  else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal_3d<concurr_openmp_rigid_t>()); 
-  else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98_3d<concurr_openmp_rigid_t>()); 
-  else if (user_params.model_case == "lasher_trapp")
-    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001_3d<concurr_openmp_rigid_t>()); 
-
-  // instantiation of structure containing simulation parameters
-  typename solver_t::rt_params_t p;
-
-  // copy force constants
-  p.ForceParameters = case_ptr->ForceParameters;
-
-  // copy functions used to update surface fluxes
-  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
-  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
-
-  // copy user_params for output
-  p.user_params = user_params;
-
-  // output and simulation parameters
-  p.grid_size = {nx, ny, nz};
-
-  case_ptr->setopts(p, nx, ny, nz, user_params);
-  setopts_micro<solver_t>(p, user_params, case_ptr);
-
-  // reference profiles shared among threads
-  setup::profiles_t profs(nz);
-
-  // assign their values
-  case_ptr->env_prof(profs, nz, user_params);
-  // pass them to rt_params
-  setup::copy_profiles(profs, p);
-
-  // set outvars
-  p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
-  p.outvars.insert({solver_t::ix::th, {"th", "[K]"}});
-  p.outvars.insert({solver_t::ix::u, {"u", "[m/s]"}});
-  p.outvars.insert({solver_t::ix::v, {"v", "[m/s]"}});
-  p.outvars.insert({solver_t::ix::w, {"w", "[m/s]"}});
-
-  // solver instantiation
-  std::unique_ptr<concurr_any_t> concurr;
-
-
-  if(user_params.model_case == "dry_thermal")
-  {
-    concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed); // works only by chance?
-  }
-  else if(user_params.model_case == "lasher_trapp")
-  {
-    concurr.reset(new concurr_openmp_rigid_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed); // works only by chance?
-  }
-  else
-  {
-    concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_rigid_t*>(concurr.get()),
+    concurr.reset(new concurr_openmp_cyclic_rigid_t(p));
+    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
                                                             profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
                                                             user_params.rng_seed);
   }
@@ -305,8 +181,8 @@ struct ct_params_3D_blk_1m : ct_params_common
 };
 
 // function used to modify ct_params before running
-template<template<class... Args_slvr> class slvr, class ct_params_dim_micro, class... Args>
-void run_hlpr(bool piggy, std::string type, Args&&... args)
+template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
+void run_hlpr(bool piggy, std::string type, const int (&nps)[n_dims], const user_params_t &user_params)
 {
   if(!piggy) // no piggybacking
   {
@@ -314,12 +190,12 @@ void run_hlpr(bool piggy, std::string type, Args&&... args)
     if(type == "moist_thermal") // use abs option in moist_thermal
     {
       struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(args...);
+      run<slvr<ct_params_final>>(nps, user_params);
     }
     else // default is the iga | fct option
     {
       struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(args...);
+      run<slvr<ct_params_final>>(nps, user_params);
     }
   }
   else // piggybacking
@@ -328,12 +204,12 @@ void run_hlpr(bool piggy, std::string type, Args&&... args)
     if(type == "moist_thermal") // use abs option in moist_thermal
     {
       struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(args...);
+      run<slvr<ct_params_final>>(nps, user_params);
     }
     else // default is the iga | fct option
     {
       struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(args...);
+      run<slvr<ct_params_final>>(nps, user_params);
     }
   }
 }
@@ -440,16 +316,16 @@ int main(int argc, char** argv)
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, nx, nz, user_params);
+      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, {nx, nz}, user_params);
 
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, nx, ny, nz, user_params);
+      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, {nx, ny, nz}, user_params);
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
-      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, nx, nz, user_params);
+      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, {nx, nz}, user_params);
 
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
-      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, {nx, ny, nz}, user_params);
 
   // TODO: not only micro can be wrong
     else throw 

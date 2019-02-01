@@ -108,7 +108,7 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98 : public CasesCommon<concurr_t>
+    class Dycoms98Common : public CasesCommon<concurr_t>
     {
 
       protected:
@@ -291,7 +291,7 @@ namespace setup
       }
 
       // ctor
-      Dycoms98()
+      Dycoms98Common()
       {
         //aerosol bimodal lognormal dist. - DYCOMS
         this->mean_rd1 = real_t(.011e-6) * si::metres,
@@ -303,15 +303,18 @@ namespace setup
         this->div_LS = real_t(3.75e-6); // [1/s] large-scale wind divergence used to calc subsidence of SDs, TODO: use boost.units to enforce 1/s
       }
     };
+    
+    template<class concurr_t, int n_dims>
+    class Dycoms98;
 
     template<class concurr_t>
-    class Dycoms98_2d : public Dycoms98<concurr_t>
+    class Dycoms98<concurr_t, 2> : public Dycoms98Common<concurr_t>
     {
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params)
+      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nx-1); 
-        params.dj = (Z / si::metres) / (nz-1);
+        params.di = (X / si::metres) / (nps[0]-1); 
+        params.dj = (Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
 
@@ -325,14 +328,14 @@ namespace setup
     };
 
     template<class concurr_t>
-    class Dycoms98_3d : public Dycoms98<concurr_t>
+    class Dycoms98<concurr_t, 3> : public Dycoms98Common<concurr_t>
     {
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
+      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nx-1); 
-        params.dj = (Y / si::metres) / (ny-1);
-        params.dk = (Z / si::metres) / (nz-1);
+        params.di = (X / si::metres) / (nps[0]-1); 
+        params.dj = (Y / si::metres) / (nps[1]-1);
+        params.dk = (Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
