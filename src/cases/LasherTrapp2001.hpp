@@ -45,7 +45,7 @@ namespace setup
     }
 
     template<class concurr_t>
-    class LasherTrapp2001 : public CasesCommon<concurr_t>
+    class LasherTrapp2001Common : public CasesCommon<concurr_t>
     {
 
       protected:
@@ -264,7 +264,7 @@ namespace setup
       }
 
       // ctor
-      LasherTrapp2001()
+      LasherTrapp2001Common()
       {
         //aerosol bimodal lognormal dist. - DYCOMS
         this->mean_rd1 = real_t(.011e-6) * si::metres,
@@ -279,15 +279,18 @@ namespace setup
         this->ForceParameters.u_fric = 0.28;
       }
     };
+    
+    template<class concurr_t, int n_dims>
+    class LasherTrapp2001;
 
     template<class concurr_t>
-    class LasherTrapp2001_2d : public LasherTrapp2001<concurr_t>
+    class LasherTrapp2001<concurr_t, 2> : public LasherTrapp2001Common<concurr_t>
     {
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params)
+      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nx-1); 
-        params.dj = (Z / si::metres) / (nz-1);
+        params.di = (X / si::metres) / (nps[0]-1); 
+        params.dj = (Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
 
@@ -301,14 +304,14 @@ namespace setup
     };
 
     template<class concurr_t>
-    class LasherTrapp2001_3d : public LasherTrapp2001<concurr_t>
+    class LasherTrapp2001<concurr_t, 3> : public LasherTrapp2001Common<concurr_t>
     {
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
+      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nx-1); 
-        params.dj = (Y / si::metres) / (ny-1);
-        params.dk = (Z / si::metres) / (nz-1);
+        params.di = (X / si::metres) / (nps[0]-1); 
+        params.dj = (Y / si::metres) / (nps[1]-1);
+        params.dk = (Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
