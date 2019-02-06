@@ -182,7 +182,7 @@ struct ct_params_3D_blk_1m : ct_params_common
 
 // function used to modify ct_params before running
 template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
-void run_hlpr(bool piggy, std::string type, const int (&nps)[n_dims], const user_params_t &user_params)
+void run_hlpr(bool piggy, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
 {
   if(!piggy) // no piggybacking
   {
