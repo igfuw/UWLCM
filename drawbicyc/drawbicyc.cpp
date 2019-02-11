@@ -56,22 +56,29 @@ int main(int argc, char** argv)
 
   if(NDims == 2)
   {
-
+#if defined UWLCM_DISABLE_2D_LGRNGN && defined UWLCM_DISABLE_2D_BLK_1M
     if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro), Plots(type));
     if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), Plots(type));
     if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro), Plots(type));
-    if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro), Plots(type));
+//    if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro), Plots(type));
+#else
+    throw std::runtime_error("plotting of 2D simulations was disabled at compile time");
+#endif
   }
   else if(NDims == 3)
   {
+#if defined UWLCM_DISABLE_3D_LGRNGN && defined UWLCM_DISABLE_3D_BLK_1M
     if(flag_series)   plot_series(PlotterMicro_t<3>(h5, micro), Plots(type));
     if(flag_profiles) plot_profiles(PlotterMicro_t<3>(h5, micro), Plots(type));
     if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro), Plots(type));
-    if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro), Plots(type));
-    if(flag_lgrngn_spec) {
-      plot_lgrngn_spec_positions(PlotterMicro_t<3>(h5, "lgrngn"));
-      plot_lgrngn_spec(PlotterMicro_t<3>(h5, "lgrngn"));
-    }
+//    if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro), Plots(type));
+//    if(flag_lgrngn_spec) {
+//      plot_lgrngn_spec_positions(PlotterMicro_t<3>(h5, "lgrngn"));
+//      plot_lgrngn_spec(PlotterMicro_t<3>(h5, "lgrngn"));
+//    }
+#else
+    throw std::runtime_error("plotting of 3D simulations was disabled at compile time");
+#endif
   }
   else
     assert(false && "need 2d or 3d input data");
