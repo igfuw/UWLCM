@@ -200,6 +200,7 @@ void run_hlpr(bool piggy, const std::string &type, const int (&nps)[n_dims], con
   }
   else // piggybacking
   {
+#if !defined(UWLCM_DISABLE_PIGGYBACKING)
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
     if(type == "moist_thermal") // use abs option in moist_thermal
     {
@@ -211,6 +212,9 @@ void run_hlpr(bool piggy, const std::string &type, const int (&nps)[n_dims], con
       struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
       run<slvr<ct_params_final>>(nps, user_params);
     }
+#else
+      throw std::runtime_error("Piggybacking option was disabled at compile time");
+#endif
   }
 }
 
@@ -316,16 +320,32 @@ int main(int argc, char** argv)
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
+#if !defined(UWLCM_DISABLE_2D_LGRNGN)
       run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Lagrangian option was disabled at compile time");
+#endif
 
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+#if !defined(UWLCM_DISABLE_3D_LGRNGN)
       run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Lagrangian option was disabled at compile time");
+#endif
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
+#if !defined(UWLCM_DISABLE_2D_BLK_1M)
       run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Bulk 1-moment option was disabled at compile time");
+#endif
 
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
+#if !defined(UWLCM_DISABLE_3D_BLK_1M)
       run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Bulk 1-moment option was disabled at compile time");
+#endif
 
   // TODO: not only micro can be wrong
     else throw 
