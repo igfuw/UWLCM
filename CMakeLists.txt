@@ -31,6 +31,13 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
+# handle the disable compilation options
+if(UWLCM_DISABLE)
+  set(UWLCM_DISABLE_PREFIX "UWLCM_DISABLE_")
+  foreach(disable ${UWLCM_DISABLE})
+    add_definitions(-D${UWLCM_DISABLE_PREFIX}${disable})
+  endforeach()
+endif()
 
 add_subdirectory(src) 
 add_subdirectory(drawbicyc)
