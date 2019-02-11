@@ -186,34 +186,22 @@ void run_hlpr(bool piggy, const std::string &type, const int (&nps)[n_dims], con
 {
   if(!piggy) // no piggybacking
   {
+#if !defined(UWLCM_DISABLE_DRIVER)
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
-    if(type == "moist_thermal") // use abs option in moist_thermal
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(nps, user_params);
-    }
-    else // default is the iga | fct option
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(nps, user_params);
-    }
+    struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
+    run<slvr<ct_params_final>>(nps, user_params);
+#else
+      throw std::runtime_error("Driver option was disabled at compile time");
+#endif
   }
   else // piggybacking
   {
-#if !defined(UWLCM_DISABLE_PIGGYBACKING)
+#if !defined(UWLCM_DISABLE_PIGGYBACKER)
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
-    if(type == "moist_thermal") // use abs option in moist_thermal
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(nps, user_params);
-    }
-    else // default is the iga | fct option
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(nps, user_params);
-    }
+    struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
+    run<slvr<ct_params_final>>(nps, user_params);
 #else
-      throw std::runtime_error("Piggybacking option was disabled at compile time");
+      throw std::runtime_error("Piggybacker option was disabled at compile time");
 #endif
   }
 }
