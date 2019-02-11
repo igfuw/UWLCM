@@ -50,14 +50,16 @@ std::vector<std::string> profs_moist_thermal({
 
 
 std::vector<std::string> fields_dycoms({
-"rl", "nc",
- "rr", "nr",
-"ef", "na", 
-"th", "rv",     
-"u", "w", 
-"sd_conc",//, "r_dry", 
-"RH", "supersat",
-"lib_pres", "lib_temp"
+//"rl", "nc",
+// "rr", "nr",
+//"ef", "na", 
+//"th", "rv",     
+//"u", "w", 
+//"sd_conc",//, "r_dry", 
+//"RH", "supersat",
+//"lib_pres", "lib_temp"
+"gccn_conc",
+"gccn_mean_rw"
 });
 
 std::vector<std::string> fields_moist_thermal({

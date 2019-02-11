@@ -253,7 +253,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
         try{
 	std::string title = "gccn(rd>2um) concentration [1/kg]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
-        auto tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
+        typename Plotter_t::arr_t tmp(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
         plotter.plot(gp, tmp);
         }
         catch(...){}

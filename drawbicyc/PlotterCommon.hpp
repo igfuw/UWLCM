@@ -31,6 +31,14 @@ class PlotterCommon
     h5s = h5d.getSpace();
   }
 
+  template <class gp_t>
+  void plot(gp_t &gp)
+  {
+    //gp << "set cbtics format \"%.2tE%+03T\"\n";
+    gp << "set cbtics font \", 8\"\n";
+  //  gp << "set rmargin 2cm\n";
+  }
+
   public:
 
   //ctor

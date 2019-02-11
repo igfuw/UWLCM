@@ -75,6 +75,7 @@ class Plotter_t<2> : public PlotterCommon
   template <class gp_t, class data_t>
   void plot(gp_t &gp, const data_t &data)
   {
+    parent_t::plot(gp);
     blitz::Array<float, 2> tmp(data);
   
 //    gp << "set size 1.6\n";
