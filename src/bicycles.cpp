@@ -184,12 +184,23 @@ struct ct_params_3D_blk_1m : ct_params_common
 template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
 void run_hlpr(bool piggy, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
 {
+  struct ct_params_mpdata_opts : ct_params_dim_micro { enum { opts = opts::nug 
+#if defined(MPDATA_OPTS_IGA)
+  | opts::iga 
+#endif
+#if defined(MPDATA_OPTS_FCT)
+  | opts::fct 
+#endif
+#if defined(MPDATA_OPTS_ABS)
+  | opts::abs
+#endif
+  }; };
+
   if(!piggy) // no piggybacking
   {
 #if !defined(UWLCM_DISABLE_DRIVER)
-    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
-    struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-    run<slvr<ct_params_final>>(nps, user_params);
+    struct ct_params_piggy : ct_params_mpdata_opts { enum { piggy = 0 }; };
+    run<slvr<ct_params_piggy>>(nps, user_params);
 #else
       throw std::runtime_error("Driver option was disabled at compile time");
 #endif
@@ -197,9 +208,8 @@ void run_hlpr(bool piggy, const std::string &type, const int (&nps)[n_dims], con
   else // piggybacking
   {
 #if !defined(UWLCM_DISABLE_PIGGYBACKER)
-    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
-    struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-    run<slvr<ct_params_final>>(nps, user_params);
+    struct ct_params_piggy : ct_params_mpdata_opts { enum { piggy = 1 }; };
+    run<slvr<ct_params_piggy>>(nps, user_params);
 #else
       throw std::runtime_error("Piggybacker option was disabled at compile time");
 #endif
