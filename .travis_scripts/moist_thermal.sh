@@ -4,7 +4,7 @@ set -ex
 # UWLCM in RelWithDebInfo mode without 3D and with 'abs' libmpdata++ option
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="3D_LGRNGN;3D_BLK_1M" -DMPDATA_OPTS="ABS"
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="3D_LGRNGN;3D_BLK_1M;PIGGYBACKER" -DMPDATA_OPTS="ABS"
 VERBOSE=1 make
 cd tests/moist_thermal
 OMP_NUM_THREADS=6 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
