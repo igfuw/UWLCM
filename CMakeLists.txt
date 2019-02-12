@@ -39,5 +39,4 @@ endif()
 message(STATUS "UWLCM will use the following libmpdata++ options: ${MPDATA_OPTS}")
 
 add_subdirectory(src) 
-add_subdirectory(drawbicyc)
 add_subdirectory(tests)
