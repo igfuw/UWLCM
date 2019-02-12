@@ -12,6 +12,16 @@ if(${STD_FUTURE_WORKS})
   add_definitions(-DSTD_FUTURE_WORKS)
 endif()
 
+# handle the mpdata options
+if(NOT MPDATA_OPTS)
+  set(MPDATA_OPTS "IGA;FCT") # iga, fct is the default
+endif()
+message("-- UWLCM will use the following libmpdata++ options: ${MPDATA_OPTS}")
+set(MPDATA_OPTS_PREFIX "MPDATA_OPTS_")
+foreach(opts ${MPDATA_OPTS})
+  add_definitions(-D${MPDATA_OPTS_PREFIX}${opts})
+endforeach()
+
 add_executable(bicycles bicycles.cpp)
 
 # ensure that bicycles is not built before current git_revision file is created
