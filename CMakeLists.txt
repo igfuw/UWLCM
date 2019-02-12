@@ -31,7 +31,6 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
-
 # handle the mpdata options
 if(NOT MPDATA_OPTS)
   set(MPDATA_OPTS "IGA;FCT") # iga, fct is the default
