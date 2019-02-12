@@ -81,9 +81,8 @@ script:
   - sudo make install
   - cd ../../..
 
-
-script:
-    # run the unit tests
-    - if [[ $TEST_SUITE == 'unit' ]]; then . ./.travis_scripts/unit.sh; fi
-    # run the moist thermal test
-    - if [[ $TEST_SUITE == 'moist_thermal' ]]; then . ./.travis_scripts/moist_thermal.sh; fi
+  - cd UWLCM
+  # run the unit tests
+  - if [[ $TEST_SUITE == 'unit' ]]; then . ./.travis_scripts/unit.sh; fi
+  # run the moist thermal test
+  - if [[ $TEST_SUITE == 'moist_thermal' ]]; then . ./.travis_scripts/moist_thermal.sh; fi
