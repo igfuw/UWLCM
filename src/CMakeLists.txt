@@ -18,6 +18,14 @@ foreach(opts ${MPDATA_OPTS})
   add_definitions(-D${MPDATA_OPTS_PREFIX}${opts})
 endforeach()
 
+# handle the disable compilation options
+if(UWLCM_DISABLE)
+  set(UWLCM_DISABLE_PREFIX "UWLCM_DISABLE_")
+  foreach(disable ${UWLCM_DISABLE})
+    add_definitions(-D${UWLCM_DISABLE_PREFIX}${disable})
+  endforeach()
+endif()
+
 add_executable(bicycles bicycles.cpp)
 
 # ensure that bicycles is not built before current git_revision file is created
