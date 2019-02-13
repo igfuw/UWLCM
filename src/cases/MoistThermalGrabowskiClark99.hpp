@@ -137,7 +137,7 @@ namespace setup
 
     // its in fact the moist thermal from our 2017 GMD paper on Twomey SDs? differences: kappa=1.28, i.e. sea salt aerosol
     template<class concurr_t>
-    class MoistThermalGrabowskiClark99 : public CasesCommon<concurr_t>
+    class MoistThermalGrabowskiClark99Common : public CasesCommon<concurr_t>
     {
 
       protected:
@@ -300,23 +300,26 @@ namespace setup
       }
 
       // ctor
-      MoistThermalGrabowskiClark99()
+      MoistThermalGrabowskiClark99Common()
       {
         this->kappa = 1.28; // NaCl aerosol
       }
     };
 
     // 2d/3d children
+    template<class concurr_t, int n_dims>
+    class MoistThermalGrabowskiClark99;
+
     template<class concurr_t>
-    class MoistThermalGrabowskiClark99_2d : public MoistThermalGrabowskiClark99<concurr_t>
+    class MoistThermalGrabowskiClark99<concurr_t, 2> : public MoistThermalGrabowskiClark99Common<concurr_t>
     {
       public:
       // function expecting a libmpdata solver parameters struct as argument
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params)
+      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nx-1); 
-        params.dj = (Z / si::metres) / (nz-1);
+        params.di = (X / si::metres) / (nps[0]-1); 
+        params.dj = (Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
 
@@ -346,16 +349,16 @@ namespace setup
     };
 
     template<class concurr_t>
-    class MoistThermalGrabowskiClark99_3d : public MoistThermalGrabowskiClark99<concurr_t>
+    class MoistThermalGrabowskiClark99<concurr_t, 3> : public MoistThermalGrabowskiClark99Common<concurr_t>
     {
       public:
       // function expecting a libmpdata solver parameters struct as argument
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
+      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nx-1); 
-        params.dj = (Y / si::metres) / (ny-1);
-        params.dk = (Z / si::metres) / (nz-1);
+        params.di = (X / si::metres) / (nps[0]-1); 
+        params.dj = (Y / si::metres) / (nps[1]-1);
+        params.dk = (Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
