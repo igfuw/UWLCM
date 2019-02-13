@@ -101,8 +101,7 @@ namespace setup
     // hygroscopicity kappa of the aerosol 
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
 
-    virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params) {assert(false);};
-    virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params) {assert(false);};
+    virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
     virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) = 0;
     virtual void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt) {if(timestep==0) surf_flux_sens = 0.;}; 
