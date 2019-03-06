@@ -110,7 +110,25 @@ void setopts_micro(
       )
     );
 
+    // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
+    /*
+    rt_params.cloudph_opts_init.dry_distros.emplace(
+      1.28, // key
+      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+        quantity<si::length, setup::real_t>(setup::real_t(0.283e-6) * si::meters), // parameters
+        quantity<si::length, setup::real_t>(setup::real_t(1e-6) * si::meters), // whatever, n2=0...
+        quantity<si::dimensionless, setup::real_t>(setup::real_t(2.235)),
+        quantity<si::dimensionless, setup::real_t>(setup::real_t(1.2)), // n2=0...
+        quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t>(setup::real_t(2.216e6) / si::cubic_meters),
+        quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t>(setup::real_t(0e6) / si::cubic_meters)
+      )
+    );
+    */
+//std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
+//std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
+
     // GCCNs following Jensen and Nugent, JAS 2016
+    /*
     rt_params.cloudph_opts_init.dry_sizes.emplace(
       1.28, // kappa
       std::map<setup::real_t, std::pair<setup::real_t, int> > {
@@ -154,6 +172,7 @@ void setopts_micro(
         {9.0e-6, {4.542,  1}}
       }
     );
+*/
    }
 /*  else if(unit_test)
     boost::assign::ptr_map_insert<
