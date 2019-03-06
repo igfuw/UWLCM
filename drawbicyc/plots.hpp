@@ -6,7 +6,9 @@ const std::vector<std::string> series_dycoms({
 //"mass_dry", 
  "acc_precip",
  "cl_nc",
- "cloud_base"
+ "cloud_base",
+ "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
+,"cl_avg_cloud_rad"
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
 });

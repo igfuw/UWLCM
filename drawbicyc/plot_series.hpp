@@ -439,7 +439,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         catch(...){;}
       }
       // average radius of activated droplets in cloudy cells
-      else if (plt == "cloud_avg_act_rad")
+      else if (plt == "cl_avg_cloud_rad")
       {
         try
         {
@@ -542,6 +542,82 @@ void plot_series(Plotter_t plotter, Plots plots)
           res_prof(at) = blitz::max(mean); // the max value
         }
         catch(...) {;}
+      }
+      else if (plt == "cl_gccn_conc")
+      {
+	// gccn (r_d > 2 um) concentration in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap = iscloudy(snap); // cloudiness mask
+          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+          snap2 *= rhod; // b4 it was specific moment
+          snap2 /= 1e6; // per cm^3
+          snap2 *= snap;
+          if(blitz::sum(snap) > 0)
+            res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      else if (plt == "cl_gccn_meanr")
+      {
+	// gccn (r_d > 2 um) mean radius in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap = iscloudy(snap); // cloudiness mask
+          typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+          snap *= ispositive(snap_m0); // is cloudy and has gccn
+          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]));
+          snap_m1 = where(snap > 0, 1e6 * snap_m1 / snap_m0, 0); // in microns
+          //snap_m1 *= snap;
+          if(blitz::sum(snap) > 0)
+            res_prof(at) = blitz::sum(snap_m1) / blitz::sum(snap); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      else if (plt == "gccn_conc")
+      {
+	// gccn (r_d > 2 um) concentration
+        try
+        {
+          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+          snap2 /= 1e6; // per cm^3
+          snap2 *= rhod; // b4 it was per milligram
+          res_prof(at) = blitz::mean(snap2); 
+        }
+        catch(...){;}
+      }
+      else if (plt == "cl_meanr")
+      {
+	// cloud droplets mean radius in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap = iscloudy(snap); // cloudiness mask
+          typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"]));
+          snap_m1 = where(snap > 0, 1e6 * snap_m1 / snap_m0, 0); // in microns
+          //snap_m1 *= snap;
+          if(blitz::sum(snap) > 0)
+            res_prof(at) = blitz::sum(snap_m1) / blitz::sum(snap); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
       }
       else assert(false);
     } // time loop
@@ -750,6 +826,36 @@ void plot_series(Plotter_t plotter, Plots plots)
     {
       gp << "set title 'liquid water path [g / m^2]'\n";
       res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
+    else if (plt == "cloud_base")
+    {
+      gp << "set title 'cloud base [m]'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
+    else if (plt == "cl_gccn_conc")
+    {
+      gp << "set title 'average gccn conc [1/cm^3] in cloudy cells'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
+    else if (plt == "cl_gccn_meanr")
+    {
+      gp << "set title 'average wet radius [um] of GCCNs in cloudy cells'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
+    else if (plt == "cl_meanr")
+    {
+      gp << "set title 'average wet radius [um] of cloud droplets in cloudy cells'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
+    else if (plt == "gccn_conc")
+    {
+      gp << "set title 'average gccn conc [1/cm^3]'\n";
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
     }
