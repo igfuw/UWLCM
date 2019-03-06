@@ -102,23 +102,17 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed);
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed); // works only by chance?
+    case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed);
   }
   else
   {
     concurr.reset(new concurr_openmp_cyclic_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed);
+    case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed);
   }
 
   // setup panic pointer and the signal handler
