@@ -19,6 +19,12 @@
 #endif
 
 #ifdef NDEBUG
+#define negcheck2(arrcheck, arrout, name) ((void)0)
+#else
+#define negcheck2(arrcheck, arrout, name) {nancheck_hlprs::negcheck2_hlpr(arrcheck, arrout, name);}
+#endif
+
+#ifdef NDEBUG
 // actually not to zero, but to 1e-10 (we need rv>0 in libcloud and cond substepping numerical errors colud lead to rv<0 if we would set it here to 0)
 #define negtozero(arr, name) {arr = where(arr <= 0., 1e-10, arr);}
 #else
@@ -66,6 +72,21 @@ namespace nancheck_hlprs
       {
         std::cout << "A negative number detected in: " << name << std::endl;
         std::cout << arr;
+        assert(0);
+      }
+    }
+  }
+
+  template<class arr_t>
+  void negcheck2_hlpr(const arr_t &arrcheck, const arr_t &arrout,const std::string &name)
+  {
+    if(min(arrcheck) < 0.) 
+    {
+      #pragma omp critical
+      {
+        std::cout << "A negative number detected in: " << name << std::endl;
+        std::cout << arrcheck;
+        std::cout << arrout;
         assert(0);
       }
     }
