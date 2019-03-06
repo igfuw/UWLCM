@@ -118,7 +118,6 @@ namespace setup
     class DryThermal<concurr_t, 2> : public DryThermalCommon<concurr_t>
     {
       using parent_t = DryThermalCommon<concurr_t>;
-      public:
       // function expecting a libmpdata solver parameters struct as argument
       void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -129,7 +128,8 @@ namespace setup
       }
   
       // function expecting a libmpdata++ solver as argument
-      void intcond(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
@@ -141,7 +141,6 @@ namespace setup
     class DryThermal<concurr_t, 3> : public DryThermalCommon<concurr_t>
     {
       using parent_t = DryThermalCommon<concurr_t>;
-      public:
       // function expecting a libmpdata solver parameters struct as argument
       void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -153,7 +152,8 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
@@ -163,6 +163,7 @@ namespace setup
         solver.vab_relaxed_state(1) = 0;
       }
 
+      public:
       // TODO: make it work in 3d?
       DryThermal()
       {

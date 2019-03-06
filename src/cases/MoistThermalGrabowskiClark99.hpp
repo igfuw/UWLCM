@@ -164,7 +164,8 @@ namespace setup
       }
     
       template <class index_t>
-      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &solver,
+                        arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
       {
         using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
@@ -314,7 +315,6 @@ namespace setup
     template<class concurr_t>
     class MoistThermalGrabowskiClark99<concurr_t, 2> : public MoistThermalGrabowskiClark99Common<concurr_t>
     {
-      public:
       using parent_t = MoistThermalGrabowskiClark99Common<concurr_t>;
       // function expecting a libmpdata solver parameters struct as argument
       void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
@@ -326,7 +326,8 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
@@ -353,7 +354,6 @@ namespace setup
     template<class concurr_t>
     class MoistThermalGrabowskiClark99<concurr_t, 3> : public MoistThermalGrabowskiClark99Common<concurr_t>
     {
-      public:
       using parent_t = MoistThermalGrabowskiClark99Common<concurr_t>;
       // function expecting a libmpdata solver parameters struct as argument
       void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
@@ -366,7 +366,8 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
