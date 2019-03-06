@@ -33,9 +33,12 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     typename solver_t::real_t, 
     solver_t::n_dims
   >;
+  
+  using rt_params_t = typename solver_t::rt_params_t;
+  using ix = typename solver_t::ix;
 
   using case_t = setup::CasesCommon<
-    concurr_openmp_cyclic_rigid_t
+    rt_params_t, ix, n_dims
   >;
 
   using case_ptr_t = std::unique_ptr<
@@ -46,13 +49,13 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<concurr_openmp_cyclic_rigid_t, n_dims>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<rt_params_t, ix, n_dims>()); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal<concurr_openmp_cyclic_rigid_t, n_dims>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal<rt_params_t, ix, n_dims>()); 
   else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98<concurr_openmp_cyclic_rigid_t, n_dims>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms98<rt_params_t, ix, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
-    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<concurr_openmp_cyclic_rigid_t, n_dims>()); 
+    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<rt_params_t, ix, n_dims>()); 
 
   // instantiation of structure containing simulation parameters
   typename solver_t::rt_params_t p;

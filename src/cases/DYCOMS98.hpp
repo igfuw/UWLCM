@@ -107,12 +107,12 @@ namespace setup
       BZ_DECLARE_FUNCTOR(rhod_fctr);
     };
 
-    template<class concurr_t>
-    class Dycoms98Common : public CasesCommon<concurr_t>
+    template<class rt_params_t, class ix, int n_dims>
+    class Dycoms98Common : public CasesCommon<rt_params_t, ix, n_dims>
     {
 
       protected:
-      using parent_t = CasesCommon<concurr_t>;
+      using parent_t = CasesCommon<rt_params_t, ix, n_dims>;
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -139,7 +139,6 @@ namespace setup
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
   
@@ -279,13 +278,13 @@ namespace setup
         profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
       }
 
-      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
+      void update_surf_flux_sens(blitz::Array<real_t, n_dims - 1> &surf_flux_sens, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_sens = 16.; // [W/m^2]
       }
 
-      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
+      void update_surf_flux_lat(blitz::Array<real_t, n_dims - 1> &surf_flux_lat, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_lat = 93.; // [W/m^2]
@@ -305,14 +304,14 @@ namespace setup
       }
     };
     
-    template<class concurr_t, int n_dims>
+    template<class rt_params_t, class ix, int n_dims>
     class Dycoms98;
 
-    template<class concurr_t>
-    class Dycoms98<concurr_t, 2> : public Dycoms98Common<concurr_t>
+    template<class rt_params_t, class ix>
+    class Dycoms98<rt_params_t, ix, 2> : public Dycoms98Common<rt_params_t, ix, 2>
     {
-      using parent_t = Dycoms98Common<concurr_t>;
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      using parent_t = Dycoms98Common<rt_params_t, ix, 2>;
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -325,16 +324,15 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
         this->make_cyclic(solver.advectee(ix::th));
       }
     };
 
-    template<class concurr_t>
-    class Dycoms98<concurr_t, 3> : public Dycoms98Common<concurr_t>
+    template<class rt_params_t, class ix>
+    class Dycoms98<rt_params_t, ix, 3> : public Dycoms98Common<rt_params_t, ix, 3>
     {
-      using parent_t = Dycoms98Common<concurr_t>;
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      using parent_t = Dycoms98Common<rt_params_t, ix, 3>;
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -348,7 +346,6 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
         this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
