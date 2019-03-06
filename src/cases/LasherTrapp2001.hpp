@@ -49,6 +49,7 @@ namespace setup
     {
 
       protected:
+      using parent_t = CasesCommon<concurr_t>;
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -72,7 +73,7 @@ namespace setup
   
   
       template <class index_t>
-      void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
         // we assume here that env_prof was called already, so that *_env profiles are initialized
         using ix = typename concurr_t::solver_t::ix;
@@ -286,6 +287,7 @@ namespace setup
     template<class concurr_t>
     class LasherTrapp2001<concurr_t, 2> : public LasherTrapp2001Common<concurr_t>
     {
+      using parent_t = LasherTrapp2001Common<concurr_t>;
       void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -294,7 +296,7 @@ namespace setup
         params.dz = params.dj;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
@@ -306,6 +308,7 @@ namespace setup
     template<class concurr_t>
     class LasherTrapp2001<concurr_t, 3> : public LasherTrapp2001Common<concurr_t>
     {
+      using parent_t = LasherTrapp2001Common<concurr_t>;
       void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -315,7 +318,7 @@ namespace setup
         params.dz = params.dk;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
