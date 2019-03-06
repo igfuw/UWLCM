@@ -24,15 +24,15 @@ template <class solver_t, int n_dims>
 void run(const int (&nps)[n_dims], const user_params_t &user_params)
 {
   auto nz = nps[n_dims - 1];
+  
+  using concurr_any_t = concurr::any<
+    typename solver_t::real_t, 
+    n_dims
+  >;
 
   using concurr_openmp_cyclic_t = typename concurr_openmp_cyclic<solver_t, n_dims>::type;
   using concurr_openmp_rigid_t = typename concurr_openmp_rigid<solver_t, n_dims>::type;
   using concurr_openmp_cyclic_rigid_t = typename concurr_openmp_cyclic_rigid<solver_t, n_dims>::type;
-
-  using concurr_any_t = concurr::any<
-    typename solver_t::real_t, 
-    solver_t::n_dims
-  >;
   
   using rt_params_t = typename solver_t::rt_params_t;
   using ix = typename solver_t::ix;
@@ -58,7 +58,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<rt_params_t, ix, n_dims>()); 
 
   // instantiation of structure containing simulation parameters
-  typename solver_t::rt_params_t p;
+  rt_params_t p;
 
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
@@ -89,10 +89,10 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   setup::copy_profiles(profs, p);
 
   // set outvars
-  p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
-  p.outvars.insert({solver_t::ix::th, {"th", "[K]"}});
-  p.outvars.insert({solver_t::ix::u, {"u", "[m/s]"}});
-  p.outvars.insert({solver_t::ix::w, {"w", "[m/s]"}});
+  p.outvars.insert({ix::rv, {"rv", "[kg kg-1]"}});
+  p.outvars.insert({ix::th, {"th", "[K]"}});
+  p.outvars.insert({ix::u, {"u", "[m/s]"}});
+  p.outvars.insert({ix::w, {"w", "[m/s]"}});
   if (n_dims > 2)
   {
     // WARNING: assumes certain ordering of variables to avoid tedious template programming !
