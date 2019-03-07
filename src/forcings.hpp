@@ -140,16 +140,10 @@ void slvr_common<ct_params_t>::coriolis(
 ) 
 {
   const auto &ijk = this->ijk;
-  if(params.coriolis && ct_params_t::n_dims==3)
+  if(params.coriolis && ct_params_t::n_dims==3) // TODO: n_dims is known at compile time
   {
     F(ijk).reindex(this->zero) = params.ForceParameters.coriolis_parameter *
       (this->state(vel_idx)(ijk).reindex(this->zero) - (*params.geostr[vel_idx])(this->vert_idx));
-    /*
-    rhs.at(ix::u)(ijk) += params.ForceParameters.coriolis_parameter *
-      (this->state(ix::v)(ijk).reindex(this->zero) - (*params.v_geostr)(this->vert_idx));
-    rhs.at(ix::v)(ijk) -= params.ForceParameters.coriolis_parameter *
-      (this->state(ix::u)(ijk).reindex(this->zero) - (*params.u_geostr)(this->vert_idx));
-      */
   }
   else
     F(ijk)=0.;
