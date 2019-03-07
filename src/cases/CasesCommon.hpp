@@ -33,7 +33,7 @@ namespace setup
   // TODO: make forcing functions part of case class
   struct ForceParameters_t
   {
-    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, u_fric;
+    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, u_fric, coriolis_parameter;
     bool surf_latent_flux_in_watts_per_square_meter;
     bool surf_sensible_flux_in_watts_per_square_meter;
   };
@@ -43,16 +43,20 @@ namespace setup
   struct profiles_t
   {
     arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr;
+    std::array<arr_1D_t, 2> geostr;
 
     profiles_t(int nz) :
     // rhod needs to be bigger, cause it divides vertical courant number
     // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
       th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz)
-    {}
+    {
+      geostr[0].resize(nz);
+      geostr[1].resize(nz);
+    }
   };
   struct profile_ptrs_t
   {
-    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
+    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *geostr[2];
   };
   // copy external profiles into rt_parameters
   // TODO: more elegant way
@@ -68,7 +72,9 @@ namespace setup
       {p.rl_e         , profs.rl_e         },
       {p.th_ref       , profs.th_ref       },
       {p.rhod         , profs.rhod         },
-      {p.w_LS         , profs.w_LS         }
+      {p.w_LS         , profs.w_LS         },
+      {p.geostr[0]    , profs.geostr[0]    },
+      {p.geostr[1]    , profs.geostr[1]    }
     };
 
     for (auto dst_src : tobecopied)
@@ -120,6 +126,7 @@ namespace setup
       ForceParameters.u_fric = 0.25; // m/s; friction velocity
       ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
       ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
+      ForceParameters.coriolis_parameter = 0.;
     }
 
     virtual ~CasesCommon() = default;

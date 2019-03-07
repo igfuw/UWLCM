@@ -90,14 +90,27 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
       this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
       this->record_aux_const("user_params w_src", params.user_params.w_src);  
+
       this->record_aux_const("rt_params th_src", params.th_src);  
       this->record_aux_const("rt_params rv_src", params.rv_src);  
       this->record_aux_const("rt_params uv_src", params.uv_src);  
       this->record_aux_const("rt_params w_src", params.w_src);  
       this->record_aux_const("rt_params spinup", params.spinup);  
       this->record_aux_const("rt_params subsidence", params.subsidence);  
+      this->record_aux_const("rt_params coriolis", params.coriolis);  
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
+
+      this->record_aux_const("ForceParameters q_i", params.ForceParameters.q_i);  
+      this->record_aux_const("ForceParameters heating_kappa", params.ForceParameters.heating_kappa);  
+      this->record_aux_const("ForceParameters F_0", params.ForceParameters.F_0);  
+      this->record_aux_const("ForceParameters F_1", params.ForceParameters.F_1);  
+      this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);  
+      this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
+      this->record_aux_const("ForceParameters u_fric", params.ForceParameters.u_fric);  
+      this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
+      this->record_aux_const("ForceParameters surf_latent_flux_in_watts_per_square_meter", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
+      this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
      
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
@@ -105,6 +118,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("rv_e", params.rv_e->data()); 
       this->record_prof_const("th_ref", params.th_ref->data()); 
       this->record_prof_const("rhod", params.rhod->data()); 
+      this->record_prof_const("u_geostr", params.geostr[0]->data()); 
+      this->record_prof_const("v_geostr", params.geostr[1]->data()); 
     }
  
     // initialize surf fluxes with timestep==0
@@ -136,6 +151,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   void surf_sens();
   void surf_latent();
   void subsidence(const int&);
+  void coriolis(const int&);
 
   void update_rhs(
     arrvec_t<typename parent_t::arr_t> &rhs,
@@ -174,12 +190,16 @@ class slvr_common : public slvr_dim<ct_params_t>
         }
 
         // horizontal velocity sources 
-        // large-scale vertical wind
         if(params.uv_src)
         {
           for(auto type : this->hori_vel)
           {
+            // subsidence
             subsidence(type);
+            rhs.at(type)(ijk) += F(ijk);
+
+            // Coriolis
+            coriolis((type+1) % this->hori_vel.size());
             rhs.at(type)(ijk) += F(ijk);
           }
         }
@@ -267,7 +287,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     {
       this->vip_rhs[it](this->ijk).reindex(this->zero) += 
         where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
-          -2 * pow(params.ForceParameters.u_fric,2) *  // const, cache it
+          -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
           (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
@@ -319,7 +339,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   { 
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
-    bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet, radiation;
+    bool rv_src, th_src, uv_src, w_src, subsidence, coriolis, friction, buoyancy_wet, radiation;
     bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
