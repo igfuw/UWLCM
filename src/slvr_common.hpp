@@ -200,7 +200,10 @@ class slvr_common : public slvr_dim<ct_params_t>
 
             // Coriolis
             coriolis((type+1) % this->hori_vel.size());
-            rhs.at(type)(ijk) += F(ijk);
+            if(type == ix::u)
+              rhs.at(type)(ijk) += F(ijk);
+            else
+              rhs.at(type)(ijk) -= F(ijk);
           }
         }
         
