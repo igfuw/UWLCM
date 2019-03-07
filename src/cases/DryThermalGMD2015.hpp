@@ -37,6 +37,7 @@ namespace setup
         params.buoyancy_wet = false;
         params.subsidence = false;
         params.friction = false;
+        params.coriolis = false;
         params.radiation = false;
       }
   
