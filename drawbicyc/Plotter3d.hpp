@@ -11,6 +11,7 @@ class Plotter_t<3> : public PlotterCommon
   using arr_t = blitz::Array<float, 3>;
   blitz::Array<int, 2> k_i;
   blitz::thirdIndex LastIndex;
+  blitz::RectDomain<3> ground;//(blitz::Range::all(), blitz::Range::all(), 0);
 
   protected:
   using parent_t = PlotterCommon;
@@ -134,6 +135,7 @@ class Plotter_t<3> : public PlotterCommon
     this->map["z"] = n[2]-1;
     tmp.resize(n[0], n[1], n[2]);
     k_i.resize(n[0]-1, n[1]-1);
+    ground = blitz::RectDomain<3>(blitz::TinyVector<int, 3>(0,0,0), (blitz::TinyVector<int, 3>(n[0]-1,n[1]-1,0)));//(0, n[0]-1), (0, n[1]-1), (0,0)));
 
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");

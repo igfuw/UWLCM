@@ -6,6 +6,7 @@ const std::vector<std::string> series_dycoms({
 //"mass_dry", 
  "acc_precip",
  "cl_nc",
+ "cloud_base",
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
  "tke"
@@ -38,11 +39,14 @@ const std::vector<std::string> series_sgs({
 std::vector<std::string> profs_dycoms({
 "00rtot", "rliq", /*"thl",*/ "wvar", 
 "w3rd", "prflux"
-//, "act_conc"
 ,"clfrac"
 //, "N_c", 
 ,"cl_nc"
 ,"sat_RH"
+//, "nc_up" 
+//,"sat_RH_up"
+//, "act_conc_up" 
+//, "nc_down" 
 }); // rtot has to be first
 
 std::vector<std::string> profs_sgs({
@@ -50,7 +54,7 @@ std::vector<std::string> profs_sgs({
 ,"k_m"
 ,"sgs_tht_flux"
 ,"sgs_rv_flux"
-,"sgs_rc_flux"
+//,"sgs_rc_flux"
 ,"sgs_u_flux"
 });
 

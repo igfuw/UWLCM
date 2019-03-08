@@ -209,25 +209,28 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
         gp << "set title 'ultra-gccn-based droplets mean wet radius (downdraughts only)'\n";
       }
-      if (plt == "act_conc")
+      if (plt == "act_conc_up")
       {
         // 0th-mom (concentration) of droplets with RH > Sc
         {
+          // disabled, since UWLCM doesnt store actRH anymore
+/*
           auto tmp = plotter.h5load_timestep("actRH_rd_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap;
           res_tmp *= rhod / 1e6; // per cm^3
+*/
         }
         // updraft only
         {
           auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
-          res_tmp *= res_tmp2;
+     //     res_tmp *= res_tmp2;
         }
         // mean only over updraught cells
         res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+       // res_prof2 += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
 
         // 0th-mom of droplets with rw>rc
         {
@@ -238,12 +241,57 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         }
         // updraft only
         res_tmp *= res_tmp2;
-        res_prof2 += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
         gp << "set title 'activated droplets concentation [1/cm^3] (updrafts)'\n";
       }
-      if (plt == "act_rd")
+      if (plt == "nc_up")
+      {
+        // updraft only
+        {
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = isupdraught(snap);
+        }
+        // mean only over updraught cells
+        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+
+        {
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+          res_tmp *= rhod / 1e6; // per cm^3
+        }
+        // updraft only
+        res_tmp *= res_tmp2;
+        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
+      }
+      if (plt == "nc_down")
+      {
+        // updraft only
+        {
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = isdowndraught(snap);
+        }
+        // mean only over updraught cells
+        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+
+        {
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+          res_tmp *= rhod / 1e6; // per cm^3
+        }
+        // updraft only
+        res_tmp *= res_tmp2;
+        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
+      }
+      if (plt == "act_rd_up")
       {
 	// RH > Sc droplets first dry mom
+	/*
         {
           auto tmp = plotter.h5load_timestep("actRH_rd_mom1", at * n["outfreq"]) * 1e6;
           typename Plotter_t::arr_t snap(tmp);
@@ -255,16 +303,17 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = where(snap > 0 , res_tmp / snap, res_tmp);
         }
+        */
         // updraft only
         {
           auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp2 = isupdraught(snap);
-          res_tmp *= res_tmp2;
+ //         res_tmp *= res_tmp2;
         }
         // mean only over updraught cells
         res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+//        res_prof2 += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
 
 	// rw > rc droplets first dry mom
         {
@@ -280,7 +329,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         }
         // updraft only
         res_tmp *= res_tmp2;
-        res_prof2 += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
         gp << "set title 'activated droplets mean dry radius (updrafts)'\n";
       }
       if (plt == "actRH_rd")
@@ -336,7 +385,16 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = (snap -1) * 100;
         }
-/*
+        res += res_tmp;
+        gp << "set title 'supersaturation RH-based'\n";
+      }
+      else if (plt == "sat_RH_up")
+      {
+        {
+          auto tmp = plotter.h5load_RH_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = (snap -1) * 100;
+        }
  // for mean over updraught cells
         {
           auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
@@ -344,17 +402,14 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp2 = isupdraught(snap);
           res_tmp *= res_tmp2;
         }
-*/
         // mean only over updraught cells
-//        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-//        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
 
 //        mean over all cells
 //        res_prof += plotter.horizontal_sum(res_tmp);
 
-        res += res_tmp;
-        //gp << "set title 'supersaturation RH-based in updrafts only'\n";
-        gp << "set title 'supersaturation RH-based'\n";
+        gp << "set title 'supersaturation RH-based in updrafts only'\n";
 //        gp << "set yrange [0.45:1.]\n";
   //      gp << "set xrange [0.000:*]\n";
       }
@@ -568,42 +623,35 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       res_pos_out_done = true;
     }
 
+    // do the plotting
+    if (plt == "ugccn_rw_down" || plt == "act_rd_up" || plt == "act_conc_up" || plt == "sat_RH_up" | plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc" || plt == "nc_up" || plt == "nc_down") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
+      res_prof /= last_timestep - first_timestep + 1;
+    else
+      res_prof = plotter.horizontal_mean(res); // average in x
 
-    if (plt != "act_rd" && plt != "act_conc")
+    gp << "plot '-' with line\n";
+    gp.send1d(boost::make_tuple(res_prof, res_pos));
+
+    oprof_file << res_prof ;
+
+    if(plt == "rv" || plt == "sat" || plt == "sat_RH")
     {
-      if (plt == "ugccn_rw_down" || /*plt == "sat_RH" ||*/ plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
-        res_prof /= last_timestep - first_timestep + 1;
-      else
-        res_prof = plotter.horizontal_mean(res); // average in x
-
-
-      // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
-//      res_prof(0) = res_prof(1);
-
-      gp << "plot '-' with line\n";
-      gp.send1d(boost::make_tuple(res_prof, res_pos));
-
-      oprof_file << res_prof ;
-
-      if(plt == "rv" || plt == "sat" || plt == "sat_RH")
-      {
-        gp << "set yrange [0.:1.2]\n";
-        gp << "set xrange [*:*]\n";
-      }
+      gp << "set yrange [0.:1.2]\n";
+      gp << "set xrange [*:*]\n";
     }
-    else 
+
+    // plotting two lines, eg. to compare different activation conditions (RH- vs rw- based)
+/*
     {
       gp << "plot '-' with line title 'RH > Sc', '-' w l t 'rw > rc'\n";
       res_prof /= last_timestep - first_timestep + 1;
       res_prof2 /= last_timestep - first_timestep + 1;
-      // res_prof(0) is ground level - we dont know what is there? surf fluxes shouldnt be added to it?! anyway, set res_prof(0)=res_prof(1) for plotting purposes
-//      res_prof(0) = res_prof(1);
-  //    res_prof2(0) = res_prof2(1);
       gp.send1d(boost::make_tuple(res_prof, res_pos));
       gp.send1d(boost::make_tuple(res_prof2, res_pos));
       oprof_file << res_prof ;
       oprof_file << res_prof2 ;
     }
+*/
 
 //    plot(gp, res);
   } // var loop

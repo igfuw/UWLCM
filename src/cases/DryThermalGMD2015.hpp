@@ -18,7 +18,7 @@ namespace setup
     const real_t z_abs = 100000; // no absorber
 
     template<class concurr_t>
-    class DryThermal : public CasesCommon<concurr_t>
+    class DryThermalCommon : public CasesCommon<concurr_t>
     {
       protected:
 
@@ -80,15 +80,15 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
-      void env_prof(arr_1D_t &th_e, arr_1D_t &p_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, arr_1D_t &mix_len, int nz, const user_params_t &user_params)
+      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::theta_std::p_1000;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
        
-        rhod = 1;
-        th_e = 300;
+        profs.rhod = 1;
+        profs.th_e = 300;
 
         const quantity<si::temperature, real_t> T(
           libcloudphxx::common::theta_dry::T(
@@ -104,22 +104,25 @@ namespace setup
             T
           )
         );
-        p_e = real_t(p / si::pascals); // total env pressure
+        profs.p_e = real_t(p / si::pascals); // total env pressure
 
-        th_ref = 300;
+        profs.th_ref = 300;
       }
     };
-
+    
     // 2d/3d children
+    template<class concurr_t, int n_dims>
+    class DryThermal;
+
     template<class concurr_t>
-    class DryThermal_2d : public DryThermal<concurr_t>
+    class DryThermal<concurr_t, 2> : public DryThermalCommon<concurr_t>
     {
       // function expecting a libmpdata solver parameters struct as argument
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int nz, const user_params_t &user_params)
+      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nx-1); 
-        params.dj = (Z / si::metres) / (nz-1);
+        params.di = (X / si::metres) / (nps[0]-1); 
+        params.dj = (Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
   
@@ -133,16 +136,16 @@ namespace setup
     };
 
     template<class concurr_t>
-    class DryThermal_3d : public DryThermal<concurr_t>
+    class DryThermal<concurr_t, 3> : public DryThermalCommon<concurr_t>
     {
       public:
       // function expecting a libmpdata solver parameters struct as argument
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, int nx, int ny, int nz, const user_params_t &user_params)
+      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nx-1); 
-        params.dj = (Y / si::metres) / (ny-1);
-        params.dk = (Z / si::metres) / (nz-1);
+        params.di = (X / si::metres) / (nps[0]-1); 
+        params.dj = (Y / si::metres) / (nps[1]-1);
+        params.dk = (Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
@@ -158,7 +161,7 @@ namespace setup
       }
 
       // TODO: make it work in 3d?
-      DryThermal_3d()
+      DryThermal()
       {
         throw std::runtime_error("Dry Thermal doesn't work in 3d yet");
       }

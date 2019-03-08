@@ -331,13 +331,13 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   public:
 
-  struct rt_params_t : parent_t::rt_params_t 
+  // note dual inheritance to get profile pointers
+  struct rt_params_t : parent_t::rt_params_t, setup::profile_ptrs_t
   { 
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, friction, buoyancy_wet, radiation;
     bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
-    setup::arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *pre_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr;
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
