@@ -158,7 +158,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   
   void record_flux(int s)
   {
-    //if (s != ix::th && s != ix::rv && s != ix::rc) return;
+    if (s != ix::th && s != ix::rv) return;
 
     if (this->timestep % static_cast<int>(this->outfreq) == 0)
     {

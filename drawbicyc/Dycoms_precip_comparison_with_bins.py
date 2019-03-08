@@ -1,48 +1,37 @@
-#import h5py
 from Dycoms_comparison_common import *
 
 # activate latex text rendering
 rc('text', usetex=True)
 
+dycoms_profs = ["ql", "precip", "ndrop_cld"]
+dycoms_series = ["lwp", "precip", "ndrop_cld"]
+nplots = len(dycoms_profs + dycoms_series)# + 2 # 2 updraft profiles without dycoms results
+
 # init the plot
-nplotx = 2
-nploty= 3
-fig, axarr = plt.subplots(nplotx,nploty)
+nplotx = 2 #int(nplots/6 + 0.5)
+nploty = 3 # int(float(nplots)/float(nplotx) + 0.5)
+fig, axarr = plt.subplots(nplotx, nploty )
 
-dycoms_vars = ["lwp", "zi", "w2_max", "precip", "ndrop_cld", "zb"]# "cfrac"]
+plot_iter=0
+for var in dycoms_series:
+  print var, plot_iter
+  plot_iter = plot_series(var, plot_iter, nplotx, nploty, axarr, True, suffix="series.dat", xlabel='Time [h]')
+for var in dycoms_profs:
+  print var, plot_iter
+  plot_iter = plot_profiles(var, plot_iter, nplotx, nploty, axarr, True, suffix="profiles_7200_21600.dat", ylabel = '$z/z_i$')
 
-plot_iter = 0
-
-for var in dycoms_vars:
-  if var == "precip" or var == "ndrop_cld" or var == "zb":
-    plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr, xlabel = 'Time [h]')
-  else:
-    plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr)
-
-
-# show legends on each subplot
-#for x in np.arange(nplotx):
-#  for y in np.arange(nploty):
-#    axarr[x,y].legend()
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
 
 # hide axes on empty plots
-if len(dycoms_vars) % nploty == 0:
-  nemptyplots = 0
+if nplots % nploty == 0:
+  nemptyplots=0
 else:
-  nemptyplots = nploty - len(dycoms_vars) % nploty
+  nemptyplots = nploty - nplots % nploty
 emptyplots = np.arange(nploty - nemptyplots, nploty)
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')
-
-# hide hrzntl tic labels
-x_empty_label = np.arange(0, nplotx-1)
-y_empty_label = np.arange(nploty)
-for x in x_empty_label:
-  for y in y_empty_label:
-    axarr[x,y].set_xticklabels([])
 
 #axes = plt.gca()
 #axes.tick_params(direction='in')
@@ -60,19 +49,31 @@ for x in x_arr:
       item.set_fontsize(8)
     # subplot numbering
     if y < nploty - nemptyplots or x < (nplotx - 1):
-      axarr[x,y].text(0.2, 0.9, labeldict[y + x*nploty], fontsize=8, transform=axarr[x,y].transAxes)
+      axarr[x,y].text(0.8, 0.9, labeldict[y + x*nploty], fontsize=8, transform=axarr[x,y].transAxes)
+
+## show legends
+#for x in np.arange(nplotx):
+#  for y in np.arange(nploty):
+#    axarr[x,y].legend(loc="upper center")
 
 #single legend for the whole figure
 handles, labels = axarr[0,0].get_legend_handles_labels()
-
 lgd = fig.legend(handles, labels, handlelength=4, loc='lower center', bbox_to_anchor=(0.45,0))
+
 
 #figure size
 fig.set_size_inches(7.874, 5. + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
-fig.subplots_adjust(bottom=0.18 + (len(labels) - 2) * 0.03, hspace=0.1, wspace=0.4)
+fig.subplots_adjust(bottom=0.14 + (len(labels) - 2) * 0.03, hspace=0.25, wspace=0.4)
 
 #fig.tight_layout(pad=0, w_pad=0, h_pad=0)
 
+#figure size
+#fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
+#distances between subplots and from bottom of the plot
+#fig.subplots_adjust(bottom=0.15 + (len(labels) - 2) * 0.02, hspace=0.25)
+
+
 #plt.show()
 fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
+

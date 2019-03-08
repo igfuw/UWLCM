@@ -393,6 +393,29 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...){;}
       }
+      else if (plt == "cloud_base")
+      {
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap = iscloudy(snap); // cloudiness mask
+          snap(plotter.ground) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+          auto cloudy_column = plotter.k_i.copy();
+          cloudy_column = blitz::sum(snap, plotter.LastIndex);
+          cloudy_column = where(cloudy_column > 0, 1, 0);
+          plotter.k_i = where(cloudy_column == 0, 0, plotter.k_i);
+          if(blitz::sum(cloudy_column) > 0)
+            res_prof(at) = double(blitz::sum(plotter.k_i)) / blitz::sum(cloudy_column) * n["dz"];
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
       // average concentration of activated droplets in cloudy cells
       else if (plt == "cloud_avg_act_conc")
       {
@@ -766,10 +789,18 @@ void plot_series(Plotter_t plotter, Plots plots)
     }
     else if (plt == "er")
     {
-      // forward difference, in cm
-      Range nolast = Range(0, last_timestep-1);
-      res_prof(nolast) = where(res_prof(nolast+1) > 0., (res_prof(nolast+1) - res_prof(nolast)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"]) + D * (res_prof(nolast) - 0.5) * n["dz"] * 1e2, 0.);
-      res_prof(last_timestep) = 0.;
+      // central difference, in cm
+      Range nofirstlast = Range(1, last_timestep-1);
+      auto res_prof_tmp = res_prof.copy();
+      res_prof(nofirstlast) = where(res_prof_tmp(nofirstlast+1) > 0., (res_prof_tmp(nofirstlast+1) - res_prof_tmp(nofirstlast-1)) * n["dz"] * 1e2 / (2 * n["dt"] * n["outfreq"])  + D * (res_prof_tmp(nofirstlast) - 0.5) * n["dz"] * 1e2, 0.);
+
+      // larger stencil
+//      Range notwo = Range(2, last_timestep-2);
+   //   res_prof(notwo) = where(res_prof_tmp(notwo+1) > 0., ( 2. / 3. * (res_prof_tmp(notwo+1) - res_prof_tmp(notwo-1)) + 1. / 12. * (res_prof_tmp(notwo+2) - res_prof_tmp(notwo-2)) ) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"])  + D * (res_prof_tmp(notwo) - 0.5) * n["dz"] * 1e2, 0.);
+
+      //res_prof(0) = 0.;
+      res_prof(0) = (res_prof_tmp(1) - res_prof_tmp(0)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"])  + D * (res_prof_tmp(0) - 0.5) * n["dz"] * 1e2;
+      res_prof(last_timestep) = (res_prof_tmp(last_timestep) - res_prof_tmp(last_timestep-1)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"])  + D * (res_prof_tmp(last_timestep) - 0.5) * n["dz"] * 1e2;
       gp << "set title 'entrainment rate [cm / s]'\n";
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
