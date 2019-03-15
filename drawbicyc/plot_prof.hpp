@@ -459,6 +459,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_prof += where(res_pos > 0 , plotter.horizontal_sum(snap2) / res_pos, 0);
         }
         catch(...){;}
+        gp << "set title 'cloud droplets concentration in cloudy cells [1/cm^3]'\n";
       }
       else if (plt == "thl")
       {

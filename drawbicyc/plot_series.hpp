@@ -853,6 +853,12 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
     }
+    else if (plt == "cl_avg_cloud_rad")
+    {
+      gp << "set title 'average wet radius [um] of cloud droplets in cloudy cells'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
     else if (plt == "gccn_conc")
     {
       gp << "set title 'average gccn conc [1/cm^3]'\n";
