@@ -178,6 +178,7 @@ class slvr_piggy<
         // read in through buffer, if done directly caused data races
         f_vel_in >> in_bfr;
         this->state(this->vip_ixs[d]) = in_bfr;
+        nancheck(this->state(this->vip_ixs[d]), "velocity field loaded from vel_in");
 //std::cout << this->state(this->vip_ixs[d]);
       }
     }
