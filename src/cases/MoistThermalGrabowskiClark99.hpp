@@ -136,13 +136,14 @@ namespace setup
     };
 
     // its in fact the moist thermal from our 2017 GMD paper on Twomey SDs? differences: kappa=1.28, i.e. sea salt aerosol
-    template<class concurr_t>
-    class MoistThermalGrabowskiClark99Common : public CasesCommon<concurr_t>
+    template<class rt_params_t, class ix, int n_dims>
+    class MoistThermalGrabowskiClark99Common : public CasesCommon<rt_params_t, ix, n_dims>
     {
 
       protected:
+      using parent_t = CasesCommon<rt_params_t, ix, n_dims>;
     
-      void setopts_hlpr(typename concurr_t::solver_t::rt_params_t &params, const user_params_t &user_params)
+      void setopts_hlpr(rt_params_t &params, const user_params_t &user_params)
       {
         params.outdir = user_params.outdir;
         params.outfreq = user_params.outfreq;
@@ -163,9 +164,9 @@ namespace setup
       }
     
       template <class index_t>
-      void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &solver,
+                        arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
       {
-        using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
         int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
@@ -307,15 +308,15 @@ namespace setup
     };
 
     // 2d/3d children
-    template<class concurr_t, int n_dims>
+    template<class rt_params_t, class ix, int n_dims>
     class MoistThermalGrabowskiClark99;
 
-    template<class concurr_t>
-    class MoistThermalGrabowskiClark99<concurr_t, 2> : public MoistThermalGrabowskiClark99Common<concurr_t>
+    template<class rt_params_t, class ix>
+    class MoistThermalGrabowskiClark99<rt_params_t, ix, 2> : public MoistThermalGrabowskiClark99Common<rt_params_t, ix, 2>
     {
-      public:
+      using parent_t = MoistThermalGrabowskiClark99Common<rt_params_t, ix, 2>;
       // function expecting a libmpdata solver parameters struct as argument
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -324,7 +325,8 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
@@ -332,7 +334,6 @@ namespace setup
 //        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
-        using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w); 
         real_t dz = (Z / si::metres) / (nz-1); 
         int nx = solver.advectee().extent(0); 
@@ -348,12 +349,12 @@ namespace setup
       }
     };
 
-    template<class concurr_t>
-    class MoistThermalGrabowskiClark99<concurr_t, 3> : public MoistThermalGrabowskiClark99Common<concurr_t>
+    template<class rt_params_t, class ix>
+    class MoistThermalGrabowskiClark99<rt_params_t, ix, 3> : public MoistThermalGrabowskiClark99Common<rt_params_t, ix, 3>
     {
-      public:
+      using parent_t = MoistThermalGrabowskiClark99Common<rt_params_t, ix, 3>;
       // function expecting a libmpdata solver parameters struct as argument
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -363,7 +364,8 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
@@ -371,7 +373,6 @@ namespace setup
 //        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
-        using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(2); 
         real_t dz = (Z / si::metres) / (nz-1); 
         int nx = solver.advectee().extent(0); 
