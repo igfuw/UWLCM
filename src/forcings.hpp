@@ -95,8 +95,9 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_sens()
 {
   const auto &ijk = this->ijk;
-  params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt, this->di, this->dj);
-  F(ijk).reindex(this->zero) = surf_flux_sens.reindex(this->hrzntl_zero)(blitz::tensor::i, blitz::tensor::j) 
+  auto &surf_flux = surf_fluxes.at(ix::th);
+  params.update_surf_flux_sens(surf_flux, this->timestep, this->dt, this->di, this->dj);
+  F(ijk).reindex(this->zero) = surf_flux.reindex(this->hrzntl_zero)(blitz::tensor::i, blitz::tensor::j) 
            * (*params.hgt_fctr_sclr)(this->vert_idx);
 }
 
@@ -104,8 +105,9 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_latent()
 {
   const auto &ijk = this->ijk;
-  params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt, this->di, this->dj);
-  F(ijk).reindex(this->zero) = surf_flux_lat.reindex(this->hrzntl_zero)(blitz::tensor::i, blitz::tensor::j)  
+  auto &surf_flux = surf_fluxes.at(ix::rv);
+  params.update_surf_flux_lat(surf_flux, this->timestep, this->dt, this->di, this->dj);
+  F(ijk).reindex(this->zero) = surf_flux.reindex(this->hrzntl_zero)(blitz::tensor::i, blitz::tensor::j)  
                                * (*params.hgt_fctr_sclr)(this->vert_idx);
 }
 
