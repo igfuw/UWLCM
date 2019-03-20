@@ -636,9 +636,12 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
 
   void hook_mixed_rhs_post_step()
   {
-    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after advection");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th at start of slvr_lgrngn::mixed_rhs_post_step");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_lgrngn::mixed_rhs_post_step");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th at start of slvr_lgrngn::mixed_rhs_post_step");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_lgrngn::mixed_rhs_post_step");
     this->update_rhs(this->rhs, this->dt, 1);
-    negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
+//    negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
     this->apply_rhs(this->dt);
     // no negtozero after apply, because only w changed here
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now

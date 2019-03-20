@@ -286,7 +286,8 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_post_step()
   {
-    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th at start of slvr_common::hook_post_step (i.e. after advection)");
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step (i.e. after advection)");
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
 
@@ -310,6 +311,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       }
     }
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at end of slvr_common::hook_post_step");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th at end of slvr_common::hook_post_step");
   }
 
   public:

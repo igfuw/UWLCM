@@ -21,6 +21,7 @@ class slvr_piggy<
 {
   private:
   bool save_vel; // should velocity field be stored for piggybacking
+  long long int save_vel_interval;
   setup::real_t prs_tol; // store a copy for output purposes
 
   protected:
@@ -54,13 +55,16 @@ class slvr_piggy<
   void hook_post_step()
   {
     parent_t::hook_post_step(); // includes changes of velocity field due to vip_rhs_impl_fnlz()
-    this->mem->barrier();
-    // save velocity field
-    if(this->rank==0 && save_vel)
+    if(save_vel && (this->timestep % save_vel_interval == 0))
     {
-      for (int d = 0; d < parent_t::n_dims; ++d)
+      this->mem->barrier();
+      if(this->rank==0)
       {
-        f_vel_out << this->state(this->vip_ixs[d]);
+        // save velocity field
+        for (int d = 0; d < parent_t::n_dims; ++d)
+        {
+          f_vel_out << this->state(this->vip_ixs[d]);
+        }
       }
     }
   }
@@ -68,6 +72,7 @@ class slvr_piggy<
   struct rt_params_t : parent_t::rt_params_t 
   {
     bool save_vel;
+    long long int save_vel_interval;
 
     // ctor
     rt_params_t()
@@ -77,11 +82,15 @@ class slvr_piggy<
         ("save_vel", po::value<bool>()->default_value(false), "should velocity field be stored for piggybacking")
       ;
       opts.add_options()
+        ("save_vel_interval", po::value<long long int>()->default_value(1), "per how many timesteps velocity field is stored for piggybacking")
+      ;
+      opts.add_options()
         ("prs_tol", po::value<setup::real_t>()->default_value(1e-6) , "pressure solver tolerance");
       po::variables_map vm;
       handle_opts(opts, vm);
           
       save_vel = vm["save_vel"].as<bool>();
+      save_vel_interval = vm["save_vel_interval"].as<long long int>();
       this->prs_tol = vm["prs_tol"].as<setup::real_t>();
     }
   };
@@ -93,6 +102,7 @@ class slvr_piggy<
   ) :
     parent_t(args, p),
     save_vel(p.save_vel),
+    save_vel_interval(p.save_vel_interval),
     prs_tol(p.prs_tol)
     {}
 };
@@ -168,6 +178,7 @@ class slvr_piggy<
         // read in through buffer, if done directly caused data races
         f_vel_in >> in_bfr;
         this->state(this->vip_ixs[d]) = in_bfr;
+        nancheck(this->state(this->vip_ixs[d]), "velocity field loaded from vel_in");
 //std::cout << this->state(this->vip_ixs[d]);
       }
     }
