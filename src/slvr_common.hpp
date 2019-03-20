@@ -32,6 +32,8 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   // an array with values of surface fluxes
   std::array<blitz::Array<real_t, parent_t::n_dims-1>, ct_params_t::n_eqns> surf_fluxes;
+  // horizontal velocity magnitude at ground level
+  blitz::Array<real_t, parent_t::n_dims-1> U_ground;
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -281,7 +283,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(this->rank == 0)
       tbeg = clock::now();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
-    typename parent_t::arr_sub_t U_ground(this->shape(this->hrzntl_subdomain));
     U_ground = this->calc_U_ground();
 
     // loop over horizontal dimensions
@@ -375,6 +376,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       surf_flux.resize(this->shape(this->hrzntl_subdomain));
       surf_flux.reindexSelf(this->hrzntl_origin);
     }
+    U_ground.resize(this->shape(this->hrzntl_subdomain));
     r_l = 0.;
   }
 
