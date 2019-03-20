@@ -286,13 +286,15 @@ namespace setup
         profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
       }
 
-      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
+      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, 
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_sens = 16.; // [W/m^2]
       }
 
-      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
+      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, 
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_lat = 93.; // [W/m^2]
