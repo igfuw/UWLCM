@@ -22,13 +22,16 @@ namespace setup
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
     const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
 
-    template<class concurr_t, int RF>
-    class DycomsCommon : public CasesCommon<concurr_t>
+    template<class case_ct_params_t, int RF, int n_dims>
+    class DycomsCommon : public CasesCommon<case_ct_params_t, n_dims>
     {
       static_assert(RF == 1 || RF == 2,
                     "only setups based on the first and the second DYCOMS research flights are available");
 
       protected:
+      using parent_t = CasesCommon<case_ct_params_t, n_dims>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
   
       // liquid water potential temperature at height z
       static quantity<si::temperature, real_t> th_l(const real_t &z)
@@ -129,9 +132,8 @@ namespace setup
       }
   
       template <class index_t>
-      void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
   
@@ -280,13 +282,13 @@ namespace setup
         profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
       }
 
-      void update_surf_flux_sens(typename concurr_t::solver_t::arr_t &surf_flux_sens, int timestep, real_t dt)
+      void update_surf_flux_sens(blitz::Array<real_t, n_dims> &surf_flux_sens, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
           surf_flux_sens = RF == 1 ? 15. : 16.; // [W/m^2]
           // for simulations with sgs scheme convert surface flux to required sign convention and units
-          if (concurr_t::solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles)
+          if (case_ct_params_t::enable_sgs)
           {
             auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
             surf_flux_sens /= -conv_fctr_sens; // [K * kg / (m^2 * s)]
@@ -294,13 +296,13 @@ namespace setup
         }
       }
 
-      void update_surf_flux_lat(typename concurr_t::solver_t::arr_t &surf_flux_lat, int timestep, real_t dt)
+      void update_surf_flux_lat(blitz::Array<real_t, n_dims> &surf_flux_lat, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
           surf_flux_lat = RF == 1 ? 115. : 93.; // [W/m^2]
           // for simulations with sgs scheme convert surface flux to required sign convention and units
-          if (concurr_t::solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles)
+          if (case_ct_params_t::enable_sgs)
           {
             auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
             surf_flux_lat /= -conv_fctr_lat; // [kg / (m^2 * s)]
@@ -322,13 +324,17 @@ namespace setup
       }
     };
     
-    template<class concurr_t, int RF, int n_dims>
+    template<class case_ct_params_t, int RF, int n_dims>
     class Dycoms;
 
-    template<class concurr_t, int RF>
-    class Dycoms<concurr_t, RF, 2> : public DycomsCommon<concurr_t, RF>
+    template<class case_ct_params_t, int RF>
+    class Dycoms<case_ct_params_t, RF, 2> : public DycomsCommon<case_ct_params_t, RF, 2>
     {
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      using parent_t = DycomsCommon<case_ct_params_t, RF, 2>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X[RF - 1] / si::metres) / (nps[0]-1); 
@@ -336,18 +342,21 @@ namespace setup
         params.dz = params.dj;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
         this->make_cyclic(solver.advectee(ix::th));
       }
     };
 
-    template<class concurr_t, int RF>
-    class Dycoms<concurr_t, RF, 3> : public DycomsCommon<concurr_t, RF>
+    template<class case_ct_params_t, int RF>
+    class Dycoms<case_ct_params_t, RF, 3> : public DycomsCommon<case_ct_params_t, RF, 3>
     {
+      using parent_t = DycomsCommon<case_ct_params_t, RF, 3>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
       // southerly wind
       struct v
       {
@@ -358,7 +367,7 @@ namespace setup
         BZ_DECLARE_FUNCTOR(v);
       };
 
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X[RF - 1] / si::metres) / (nps[0]-1); 
@@ -367,11 +376,11 @@ namespace setup
         params.dz = params.dk;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
         this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
