@@ -117,7 +117,7 @@ void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
   // TODO: buoyancy is now calculated twice, at n and at n+1, make it so that it is calculated once (will need to remove zeroing-out of w rhs in parent:update-rhs)
   buoyancy(th, rv);
   alpha(ijk) = 0.5 * F(ijk); // halved, because it is applied trapezoidaly
-  if(at == 0) // subsidence added explicitly, so updated only at n
+  if(at == 0 && params.vel_subsidence) // subsidence added explicitly, so updated only at n
   {
     // large-scale vertical wind
     subsidence(ix::w); 

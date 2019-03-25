@@ -104,6 +104,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params w_src", params.w_src);  
       this->record_aux_const("rt_params spinup", params.spinup);  
       this->record_aux_const("rt_params subsidence", params.subsidence);  
+      this->record_aux_const("rt_params vel_subsidence", params.vel_subsidence);  
       this->record_aux_const("rt_params coriolis", params.coriolis);  
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
@@ -206,8 +207,11 @@ class slvr_common : public slvr_dim<ct_params_t>
           for(auto type : this->hori_vel)
           {
             // subsidence
-            subsidence(type);
-            rhs.at(type)(ijk) += F(ijk);
+            if(params.vel_subsidence)
+            {
+              subsidence(type);
+              rhs.at(type)(ijk) += F(ijk);
+            }
 
             // Coriolis
             coriolis((type+1) % this->hori_vel.size());
@@ -217,7 +221,6 @@ class slvr_common : public slvr_dim<ct_params_t>
               rhs.at(type)(ijk) -= F(ijk);
           }
         }
-        
         break;
       }
       case (1):
@@ -354,6 +357,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, coriolis, friction, buoyancy_wet, radiation;
+    bool vel_subsidence = true; // should subsidence be also applied to velocitiy fields - False eg. in RICO
     bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
