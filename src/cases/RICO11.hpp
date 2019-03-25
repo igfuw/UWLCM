@@ -141,6 +141,7 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = true;
+        params.vel_subsidence = false;
         params.friction = true;
         params.coriolis = true;
         params.radiation = false;
