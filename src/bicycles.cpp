@@ -24,18 +24,28 @@ template <class solver_t, int n_dims>
 void run(const int (&nps)[n_dims], const user_params_t &user_params)
 {
   auto nz = nps[n_dims - 1];
+  
+  using concurr_any_t = concurr::any<
+    typename solver_t::real_t, 
+    n_dims
+  >;
 
   using concurr_openmp_cyclic_t = typename concurr_openmp_cyclic<solver_t, n_dims>::type;
   using concurr_openmp_rigid_t = typename concurr_openmp_rigid<solver_t, n_dims>::type;
   using concurr_openmp_cyclic_rigid_t = typename concurr_openmp_cyclic_rigid<solver_t, n_dims>::type;
-
-  using concurr_any_t = concurr::any<
-    typename solver_t::real_t, 
-    solver_t::n_dims
-  >;
+  
+  using rt_params_t = typename solver_t::rt_params_t;
+  using ix = typename solver_t::ix;
+  
+  struct case_ct_params_t
+  {
+    using rt_params_t = typename solver_t::rt_params_t;
+    using ix = typename solver_t::ix;
+    enum {enable_sgs = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
+  };
 
   using case_t = setup::CasesCommon<
-    concurr_openmp_cyclic_rigid_t
+    case_ct_params_t, n_dims
   >;
 
   using case_ptr_t = std::unique_ptr<
@@ -46,18 +56,18 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<concurr_openmp_cyclic_rigid_t, n_dims>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal<concurr_openmp_cyclic_rigid_t, n_dims>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "dycoms_rf01")
-    case_ptr.reset(new setup::dycoms::Dycoms<concurr_openmp_cyclic_rigid_t, 1, n_dims>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>()); 
   else if (user_params.model_case == "dycoms_rf02")
-    case_ptr.reset(new setup::dycoms::Dycoms<concurr_openmp_cyclic_rigid_t, 2, n_dims>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
-    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<concurr_openmp_cyclic_rigid_t, n_dims>()); 
+    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>()); 
 
   // instantiation of structure containing simulation parameters
-  typename solver_t::rt_params_t p;
+  rt_params_t p;
 
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
@@ -88,10 +98,10 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   setup::copy_profiles(profs, p);
 
   // set outvars
-  p.outvars.insert({solver_t::ix::rv, {"rv", "[kg kg-1]"}});
-  p.outvars.insert({solver_t::ix::th, {"th", "[K]"}});
-  p.outvars.insert({solver_t::ix::u, {"u", "[m/s]"}});
-  p.outvars.insert({solver_t::ix::w, {"w", "[m/s]"}});
+  p.outvars.insert({ix::rv, {"rv", "[kg kg-1]"}});
+  p.outvars.insert({ix::th, {"th", "[K]"}});
+  p.outvars.insert({ix::u, {"u", "[m/s]"}});
+  p.outvars.insert({ix::w, {"w", "[m/s]"}});
   if (n_dims > 2)
   {
     // WARNING: assumes certain ordering of variables to avoid tedious template programming !
@@ -104,24 +114,17 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed); // works only by chance?
   }
   else if(user_params.model_case == "lasher_trapp")
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed); // works only by chance?
   }
   else
   {
     concurr.reset(new concurr_openmp_cyclic_rigid_t(p));
-    case_ptr->intcond(*static_cast<concurr_openmp_cyclic_rigid_t*>(concurr.get()),
-                                                            profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e,
-                                                            user_params.rng_seed);
   }
+  
+  case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed);
 
   // setup panic pointer and the signal handler
   panic = concurr->panic_ptr();
