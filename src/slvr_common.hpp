@@ -30,8 +30,14 @@ class slvr_common : public slvr_dim<ct_params_t>
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
+  // array with sensible and latent heat surface flux
+  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_sens;
+  blitz::Array<real_t, parent_t::n_dims-1> surf_flux_lat;
+
+/*
   // an array with values of surface fluxes
   std::array<blitz::Array<real_t, parent_t::n_dims-1>, ct_params_t::n_eqns> surf_fluxes;
+  */
   // horizontal velocity magnitude at ground level
   blitz::Array<real_t, parent_t::n_dims-1> U_ground;
 
@@ -124,8 +130,12 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
  
     // initialize surf fluxes with timestep==0
+    params.update_surf_flux_sens(surf_flux_sens, 0, this->dt, this->di, this->dj);
+    params.update_surf_flux_lat(surf_flux_lat, 0, this->dt, this->di, this->dj);
+    /*
     params.update_surf_flux_sens(surf_fluxes.at(ix::th), 0, this->dt, this->di, this->dj);
     params.update_surf_flux_lat(surf_fluxes.at(ix::rv), 0, this->dt, this->di, this->dj);
+    */
   }
 
   void hook_ante_step()
@@ -283,6 +293,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(this->rank == 0)
       tbeg = clock::now();
     // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
+//    typename parent_t::arr_sub_t U_ground(this->shape(this->hrzntl_subdomain));
     U_ground = this->calc_U_ground();
 
     // loop over horizontal dimensions
@@ -371,11 +382,15 @@ class slvr_common : public slvr_dim<ct_params_t>
     F(args.mem->tmp[__FILE__][0][1])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    surf_flux_lat.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+/*
     for(auto&& surf_flux : surf_fluxes)
     {
       surf_flux.resize(this->shape(this->hrzntl_subdomain));
       surf_flux.reindexSelf(this->hrzntl_origin);
     }
+    */
     U_ground.resize(this->shape(this->hrzntl_subdomain));
     r_l = 0.;
   }
