@@ -83,10 +83,16 @@ namespace setup
     }
   }
 
-  template<class concurr_t>
+  template<class rt_params_t, class ix, int n_dims>
   class CasesCommon
   {
     public:
+
+    using concurr_any_t = libmpdataxx::concurr::any<
+      real_t, 
+      n_dims
+    >;
+
     ForceParameters_t ForceParameters;
 
     //th, rv and surface fluxes relaxation time and height
@@ -107,18 +113,17 @@ namespace setup
     // hygroscopicity kappa of the aerosol 
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
 
-    virtual void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
-    virtual void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
+    virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
+    virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
     virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) = 0;
 
-    virtual void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, 
+    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims - 1> &surf_flux_sens, 
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_sens = 0.;};
 
-    virtual void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, 
+    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims - 1> &surf_flux_lat, 
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
-
 
     // ctor
     // TODO: these are DYCOMS definitions, move them there

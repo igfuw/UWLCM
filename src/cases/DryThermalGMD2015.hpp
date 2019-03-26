@@ -17,12 +17,14 @@ namespace setup
   
     const real_t z_abs = 100000; // no absorber
 
-    template<class concurr_t>
-    class DryThermalCommon : public CasesCommon<concurr_t>
+    template<class rt_params_t, class ix, int n_dims>
+    class DryThermalCommon : public CasesCommon<rt_params_t, ix, n_dims>
     {
       protected:
+      
+      using parent_t = CasesCommon<rt_params_t, ix, n_dims>;
 
-      void setopts_hlpr(typename concurr_t::solver_t::rt_params_t &params, const user_params_t &user_params)
+      void setopts_hlpr(rt_params_t &params, const user_params_t &user_params)
       {
         params.outdir = user_params.outdir;
         params.outfreq = user_params.outfreq;
@@ -42,9 +44,8 @@ namespace setup
       }
   
       template <class index_t>
-      void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
         int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
@@ -110,14 +111,15 @@ namespace setup
     };
     
     // 2d/3d children
-    template<class concurr_t, int n_dims>
+    template<class rt_params_t, class ix, int n_dims>
     class DryThermal;
 
-    template<class concurr_t>
-    class DryThermal<concurr_t, 2> : public DryThermalCommon<concurr_t>
+    template<class rt_params_t, class ix>
+    class DryThermal<rt_params_t, ix, 2> : public DryThermalCommon<rt_params_t, ix, 2>
     {
+      using parent_t = DryThermalCommon<rt_params_t, ix, 2>;
       // function expecting a libmpdata solver parameters struct as argument
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -126,20 +128,20 @@ namespace setup
       }
   
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
       }
     };
 
-    template<class concurr_t>
-    class DryThermal<concurr_t, 3> : public DryThermalCommon<concurr_t>
+    template<class rt_params_t, class ix>
+    class DryThermal<rt_params_t, ix, 3> : public DryThermalCommon<rt_params_t, ix, 3>
     {
-      public:
+      using parent_t = DryThermalCommon<rt_params_t, ix, 3>;
       // function expecting a libmpdata solver parameters struct as argument
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -149,16 +151,17 @@ namespace setup
       }
 
       // function expecting a libmpdata++ solver as argument
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
     
-        using ix = typename concurr_t::solver_t::ix;
         solver.advectee(ix::v) = 0;
         solver.vab_relaxed_state(1) = 0;
       }
 
+      public:
       // TODO: make it work in 3d?
       DryThermal()
       {
