@@ -64,7 +64,9 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   else if (user_params.model_case == "dycoms_rf02")
     case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
-    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>()); 
+    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
+  else
+    throw std::runtime_error("wrong setup choice");
 
   // instantiation of structure containing simulation parameters
   rt_params_t p;
