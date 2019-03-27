@@ -8,9 +8,16 @@
 
 
 template <class ct_params_t>
-class slvr_blk_1m_common : public slvr_common<ct_params_t>
+class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                                     slvr_common<ct_params_t>,
+                                                     slvr_sgs<ct_params_t>
+                                                    >
 {
-  using parent_t = slvr_common<ct_params_t>;
+
+  using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                    slvr_common<ct_params_t>,
+                                    slvr_sgs<ct_params_t>
+                                   >;
 
   public:
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
@@ -73,6 +80,11 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   void rr_src();
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
+
+  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) final
+  {
+    return this->state(ix::rc);
+  }
 
   void record_all()
   {
@@ -240,6 +252,20 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   {
     //condevap(); // treat saturation adjustment as post-advection, pre-rhs adjustment
     parent_t::hook_post_step(); // includes the above forcings
+
+    if (ct_params_t::sgs_scheme != libmpdataxx::solvers::iles)
+    {
+      std::vector<int> vars;
+      if (params.user_params.rc_src)
+      {
+        vars.push_back(ix::rc);
+      }
+      if (params.user_params.rr_src)
+      {
+        vars.push_back(ix::rr);
+      }
+      this->sgs_scalar_forces(vars);
+    }
   }
 
   libcloudphxx::blk_1m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?

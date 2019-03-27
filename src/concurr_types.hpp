@@ -1,7 +1,15 @@
 #pragma once
 
+#include <libmpdata++/bcond/cyclic_2d.hpp>
+#include <libmpdata++/bcond/rigid_2d.hpp>
+#include <libmpdata++/bcond/open_2d.hpp>
+#include <libmpdata++/bcond/gndsky_2d.hpp>
+
 #include <libmpdata++/bcond/cyclic_3d.hpp>
+#include <libmpdata++/bcond/rigid_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
+#include <libmpdata++/bcond/gndsky_3d.hpp>
+
 #include <libmpdata++/concurr/openmp.hpp>
 
 template <class solver_t, int n_dims>
@@ -40,7 +48,7 @@ struct concurr_openmp_cyclic_rigid<solver_t, 2>
   using type = libmpdataxx::concurr::openmp<
     solver_t, 
     libmpdataxx::bcond::cyclic, libmpdataxx::bcond::cyclic,
-    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid 
+    libmpdataxx::bcond::gndsky, libmpdataxx::bcond::gndsky
   >;
 };
 
@@ -52,7 +60,7 @@ struct concurr_openmp_cyclic_rigid<solver_t, 3>
     solver_t, 
     libmpdataxx::bcond::cyclic, libmpdataxx::bcond::cyclic,
     libmpdataxx::bcond::cyclic, libmpdataxx::bcond::cyclic,
-    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid 
+    libmpdataxx::bcond::gndsky, libmpdataxx::bcond::gndsky
   >;
 };
 
