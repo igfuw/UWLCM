@@ -17,12 +17,14 @@ namespace setup
   
     const real_t z_abs = 100000; // no absorber
 
-    template<class rt_params_t, class ix, int n_dims>
-    class DryThermalCommon : public CasesCommon<rt_params_t, ix, n_dims>
+    template<class case_ct_params_t, int n_dims>
+    class DryThermalCommon : public CasesCommon<case_ct_params_t, n_dims>
     {
       protected:
       
-      using parent_t = CasesCommon<rt_params_t, ix, n_dims>;
+      using parent_t = CasesCommon<case_ct_params_t, n_dims>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
 
       void setopts_hlpr(rt_params_t &params, const user_params_t &user_params)
       {
@@ -116,13 +118,16 @@ namespace setup
     };
     
     // 2d/3d children
-    template<class rt_params_t, class ix, int n_dims>
+    template<class case_ct_params_t, int n_dims>
     class DryThermal;
 
-    template<class rt_params_t, class ix>
-    class DryThermal<rt_params_t, ix, 2> : public DryThermalCommon<rt_params_t, ix, 2>
+    template<class case_ct_params_t>
+    class DryThermal<case_ct_params_t, 2> : public DryThermalCommon<case_ct_params_t, 2>
     {
-      using parent_t = DryThermalCommon<rt_params_t, ix, 2>;
+      using parent_t = DryThermalCommon<case_ct_params_t, 2>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       // function expecting a libmpdata solver parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -141,10 +146,12 @@ namespace setup
       }
     };
 
-    template<class rt_params_t, class ix>
-    class DryThermal<rt_params_t, ix, 3> : public DryThermalCommon<rt_params_t, ix, 3>
+    template<class case_ct_params_t>
+    class DryThermal<case_ct_params_t, 3> : public DryThermalCommon<case_ct_params_t, 3>
     {
-      using parent_t = DryThermalCommon<rt_params_t, ix, 3>;
+      using parent_t = DryThermalCommon<case_ct_params_t, 3>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
       // function expecting a libmpdata solver parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
