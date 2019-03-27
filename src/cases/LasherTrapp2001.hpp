@@ -237,30 +237,30 @@ namespace setup
       }
 
       // functions that set surface fluxes per timestep
-      void update_surf_flux_sens(blitz::Array<real_t, n_dims - 1> &surf_flux_sens, 
+      void update_surf_flux_sens(blitz::Array<real_t, n_dims> &surf_flux_sens, 
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0) 
           surf_flux_sens = .1; // [K * m/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
-          if(surf_flux_sens.rank() == 2) // TODO: make it a compile-time decision
+          if(surf_flux_sens.rank() == 3) // TODO: make it a compile-time decision
             surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
-          else if(surf_flux_sens.rank() == 1)
+          else if(surf_flux_sens.rank() == 2)
             surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
         }
       }
       
-      void update_surf_flux_lat(blitz::Array<real_t, n_dims - 1> &surf_flux_lat,
+      void update_surf_flux_lat(blitz::Array<real_t, n_dims> &surf_flux_lat,
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0)
           surf_flux_lat = .4e-4; // [1/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
-          if(surf_flux_lat.rank() == 2) // TODO: make it a compile-time decision
+          if(surf_flux_lat.rank() == 3) // TODO: make it a compile-time decision
             surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
-          else if(surf_flux_lat.rank() == 1)
+          else if(surf_flux_lat.rank() == 2)
             surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
         }
       }
