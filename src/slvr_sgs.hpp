@@ -296,13 +296,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
     }
   }
 
-  void vip_rhs_expl_calc()
-  {
-    // intentionally avoid calling vip_rhs_expl_calc from slvr_common, 
-    // with sgs we dont want to explicitly add surface flux of momentum
-    parent_t::parent_t::vip_rhs_expl_calc(); 
-  }
-
   public:
 
   struct rt_params_t : parent_t::rt_params_t 
