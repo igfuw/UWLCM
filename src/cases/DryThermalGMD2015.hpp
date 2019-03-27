@@ -107,6 +107,7 @@ namespace setup
         profs.p_e = real_t(p / si::pascals); // total env pressure
 
         profs.th_ref = 300;
+        profs.w_LS = 0.; // no subsidence
       }
     };
     

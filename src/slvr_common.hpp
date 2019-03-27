@@ -124,8 +124,12 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("th_e", params.th_e->data()); 
       this->record_prof_const("p_e", params.p_e->data()); 
       this->record_prof_const("rv_e", params.rv_e->data()); 
+      this->record_prof_const("rl_e", params.rl_e->data()); 
       this->record_prof_const("th_ref", params.th_ref->data()); 
       this->record_prof_const("rhod", params.rhod->data()); 
+      this->record_prof_const("w_LS", params.w_LS->data()); 
+      this->record_prof_const("hgt_fctr_sclr", params.hgt_fctr_sclr->data()); 
+      this->record_prof_const("hgt_fctr_vctr", params.hgt_fctr_vctr->data()); 
       this->record_prof_const("u_geostr", params.geostr[0]->data()); 
       this->record_prof_const("v_geostr", params.geostr[1]->data()); 
     }

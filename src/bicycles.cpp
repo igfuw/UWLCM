@@ -77,7 +77,6 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   }
 
   case_ptr->setopts(p, nps, user_params);
-  setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
   setup::profiles_t profs(nz); 
@@ -87,6 +86,9 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   case_ptr->env_prof(profs, nz, user_params);
   // pass them to rt_params
   setup::copy_profiles(profs, p);
+
+  // set micro-specific options, needs to be done after copy_profiles
+  setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // set outvars
   p.outvars.insert({ix::rv, {"rv", "[kg kg-1]"}});

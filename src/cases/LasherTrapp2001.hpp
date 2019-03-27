@@ -226,6 +226,8 @@ namespace setup
         // for scalars
         z_0 = user_params.z_rlx_sclr;
         profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
+
+        profs.w_LS = 0.; // no subsidence
       }
 
       // functions that set surface fluxes per timestep
