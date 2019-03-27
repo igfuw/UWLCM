@@ -27,8 +27,6 @@ namespace setup
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
 
-  const real_t D =  3.75e-6; // large-scale wind horizontal divergence [1/s]
-
   // container for constants that appear in forcings, some are not needed in all cases, etc...
   // TODO: make forcing functions part of case class
   struct ForceParameters_t
@@ -132,7 +130,6 @@ namespace setup
       ForceParameters.F_0 = 70; // w/m^2
       ForceParameters.F_1 = 22; // w/m^2
       ForceParameters.q_i = 8e-3; // kg/kg
-      ForceParameters.D = D; // large-scale wind horizontal divergence [1/s]
       ForceParameters.rho_i = 1.12; // kg/m^3
       ForceParameters.u_fric = 0.25; // m/s; friction velocity
       ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
