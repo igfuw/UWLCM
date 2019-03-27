@@ -43,8 +43,10 @@ void slvr_common<ct_params_t>::rv_src()
 
     // large-scale vertical wind
     subsidence(ix::rv);
-    
     alpha(ijk) += F(ijk);
+
+    // large-scale horizontal advection
+    alpha(ijk).reindex(this->zero) += (*params.rv_LS)(this->vert_idx);
   }
   else
     alpha(ijk) = 0.;
@@ -99,6 +101,9 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     nancheck(F(ijk), "subsidence");
     alpha(ijk) += F(ijk);
     nancheck(alpha(ijk), "alpha in th_src");
+
+    // large-scale horizontal advection
+    alpha(ijk).reindex(this->zero) += (*params.th_LS)(this->vert_idx);
   }
   else
     alpha(ijk) = 0.;

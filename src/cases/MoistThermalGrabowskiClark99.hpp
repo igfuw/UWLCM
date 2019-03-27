@@ -301,6 +301,8 @@ namespace setup
         profs.th_ref = profs.th_e;//th_std_fctr(th_std_0 / si::kelvins)(k * dz);
 
         profs.w_LS = 0.; // no subsidence
+        profs.th_LS = 0.; // no large-scale horizontal advection
+        profs.rv_LS = 0.; 
       }
 
       // ctor

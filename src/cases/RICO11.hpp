@@ -98,6 +98,29 @@ namespace setup
       BZ_DECLARE_FUNCTOR(w_LS_fctr);
     };
   
+    // large-scale horizontal advection of th + radiative cooling [K/s]
+    struct th_LS_fctr
+    {
+      real_t operator()(const real_t &z) const
+      {
+        return -2.5 / 86400;
+      }
+      BZ_DECLARE_FUNCTOR(th_LS_fctr);
+    };
+  
+    // large-scale horizontal advection of rv [1/s]
+    struct rv_LS_fctr
+    {
+      real_t operator()(const real_t &z) const
+      {
+        real_t rv_LS = z < 2980 ?
+          -1. / 86400 + (1.3456 / 86400) * z / 2980 :
+          4e-6;
+        return rv_LS * 1e-3; 
+      }
+      BZ_DECLARE_FUNCTOR(rv_LS_fctr);
+    };
+  
     // density profile as a function of altitude
     // hydrostatic and assuming constant theta (not used now)
 /*    struct rhod_fctr
@@ -302,6 +325,9 @@ namespace setup
   
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
+        // large-scale horizontal advection
+        profs.th_LS = th_LS_fctr()(k * dz);
+        profs.rv_LS = rv_LS_fctr()(k * dz);
   
         // calc surf flux divergence directly
         real_t z_0 = z_rlx_vctr / si::metres;
