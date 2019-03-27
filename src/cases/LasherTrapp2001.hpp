@@ -44,12 +44,14 @@ namespace setup
       return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
     }
 
-    template<class rt_params_t, class ix, int n_dims>
-    class LasherTrapp2001Common : public CasesCommon<rt_params_t, ix, n_dims>
+    template<class case_ct_params_t, int n_dims>
+    class LasherTrapp2001Common : public CasesCommon<case_ct_params_t, n_dims>
     {
 
       protected:
-      using parent_t = CasesCommon<rt_params_t, ix, n_dims>;
+      using parent_t = CasesCommon<case_ct_params_t, n_dims>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -279,13 +281,16 @@ namespace setup
       }
     };
     
-    template<class rt_params_t, class ix, int n_dims>
+    template<class case_ct_params_t, int n_dims>
     class LasherTrapp2001;
 
-    template<class rt_params_t, class ix>
-    class LasherTrapp2001<rt_params_t, ix, 2> : public LasherTrapp2001Common<rt_params_t, ix, 2>
+    template<class case_ct_params_t>
+    class LasherTrapp2001<case_ct_params_t, 2> : public LasherTrapp2001Common<case_ct_params_t, 2>
     {
-      using parent_t = LasherTrapp2001Common<rt_params_t, ix, 2>;
+      using parent_t = LasherTrapp2001Common<case_ct_params_t, 2>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -303,10 +308,13 @@ namespace setup
       }
     };
 
-    template<class rt_params_t, class ix>
-    class LasherTrapp2001<rt_params_t, ix, 3> : public LasherTrapp2001Common<rt_params_t, ix, 3>
+    template<class case_ct_params_t>
+    class LasherTrapp2001<case_ct_params_t, 3> : public LasherTrapp2001Common<case_ct_params_t, 3>
     {
-      using parent_t = LasherTrapp2001Common<rt_params_t, ix, 3>;
+      using parent_t = LasherTrapp2001Common<case_ct_params_t, 3>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);

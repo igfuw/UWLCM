@@ -272,30 +272,28 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
       record_flux(s);
     
-      this->rhs.at(s)(this->ijk) += 2 * formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
-                                          tmp_grad,
-                                          *this->mem->G,
-                                          this->ijk,
-                                          this->dijk
+      this->rhs.at(s)(this->ijk) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
+                                      tmp_grad,
+                                      *this->mem->G,
+                                      this->ijk,
+                                      this->dijk
                                     );
     }
   }
 
-  void hook_ante_loop(int nt) 
-  {
-    parent_t::hook_ante_loop(nt); 
-  }
+  void update_rhs(
+    libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
+    const typename parent_t::real_t &dt,
+    const int &at 
+  ) {
+    parent_t::update_rhs(rhs, dt, at);
 
-  void hook_ante_step()
-  {
-    parent_t::hook_ante_step(); 
-  }
-
-  void hook_post_step()
-  {
-    parent_t::hook_post_step();
-    save_sgs_fields();
-    sgs_scalar_forces({ix::th, ix::rv});
+    // explicit application of subgrid forcings
+    if(at == 0)
+    {
+      save_sgs_fields();
+      sgs_scalar_forces({ix::th, ix::rv});
+    }
   }
 
   void vip_rhs_expl_calc()

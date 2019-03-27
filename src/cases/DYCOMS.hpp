@@ -25,7 +25,6 @@ namespace setup
   
     template<class case_ct_params_t, int RF, int n_dims>
     class DycomsCommon : public CasesCommon<case_ct_params_t, n_dims>
-
     {
       static_assert(RF == 1 || RF == 2,
                     "only setups based on the first and the second DYCOMS research flights are available");
@@ -339,13 +338,16 @@ namespace setup
       }
     };
     
-    template<class concurr_t, int RF, int n_dims>
+    template<class case_ct_params_t, int RF, int n_dims>
     class Dycoms;
 
-    template<class concurr_t, int RF>
-    class Dycoms<concurr_t, RF, 2> : public DycomsCommon<concurr_t, RF>
+    template<class case_ct_params_t, int RF>
+    class Dycoms<case_ct_params_t, RF, 2> : public DycomsCommon<case_ct_params_t, RF, 2>
     {
-      using parent_t = Dycoms98Common<rt_params_t, ix, 2>;
+      using parent_t = DycomsCommon<case_ct_params_t, RF, 2>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -363,9 +365,12 @@ namespace setup
       }
     };
 
-    template<class concurr_t, int RF>
-    class Dycoms<concurr_t, RF, 3> : public DycomsCommon<concurr_t, RF>
+    template<class case_ct_params_t, int RF>
+    class Dycoms<case_ct_params_t, RF, 3> : public DycomsCommon<case_ct_params_t, RF, 3>
     {
+      using parent_t = DycomsCommon<case_ct_params_t, RF, 3>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
       // southerly wind
       struct v
       {
@@ -376,7 +381,7 @@ namespace setup
         BZ_DECLARE_FUNCTOR(v);
       };
 
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X[RF - 1] / si::metres) / (nps[0]-1); 
