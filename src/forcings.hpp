@@ -109,7 +109,7 @@ void slvr_common<ct_params_t>::surf_sens_impl(iles_tag)
 template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_sens_impl(smg_tag)
 {
-  params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt);
+  params.update_surf_flux_sens(surf_flux_sens, this->timestep, this->dt, this->di, this->dj);
   F(this->ijk) = 0;
 }
 
@@ -137,7 +137,7 @@ void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
 template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_latent_impl(smg_tag)
 {
-  params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt);
+  params.update_surf_flux_lat(surf_flux_lat, this->timestep, this->dt, this->di, this->dj);
   F(this->ijk) = 0;
 }
 
