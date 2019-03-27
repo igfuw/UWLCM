@@ -140,11 +140,11 @@ namespace setup
     
     virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) = 0;
 
-    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> &surf_flux_sens, 
+    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens, 
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_sens = 0.;};
 
-    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims>  &surf_flux_lat, 
+    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims>  surf_flux_lat, 
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
 
