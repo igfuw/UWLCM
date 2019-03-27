@@ -62,7 +62,12 @@ class PlotterCommon
       timesteps.resize(n);
       h5d.read(timesteps.data(), H5::PredType::NATIVE_FLOAT);
       // read output frequency
-      map["outfreq"] = (timesteps(1) - timesteps(0)) / dt;
+      float outfreq;
+      {
+        auto attr = h5f.openAttribute("user_params outfreq");
+        attr.read(attr.getDataType(), &outfreq);
+      }
+      map["outfreq"] = outfreq;
     }
   }
 };
