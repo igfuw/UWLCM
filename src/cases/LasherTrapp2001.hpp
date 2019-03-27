@@ -70,6 +70,8 @@ namespace setup
         params.friction = true;
         params.coriolis = false;
         params.radiation = false;
+
+        this->setopts_sgs(params);
       }
   
   

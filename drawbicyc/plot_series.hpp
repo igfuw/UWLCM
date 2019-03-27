@@ -543,6 +543,40 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }
+      else if (plt == "tke")
+      {
+        try
+        {
+          auto u = plotter.h5load_timestep("u", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(u);
+          plotter.subtract_horizontal_mean(snap);
+          snap = rhod * snap * snap;
+          auto mean = plotter.horizontal_mean(snap);
+          res_prof(at) = blitz::sum(mean);
+
+          {
+            auto w = plotter.h5load_timestep("w", at * n["outfreq"]);
+            snap = w;
+            plotter.subtract_horizontal_mean(snap);
+            snap = rhod * snap * snap;
+            auto mean = plotter.horizontal_mean(snap);
+            res_prof(at) += blitz::sum(mean);
+          }
+        
+          if (Plotter_t::n_dims > 2)
+          {
+            auto v = plotter.h5load_timestep("v", at * n["outfreq"]);
+            snap = v;
+            plotter.subtract_horizontal_mean(snap);
+            snap = rhod * snap * snap;
+            auto mean = plotter.horizontal_mean(snap);
+            res_prof(at) += blitz::sum(mean);
+          }
+          
+          res_prof(at) *= 0.5 * n["dz"];
+        }
+        catch(...) {;}
+      }
       else assert(false);
     } // time loop
 
@@ -770,6 +804,12 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set title 'entrainment rate [cm / s]'\n";
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
+    }
+    else if (plt == "tke")
+    {
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+      gp << "set title 'turbulent kinetic energy (resolved) [kg / s^2]'\n";
     }
 
     gp << "plot '-' with l";

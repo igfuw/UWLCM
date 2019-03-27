@@ -41,6 +41,8 @@ namespace setup
         params.friction = false;
         params.coriolis = false;
         params.radiation = false;
+
+        this->setopts_sgs(params);
       }
   
       template <class index_t>

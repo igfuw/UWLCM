@@ -6,9 +6,10 @@ const std::vector<std::string> series_dycoms({
 //"mass_dry", 
  "acc_precip",
  "cl_nc",
- "cloud_base"
+ "cloud_base",
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
+ "tke"
 });
 
 const std::vector<std::string> series_moist_thermal({
@@ -32,8 +33,11 @@ const std::vector<std::string> series_moist_thermal({
 //"th_com"
 });
 
+const std::vector<std::string> series_sgs({
+});
+
 std::vector<std::string> profs_dycoms({
-"00rtot", "rliq", "thl", "wvar", 
+"00rtot", "rliq", /*"thl",*/ "wvar", 
 "w3rd", "prflux"
 ,"clfrac"
 //, "N_c", 
@@ -44,6 +48,15 @@ std::vector<std::string> profs_dycoms({
 //, "act_conc_up" 
 //, "nc_down" 
 }); // rtot has to be first
+
+std::vector<std::string> profs_sgs({
+ "tke"
+,"k_m"
+,"sgs_tht_flux"
+,"sgs_rv_flux"
+//,"sgs_rc_flux"
+,"sgs_u_flux"
+});
 
 std::vector<std::string> profs_moist_thermal({
 }); // rtot has to be first
@@ -75,13 +88,19 @@ std::vector<std::string> fields_moist_thermal({
 class Plots
 {
   public:
-    const std::vector<std::string> series;
-    const std::vector<std::string> profs;
-    const std::vector<std::string> fields;
+    std::vector<std::string> series;
+    std::vector<std::string> profs;
+    std::vector<std::string> fields;
 
-  Plots(const std::string &type):
+  Plots(const std::string &type, bool sgs):
     series(type == "dycoms" ? series_dycoms : series_moist_thermal),
     profs(type == "dycoms" ? profs_dycoms : profs_moist_thermal),
     fields(type == "dycoms" ? fields_dycoms : fields_moist_thermal)
-  {}
+  {
+    if (sgs)
+    {
+      profs.insert(profs.end(), profs_sgs.begin(), profs_sgs.end());
+      series.insert(series.end(), series_sgs.begin(), series_sgs.end());
+    }
+  }
 };

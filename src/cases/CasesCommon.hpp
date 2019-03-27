@@ -6,6 +6,8 @@
 #include <libcloudph++/common/theta_std.hpp>
 #include <libcloudph++/common/theta_dry.hpp>
 
+#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
+
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
 
@@ -18,6 +20,7 @@ struct user_params_t
   setup::real_t dt, z_rlx_sclr;
   std::string outdir, model_case;
   bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
+  setup::real_t sgs_delta;
 };
 
 
@@ -40,13 +43,13 @@ namespace setup
   // TODO: try a different design where it is not necessary ?
   struct profiles_t
   {
-    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr, th_LS, rv_LS;
+    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr, th_LS, rv_LS, mix_len;
     std::array<arr_1D_t, 2> geostr;
 
     profiles_t(int nz) :
     // rhod needs to be bigger, cause it divides vertical courant number
     // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), th_LS(nz), rv_LS(nz)
+      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), th_LS(nz), rv_LS(nz), mix_len(nz)
     {
       geostr[0].resize(nz);
       geostr[1].resize(nz);
@@ -54,7 +57,7 @@ namespace setup
   };
   struct profile_ptrs_t
   {
-    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *geostr[2], *th_LS, *rv_LS;
+    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *geostr[2], *th_LS, *rv_LS, *mix_len;
   };
   // copy external profiles into rt_parameters
   // TODO: more elegant way
@@ -74,7 +77,8 @@ namespace setup
       {p.th_LS        , profs.th_LS        },
       {p.rv_LS        , profs.rv_LS        },
       {p.geostr[0]    , profs.geostr[0]    },
-      {p.geostr[1]    , profs.geostr[1]    }
+      {p.geostr[1]    , profs.geostr[1]    },
+      {p.mix_len      , profs.mix_len      }
     };
 
     for (auto dst_src : tobecopied)
@@ -83,10 +87,13 @@ namespace setup
     }
   }
 
-  template<class rt_params_t, class ix, int n_dims>
+  template<class case_ct_params_t, int n_dims>
   class CasesCommon
   {
     public:
+
+    using ix = typename case_ct_params_t::ix;
+    using rt_params_t = typename case_ct_params_t::rt_params_t;
 
     using concurr_any_t = libmpdataxx::concurr::any<
       real_t, 
@@ -112,15 +119,31 @@ namespace setup
     // hygroscopicity kappa of the aerosol 
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
 
+    template<bool enable_sgs = case_ct_params_t::enable_sgs>
+    void setopts_sgs(rt_params_t &params,
+                     typename std::enable_if<!enable_sgs>::type* = 0)
+    {}
+
+    template<bool enable_sgs = case_ct_params_t::enable_sgs>
+    void setopts_sgs(rt_params_t &params,
+                     typename std::enable_if<enable_sgs>::type* = 0)
+    {
+      params.c_m = 0.0856;
+      params.smg_c = 0.165;
+      params.prandtl_num = 0.42;
+      params.cdrag = 0.;
+    }
+
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
+    
     virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) = 0;
 
-    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims - 1> &surf_flux_sens, 
+    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> &surf_flux_sens, 
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_sens = 0.;};
 
-    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims - 1> &surf_flux_lat, 
+    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims>  &surf_flux_lat, 
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
 

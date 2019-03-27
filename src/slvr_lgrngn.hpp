@@ -1,5 +1,5 @@
 #pragma once
-#include "slvr_common.hpp"
+#include "slvr_sgs.hpp"
 #include "outmom.hpp"
 
 #include <libcloudph++/lgrngn/factory.hpp>
@@ -9,9 +9,15 @@
 #endif
 
 template <class ct_params_t>
-class slvr_lgrngn : public slvr_common<ct_params_t>
+class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                              slvr_common<ct_params_t>,
+                                              slvr_sgs<ct_params_t>
+                                             >
 {
-  using parent_t = slvr_common<ct_params_t>; 
+  using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                    slvr_common<ct_params_t>,
+                                    slvr_sgs<ct_params_t>
+                                   >;
 
   public:
   using ix = typename ct_params_t::ix;
@@ -240,6 +246,21 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     params.cloudph_opts.coal = val ? params.flag_coal : false;
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
   };
+  
+  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t& tmp) final
+  {
+    if (this->rank == 0)
+    {
+      prtcls->diag_wet_rng(.5e-6, 25.e-6);
+      prtcls->diag_wet_mom(3);
+      auto rc = tmp(this->domain);
+      rc = typename parent_t::arr_t(prtcls->outbuf(), rc.shape(), blitz::duplicateData);
+      nancheck(rc, "rc after copying in in get_rc");
+      rc = rc * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    }
+    this->mem->barrier();
+    return tmp;
+  }
 
   // deals with nitial supersaturation
   void hook_ante_loop(int nt)
