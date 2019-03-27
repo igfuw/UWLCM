@@ -40,13 +40,13 @@ namespace setup
   // TODO: try a different design where it is not necessary ?
   struct profiles_t
   {
-    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr;
+    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr, th_LS, rv_LS;
     std::array<arr_1D_t, 2> geostr;
 
     profiles_t(int nz) :
     // rhod needs to be bigger, cause it divides vertical courant number
     // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz)
+      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), th_LS(nz), rv_LS(nz)
     {
       geostr[0].resize(nz);
       geostr[1].resize(nz);
@@ -54,7 +54,7 @@ namespace setup
   };
   struct profile_ptrs_t
   {
-    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *geostr[2];
+    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *geostr[2], *th_LS, *rv_LS;
   };
   // copy external profiles into rt_parameters
   // TODO: more elegant way
@@ -71,6 +71,8 @@ namespace setup
       {p.th_ref       , profs.th_ref       },
       {p.rhod         , profs.rhod         },
       {p.w_LS         , profs.w_LS         },
+      {p.th_LS        , profs.th_LS        },
+      {p.rv_LS        , profs.rv_LS        },
       {p.geostr[0]    , profs.geostr[0]    },
       {p.geostr[1]    , profs.geostr[1]    }
     };

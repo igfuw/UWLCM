@@ -228,6 +228,8 @@ namespace setup
         profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
 
         profs.w_LS = 0.; // no subsidence
+        profs.th_LS = 0.; // no large-scale horizontal advection
+        profs.rv_LS = 0.; 
       }
 
       // functions that set surface fluxes per timestep

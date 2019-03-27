@@ -278,6 +278,8 @@ namespace setup
   
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
+        profs.th_LS = 0.; // no large-scale horizontal advection
+        profs.rv_LS = 0.; 
   
         // calc surf flux divergence directly
         real_t z_0 = z_rlx_vctr / si::metres;
