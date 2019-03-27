@@ -237,7 +237,7 @@ namespace setup
       }
 
       // functions that set surface fluxes per timestep
-      void update_surf_flux_sens(blitz::Array<real_t, n_dims> &surf_flux_sens, 
+      void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens, 
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0) 
@@ -251,7 +251,7 @@ namespace setup
         }
       }
       
-      void update_surf_flux_lat(blitz::Array<real_t, n_dims> &surf_flux_lat,
+      void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0)

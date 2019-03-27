@@ -144,8 +144,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
  
     // initialize surf fluxes with timestep==0
-    params.update_surf_flux_sens(surf_flux_sens, 0, this->dt, this->di, this->dj);
-    params.update_surf_flux_lat(surf_flux_lat, 0, this->dt, this->di, this->dj);
+    params.update_surf_flux_sens(surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
+    params.update_surf_flux_lat(surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
     /*
     params.update_surf_flux_sens(surf_fluxes.at(ix::th), 0, this->dt, this->di, this->dj);
     params.update_surf_flux_lat(surf_fluxes.at(ix::rv), 0, this->dt, this->di, this->dj);
@@ -385,8 +385,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
 
     // functions for updating surface fluxes per timestep
-    std::function<void(typename parent_t::arr_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens;
-    std::function<void(typename parent_t::arr_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_lat;
+    std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens;
+    std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_lat;
   };
 
   // per-thread copy of params
