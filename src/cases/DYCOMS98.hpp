@@ -22,6 +22,7 @@ namespace setup
     const real_t z_abs = 1250;
     const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
+    const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
   
     // liquid water potential temperature at height z
     quantity<si::temperature, real_t> th_l(const real_t &z)
@@ -311,6 +312,7 @@ namespace setup
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
+        this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
       }
     };
     
