@@ -47,7 +47,7 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     // calc sum of r_l above certain level and store it in tmp1
     tmp1(ijk) = r_l(ijk);
   
-    tmp1(ijk).reindex(this->zero) *= params.ForceParameters.heating_kappa * (*params.rhod)(this->vert_idx);
+    tmp1(ijk).reindex(this->zero) *= -params.dz * params.ForceParameters.heating_kappa * (*params.rhod)(this->vert_idx);
   
     for(int z = nz-2 ; z >= 0; --z)
       tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z+1, this->hrzntl_subdomain));
@@ -56,16 +56,12 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     auto noground = idxperm::pi<perm_no>(rng_t(1, nz-1), this->hrzntl_subdomain);
     auto notop = idxperm::pi<perm_no>(rng_t(0, nz-2), this->hrzntl_subdomain);
   
-    // multiply by distance from the bottom of the cell to the top of the domain
-    tmp1(ground) *= - (nz - 1) * params.dz * tmp1(ground);
-    tmp1(noground).reindex(this->zero) *= - (nz - this->vert_idx - 1.5) * params.dz;  // vert_idx starts from 0, but its 2nd cell from ground; do not merge this line with F_0 * exp(...) since it gives some strange values!
-  
     F(ijk) = params.ForceParameters.F_0 * exp(tmp1(ijk)); 
   
     // calc sum of r_l below certain level and store it in tmp1
     tmp1(ijk) = r_l(ijk);
   
-    tmp1(ijk).reindex(this->zero) *= params.ForceParameters.heating_kappa * (*params.rhod)(this->vert_idx);
+    tmp1(ijk).reindex(this->zero) *= - params.dz * params.ForceParameters.heating_kappa * (*params.rhod)(this->vert_idx);
   
     // copy one cell upwards
     for(int z = nz-1 ; z >= 1; --z)
@@ -74,10 +70,7 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
   
     for(int z = 1 ; z <= nz-1; ++z)
       tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z-1, this->hrzntl_subdomain));
-  
-    // multiply by distance from the bottom of the cell to the bottom of the domain
-    tmp1(noground).reindex(this->zero) *= - (this->vert_idx + 0.5) * params.dz;
-    tmp1(ground) = 0.;
+
     F(ijk) += params.ForceParameters.F_1 * exp(tmp1(ijk));
   
     // free atmosphere part

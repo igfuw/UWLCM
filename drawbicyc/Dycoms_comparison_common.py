@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from bisect import bisect_left
 from matplotlib import rc
+import os
 
 labeldict = {
  0 : "(a)",
@@ -43,8 +44,9 @@ def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None,
 
 def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True, ylabel=''):
   # read dycoms results
-  dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.profiles.nc", "r")
-  dycoms_series_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  dycoms_file = netcdf.netcdf_file(dir_path+"/DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.profiles.nc", "r")
+  dycoms_series_file = netcdf.netcdf_file(dir_path+"/DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
   time = dycoms_file.variables["time"][:].copy() 
   zt = dycoms_file.variables["zt"][:,1,1,:].copy() 
   nzt = dycoms_file.variables["nzt"][:,1,1].copy()
@@ -252,7 +254,8 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
 def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', xlabel=''):
 
   # read dycoms results
-  dycoms_file = netcdf.netcdf_file("DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  dycoms_file = netcdf.netcdf_file(dir_path+"/DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
   time = dycoms_file.variables["time"][:,1,1,:].copy() 
   ntime = dycoms_file.variables["ntime"][:,1,1].copy()
   
