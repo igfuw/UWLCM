@@ -1,6 +1,10 @@
 //TODO: move calc_forces and forcings to case class?
 #pragma once
-#include "forcings.hpp"
+#include "forcings/buoyancy.hpp"
+#include "forcings/coriolis.hpp"
+#include "forcings/radiation.hpp"
+#include "forcings/subsidence.hpp"
+#include "forcings/surface_fluxes.hpp"
 
 // helper functors
 struct calc_c_p
