@@ -103,7 +103,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);  
       this->record_aux_const("user_params spinup", params.user_params.spinup);  
       this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);  
-      this->record_aux_const("user_params z_rlx_sclr", params.user_params.z_rlx_sclr);  
       this->record_aux_const("user_params th_src", params.user_params.th_src);  
       this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
       this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
@@ -139,8 +138,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("th_ref", params.th_ref->data()); 
       this->record_prof_const("rhod", params.rhod->data()); 
       this->record_prof_const("w_LS", params.w_LS->data()); 
-      this->record_prof_const("hgt_fctr_sclr", params.hgt_fctr_sclr->data()); 
-      this->record_prof_const("hgt_fctr_vctr", params.hgt_fctr_vctr->data()); 
+      this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
       this->record_prof_const("u_geostr", params.geostr[0]->data()); 
       this->record_prof_const("v_geostr", params.geostr[1]->data()); 
     }

@@ -20,7 +20,7 @@ namespace setup
     const quantity<si::length, real_t> Y[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
     const real_t z_abs = 1250;
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
-    const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
+    const quantity<si::length, real_t> z_rlx = 25 * si::metres;
     const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
   
     template<class case_ct_params_t, int RF, int n_dims>
@@ -269,11 +269,8 @@ namespace setup
         profs.rv_LS = 0.; 
   
         // calc surf flux divergence directly
-        real_t z_0 = z_rlx_vctr / si::metres;
-        profs.hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
-        // for scalars
-        z_0 = user_params.z_rlx_sclr;
-        profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
+        real_t z_0 = z_rlx / si::metres;
+        profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
 
         real_t sgs_delta;
         if (user_params.sgs_delta > 0)

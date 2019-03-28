@@ -26,7 +26,7 @@ namespace setup
       Y    = 12800 * si::metres; 
     const real_t z_abs = 3500;
 //    const real_t z_i = 795; //initial inversion height
-    const quantity<si::length, real_t> z_rlx_vctr = 25 * si::metres;
+    const quantity<si::length, real_t> z_rlx = 25 * si::metres;
   
     // liquid water potential temperature at height z
     quantity<si::temperature, real_t> th_l(const real_t &z)
@@ -330,11 +330,8 @@ namespace setup
         profs.rv_LS = rv_LS_fctr()(k * dz);
   
         // calc surf flux divergence directly
-        real_t z_0 = z_rlx_vctr / si::metres;
-        profs.hgt_fctr_vctr = exp(- k * dz / z_0) / z_0;
-        // for scalars
-        z_0 = user_params.z_rlx_sclr;
-        profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
+        real_t z_0 = z_rlx / si::metres;
+        profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
