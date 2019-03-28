@@ -180,8 +180,16 @@ class slvr_common : public slvr_dim<ct_params_t>
   void surf_latent_impl(smg_tag);
   void surf_latent_impl(iles_tag);
 
+  void surf_u_impl(smg_tag);
+  void surf_u_impl(iles_tag);
+
+  void surf_v_impl(smg_tag);
+  void surf_v_impl(iles_tag);
+
   void surf_sens();
   void surf_latent();
+  void surf_u();
+  void surf_v();
 
   void subsidence(const int&);
   void coriolis(const int&);
@@ -227,6 +235,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         {
           for(auto type : this->hori_vel)
           {
+            // TODO: move these to uv_src
             // subsidence
             if(params.vel_subsidence)
             {
@@ -241,6 +250,37 @@ class slvr_common : public slvr_dim<ct_params_t>
             else
               rhs.at(type)(ijk) -= F(ijk);
           }
+
+          // surface flux
+          if(params.friction)
+          {
+            U_ground = this->calc_U_ground();
+            for(auto type : this->hori_vel)
+            {
+              surf_uv(type);
+              rhs.at(type)(ijk) += F(ijk);
+            }
+          }
+
+    // =====================================
+            /*
+            // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
+            U_ground = this->calc_U_ground();
+        
+            // loop over horizontal dimensions
+            for(int it = 0; it < parent_t::n_dims-1; ++it)
+            {
+              this->vip_rhs[it](this->ijk).reindex(this->zero) += 
+                where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
+                  -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
+                  this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
+                  U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
+                  (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+                );
+            }
+            */
+          }
+    // =====================================
         }
         break;
       }
@@ -306,41 +346,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
   }
 
-
-  void vip_rhs_expl_calc()
-  {
-    parent_t::vip_rhs_expl_calc();
-
-    if(!params.friction) return;
-  
-    this->mem->barrier();
-    if(this->rank == 0)
-      tbeg = clock::now();
-    // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
-//    typename parent_t::arr_sub_t U_ground(this->shape(this->hrzntl_subdomain));
-    U_ground = this->calc_U_ground();
-
-    // loop over horizontal dimensions
-    for(int it = 0; it < parent_t::n_dims-1; ++it)
-    {
-      this->vip_rhs[it](this->ijk).reindex(this->zero) += 
-        where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
-          -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
-          this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-          U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
-        );
-    }
-
-    this->mem->barrier();
-    if(this->rank == 0)
-    {
-      for(int it = 0; it < parent_t::n_dims-1; ++it)
-        {nancheck(this->vip_rhs[it](this->domain), (std::string("vip_rhs after vip_rhs_expl_calc type: ") + std::to_string(it)).c_str());} 
-      tend = clock::now();
-      tvip_rhs += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-    }
-  }
 
   void hook_post_step()
   {
