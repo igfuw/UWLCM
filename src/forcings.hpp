@@ -70,6 +70,8 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
   
     for(int z = 1 ; z <= nz-1; ++z)
       tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z-1, this->hrzntl_subdomain));
+
+    F(ijk) += params.ForceParameters.F_1 * exp(tmp1(ijk));
   
     // free atmosphere part
     F(ijk).reindex(this->zero) += where(this->vert_idx > k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j),  // works even in 2D ?!?!
