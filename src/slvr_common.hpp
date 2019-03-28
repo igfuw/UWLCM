@@ -37,6 +37,8 @@ class slvr_common : public slvr_dim<ct_params_t>
   // array with sensible and latent heat surface flux
   blitz::Array<real_t, parent_t::n_dims> &surf_flux_sens;
   blitz::Array<real_t, parent_t::n_dims> &surf_flux_lat;
+  blitz::Array<real_t, parent_t::n_dims> &surf_flux_u;
+  blitz::Array<real_t, parent_t::n_dims> &surf_flux_v;
   // surface flux array filled with zeros ... TODO: add a way to set zero flux directly in libmpdata
   blitz::Array<real_t, parent_t::n_dims> &surf_flux_zero;
 
@@ -146,10 +148,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     // initialize surf fluxes with timestep==0
     params.update_surf_flux_sens(surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
     params.update_surf_flux_lat(surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
-    /*
-    params.update_surf_flux_sens(surf_fluxes.at(ix::th), 0, this->dt, this->di, this->dj);
-    params.update_surf_flux_lat(surf_fluxes.at(ix::rv), 0, this->dt, this->di, this->dj);
-    */
+    params.update_surf_flux_u(surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
+    params.update_surf_flux_v(surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
   }
 
   void hook_ante_step()
@@ -387,6 +387,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens;
     std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_lat;
+    std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_u;
+    std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_v;
   };
 
   // per-thread copy of params
@@ -407,7 +409,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     F(args.mem->tmp[__FILE__][0][1]),
     surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
-    surf_flux_zero(args.mem->tmp[__FILE__][1][2])
+    surf_flux_zero(args.mem->tmp[__FILE__][1][2]),
+    surf_flux_u(args.mem->tmp[__FILE__][1][3]),
+    surf_flux_v(args.mem->tmp[__FILE__][1][4])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
 /*
@@ -426,6 +430,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 3, "", true); // surf_flux_sens, surf_flux_lat, surf_flux_zero
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 5, "", true); // surf_flux_sens, surf_flux_lat, surf_flux_zero, surf_flux_u, surf_flux_v
   }
 };
