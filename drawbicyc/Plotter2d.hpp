@@ -13,6 +13,7 @@ class Plotter_t<2> : public PlotterCommon
   using arr_t = blitz::Array<float,2>;
   blitz::Array<int, 1> k_i;
   blitz::secondIndex LastIndex;
+  blitz::RectDomain<2> ground;//(blitz::Range::all(), 0);
 
   protected:
   using parent_t = PlotterCommon;
@@ -95,16 +96,13 @@ class Plotter_t<2> : public PlotterCommon
   Plotter_t(const string &file):
     parent_t(file)
   {
-    // read number of timesteps
-    this->h5f.openDataSet("T").getSpace().getSimpleExtentDims(n, NULL);
-    this->map["t"] = n[0];
-
     // read number of cells
     this->h5f.openDataSet("X").getSpace().getSimpleExtentDims(n, NULL); // X gives cell-border coordinates (+1)
     this->map["x"] = n[0]-1;
     this->map["z"] = n[1]-1;
     tmp.resize(n[0], n[1]);
     k_i.resize(n[0]-1);
+    ground = blitz::RectDomain<2>( blitz::TinyVector<blitz::Range, 2>(blitz::Range(0, n[0]-1), blitz::Range(0,0)));
  
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");

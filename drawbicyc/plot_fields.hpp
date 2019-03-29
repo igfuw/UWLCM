@@ -31,7 +31,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
     {
       std::cout << at * n["outfreq"] << " : " << plt << std::endl;
       Gnuplot gp;
-      init(gp, plotter.file + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
+      init(gp, plotter.file + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n, 1, 0.666666); 
 
       if (plt == "rl")
       {
@@ -201,6 +201,26 @@ void plot_fields(Plotter_t plotter, Plots plots)
 	std::string title = "relative humidity"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
+        plotter.plot(gp, tmp);
+        }
+        catch(...){}
+      }   
+      else if (plt == "lib_pres")
+      {   
+        try{
+	std::string title = "libcloud pressure [Pa]"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        auto tmp = plotter.h5load_timestep("libcloud_pressure", at * n["outfreq"]);
+        plotter.plot(gp, tmp);
+        }
+        catch(...){}
+      }   
+      else if (plt == "lib_temp")
+      {   
+        try{
+	std::string title = "libcloud temperature [K]"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        auto tmp = plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]);
         plotter.plot(gp, tmp);
         }
         catch(...){}
