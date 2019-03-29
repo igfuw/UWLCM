@@ -6,15 +6,10 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_sens_impl(iles_tag)
 {
   params.update_surf_flux_sens(surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin), this->timestep, this->dt, this->di, this->dj);
-  //F(ijk).reindex(this->zero) = surf_flux_sens(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) 
-  //                             * (*params.hgt_fctr)(this->vert_idx);
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
     F(this->hrzntl_slice(k)) = surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k);
   }
-
-//  tmp1(ijk)=F(ijk); //TODO: unnecessary copy
-  //this->smooth(tmp1, F);
 }
 
 template <class ct_params_t>
