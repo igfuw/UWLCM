@@ -10,6 +10,7 @@ class Plotter_t<3> : public PlotterCommon
   using arr_t = blitz::Array<float, 3>;
   blitz::Array<int, 2> k_i;
   blitz::thirdIndex LastIndex;
+  blitz::RectDomain<3> ground;//(blitz::Range::all(), blitz::Range::all(), 0);
 
   protected:
   using parent_t = PlotterCommon;
@@ -77,13 +78,13 @@ class Plotter_t<3> : public PlotterCommon
   }
 
   template <class gp_t, class data_t>
-  void plot(gp_t &gp, const data_t &data)
+  void plot(gp_t &gp, const data_t &data, const blitz::Range &yrange_override)
   {
   //  throw std::runtime_error("3d fields plotting doesn't work yet");
     blitz::Array<float, 3> tmp3d(data);
     using namespace blitz::tensor;
     // select a slize in second dimension to average over
-    auto tmp3dslice = tmp3d(blitz::Range::all(), yrange, blitz::Range::all());
+    auto tmp3dslice = tmp3d(blitz::Range::all(), yrange_override, blitz::Range::all());
     auto tmp2d = blitz::mean(tmp3dslice(i,k,j), k); // mean over second dimension
     blitz::Array<float, 2> tmp(tmp2d);
 
@@ -91,6 +92,12 @@ class Plotter_t<3> : public PlotterCommon
     gp << "set yrange [0:" << tmp.extent(1)-1 << "]\n";
     gp << "splot '-' binary" << gp.binfmt(tmp.transpose(blitz::secondDim, blitz::firstDim)) << " scan=yx origin=(0,0,0) with image failsafe notitle\n";
     gp.sendBinary(tmp);
+  }
+
+  template <class gp_t, class data_t>
+  void plot(gp_t &gp, const data_t &data)
+  {
+    plot(gp, data, yrange);
   }
 
   //ctor
@@ -112,10 +119,6 @@ class Plotter_t<3> : public PlotterCommon
     else
       yrange = blitz::Range::all();
 
-    // read number of timesteps
-    this->h5f.openDataSet("T").getSpace().getSimpleExtentDims(n, NULL);
-    this->map["t"] = n[0];
-
     // read number of cells
     this->h5f.openDataSet("X").getSpace().getSimpleExtentDims(n, NULL); // X gives cell-border coordinates (+1)
     this->map["x"] = n[0]-1;
@@ -123,6 +126,7 @@ class Plotter_t<3> : public PlotterCommon
     this->map["z"] = n[2]-1;
     tmp.resize(n[0], n[1], n[2]);
     k_i.resize(n[0]-1, n[1]-1);
+    ground = blitz::RectDomain<3>(blitz::TinyVector<int, 3>(0,0,0), (blitz::TinyVector<int, 3>(n[0]-1,n[1]-1,0)));//(0, n[0]-1), (0, n[1]-1), (0,0)));
 
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");

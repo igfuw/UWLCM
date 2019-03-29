@@ -7,8 +7,9 @@
 class PlotterCommon
 {
   public:
-  std::map<std::string, double> map;
   const string file;
+  std::map<std::string, double> map;
+  blitz::Array<float, 1> timesteps;
   double CellVol, DomainSurf;
 
   protected:
@@ -31,6 +32,7 @@ class PlotterCommon
   }
 
   public:
+
   //ctor
   PlotterCommon(const string &file):
     file(file)
@@ -50,13 +52,17 @@ class PlotterCommon
       }
       map["dt"] = dt;
 
-      h5load(file + "/const.h5", "T");
 
-      const hsize_t two = 2, zero = 0;
-      float tmp[2];
-      h5s.selectHyperslab( H5S_SELECT_SET, &two, &zero);
-      h5d.read(tmp, H5::PredType::NATIVE_FLOAT, H5::DataSpace(1, &two), h5s);
-      map["outfreq"] = (tmp[1] - tmp[0]) / dt;
+      // read number of timesteps
+      hsize_t n;
+      h5load(file + "/const.h5", "T");
+      h5s.getSimpleExtentDims(&n, NULL);
+      this->map["t"] = n;
+      // read timesteps
+      timesteps.resize(n);
+      h5d.read(timesteps.data(), H5::PredType::NATIVE_FLOAT);
+      // read output frequency
+      map["outfreq"] = (timesteps(1) - timesteps(0)) / dt;
     }
   }
 };
