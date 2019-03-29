@@ -30,6 +30,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tvip_rhs, tnondelayed_step;
 
   int spinup; // number of timesteps
+  const int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
 
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
@@ -255,10 +256,11 @@ class slvr_common : public slvr_dim<ct_params_t>
             U_ground = this->calc_U_ground();
             for(auto type : this->hori_vel)
             {
-              surf_uv(type);
+          //    surf_uv(type);
               rhs.at(type)(ijk) += F(ijk);
             }
           }
+        }
 
     // =====================================
             /*
@@ -277,9 +279,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                 );
             }
             */
-          }
     // =====================================
-        }
         break;
       }
       case (1):
@@ -433,6 +433,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 5, "", true); // surf_flux_sens, surf_flux_lat, surf_flux_zero, surf_flux_u, surf_flux_v
+    parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+1, "", true); // surf_flux sens/lat/hori_vel/zero
   }
 };
