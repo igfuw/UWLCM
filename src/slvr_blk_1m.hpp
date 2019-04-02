@@ -17,9 +17,12 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   using real_t = typename ct_params_t::real_t;
   using arr_sub_t = typename parent_t::arr_sub_t;
   using clock = typename parent_t::clock;
-  private:
 
-  // a 2D/3D array with copy of the environmental total pressure of dry air
+  protected:
+  typename parent_t::arr_t &precipitation_rate; 
+
+  private:
+  // a 2D/3D array with copy of the environmental total pressure of dry air 
   typename parent_t::arr_t &p_e;
 
   void condevap()
@@ -63,6 +66,10 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
        this->f_puddle << i << " " << (i == 8 ? this->puddle : 0) << "\n";
     }   
     this->f_puddle << "\n";
+
+    // recording precipitation flux
+    this->record_aux_dsc("precip_rate", precipitation_rate);
+
    
     parent_t::tend = parent_t::clock::now();
     parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
@@ -164,6 +171,9 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
+    // zero-out precipitation rate, will be set in columnwise
+    precipitation_rate(this->ijk) = 0;
+
     this->mem->barrier();
     if(this->rank == 0)
       this->tbeg = clock::now();
@@ -262,7 +272,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 1); // p_e
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // p_e, precipitation_rate
   }
 
   // ctor
@@ -274,7 +284,8 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
     params(p),
     opts(p.cloudph_opts),
     puddle(0),
-    p_e(args.mem->tmp[__FILE__][0][0])
+    p_e(args.mem->tmp[__FILE__][0][0]),
+    precipitation_rate(args.mem->tmp[__FILE__][0][1])
   {}  
 };
 
@@ -323,12 +334,14 @@ class slvr_blk_1m<
       for (int i = this->i.first(); i <= this->i.last(); ++i)
       {
         auto 
-          dot_rr = rhs.at(parent_t::ix::rr)(i, this->j);
+          precipitation_rate_arg = this->precipitation_rate(i, this->j);
         const auto 
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j);
-        this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
+        this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
       }
+      rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
+
 
       this->mem->barrier();
       if(this->rank == 0)
@@ -380,12 +393,13 @@ class slvr_blk_1m<
         for (int j = this->j.first(); j <= this->j.last(); ++j)
         {
           auto 
-          dot_rr = rhs.at(parent_t::ix::rr)(i, j, this->k);
+          precipitation_rate_arg = this->precipitation_rate(i, j, this->k);
           const auto 
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k);
-          this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, dot_rr, rhod, rr, this->params.dz);
+          this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
         }
+      rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
       this->mem->barrier();
       if(this->rank == 0)
