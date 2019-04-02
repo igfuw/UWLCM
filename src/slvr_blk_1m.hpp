@@ -142,21 +142,15 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
   void hook_ante_step()
   {
+
     parent_t::hook_ante_step();
     
+    condevap(); 
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after first half of rhs");
     negtozero(this->mem->advectee(ix::rc)(this->ijk), "rc after first half of rhs");
     negtozero(this->mem->advectee(ix::rr)(this->ijk), "rr after first half of rhs");
     this->mem->barrier();
 
-    // store rl for buoyancy
-    //this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
-  }
-
-  void hook_ante_delayed_step()
-  {
-    parent_t::hook_ante_delayed_step();
-    condevap(); 
     // store rl for buoyancy
     //this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
   }
