@@ -30,23 +30,15 @@ class slvr_common : public slvr_dim<ct_params_t>
   std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tvip_rhs, tnondelayed_step;
 
   int spinup; // number of timesteps
-  const int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
+  static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
 
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
   // array with sensible and latent heat surface flux
-  blitz::Array<real_t, parent_t::n_dims> &surf_flux_sens;
-  blitz::Array<real_t, parent_t::n_dims> &surf_flux_lat;
-  blitz::Array<real_t, parent_t::n_dims> &surf_flux_u;
-  blitz::Array<real_t, parent_t::n_dims> &surf_flux_v;
-  // surface flux array filled with zeros ... TODO: add a way to set zero flux directly in libmpdata
-  blitz::Array<real_t, parent_t::n_dims> &surf_flux_zero;
+  // one of them is a surface flux array filled with zeros ... TODO: add a way to set zero flux directly in libmpdata
+  std::array<blitz::Array<real_t, parent_t::n_dims>, n_flxs> surf_fluxes;
 
-/*
-  // an array with values of surface fluxes
-  std::array<blitz::Array<real_t, parent_t::n_dims-1>, ct_params_t::n_eqns> surf_fluxes;
-  */
   // horizontal velocity magnitude at ground level
   blitz::Array<real_t, parent_t::n_dims-1> U_ground;
 
