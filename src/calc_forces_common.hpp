@@ -65,11 +65,11 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 
     // radiation
     radiation(rv);
-    nancheck(beta(ijk), "radiation");
+    //nancheck(beta(ijk), "radiation");
     // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
-    this->vert_grad_fwd(F, alpha, params.dz);
+    this->vert_grad_fwd(radiative_flux, alpha, params.dz);
     alpha(ijk) *= -1; // negative gradient means inflow
-    nancheck(alpha(ijk), "sum of th flux");
+    //nancheck(alpha(ijk), "sum of th flux");
 
     // surface flux
     if(params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
