@@ -44,8 +44,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // helper methods
   void diag()
   {
-    assert(this->rank == 0);
-    parent_t::tbeg = parent_t::clock::now();
+    parent_t::diag();
 
     // recording super-droplet concentration per grid cell 
     prtcls->diag_all();
@@ -208,8 +207,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         rng_num++;
       }
     }
-    parent_t::tend = parent_t::clock::now();
-    parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
   } 
 
   libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(
@@ -650,9 +647,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   
   void record_all()
   {
-    // plain (no xdmf) hdf5 output
-    parent_t::output_t::parent_t::record_all();
-    // UWLCM output
 #if defined(STD_FUTURE_WORKS)
     if (this->timestep > 0 && params.async)
     {
@@ -660,9 +654,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       ftr.get();
     }
 #endif
-    diag();
-    // xmf markup
-    this->write_xmfs();
+    parent_t::record_all();
   }
 
   public:
