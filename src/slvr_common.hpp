@@ -39,7 +39,8 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &r_l,
                            &F,       // forcings helper
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
-                           &beta;    // 'implicit' rhs part - coefficient of the value at n+1
+                           &beta,    // 'implicit' rhs part - coefficient of the value at n+1
+                           &radiative_flux;
 
   // surface precip stuff
   std::ofstream f_puddle; // output precipitation file
@@ -335,6 +336,26 @@ class slvr_common : public slvr_dim<ct_params_t>
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at end of slvr_common::hook_post_step");
   }
 
+  virtual void diag()
+  {
+    this->record_aux_dsc("radiative_flux", radiative_flux); 
+  } 
+
+  void record_all()
+  {
+    assert(this->rank == 0);
+    tbeg = clock::now();
+
+    // plain (no xdmf) hdf5 output
+    parent_t::parent_t::record_all();
+    this->diag();
+    // xmf markup
+    this->write_xmfs();
+
+    tend = clock::now();
+    tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+  }
+
   public:
 
   // note dual inheritance to get profile pointers
@@ -368,7 +389,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     r_l(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
-    F(args.mem->tmp[__FILE__][0][1])
+    F(args.mem->tmp[__FILE__][0][1]),
+    radiative_flux(args.mem->tmp[__FILE__][0][5])
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
@@ -379,6 +401,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 5);
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 6);
   }
 };

@@ -57,8 +57,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
   void diag()
   {
-    assert(this->rank == 0);
-    parent_t::tbeg = parent_t::clock::now();
+    parent_t::diag();
 
     // recording puddle
     for(int i=0; i < 10; ++i)
@@ -69,10 +68,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
 
     // recording precipitation flux
     this->record_aux_dsc("precip_rate", precipitation_rate);
-
-   
-    parent_t::tend = parent_t::clock::now();
-    parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
   } 
 
 
@@ -80,16 +75,6 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   void rr_src();
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
-
-  void record_all()
-  {
-    // plain (no xdmf) hdf5 output
-    parent_t::output_t::parent_t::record_all();
-    // UWLCM output
-    diag();
-    // xmf markup
-    this->write_xmfs();
-  }
 
   void hook_mixed_rhs_ante_loop()
   {}
