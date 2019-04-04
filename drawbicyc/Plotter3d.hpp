@@ -7,6 +7,7 @@ template<>
 class Plotter_t<3> : public PlotterCommon 
 {
   public:
+  static const int n_dims = 3;
   using arr_t = blitz::Array<float, 3>;
   blitz::Array<int, 2> k_i;
   blitz::thirdIndex LastIndex;
@@ -63,6 +64,14 @@ class Plotter_t<3> : public PlotterCommon
     auto tmp2 = blitz::mean(mean2d(j,i), j);
     blitz::Array<float, 1> mean(tmp2);
     return blitz::safeToReturn(mean + 0);
+  }
+
+  void subtract_horizontal_mean(
+    arr_t &data
+  )
+  {
+    blitz::Array<float, 1> mean(horizontal_mean(data));
+    data = data(blitz::tensor::i, blitz::tensor::j, blitz::tensor::k) - mean(blitz::tensor::k);
   }
 
   auto horizontal_sum(
