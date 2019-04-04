@@ -125,7 +125,7 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = true;
-        params.friction = false;
+        params.friction = true;
         params.radiation = true;
 
         this->setopts_sgs(params);
