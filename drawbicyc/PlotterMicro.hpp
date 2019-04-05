@@ -16,6 +16,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
   std::string micro;
   arr_t res;
   arr_t rhod;
+  const double L_evap = 2264.76e3; // latent heat of evaporation [J/kg]
 
   public:
   // functions for diagnosing fields
@@ -93,10 +94,20 @@ class PlotterMicro_t : public Plotter_t<NDims>
       res = this->h5load_timestep("precip_rate", at)
               *  4./3 * 3.14 * 1e3 // to get mass
               / this->CellVol    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
-              * 2264.76e3;         // latent heat of evaporation [J/kg]
+              * L_evap;
     }
     else if(this->micro == "blk_1m")
-      res = 0;
+      try
+      {
+        res = this->h5load_timestep("precip_rate", at)
+                * rhod
+                * this->map["dz"]
+                * L_evap;
+      }
+      catch(...)
+      {
+        res = 0;
+      }
     return blitz::safeToReturn(res + 0);
   }
 
