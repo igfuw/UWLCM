@@ -100,12 +100,10 @@ class PlotterMicro_t : public Plotter_t<NDims>
       try
       {
         res = this->h5load_timestep("precip_rate", at); // precip_rate is the difference between influx and outflux
-        arr_t tmp = res.copy();
-std::cerr << "res " << res << std::endl;
-std::cerr << "tmp " << tmp << std::endl;
-std::cerr << "res notop " << res(this->notop) << std::endl;
-std::cerr << "tmp noground " << tmp(this->noground) << std::endl;
-        res(this->notop) -= tmp(this->noground);
+        for(int z = this->map["z"] - 2; z>=0; --z)
+        {
+          res(this->hrzntl_slice(z)) = res(this->hrzntl_slice(z+1)) - res(this->hrzntl_slice(z)); 
+        }
         res *= rhod * this->map["dz"] * L_evap;
       }
       catch(...)
