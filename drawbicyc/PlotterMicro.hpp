@@ -99,10 +99,14 @@ class PlotterMicro_t : public Plotter_t<NDims>
     else if(this->micro == "blk_1m")
       try
       {
-        res = this->h5load_timestep("precip_rate", at)
-                * rhod
-                * this->map["dz"]
-                * L_evap;
+        res = this->h5load_timestep("precip_rate", at); // precip_rate is the difference between influx and outflux
+        arr_t tmp = res.copy();
+std::cerr << "res " << res << std::endl;
+std::cerr << "tmp " << tmp << std::endl;
+std::cerr << "res notop " << res(this->notop) << std::endl;
+std::cerr << "tmp noground " << tmp(this->noground) << std::endl;
+        res(this->notop) -= tmp(this->noground);
+        res *= rhod * this->map["dz"] * L_evap;
       }
       catch(...)
       {

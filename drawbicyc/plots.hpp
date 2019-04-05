@@ -33,12 +33,12 @@ const std::vector<std::string> series_moist_thermal({
 });
 
 std::vector<std::string> profs_dycoms({
-"00rtot", "rliq", "thl", "wvar", 
-"w3rd", "prflux"
+"00rtot",/* "rliq", "thl", "wvar", 
+"w3rd",*/ "prflux"/*
 ,"clfrac"
 //, "N_c", 
 ,"cl_nc"
-,"sat_RH"
+,"sat_RH"*/
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
