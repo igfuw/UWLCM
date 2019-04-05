@@ -170,7 +170,8 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
     // zero-out precipitation rate, will be set in columnwise
-    precipitation_rate(this->ijk) = 0;
+    if(at ==0)
+      precipitation_rate(this->ijk) = 0;
 
     this->mem->barrier();
     if(this->rank == 0)
