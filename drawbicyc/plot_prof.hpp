@@ -532,6 +532,13 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         // turn 3rd mom * velocity into flux in [W/m^2]
         gp << "set title 'precipitation flux [W/m^2]'\n";
       }
+      else if (plt == "rad_flx")
+      {
+        auto tmp = plotter.h5load_timestep("radiative_flux", at * n["outfreq"]);
+        typename Plotter_t::arr_t snap(tmp);
+        res += snap; 
+        gp << "set title 'radiative flux [W/m2]'\n";
+      }
       else if (plt == "wvar")
       {
 	// variance of vertical velocity, w_mean=0
