@@ -43,8 +43,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
   // some ugly constants
   const double p_1000 = 100000.;
   const double L = 2.5e6;
-  const double R_d = 287.;
-  const double c_p = 1004;
+  const double R_d = 287.0024888;
+  const double c_p = 1005;
   const double c_pd = c_p;
 
   double z_i;
@@ -473,9 +473,11 @@ void plot_profiles(Plotter_t plotter, Plots plots)
   //        typename Plotter_t::arr_t th_d(tmp); 
           typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
           ///auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
-          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
+//          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
 
-          typename Plotter_t::arr_t T(plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
+          typename Plotter_t::arr_t T = th.copy();
+          T *= pow(plotter.p_e(plotter.LastIndex) / p_1000, R_d / c_pd);
+// (plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
           // init pressure, from rv just to get correct size
 //          typename Plotter_t::arr_t p(rv); 
   //        T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
