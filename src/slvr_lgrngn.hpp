@@ -53,21 +53,25 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->record_aux("sd_conc", prtcls->outbuf());
 
     // recording concentration of SDs that represent activated droplets 
+    /*
     prtcls->diag_rw_ge_rc();
     prtcls->diag_sd_conc();
     this->record_aux("sd_conc_act", prtcls->outbuf());
+*/
 
     // recording relative humidity
     prtcls->diag_RH();
     this->record_aux("RH", prtcls->outbuf());
 
     // recording pressure
+    /*
     prtcls->diag_pressure();
     this->record_aux("libcloud_pressure", prtcls->outbuf());
 
     // recording temperature
     prtcls->diag_temperature();
     this->record_aux("libcloud_temperature", prtcls->outbuf());
+    */
 
     // recording precipitation rate per grid cel
     prtcls->diag_all();
@@ -114,7 +118,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_rw_ge_rc();
     prtcls->diag_wet_mom(3);
     this->record_aux("actrw_rw_mom3", prtcls->outbuf());
-
+/*
     // recording 1st mom of rd of activated drops
     prtcls->diag_rw_ge_rc();
     prtcls->diag_dry_mom(1);
@@ -124,7 +128,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     prtcls->diag_rw_ge_rc();
     prtcls->diag_dry_mom(0);
     this->record_aux("actrw_rd_mom0", prtcls->outbuf());
-    /*
+    
     // recording 1st mom of rd of activated drops
     prtcls->diag_RH_ge_Sc();
     prtcls->diag_dry_mom(1);
@@ -166,8 +170,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
    
     // recording divergence of the velocity field
+    /*
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
+*/
 
     // recording puddle
     auto puddle = prtcls->diag_puddle();
@@ -306,7 +312,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
           params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
 
         if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
-          params.cloudph_opts_init.n_sd_max *= 1.4; // more space for copied SDs
+          params.cloudph_opts_init.n_sd_max *= 1.3; // more space for copied SDs
       }
 
       prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
