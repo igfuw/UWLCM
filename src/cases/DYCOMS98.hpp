@@ -107,11 +107,12 @@ namespace setup
       BZ_DECLARE_FUNCTOR(rhod_fctr);
     };
 
-    template<class concurr_t>
-    class Dycoms98Common : public CasesCommon<concurr_t>
+    template<class rt_params_t, class ix, int n_dims>
+    class Dycoms98Common : public CasesCommon<rt_params_t, ix, n_dims>
     {
 
       protected:
+      using parent_t = CasesCommon<rt_params_t, ix, n_dims>;
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -130,15 +131,15 @@ namespace setup
         params.buoyancy_wet = true;
         params.subsidence = true;
         params.friction = true;
+        params.coriolis = true;
         params.radiation = true;
       }
   
   
   
       template <class index_t>
-      void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
   
@@ -266,6 +267,13 @@ namespace setup
         // theta_std env prof to theta_dry_e
 //        for(int k=1; k<nz; ++k)
   //        th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
+
+        // Coriolis parameter
+
+
+        // geostrophic wind equal to the initial velocity profile
+        profs.geostr[0] = u()(k * dz); 
+        profs.geostr[1] = v()(k * dz); 
   
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
@@ -278,13 +286,13 @@ namespace setup
         profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
       }
 
-      void update_surf_flux_sens(typename concurr_t::solver_t::arr_sub_t &surf_flux_sens, int timestep, real_t dt)
+      void update_surf_flux_sens(blitz::Array<real_t, n_dims - 1> &surf_flux_sens, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_sens = 16.; // [W/m^2]
       }
 
-      void update_surf_flux_lat(typename concurr_t::solver_t::arr_sub_t &surf_flux_lat, int timestep, real_t dt)
+      void update_surf_flux_lat(blitz::Array<real_t, n_dims - 1> &surf_flux_lat, int timestep, real_t dt)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_lat = 93.; // [W/m^2]
@@ -301,16 +309,18 @@ namespace setup
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(3.75e-6); // [1/s] large-scale wind divergence used to calc subsidence of SDs, TODO: use boost.units to enforce 1/s
+        this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
       }
     };
     
-    template<class concurr_t, int n_dims>
+    template<class rt_params_t, class ix, int n_dims>
     class Dycoms98;
 
-    template<class concurr_t>
-    class Dycoms98<concurr_t, 2> : public Dycoms98Common<concurr_t>
+    template<class rt_params_t, class ix>
+    class Dycoms98<rt_params_t, ix, 2> : public Dycoms98Common<rt_params_t, ix, 2>
     {
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      using parent_t = Dycoms98Common<rt_params_t, ix, 2>;
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -318,21 +328,22 @@ namespace setup
         params.dz = params.dj;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
         // make theta perturbation cyclic,
         // TODO: reenable, with MPI it should be called on some global array before setting theta with advectee_global_set
         //this->make_cyclic(solver.advectee(ix::th));
       }
     };
 
-    template<class concurr_t>
-    class Dycoms98<concurr_t, 3> : public Dycoms98Common<concurr_t>
+    template<class rt_params_t, class ix>
+    class Dycoms98<rt_params_t, ix, 3> : public Dycoms98Common<rt_params_t, ix, 3>
     {
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      using parent_t = Dycoms98Common<rt_params_t, ix, 3>;
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -341,11 +352,11 @@ namespace setup
         params.dz = params.dk;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
         //this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
