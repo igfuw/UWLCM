@@ -24,6 +24,8 @@ using libmpdataxx::arakawa_c::h;
 using namespace libmpdataxx; // TODO: get rid of it?
 using namespace arakawa_c;
 
+const int libcloud_halo_size = 2;
+
 // 2D version 
 template <class ct_params_t>
 class slvr_dim<
@@ -41,9 +43,9 @@ class slvr_dim<
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   rng_t hrzntl_domain = this->mem->grid_size[0];
   rng_t hrzntl_subdomain = this->i;
-  idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^1^h, this->mem->grid_size[1]}); // libcloudphxx requires courants with a halo of 1 in the x direction
-  idx_t<2> Cy_domain = idx_t<2>({this->mem->grid_size[0]^1, this->mem->grid_size[1]^h}); // just fill in with Cz_domain to avoid some asserts
-  idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0]^1, this->mem->grid_size[1]^h});
+  idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^libcloud_halo_size^h, this->mem->grid_size[1]}); // libcloudphxx requires courants with a halo of 2 in the x direction
+  idx_t<2> Cy_domain = idx_t<2>({this->mem->grid_size[0]^libcloud_halo_size, this->mem->grid_size[1]^h}); // just fill in with Cz_domain to avoid some asserts
+  idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0]^libcloud_halo_size, this->mem->grid_size[1]^h});
 
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
   blitz::TinyVector<int, 1> zero_plane = blitz::TinyVector<int, 1>({0});
@@ -116,9 +118,9 @@ class slvr_dim<
   idx_t<3> domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]});
   idx_t<2> hrzntl_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   idx_t<2> hrzntl_subdomain = idx_t<2>({this->i, this->j});
-  idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^1^h, this->mem->grid_size[1], this->mem->grid_size[2]});
-  idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0]^1, this->mem->grid_size[1]^h, this->mem->grid_size[2]});
-  idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0]^1, this->mem->grid_size[1], this->mem->grid_size[2]^h});
+  idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^libcloud_halo_size^h, this->mem->grid_size[1], this->mem->grid_size[2]});
+  idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0]^libcloud_halo_size, this->mem->grid_size[1]^h, this->mem->grid_size[2]});
+  idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0]^libcloud_halo_size, this->mem->grid_size[1], this->mem->grid_size[2]^h});
 
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
   blitz::TinyVector<int, 2> zero_plane = blitz::TinyVector<int, 2>({0,0});
