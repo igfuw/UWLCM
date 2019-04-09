@@ -66,6 +66,8 @@ void setopts_micro(
     ("eps", po::value<setup::real_t>()->default_value(0.01) , "turb dissip rate (for onishi kernel) [m^2/s^3]")
     ("ReL", po::value<setup::real_t>()->default_value(5000) , "taylor-microscale reynolds number (onishi kernel)")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
+    ("turb_cond", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_cond), "turbulence effects in SD condensation (1=on, 0=off)")
+    ("turb_adve", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_adve), "turbulence effects in SD motion (1=on, 0=off)")
 
     // TODO: MAC, HAC, vent_coef
   ;
@@ -164,6 +166,13 @@ void setopts_micro(
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_nonspherical;
 
   rt_params.cloudph_opts_init.RH_formula = libcloudphxx::lgrngn::RH_formula_t::rv_cc; // use rv to be consistent with Lipps Hemler
+
+  // turbulence effects for SDs
+  rt_params.cloudph_opts_init.turb_cond_switch = vm["turb_cond"].as<bool>();
+  rt_params.cloudph_opts.turb_cond = vm["turb_cond"].as<bool>();
+  
+  rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
+  rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
