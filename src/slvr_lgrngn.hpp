@@ -592,7 +592,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         libcloudphxx::lgrngn::arrinfo_t<real_t>(),
         make_arrinfo(Cx),
         this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
-        make_arrinfo(Cz)
+        make_arrinfo(Cz),
+        ct_params_t::sgs_scheme == libmpdataxx::solvers::iles ?
+                                    libcloudphxx::lgrngn::arrinfo_t<real_t>() :
+                                    make_arrinfo(this->diss_rate(this->domain).reindex(this->zero))
       );
 
       // start sync/async run of step_cond

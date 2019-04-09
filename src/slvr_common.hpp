@@ -45,7 +45,8 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &r_l,
                            &F,       // forcings helper
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
-                           &beta;    // 'implicit' rhs part - coefficient of the value at n+1
+                           &beta,
+                           &diss_rate // TODO: move to slvr_sgs to save memory in iles simulations !;
 
   // surface precip stuff
   std::ofstream f_puddle; // output precipitation file
@@ -382,10 +383,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     params(p),
     spinup(p.spinup),
     tmp1(args.mem->tmp[__FILE__][0][0]),
-    r_l(args.mem->tmp[__FILE__][0][2]),
+    r_l(args.mem->tmp[__FILE__][0][1]),
+    F(args.mem->tmp[__FILE__][0][2]),
     alpha(args.mem->tmp[__FILE__][0][3]),
     beta(args.mem->tmp[__FILE__][0][4]),
-    F(args.mem->tmp[__FILE__][0][1]),
+    diss_rate(args.mem->tmp[__FILE__][0][5]),
     surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
     surf_flux_zero(args.mem->tmp[__FILE__][1][2])
@@ -398,7 +400,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 6); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate
     parent_t::alloc_tmp_sclr(mem, __FILE__, 3, "", true); // surf_flux_sens, surf_flux_lat, surf_flux_zero
   }
 };
