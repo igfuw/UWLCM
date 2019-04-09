@@ -46,7 +46,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &F,       // forcings helper
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
                            &beta,
-                           &diss_rate // TODO: move to slvr_sgs to save memory in iles simulations !;
+                           &diss_rate; // TODO: move to slvr_sgs to save memory in iles simulations !;
 
   // surface precip stuff
   std::ofstream f_puddle; // output precipitation file
