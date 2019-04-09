@@ -139,7 +139,7 @@ namespace setup
         real_t dz = (Z / si::metres) / (nz-1); 
   
         solver.advectee(ix::rv) = r_t()(index * dz); 
-        solver.advectee(ix::u)= u()(index * dz);
+        solver.advectee(ix::u)= u{}(index * dz);
         solver.advectee(ix::w) = 0;  
        
         // absorbers
@@ -265,8 +265,7 @@ namespace setup
 
 
         // geostrophic wind equal to the initial velocity profile
-        profs.geostr[0] = u()(k * dz); 
-        profs.geostr[1] = v()(k * dz); 
+        profs.geostr[0] = u{}(k * dz); 
   
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
@@ -295,12 +294,15 @@ namespace setup
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
-          surf_flux_sens = RF == 1 ? 15. : 16.; // [W/m^2]
-          // for simulations with sgs scheme convert surface flux to required sign convention and units
-          if (case_ct_params_t::enable_sgs)
+          auto flux_value = RF == 1 ? 15. : 16.; // [W/m^2]
+          if (!case_ct_params_t::enable_sgs)
+          {
+            surf_flux_sens = flux_value;
+          }
+          else // for simulations with sgs scheme convert surface flux to required sign convention and units
           {
             auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-            surf_flux_sens /= -conv_fctr_sens; // [K * kg / (m^2 * s)]
+            surf_flux_sens = -flux_value / conv_fctr_sens; // [K * kg / (m^2 * s)]
           }
         }
       }
@@ -310,12 +312,15 @@ namespace setup
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
-          surf_flux_lat = RF == 1 ? 115. : 93.; // [W/m^2]
-          // for simulations with sgs scheme convert surface flux to required sign convention and units
-          if (case_ct_params_t::enable_sgs)
+          auto flux_value = RF == 1 ? 115. : 93.; // [W/m^2]
+          if (!case_ct_params_t::enable_sgs)
+          {
+            surf_flux_lat = flux_value;
+          }
+          else // for simulations with sgs scheme convert surface flux to required sign convention and units
           {
             auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-            surf_flux_lat /= -conv_fctr_lat; // [kg / (m^2 * s)]
+            surf_flux_lat = -flux_value / conv_fctr_lat; // [kg / (m^2 * s)]
           }
         }
       }
@@ -406,10 +411,8 @@ namespace setup
         parent_t::env_prof(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile
         blitz::thirdIndex k;
-        typename parent_t::u u;
         real_t dz = (Z / si::metres) / (nz-1);
-        profs.geostr[0] = u(k * dz); 
-        profs.geostr[1] = v()(k * dz); 
+        profs.geostr[1] = v{}(k * dz); 
       }
     };
   };
