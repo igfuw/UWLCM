@@ -122,7 +122,14 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                 );
     this->k_m(this->hrzntl_slice(0)) = this->k_m(this->hrzntl_slice(1));
     this->xchng_sclr(this->k_m, this->ijk, 1);
-    
+   
+    // calculate dissipation rate
+
+    // TODO: c_eps should be an adjustable parameter for different cases
+    real_t c_eps = 0.845;
+    this->diss_rate(this->ijk).reindex(this->zero) = c_eps *
+      pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
+      / (*this->params.mix_len)(this->vert_idx);
 
     // havo to use modified ijkm due to shared-memory parallelisation, otherwise overlapping ranges
     // would lead to double multiplications
@@ -135,25 +142,25 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
     this->xchng_sgs_tnsr_offdiag(this->tau, this->tau_srfc, this->ijk, this->ijkm);
     
-    this->mem->barrier();
-    if (this->rank == 0)
-    {
-      std::cout << "tdef_sq: " << min(tdef_sq(this->domain)) << " " << max(tdef_sq(this->domain)) << std::endl;
-      std::cout << "rcdsn: " << min(rcdsn_num(this->domain)) << " " << max(rcdsn_num(this->domain)) << std::endl;
-      std::cout << "k_m:   " << min(this->k_m(this->domain)) << " " << max(this->k_m(this->domain)) << std::endl;
-      std::cout << "tau0:   " << min(this->tau[0](this->domain)) << " " << max(this->tau[0](this->domain)) << std::endl;
-      std::cout << "tau1:   " << min(this->tau[1](this->domain)) << " " << max(this->tau[1](this->domain)) << std::endl;
-      std::cout << "tau2:   " << min(this->tau[2](this->domain)) << " " << max(this->tau[2](this->domain)) << std::endl;
-      //if (this->timestep % static_cast<int>(this->outfreq) == 0)
-      //{
-      //  std::cout << "k_m profile" << std::endl;
-      //  for (int k = 0; k < 301; ++k)
-      //  {
-      //    std::cout << k << ' ' << sum(this->k_m(rng_t(0, 128), rng_t(0, 128), k)) / (129. * 129.) << std::endl;
-      //  }
-      //}
-    }
-    this->mem->barrier();
+    //this->mem->barrier();
+    //if (this->rank == 0)
+    //{
+    //  std::cout << "tdef_sq: " << min(tdef_sq(this->domain)) << " " << max(tdef_sq(this->domain)) << std::endl;
+    //  std::cout << "rcdsn: " << min(rcdsn_num(this->domain)) << " " << max(rcdsn_num(this->domain)) << std::endl;
+    //  std::cout << "k_m:   " << min(this->k_m(this->domain)) << " " << max(this->k_m(this->domain)) << std::endl;
+    //  std::cout << "tau0:   " << min(this->tau[0](this->domain)) << " " << max(this->tau[0](this->domain)) << std::endl;
+    //  std::cout << "tau1:   " << min(this->tau[1](this->domain)) << " " << max(this->tau[1](this->domain)) << std::endl;
+    //  std::cout << "tau2:   " << min(this->tau[2](this->domain)) << " " << max(this->tau[2](this->domain)) << std::endl;
+    //  //if (this->timestep % static_cast<int>(this->outfreq) == 0)
+    //  //{
+    //  //  std::cout << "k_m profile" << std::endl;
+    //  //  for (int k = 0; k < 301; ++k)
+    //  //  {
+    //  //    std::cout << k << ' ' << sum(this->k_m(rng_t(0, 128), rng_t(0, 128), k)) / (129. * 129.) << std::endl;
+    //  //  }
+    //  //}
+    //}
+    //this->mem->barrier();
   }
   
   void record_flux(int s)
