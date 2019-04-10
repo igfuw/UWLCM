@@ -35,8 +35,8 @@ namespace nancheck_hlprs
     {
       #pragma omp critical
       {
-        std::cout << "A not-finite number detected in: " << name << std::endl;
-        std::cout << arr;
+        std::cerr << "A not-finite number detected in: " << name << std::endl;
+        std::cerr << arr;
         assert(0);
       }
     }
@@ -49,9 +49,9 @@ namespace nancheck_hlprs
     {
       #pragma omp critical
       {
-        std::cout << "A not-finite number detected in: " << name << std::endl;
-        std::cout << arrcheck;
-        std::cout << arrout;
+        std::cerr << "A not-finite number detected in: " << name << std::endl;
+        std::cerr << arrcheck;
+        std::cerr << arrout;
         assert(0);
       }
     }
@@ -64,8 +64,8 @@ namespace nancheck_hlprs
     {
       #pragma omp critical
       {
-        std::cout << "A negative number detected in: " << name << std::endl;
-        std::cout << arr;
+        std::cerr << "A negative number detected in: " << name << std::endl;
+        std::cerr << arr;
         assert(0);
       }
     }
@@ -74,13 +74,13 @@ namespace nancheck_hlprs
   template<class arr_t>
   void negtozero_hlpr(arr_t arr, const std::string &name)
   {
-    if(min(arr) < 0.) 
+    auto minval = min(arr);
+    if(minval < 0.) 
     {
       #pragma omp critical
       {
-        std::cout << "A negative number detected in: " << name << std::endl;
-        std::cout << arr;
-        std::cout << "CHEATING: turning negative values to small positive values" << std::endl;
+        std::cerr << "A negative number " << minval <<" detected in: " << name << std::endl;
+        std::cerr << "CHEATING: turning negative values to small positive values" << std::endl;
       }
       arr = where(arr <= 0., 1e-10, arr);
     }
