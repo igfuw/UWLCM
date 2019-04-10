@@ -125,8 +125,8 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = true;
-        params.friction = true;
         params.coriolis = true;
+        params.friction = true;
         params.radiation = true;
 
         this->setopts_sgs(params);
@@ -261,12 +261,6 @@ namespace setup
 //        for(int k=1; k<nz; ++k)
   //        th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
 
-        // Coriolis parameter
-
-
-        // geostrophic wind equal to the initial velocity profile
-        profs.geostr[0] = u{}(k * dz); 
-  
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
   
@@ -411,8 +405,10 @@ namespace setup
         parent_t::env_prof(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile
         blitz::thirdIndex k;
+        typename parent_t::u u;
         real_t dz = (Z / si::metres) / (nz-1);
-        profs.geostr[1] = v{}(k * dz); 
+        profs.geostr[0] = u(k * dz); 
+        profs.geostr[1] = v()(k * dz); 
       }
     };
   };
