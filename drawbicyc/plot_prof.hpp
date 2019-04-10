@@ -559,6 +559,66 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res += snap;
         gp << "set title '3rd mom of w [m^3 / s^3]'\n";
       }
+      else if (plt == "tke")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("tke", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'tke [TODO]'\n";
+      }
+      else if (plt == "k_m")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("k_m", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'k_m [TODO]'\n";
+      }
+      else if (plt == "sgs_tht_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_tht_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs tht flux [TODO]'\n";
+      }
+      else if (plt == "sgs_rv_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_rv_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs rv flux [TODO]'\n";
+      }
+      else if (plt == "sgs_rc_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_rc_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs rc flux [TODO]'\n";
+      }
+      else if (plt == "sgs_u_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_u_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs u flux [TODO]'\n";
+      }
 //      else assert(false);
     } // time loop
     res /= last_timestep - first_timestep + 1;

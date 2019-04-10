@@ -8,9 +8,16 @@
 
 
 template <class ct_params_t>
-class slvr_blk_1m_common : public slvr_common<ct_params_t>
+class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                                     slvr_common<ct_params_t>,
+                                                     slvr_sgs<ct_params_t>
+                                                    >
 {
-  using parent_t = slvr_common<ct_params_t>;
+
+  using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                    slvr_common<ct_params_t>,
+                                    slvr_sgs<ct_params_t>
+                                   >;
 
   public:
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
@@ -75,6 +82,11 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   void rr_src();
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
+
+  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) final
+  {
+    return this->state(ix::rc);
+  }
 
   void hook_mixed_rhs_ante_loop()
   {}
@@ -202,6 +214,14 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
         // ---- rain water sources ----
         rr_src();
         rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
+
+    
+        // when using explicit turbulence model add subgrid forces to rc and rr
+        // (th and rv were already applied in slvr_sgs)
+        if (ct_params_t::sgs_scheme != libmpdataxx::solvers::iles)
+        {
+          this->sgs_scalar_forces({ix::rc, ix::rr});
+        }
         
         break;
       }
@@ -230,6 +250,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
       this->tend = clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
+    
   }
 
   // 
@@ -237,6 +258,7 @@ class slvr_blk_1m_common : public slvr_common<ct_params_t>
   {
     //condevap(); // treat saturation adjustment as post-advection, pre-rhs adjustment
     parent_t::hook_post_step(); // includes the above forcings
+
   }
 
   libcloudphxx::blk_1m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
