@@ -43,6 +43,7 @@ std::vector<std::string> profs_dycoms({
 //, "N_c", 
 ,"cl_nc"
 ,"sat_RH"
+,"rad_flx"
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
