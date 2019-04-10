@@ -96,8 +96,9 @@ void plot_series(Plotter_t plotter, Plots plots)
 */
         try
         {
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3; //g/kg
+          auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
           typename Plotter_t::arr_t snap(tmp); 
+          snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
           snap *= rhod; // water per cubic metre (should be wet density...)
           plotter.k_i = blitz::sum(snap, plotter.LastIndex) * n["dz"]; // LWP [g/m2] in the column 
           plotter.k_i = where(plotter.k_i > 20 , 1 , 0); // cloudiness as in Ackermann et al. 
@@ -497,8 +498,9 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           {
-            auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3; //g/kg
+            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
             typename Plotter_t::arr_t snap(tmp); 
+            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
             snap *= rhod; // water per cubic metre (should be wet density...)
             res_prof(at) = blitz::mean(snap); 
           }
@@ -512,8 +514,9 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           {
-            auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-            typename Plotter_t::arr_t snap(tmp); // cloud water mixing ratio [g/kg]
+            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
+            typename Plotter_t::arr_t snap(tmp); 
+            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
             rtot = snap;
           }
           {
