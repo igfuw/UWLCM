@@ -242,11 +242,11 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
         break;
       }
     }
+    nancheck(rhs.at(ix::rc)(this->ijk), "RHS of rc after rhs_update");
+    nancheck(rhs.at(ix::rr)(this->ijk), "RHS of rr after rhs_update");
     this->mem->barrier();
     if(this->rank == 0)
     {
-      nancheck(rhs.at(ix::rc)(this->domain), "RHS of rc after rhs_update");
-      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
       this->tend = clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
@@ -352,10 +352,10 @@ class slvr_blk_1m<
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
 
+      nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
       this->mem->barrier();
       if(this->rank == 0)
       {
-        nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         this->tend = clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
       }
@@ -410,10 +410,10 @@ class slvr_blk_1m<
         }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
+      nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
       this->mem->barrier();
       if(this->rank == 0)
       {
-        nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         this->tend = clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
       }
