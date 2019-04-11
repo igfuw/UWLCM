@@ -255,6 +255,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
       this->xchng_pres(field, this->ijk);
 
       formulae::nabla::calc_grad_cmpct<parent_t::n_dims>(tmp_grad, field, this->ijk, this->ijkm, this->dijk);
+      for(int d = 0; d < parent_t::n_dims; ++d)
+        nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after calc_grad_cmpct");
 
       // document why
       this->mem->barrier();
@@ -264,6 +266,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                                                                     this->k_m,
                                                                                     *this->mem->G,
                                                                                     this->ijk);
+      for(int d = 0; d < parent_t::n_dims; ++d)
+        nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after multiply_vctr_cmpct");
+
       if (s == ix::th)
       {
         this->xchng_sgs_vctr(tmp_grad, this->surf_flux_sens, this->ijk);
@@ -276,6 +281,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
       {
         this->xchng_sgs_vctr(tmp_grad , this->surf_flux_zero, this->ijk);
       }
+
+      for(int d = 0; d < parent_t::n_dims; ++d)
+        nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after xchng_sgs_vctr");
 
       record_flux(s);
     
@@ -300,6 +308,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
     {
       save_sgs_fields();
       sgs_scalar_forces({ix::th, ix::rv});
+      nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after sgs_scalar_forces");
+      nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after sgs_scalar_forces");
     }
   }
 
