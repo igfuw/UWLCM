@@ -195,11 +195,11 @@ class slvr_common : public slvr_dim<ct_params_t>
       {
         // ---- water vapor sources ----
         rv_src();
-        rhs.at(ix::rv)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::rv)(ijk);
+        rhs.at(ix::rv)(ijk) += alpha(ijk);// + beta(ijk) * this->state(ix::rv)(ijk);
 
         // ---- potential temp sources ----
         th_src(this->state(ix::rv));
-        rhs.at(ix::th)(ijk) += alpha(ijk) + beta(ijk) * this->state(ix::th)(ijk);
+        rhs.at(ix::th)(ijk) += alpha(ijk);// + beta(ijk) * this->state(ix::th)(ijk);
 
         // vertical velocity sources
         if(params.w_src && (!ct_params_t::piggy))
