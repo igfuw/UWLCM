@@ -158,7 +158,7 @@ void setopts_micro(
     rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::onishi_hall_davis_no_waals;
     rt_params.cloudph_opts_init.kernel_parameters.push_back(ReL);
     rt_params.cloudph_opts_init.turb_coal_switch = 1;
-    rt_params.cloudph_opts.turb_cond = 1;
+    rt_params.cloudph_opts.turb_coal = 1;
   }
   // terminal velocity choice
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_nonspherical;

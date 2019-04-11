@@ -404,12 +404,14 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
       this->record_aux_const("turb_adve", params.cloudph_opts.turb_adve);  
       this->record_aux_const("turb_cond", params.cloudph_opts.turb_cond);  
+      this->record_aux_const("turb_coal", params.cloudph_opts.turb_coal);  
       this->record_aux_const("chem_switch", params.cloudph_opts_init.chem_switch);  
       this->record_aux_const("coal_switch", params.cloudph_opts_init.coal_switch);  
       this->record_aux_const("sedi_switch", params.cloudph_opts_init.sedi_switch);  
       this->record_aux_const("src_switch", params.cloudph_opts_init.src_switch);  
       this->record_aux_const("turb_adve_switch", params.cloudph_opts_init.turb_adve_switch);  
       this->record_aux_const("turb_cond_switch", params.cloudph_opts_init.turb_cond_switch);  
+      this->record_aux_const("turb_coal_switch", params.cloudph_opts_init.turb_coal_switch);  
       this->record_aux_const("chem_dsl", params.cloudph_opts.chem_dsl);  
       this->record_aux_const("chem_dsc", params.cloudph_opts.chem_dsc);  
       this->record_aux_const("chem_rct", params.cloudph_opts.chem_rct);  
