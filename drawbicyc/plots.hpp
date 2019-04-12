@@ -37,7 +37,7 @@ const std::vector<std::string> series_sgs({
 });
 
 std::vector<std::string> profs_dycoms({
-"00rtot", "rliq", /*"thl",*/ "wvar", 
+"00rtot", "rliq", "thl", "wvar", 
 "w3rd", "prflux"
 ,"clfrac"
 //, "N_c", 
