@@ -399,7 +399,7 @@ namespace setup
       {
         parent_t::env_prof(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile
-        blitz::thirdIndex k;
+        blitz::firstIndex k;
         typename parent_t::u u;
         real_t dz = (Z / si::metres) / (nz-1);
         profs.geostr[0] = u(k * dz); 
