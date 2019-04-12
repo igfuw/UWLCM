@@ -37,8 +37,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
   int k_i = 0; // inversion cell
 
-  int first_timestep =  vm["prof_start"].as<int>() / n["dt"] / n["outfreq"];
-  int last_timestep =  vm["prof_end"].as<int>() / n["dt"] / n["outfreq"];
+  int first_timestep =  vm["prof_start"].as<int>() / int(n["dt"] * n["outfreq"]);
+  int last_timestep =  vm["prof_end"].as<int>() / int(n["dt"] * n["outfreq"]);
 
   // some ugly constants
   const double p_1000 = 100000.;
