@@ -1,0 +1,3 @@
+/home/pracownicy/pdziekan/praca/code/UWLCM/drawbicyc/build/CMakeFiles/average.dir
+/home/pracownicy/pdziekan/praca/code/UWLCM/drawbicyc/build/CMakeFiles/drawbicyc.dir
+/home/pracownicy/pdziekan/praca/code/UWLCM/drawbicyc/build/CMakeFiles/plot_series_compare.dir
