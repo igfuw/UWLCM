@@ -1,3 +1,0 @@
-    negcheck2(this->mem->advectee(ix::th)(this->ijk), this->rhs.at(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs (+ output of
-    negcheck2(this->mem->advectee(ix::rv)(this->ijk), this->rhs.at(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs (+ output of
- 
