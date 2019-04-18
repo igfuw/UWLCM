@@ -479,13 +479,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // surface precipitation [mm/day]
         try
         {
-       //   res_prof(at) = (prec_vol - prec_vol_prev) / plotter.DomainSurf / (double(n["outfreq"]) * n["dt"] / 3600. / 24.) * 1e3; // SDM
-          res_prof(at) = (prec_vol - prec_vol_prev) / double(n["outfreq"]) // flux in [kg / m^3 / s] averaged over time since last output and over cells on the bottom
-                         / (n["x"] * n["y"])
-                         * 3600. * 24. // per day
-                         * n["dz"]     // per m^2
-                         / 1e3         // to m^3 of water
-                         * 1e3;        // to mm
+          res_prof(at) = plotter.calc_surf_precip(prec_vol - prec_vol_prev);
         }
         catch(...) {;}
       }
@@ -494,8 +488,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // accumulated surface precipitation [mm]
         try
         {
-         //   res_prof(at) = prec_vol / plotter.DomainSurf * 1e3; 
-            res_prof(at) = prec_vol * n["dt"] * n["dz"] * 1e3; 
+          res_prof(at) = plotter.calc_acc_surf_precip(prec_vol);
         }
         catch(...) {;}
       }
