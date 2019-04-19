@@ -578,9 +578,11 @@ void plot_series(Plotter_t plotter, Plots plots)
           
           res_prof(at) *= 0.5 * n["dz"];
 
-          auto tke = plotter.h5load_timestep("tke", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tke);
-          res_prof(at) += blitz::sum(plotter.horizontal_mean(snap));
+          {
+            auto tke = plotter.h5load_timestep("tke", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tke);
+            res_prof(at) += blitz::sum(plotter.horizontal_mean(snap));
+          }
         }
         catch(...) {;}
       }

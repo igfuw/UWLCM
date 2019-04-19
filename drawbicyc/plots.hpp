@@ -6,10 +6,9 @@ const std::vector<std::string> series_dycoms({
 //"mass_dry", 
  "acc_precip",
  "cl_nc",
- "cloud_base",
+ "cloud_base"
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
- "tot_tke"
 });
 
 const std::vector<std::string> series_moist_thermal({
@@ -34,6 +33,7 @@ const std::vector<std::string> series_moist_thermal({
 });
 
 const std::vector<std::string> series_sgs({
+ "tot_tke"
 });
 
 std::vector<std::string> profs_dycoms({
