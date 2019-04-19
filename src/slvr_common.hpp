@@ -423,7 +423,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 7); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 6);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 3, "", true); // surf_flux_sens, surf_flux_lat, surf_flux_zero
   }
 };
