@@ -167,83 +167,76 @@ class slvr_sgs : public slvr_common<ct_params_t>
   {
     if (s != ix::th && s != ix::rv) return;
 
-    if (this->timestep % static_cast<int>(this->outfreq) == 0)
+    real_t conv_fctr = 1.;
+
+    if (s == ix::th)
     {
-
-      real_t conv_fctr = 1.;
-
-      if (s == ix::th)
-      {
-        auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-        conv_fctr = conv_fctr_sens;
-      }
-      else if (s == ix::rv)// || s == ix::rc)
-      {
-        auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-        conv_fctr = conv_fctr_lat;
-      }
-
-      this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], hlpr[1], conv_fctr);
-      this->mem->barrier();
-
-      std::string name;
-      if (s == ix::th)
-      {
-        name = "sgs_tht_flux";
-      }
-      else if (s == ix::rv)
-      {
-        name = "sgs_rv_flux";
-      }
-      //else if (s == ix::rc)
-      //{
-      //  name = "sgs_rc_flux";
-      //}
-
-      if (this->rank == 0)
-      {
-        this->record_aux_dsc(name, hlpr[1]);
-      }
-      this->mem->barrier();
+      auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+      conv_fctr = conv_fctr_sens;
     }
+    else if (s == ix::rv)// || s == ix::rc)
+    {
+      auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+      conv_fctr = conv_fctr_lat;
+    }
+
+    this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], hlpr[1], conv_fctr);
+    this->mem->barrier();
+
+    std::string name;
+    if (s == ix::th)
+    {
+      name = "sgs_tht_flux";
+    }
+    else if (s == ix::rv)
+    {
+      name = "sgs_rv_flux";
+    }
+    //else if (s == ix::rc)
+    //{
+    //  name = "sgs_rc_flux";
+    //}
+
+    if (this->rank == 0)
+    {
+      this->record_aux_dsc(name, hlpr[1]);
+    }
+    this->mem->barrier();
   }
   
   void save_sgs_fields()
   {
-    if (this->timestep % static_cast<int>(this->outfreq) == 0)
-    {
-      hlpr[0](this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
-                                                    / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
+    hlpr[0](this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
+                                                  / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
   
-      calc_sgs_momenta_fluxes();
+    calc_sgs_momenta_fluxes();
 
-      this->mem->barrier();
-      if (this->rank == 0)
+    this->mem->barrier();
+    if (this->rank == 0)
+    {
+      std::cout << "test u: " << min(this->state(ix::u)(this->domain)) << ' ' << max(this->state(ix::u)(this->domain)) << std::endl;
+      std::cout << "test w: " << min(this->state(ix::w)(this->domain)) << ' ' << max(this->state(ix::w)(this->domain)) << std::endl;
+      std::cout << "test tht: " << min(this->state(ix::th)(this->domain)) << ' ' << max(this->state(ix::th)(this->domain)) << std::endl;
+      std::cout << "test rv: " << min(this->state(ix::rv)(this->domain)) << ' ' << max(this->state(ix::rv)(this->domain)) << std::endl;
+
+      //std::cout << "test tht1: " << grad_tht[1](0, -1) << std::endl;
+      //std::cout << "test tht2: " << grad_tht[1](0, 0) << std::endl;
+      //std::cout << "test tht3: " << grad_tht[1](0, 1) << std::endl;
+      //std::cout << "test tht4: " << hlpr[1](0, 0) << std::endl;
+      //std::cout << "test tht5: " << hlpr[1](0, 1) << std::endl;
+      //std::cout << "test tht6: " << this->k_m(0, 0) << std::endl;
+      //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
+      std::cout << "recording sgs" << std::endl;
+      this->record_aux_dsc("k_m", this->k_m);
+      this->record_aux_dsc("tke", hlpr[0]);
+      this->record_aux_dsc("sgs_u_flux", hlpr[1]);
+      if (ct_params_t::n_dims > 2)
       {
-        std::cout << "test u: " << min(this->state(ix::u)(this->domain)) << ' ' << max(this->state(ix::u)(this->domain)) << std::endl;
-        std::cout << "test w: " << min(this->state(ix::w)(this->domain)) << ' ' << max(this->state(ix::w)(this->domain)) << std::endl;
-        std::cout << "test tht: " << min(this->state(ix::th)(this->domain)) << ' ' << max(this->state(ix::th)(this->domain)) << std::endl;
-        std::cout << "test rv: " << min(this->state(ix::rv)(this->domain)) << ' ' << max(this->state(ix::rv)(this->domain)) << std::endl;
-
-        //std::cout << "test tht1: " << grad_tht[1](0, -1) << std::endl;
-        //std::cout << "test tht2: " << grad_tht[1](0, 0) << std::endl;
-        //std::cout << "test tht3: " << grad_tht[1](0, 1) << std::endl;
-        //std::cout << "test tht4: " << hlpr[1](0, 0) << std::endl;
-        //std::cout << "test tht5: " << hlpr[1](0, 1) << std::endl;
-        //std::cout << "test tht6: " << this->k_m(0, 0) << std::endl;
-        //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
-        std::cout << "recording sgs" << std::endl;
-        this->record_aux_dsc("k_m", this->k_m);
-        this->record_aux_dsc("tke", hlpr[0]);
-        this->record_aux_dsc("sgs_u_flux", hlpr[1]);
-        if (ct_params_t::n_dims > 2)
-        {
-          this->record_aux_dsc("sgs_v_flux", hlpr[2]);
-        }
-        this->record_aux_dsc("p", this->Phi);
+        this->record_aux_dsc("sgs_v_flux", hlpr[2]);
       }
-      this->mem->barrier();
+      this->record_aux_dsc("p", this->Phi);
     }
+    this->mem->barrier();
   }
   
   void sgs_scalar_forces(const std::vector<int> &sclr_indices) override
@@ -285,6 +278,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
       for(int d = 0; d < parent_t::n_dims; ++d)
         nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after xchng_sgs_vctr");
 
+      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
       record_flux(s);
     
       this->rhs.at(s)(this->ijk) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
@@ -306,7 +300,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
     // explicit application of subgrid forcings
     if(at == 0)
     {
-      save_sgs_fields();
+      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0)
+        save_sgs_fields();
       sgs_scalar_forces({ix::th, ix::rv});
       nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after sgs_scalar_forces");
       nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after sgs_scalar_forces");
