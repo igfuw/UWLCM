@@ -9,7 +9,7 @@ const std::vector<std::string> series_dycoms({
  "cloud_base",
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
- "tke"
+ "tot_tke"
 });
 
 const std::vector<std::string> series_moist_thermal({
@@ -51,7 +51,7 @@ std::vector<std::string> profs_dycoms({
 }); // rtot has to be first
 
 std::vector<std::string> profs_sgs({
- "tke"
+ "sgs_tke"
 ,"k_m"
 ,"sgs_tht_flux"
 ,"sgs_rv_flux"

@@ -559,7 +559,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res += snap;
         gp << "set title '3rd mom of w [m^3 / s^3]'\n";
       }
-      else if (plt == "tke")
+      else if (plt == "sgs_tke")
       {
         {
           auto tmp = plotter.h5load_timestep("tke", at * n["outfreq"]);
@@ -567,7 +567,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp = snap;
         }
         res += res_tmp;
-        gp << "set title 'tke [TODO]'\n";
+        gp << "set title 'sgs tke [TODO]'\n";
       }
       else if (plt == "k_m")
       {
