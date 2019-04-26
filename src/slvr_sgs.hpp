@@ -50,7 +50,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
       const auto rv_kph = 0.5 * (this->hrzntl_slice(rv, k + 1) + this->hrzntl_slice(rv, k));
       const auto drvdz_kph = (this->hrzntl_slice(rv, k + 1) - this->hrzntl_slice(rv, k)) / dz;
       
-      const auto N2unsat = g * (dthtdz_kph / th_ref_kph + cf1 * (1 + cf1 * rv_kph) * drvdz_kph);
+      const auto N2unsat = g * (dthtdz_kph / th_ref_kph + cf1 / (1 + cf1 * rv_kph) * drvdz_kph);
      
       const auto T_kp1 = this->hrzntl_slice(tht, k + 1) * exner((*this->params.p_e)(k + 1) * si::pascals);
       const auto T_k = this->hrzntl_slice(tht, k) * exner((*this->params.p_e)(k) * si::pascals);
