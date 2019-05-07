@@ -115,7 +115,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
     this->k_m(this->ijk).reindex(this->zero) = where(
                                  rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num < 1,
-                                 pow(this->smg_c * (*this->params.mix_len)(this->vert_idx), 2)
+                                 pow2(this->smg_c * (*this->params.mix_len)(this->vert_idx))
                                  * sqrt(tdef_sq(this->ijk).reindex(this->zero)
                                         * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
                                  0
@@ -278,8 +278,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
       for(int d = 0; d < parent_t::n_dims; ++d)
         nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after xchng_sgs_vctr");
 
-      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
-      record_flux(s);
+      if (this->timestep == 0 || ((this->timestep /*+ 1*/) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
+        record_flux(s);
     
       this->rhs.at(s)(this->ijk) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
                                       tmp_grad,
@@ -300,7 +300,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     // explicit application of subgrid forcings
     if(at == 0)
     {
-      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0)
+      if (this->timestep == 0 || ((this->timestep /*+ 1*/) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0)
         save_sgs_fields();
       sgs_scalar_forces({ix::th, ix::rv});
       nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after sgs_scalar_forces");
