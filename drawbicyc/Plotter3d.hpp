@@ -7,10 +7,10 @@ template<>
 class Plotter_t<3> : public PlotterCommon 
 {
   public:
+  static const int n_dims = 3;
   using arr_t = blitz::Array<float, 3>;
   blitz::Array<int, 2> k_i;
   blitz::thirdIndex LastIndex;
-  blitz::RectDomain<3> ground;//(blitz::Range::all(), blitz::Range::all(), 0);
 
   protected:
   using parent_t = PlotterCommon;
@@ -65,6 +65,14 @@ class Plotter_t<3> : public PlotterCommon
     return blitz::safeToReturn(mean + 0);
   }
 
+  void subtract_horizontal_mean(
+    arr_t &data
+  )
+  {
+    blitz::Array<float, 1> mean(horizontal_mean(data));
+    data = data(blitz::tensor::i, blitz::tensor::j, blitz::tensor::k) - mean(blitz::tensor::k);
+  }
+
   auto horizontal_sum(
     const arr_t &data
   ) -> decltype(blitz::safeToReturn(blitz::Array<float, 1>() + 0))
@@ -75,6 +83,11 @@ class Plotter_t<3> : public PlotterCommon
     auto tmp2 = blitz::sum(mean2d(j,i), j);
     blitz::Array<float, 1> mean(tmp2);
     return blitz::safeToReturn(mean + 0);
+  }
+
+  blitz::RectDomain<3> hrzntl_slice(const int &z)
+  {
+    return blitz::RectDomain<3>(blitz::TinyVector<int, 3>(0,0,z), (blitz::TinyVector<int, 3>(this->map["x"]-1,this->map["y"]-1,z)));
   }
 
   template <class gp_t, class data_t>
@@ -126,7 +139,6 @@ class Plotter_t<3> : public PlotterCommon
     this->map["z"] = n[2]-1;
     tmp.resize(n[0], n[1], n[2]);
     k_i.resize(n[0]-1, n[1]-1);
-    ground = blitz::RectDomain<3>(blitz::TinyVector<int, 3>(0,0,0), (blitz::TinyVector<int, 3>(n[0]-1,n[1]-1,0)));//(0, n[0]-1), (0, n[1]-1), (0,0)));
 
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");

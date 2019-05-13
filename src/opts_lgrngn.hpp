@@ -61,11 +61,12 @@ void setopts_micro(
     ("out_dry", po::value<std::string>()->default_value(""),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
-    ("onishi", po::value<bool>()->default_value(false) , "use the turbulent onishi kernel")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
-    ("eps", po::value<setup::real_t>()->default_value(0.01) , "turb dissip rate (for onishi kernel) [m^2/s^3]")
-    ("ReL", po::value<setup::real_t>()->default_value(5000) , "taylor-microscale reynolds number (onishi kernel)")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
+    ("turb_cond", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_cond), "turbulence effects in SD condensation (1=on, 0=off)")
+    ("turb_adve", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_adve), "turbulence effects in SD motion (1=on, 0=off)")
+    ("turb_coal", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_coal) , "turbulence effects in SD coalescence (1=on, 0=off)")
+    ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
 
     // TODO: MAC, HAC, vent_coef
   ;
@@ -80,9 +81,7 @@ void setopts_micro(
 
   rt_params.async = vm["async"].as<bool>();
   bool gccn = vm["gccn"].as<bool>();
-  bool onishi = vm["onishi"].as<bool>();
 //  bool unit_test = vm["unit_test"].as<bool>();
-  setup::real_t eps = vm["eps"].as<setup::real_t>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
@@ -152,18 +151,26 @@ void setopts_micro(
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
 
   // coalescence kernel choice
-  if(!onishi)
+  if(!vm["turb_coal"].as<bool>())
     rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
   else
   {
     rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::onishi_hall_davis_no_waals;
-    rt_params.cloudph_opts_init.kernel_parameters.push_back(eps);
     rt_params.cloudph_opts_init.kernel_parameters.push_back(ReL);
+    rt_params.cloudph_opts_init.turb_coal_switch = 1;
+    rt_params.cloudph_opts.turb_coal = 1;
   }
   // terminal velocity choice
   rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_nonspherical;
 
   rt_params.cloudph_opts_init.RH_formula = libcloudphxx::lgrngn::RH_formula_t::rv_cc; // use rv to be consistent with Lipps Hemler
+
+  // turbulence effects for SDs
+  rt_params.cloudph_opts_init.turb_cond_switch = vm["turb_cond"].as<bool>();
+  rt_params.cloudph_opts.turb_cond = vm["turb_cond"].as<bool>();
+  
+  rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
+  rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."

@@ -1,5 +1,5 @@
 #pragma once
-#include "slvr_common.hpp"
+#include "slvr_sgs.hpp"
 #include "outmom.hpp"
 
 #include <libcloudph++/lgrngn/factory.hpp>
@@ -9,9 +9,15 @@
 #endif
 
 template <class ct_params_t>
-class slvr_lgrngn : public slvr_common<ct_params_t>
+class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                              slvr_common<ct_params_t>,
+                                              slvr_sgs<ct_params_t>
+                                             >
 {
-  using parent_t = slvr_common<ct_params_t>; 
+  using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                    slvr_common<ct_params_t>,
+                                    slvr_sgs<ct_params_t>
+                                   >;
 
   public:
   using ix = typename ct_params_t::ix;
@@ -44,8 +50,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   // helper methods
   void diag()
   {
-    assert(this->rank == 0);
-    parent_t::tbeg = parent_t::clock::now();
+    parent_t::diag();
 
     // recording super-droplet concentration per grid cell 
     prtcls->diag_all();
@@ -214,8 +219,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         rng_num++;
       }
     }
-    parent_t::tend = parent_t::clock::now();
-    parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
   } 
 
   libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(
@@ -246,6 +249,21 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
     params.cloudph_opts.coal = val ? params.flag_coal : false;
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
   };
+  
+  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t& tmp) final
+  {
+    if (this->rank == 0)
+    {
+      prtcls->diag_wet_rng(.5e-6, 25.e-6);
+      prtcls->diag_wet_mom(3);
+      auto rc = tmp(this->domain);
+      rc = typename parent_t::arr_t(prtcls->outbuf(), rc.shape(), blitz::duplicateData);
+      nancheck(rc, "rc after copying in in get_rc");
+      rc = rc * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    }
+    this->mem->barrier();
+    return tmp;
+  }
 
   // deals with nitial supersaturation
   void hook_ante_loop(int nt)
@@ -384,10 +402,16 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       this->record_aux_const("cond", params.cloudph_opts.cond);  
       this->record_aux_const("coal", params.flag_coal);  // cloudph_opts.coal could be 0 here due to spinup
       this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
+      this->record_aux_const("turb_adve", params.cloudph_opts.turb_adve);  
+      this->record_aux_const("turb_cond", params.cloudph_opts.turb_cond);  
+      this->record_aux_const("turb_coal", params.cloudph_opts.turb_coal);  
       this->record_aux_const("chem_switch", params.cloudph_opts_init.chem_switch);  
       this->record_aux_const("coal_switch", params.cloudph_opts_init.coal_switch);  
       this->record_aux_const("sedi_switch", params.cloudph_opts_init.sedi_switch);  
       this->record_aux_const("src_switch", params.cloudph_opts_init.src_switch);  
+      this->record_aux_const("turb_adve_switch", params.cloudph_opts_init.turb_adve_switch);  
+      this->record_aux_const("turb_cond_switch", params.cloudph_opts_init.turb_cond_switch);  
+      this->record_aux_const("turb_coal_switch", params.cloudph_opts_init.turb_coal_switch);  
       this->record_aux_const("chem_dsl", params.cloudph_opts.chem_dsl);  
       this->record_aux_const("chem_dsc", params.cloudph_opts.chem_dsc);  
       this->record_aux_const("chem_rct", params.cloudph_opts.chem_rct);  
@@ -577,7 +601,10 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
         libcloudphxx::lgrngn::arrinfo_t<real_t>(),
         make_arrinfo(Cx),
         this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
-        make_arrinfo(Cz)
+        make_arrinfo(Cz),
+        (ct_params_t::sgs_scheme == libmpdataxx::solvers::iles) || (!params.cloudph_opts.turb_cond && !params.cloudph_opts.turb_adve && !params.cloudph_opts.turb_coal) ?
+                                    libcloudphxx::lgrngn::arrinfo_t<real_t>() :
+                                    make_arrinfo(this->diss_rate(this->domain).reindex(this->zero))
       );
 
       // start sync/async run of step_cond
@@ -656,9 +683,6 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
   
   void record_all()
   {
-    // plain (no xdmf) hdf5 output
-    parent_t::output_t::parent_t::record_all();
-    // UWLCM output
 #if defined(STD_FUTURE_WORKS)
     if (this->timestep > 0 && params.async)
     {
@@ -666,9 +690,7 @@ class slvr_lgrngn : public slvr_common<ct_params_t>
       ftr.get();
     }
 #endif
-    diag();
-    // xmf markup
-    this->write_xmfs();
+    parent_t::record_all();
   }
 
   public:
