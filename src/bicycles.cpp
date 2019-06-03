@@ -191,46 +191,57 @@ struct ct_params_3D_blk_1m : ct_params_common
 template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
 void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
 {
+  struct ct_params_mpdata_opts : ct_params_dim_micro { enum { opts = opts::nug 
+#if defined(MPDATA_OPTS_IGA)
+  | opts::iga 
+#endif
+#if defined(MPDATA_OPTS_FCT)
+  | opts::fct 
+#endif
+#if defined(MPDATA_OPTS_ABS)
+  | opts::abs
+#endif
+  }; };
+
   if(!piggy) // no piggybacking
   {
-    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
-    if(type == "moist_thermal") // use abs option in moist_thermal
+#if !defined(UWLCM_DISABLE_DRIVER)
+    struct ct_params_piggy : ct_params_mpdata_opts { enum { piggy = 0 }; };
+
+    if (sgs)
     {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(nps, user_params);
+  #if !defined(UWLCM_DISABLE_SGS)
+      struct ct_params_sgs : ct_params_piggy
+      {
+        enum { sgs_scheme = solvers::smg };
+        enum { stress_diff = solvers::compact };
+      };
+      run<slvr<ct_params_sgs>>(nps, user_params);
+  #else
+      throw std::runtime_error("SGS option was disabled at compile time");
+  #endif
     }
-    else // default is the iga | fct option
+    else
     {
-      struct ct_params_opts : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      if (sgs)
-      {
-        struct ct_params_final : ct_params_opts
-        {
-          enum { sgs_scheme = solvers::smg };
-          enum { stress_diff = solvers::compact };
-        };
-        run<slvr<ct_params_final>>(nps, user_params);
-      }
-      else
-      {
-        struct ct_params_final : ct_params_opts {};
-        run<slvr<ct_params_final>>(nps, user_params);
-      }
+  #if !defined(UWLCM_DISABLE_ILES)
+      struct ct_params_sgs : ct_params_piggy {};
+      run<slvr<ct_params_sgs>>(nps, user_params);
+  #else
+      throw std::runtime_error("ILES option was disabled at compile time");
+  #endif
     }
+#else
+      throw std::runtime_error("Driver option was disabled at compile time");
+#endif
   }
   else // piggybacking
   {
-    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
-    if(type == "moist_thermal") // use abs option in moist_thermal
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(nps, user_params);
-    }
-    else // default is the iga | fct option
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(nps, user_params);
-    }
+#if !defined(UWLCM_DISABLE_PIGGYBACKER)
+    struct ct_params_piggy : ct_params_mpdata_opts { enum { piggy = 1 }; };
+    run<slvr<ct_params_piggy>>(nps, user_params);
+#else
+      throw std::runtime_error("Piggybacker option was disabled at compile time");
+#endif
   }
 }
 
@@ -340,16 +351,32 @@ int main(int argc, char** argv)
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
+#if !defined(UWLCM_DISABLE_2D_LGRNGN)
       run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Lagrangian option was disabled at compile time");
+#endif
 
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+#if !defined(UWLCM_DISABLE_3D_LGRNGN)
       run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Lagrangian option was disabled at compile time");
+#endif
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
+#if !defined(UWLCM_DISABLE_2D_BLK_1M)
       run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Bulk 1-moment option was disabled at compile time");
+#endif
 
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
+#if !defined(UWLCM_DISABLE_3D_BLK_1M)
       run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Bulk 1-moment option was disabled at compile time");
+#endif
 
   // TODO: not only micro can be wrong
     else throw 
