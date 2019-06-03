@@ -404,7 +404,7 @@ void plot_series(Plotter_t plotter, Plots plots)
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
           snap = iscloudy(snap); // cloudiness mask
-          snap(plotter.ground) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
           auto cloudy_column = plotter.k_i.copy();
           cloudy_column = blitz::sum(snap, plotter.LastIndex);
