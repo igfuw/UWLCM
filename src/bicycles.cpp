@@ -315,11 +315,12 @@ int main(int argc, char** argv)
  
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();
+    /*
     if(user_params.rng_seed < 0) //if negative, get random seed
     {
       std::random_device rd; 
       user_params.rng_seed = rd();
-    }
+    }*/
     std::cout << "rng seed: " << user_params.rng_seed << std::endl;
    
     //handling timestep length

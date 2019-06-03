@@ -14,8 +14,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
   real_t prandtl_num;
 
-  typename parent_t::arr_t &rcdsn_num, &tdef_sq;
-  arrvec_t<typename parent_t::arr_t> &tmp_grad, &hlpr;
+  typename parent_t::arr_t &rcdsn_num, &tdef_sq, &tke;
+  arrvec_t<typename parent_t::arr_t> &tmp_grad, &sgs_momenta_fluxes;
   
   void calc_rcdsn_num()
   {
@@ -27,7 +27,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     const auto& tht = this->state(ix::th);
     const auto& rv = this->state(ix::rv);
     // depending on microphysics we either have rc already (blk_m1) or have to diagnose it (lgrngn)
-    const auto& rc = this->get_rc(this->hlpr[1]);
+    const auto& rc = this->get_rc(rcdsn_num); // use rcdsn_num as temp storage for rc
    
     // libcloudph stuff
     const auto l_tri = libcloudphxx::common::const_cp::l_tri<setup::real_t>() * si::kilograms / si::joules;
@@ -81,7 +81,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   template <int nd = ct_params_t::n_dims> 
   void calc_sgs_momenta_fluxes(typename std::enable_if<nd == 2>::type* = 0)
   {
-    this->hlpr[1](this->ijk) = ( this->tau[2](this->i - h, this->j - h)
+    this->sgs_momenta_fluxes[0](this->ijk) = ( this->tau[2](this->i - h, this->j - h)
                                + this->tau[2](this->i + h, this->j - h)
                                + this->tau[2](this->i + h, this->j + h)
                                + this->tau[2](this->i - h, this->j + h)
@@ -91,12 +91,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
   template <int nd = ct_params_t::n_dims> 
   void calc_sgs_momenta_fluxes(typename std::enable_if<nd == 3>::type* = 0)
   {
-    this->hlpr[1](this->ijk) = ( this->tau[4](this->i - h, this->j, this->k - h)
+    this->sgs_momenta_fluxes[0](this->ijk) = ( this->tau[4](this->i - h, this->j, this->k - h)
                                + this->tau[4](this->i + h, this->j, this->k - h)
                                + this->tau[4](this->i + h, this->j, this->k + h)
                                + this->tau[4](this->i - h, this->j, this->k + h)
                                ) / 4;
-    this->hlpr[2](this->ijk) = ( this->tau[5](this->i, this->j - h, this->k - h)
+    this->sgs_momenta_fluxes[1](this->ijk) = ( this->tau[5](this->i, this->j - h, this->k - h)
                                + this->tau[5](this->i, this->j + h, this->k - h)
                                + this->tau[5](this->i, this->j + h, this->k + h)
                                + this->tau[5](this->i, this->j - h, this->k + h)
@@ -180,7 +180,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
       conv_fctr = conv_fctr_lat;
     }
 
-    this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], hlpr[1], conv_fctr);
+    this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], sgs_momenta_fluxes[0], conv_fctr);
     this->mem->barrier();
 
     std::string name;
@@ -199,44 +199,16 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
     if (this->rank == 0)
     {
-      this->record_aux_dsc(name, hlpr[1]);
+      this->record_aux_dsc(name, sgs_momenta_fluxes[0]);
     }
     this->mem->barrier();
   }
   
-  void save_sgs_fields()
+  void calc_sgs_diag_fields()
   {
-    hlpr[0](this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
+    tke(this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
                                                   / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
-  
     calc_sgs_momenta_fluxes();
-
-    this->mem->barrier();
-    if (this->rank == 0)
-    {
-      std::cout << "test u: " << min(this->state(ix::u)(this->domain)) << ' ' << max(this->state(ix::u)(this->domain)) << std::endl;
-      std::cout << "test w: " << min(this->state(ix::w)(this->domain)) << ' ' << max(this->state(ix::w)(this->domain)) << std::endl;
-      std::cout << "test tht: " << min(this->state(ix::th)(this->domain)) << ' ' << max(this->state(ix::th)(this->domain)) << std::endl;
-      std::cout << "test rv: " << min(this->state(ix::rv)(this->domain)) << ' ' << max(this->state(ix::rv)(this->domain)) << std::endl;
-
-      //std::cout << "test tht1: " << grad_tht[1](0, -1) << std::endl;
-      //std::cout << "test tht2: " << grad_tht[1](0, 0) << std::endl;
-      //std::cout << "test tht3: " << grad_tht[1](0, 1) << std::endl;
-      //std::cout << "test tht4: " << hlpr[1](0, 0) << std::endl;
-      //std::cout << "test tht5: " << hlpr[1](0, 1) << std::endl;
-      //std::cout << "test tht6: " << this->k_m(0, 0) << std::endl;
-      //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
-      std::cout << "recording sgs" << std::endl;
-      this->record_aux_dsc("k_m", this->k_m);
-      this->record_aux_dsc("tke", hlpr[0]);
-      this->record_aux_dsc("sgs_u_flux", hlpr[1]);
-      if (ct_params_t::n_dims > 2)
-      {
-        this->record_aux_dsc("sgs_v_flux", hlpr[2]);
-      }
-      this->record_aux_dsc("p", this->Phi);
-    }
-    this->mem->barrier();
   }
   
   void sgs_scalar_forces(const std::vector<int> &sclr_indices) override
@@ -278,8 +250,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
       for(int d = 0; d < parent_t::n_dims; ++d)
         nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after xchng_sgs_vctr");
 
-      if (this->timestep == 0 || ((this->timestep /*+ 1*/) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
-        record_flux(s);
+//      if (this->timestep == 0 || ((this->timestep /*+ 1*/) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
+//        record_flux(s);
     
       this->rhs.at(s)(this->ijk) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
                                       tmp_grad,
@@ -300,13 +272,41 @@ class slvr_sgs : public slvr_common<ct_params_t>
     // explicit application of subgrid forcings
     if(at == 0)
     {
-      if (this->timestep == 0 || ((this->timestep /*+ 1*/) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0)
-        save_sgs_fields();
+      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0)
+        calc_sgs_diag_fields();
+
       sgs_scalar_forces({ix::th, ix::rv});
       nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after sgs_scalar_forces");
       nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after sgs_scalar_forces");
     }
   }
+
+  void diag() override
+  {
+    assert(this->rank == 0);
+    parent_t::diag();
+//    std::cout << "test u: " << min(this->state(ix::u)(this->domain)) << ' ' << max(this->state(ix::u)(this->domain)) << std::endl;
+//    std::cout << "test w: " << min(this->state(ix::w)(this->domain)) << ' ' << max(this->state(ix::w)(this->domain)) << std::endl;
+//    std::cout << "test tht: " << min(this->state(ix::th)(this->domain)) << ' ' << max(this->state(ix::th)(this->domain)) << std::endl;
+//    std::cout << "test rv: " << min(this->state(ix::rv)(this->domain)) << ' ' << max(this->state(ix::rv)(this->domain)) << std::endl;
+//
+//    //std::cout << "test tht1: " << grad_tht[1](0, -1) << std::endl;
+//    //std::cout << "test tht2: " << grad_tht[1](0, 0) << std::endl;
+//    //std::cout << "test tht3: " << grad_tht[1](0, 1) << std::endl;
+//    //std::cout << "test tht4: " << sgs_momenta_fluxes[0](0, 0) << std::endl;
+//    //std::cout << "test tht5: " << sgs_momenta_fluxes[0](0, 1) << std::endl;
+//    //std::cout << "test tht6: " << this->k_m(0, 0) << std::endl;
+//    //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
+//    std::cout << "recording sgs" << std::endl;
+    this->record_aux_dsc("k_m", this->k_m);
+    this->record_aux_dsc("tke", tke);
+    this->record_aux_dsc("sgs_u_flux", sgs_momenta_fluxes[0]);
+    if (ct_params_t::n_dims > 2)
+    {
+      this->record_aux_dsc("sgs_v_flux", sgs_momenta_fluxes[1]);
+    }
+    this->record_aux_dsc("p", this->Phi);
+  } 
 
   public:
 
@@ -329,15 +329,16 @@ class slvr_sgs : public slvr_common<ct_params_t>
     prandtl_num(p.prandtl_num),
     rcdsn_num(args.mem->tmp[__FILE__][0][0]),
     tdef_sq(args.mem->tmp[__FILE__][0][1]),
+    tke(args.mem->tmp[__FILE__][0][2]),
     tmp_grad(args.mem->tmp[__FILE__][1]),
-    hlpr(args.mem->tmp[__FILE__][2])
+    sgs_momenta_fluxes(args.mem->tmp[__FILE__][2])
   {}
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // rcdsn_num, tdef_sq
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 3); // rcdsn_num, tdef_sq, tke
     parent_t::alloc_tmp_vctr(mem, __FILE__); // tmp_grad
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 4); // hlpr
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // sgs_momenta_fluxes
   }
 };

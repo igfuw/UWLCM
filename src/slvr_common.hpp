@@ -356,6 +356,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   virtual void diag()
   {
+    assert(this->rank == 0);
     this->record_aux_dsc("radiative_flux", radiative_flux); 
   } 
 
