@@ -263,7 +263,7 @@ int main(int argc, char** argv)
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
       ("nt", po::value<int>()->default_value(3600) , "timestep count")
-      ("rng_seed", po::value<int>()->default_value(-1) , "rng seed, negative for random")
+      ("rng_seed", po::value<int>()->default_value(0) , "rng seed, 0 for random")
       ("dt", po::value<setup::real_t>()->required() , "timestep length")
       ("z_rlx_sclr", po::value<setup::real_t>()->default_value(25) , "scalars surface flux charasteristic heihjt")
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
@@ -315,12 +315,11 @@ int main(int argc, char** argv)
  
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();
-    /*
-    if(user_params.rng_seed < 0) //if negative, get random seed
+    while(user_params.rng_seed == 0) //if = 0, get random seed
     {
       std::random_device rd; 
       user_params.rng_seed = rd();
-    }*/
+    }
     std::cout << "rng seed: " << user_params.rng_seed << std::endl;
    
     //handling timestep length
