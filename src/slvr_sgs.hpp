@@ -14,7 +14,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
   real_t prandtl_num;
 
-  typename parent_t::arr_t &rcdsn_num, &tdef_sq, &tke;
+  typename parent_t::arr_t &rcdsn_num, &tdef_sq, &tke, &sgs_th_flux, &sgs_rv_flux;
   arrvec_t<typename parent_t::arr_t> &tmp_grad, &sgs_momenta_fluxes;
   
   void calc_rcdsn_num()
@@ -162,8 +162,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
     //}
     //this->mem->barrier();
   }
-  
-  void record_flux(int s)
+
+  void calc_sgs_flux(int s)
   {
     if (s != ix::th && s != ix::rv) return;
 
@@ -173,35 +173,14 @@ class slvr_sgs : public slvr_common<ct_params_t>
     {
       auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
       conv_fctr = conv_fctr_sens;
+      this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], sgs_th_flux, conv_fctr);
     }
     else if (s == ix::rv)// || s == ix::rc)
     {
       auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
       conv_fctr = conv_fctr_lat;
+      this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], sgs_rv_flux, conv_fctr);
     }
-
-    this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], sgs_momenta_fluxes[0], conv_fctr);
-    this->mem->barrier();
-
-    std::string name;
-    if (s == ix::th)
-    {
-      name = "sgs_tht_flux";
-    }
-    else if (s == ix::rv)
-    {
-      name = "sgs_rv_flux";
-    }
-    //else if (s == ix::rc)
-    //{
-    //  name = "sgs_rc_flux";
-    //}
-
-    if (this->rank == 0)
-    {
-      this->record_aux_dsc(name, sgs_momenta_fluxes[0]);
-    }
-    this->mem->barrier();
   }
   
   void calc_sgs_diag_fields()
@@ -250,8 +229,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
       for(int d = 0; d < parent_t::n_dims; ++d)
         nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after xchng_sgs_vctr");
 
-//      if (this->timestep == 0 || ((this->timestep /*+ 1*/) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
-//        record_flux(s);
+      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
+        calc_sgs_flux(s);
     
       this->rhs.at(s)(this->ijk) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
                                       tmp_grad,
@@ -306,6 +285,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
       this->record_aux_dsc("sgs_v_flux", sgs_momenta_fluxes[1]);
     }
     this->record_aux_dsc("p", this->Phi);
+    this->record_aux_dsc("sgs_th_flux", sgs_th_flux);
+    this->record_aux_dsc("sgs_rv_flux", sgs_rv_flux);
   } 
 
   public:
@@ -331,7 +312,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
     tdef_sq(args.mem->tmp[__FILE__][0][1]),
     tke(args.mem->tmp[__FILE__][0][2]),
     tmp_grad(args.mem->tmp[__FILE__][1]),
-    sgs_momenta_fluxes(args.mem->tmp[__FILE__][2])
+    sgs_momenta_fluxes(args.mem->tmp[__FILE__][2]),
+    sgs_th_flux(args.mem->tmp[__FILE__][3][0]),
+    sgs_rv_flux(args.mem->tmp[__FILE__][3][1])
   {}
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
@@ -340,5 +323,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
     parent_t::alloc_tmp_sclr(mem, __FILE__, 3); // rcdsn_num, tdef_sq, tke
     parent_t::alloc_tmp_vctr(mem, __FILE__); // tmp_grad
     parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // sgs_momenta_fluxes
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // sgs_th/rv_flux
   }
 };
