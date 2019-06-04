@@ -129,8 +129,11 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("rv_e", params.rv_e->data()); 
       this->record_prof_const("th_ref", params.th_ref->data()); 
       this->record_prof_const("rhod", params.rhod->data()); 
-      this->record_prof_const("u_geostr", params.geostr[0]->data()); 
-      this->record_prof_const("v_geostr", params.geostr[1]->data()); 
+      if(parent_t::n_dims==3)
+      {
+        this->record_prof_const("u_geostr", params.geostr[0]->data()); 
+        this->record_prof_const("v_geostr", params.geostr[1]->data()); 
+      }
     }
  
     // initialize surf fluxes with timestep==0
