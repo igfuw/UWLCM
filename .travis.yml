@@ -3,6 +3,10 @@ os:
     - linux
 compiler:
     - gcc
+env:
+    - TEST_SUITE=unit_iles
+    - TEST_SUITE=unit_sgs
+    - TEST_SUITE=moist_thermal
 addons:
   apt:
     packages:
@@ -54,6 +58,9 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0 libhdf5-dev; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-serial-dev hdf5-tools; fi
 
+before_script:
+    - chmod +x ./.travis_scripts/*
+
 script:
 
   # install libcloudphxx in RelWithDebInfo mode
@@ -76,13 +83,9 @@ script:
   - sudo make install
   - cd ../../..
 
-  # UWLCM in RelWithDebInfo mode, moist thermal case
   - cd UWLCM
-  - mkdir build
-  - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
-  - VERBOSE=1 make
-  - OMP_NUM_THREADS=6 make test || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
-
-  
-  # TODO: run the dry thermal test
+  # run the unit tests
+  - if [[ $TEST_SUITE == 'unit_iles' ]]; then . ./.travis_scripts/unit_iles.sh; fi
+  - if [[ $TEST_SUITE == 'unit_sgs' ]]; then . ./.travis_scripts/unit_sgs.sh; fi
+  # run the moist thermal test
+  - if [[ $TEST_SUITE == 'moist_thermal' ]]; then . ./.travis_scripts/moist_thermal.sh; fi

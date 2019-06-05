@@ -2,6 +2,7 @@
 
 #include "slvr_piggy.hpp"
 #include <libmpdata++/formulae/arakawa_c.hpp>
+#include <libmpdata++/formulae/nabla_formulae.hpp>
 
 // custom 3D idxperm that accepts idx_t; todo: make it part of libmpdata?
 namespace libmpdataxx
@@ -46,9 +47,21 @@ class slvr_dim<
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
 
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
+  blitz::TinyVector<int, 2> origin = blitz::TinyVector<int, 2>({this->i.first(), this->j.first()});
   blitz::secondIndex vert_idx;
+  const rng_t &vert_rng = this->j;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::u};
+
+  idx_t<2> hrzntl_slice(int k)
+  {
+      return idx_t<2>({this->i, rng_t(k, k)});
+  }
+  
+  auto hrzntl_slice(const typename parent_t::arr_t &a, int k)
+  {
+      return blitz::safeToReturn(a(idx_t<2>({this->i, rng_t(k, k)})) + 0);
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -69,6 +82,20 @@ class slvr_dim<
     out(this->i, 0) *= 2; 
     // set to 0 at top level to have no subsidence there - TODO: it messes with other possible uses of this function 
     out(this->i, this->j.last()) = 0; 
+  }
+  
+  void vert_grad_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  {
+    in(this->i, this->j.last() + 1) = in(this->i, this->j.last());
+    in(this->i, this->j.first() - 1) = in(this->i, this->j.first());
+    out(this->i, this->j + h) = libmpdataxx::formulae::nabla::grad_cmpct<1>(in, this->j, this->i, dz);
+  }
+  
+  void vert_aver_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t coeff = 1)
+  {
+    // assumes filled halos
+    using libmpdataxx::arakawa_c::h;
+    out(this->i, this->j) = coeff * (in(this->i, this->j - h) + in(this->i, this->j + h)) / 2;
   }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
@@ -120,9 +147,21 @@ class slvr_dim<
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
 
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
+  blitz::TinyVector<int, 3> origin = blitz::TinyVector<int, 3>({this->i.first(), this->j.first(), this->k.first()});
   blitz::thirdIndex vert_idx;
+  const rng_t &vert_rng = this->k;
   libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::u, ix::v};
+
+  idx_t<3> hrzntl_slice(int k)
+  {
+      return idx_t<3>({this->i, this->j, rng_t(k, k)});
+  }
+
+  auto hrzntl_slice(const typename parent_t::arr_t &a, int k)
+  {
+      return blitz::safeToReturn(a(idx_t<3>({this->i, this->j, rng_t(k, k)})) + 0);
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
   {
@@ -143,6 +182,20 @@ class slvr_dim<
     out(this->i, this->j, 0) *= 2; 
     //out(this->i, this->j, this->k.last()) *= 2; 
     out(this->i, this->j, this->k.last()) = 0; 
+  }
+  
+  void vert_grad_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  {
+    in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last());
+    in(this->i, this->j, this->k.first() - 1) = in(this->i, this->j, this->k.first());
+    out(this->i, this->j, this->k + h) = libmpdataxx::formulae::nabla::grad_cmpct<2>(in, this->k, this->i, this->j, dz);
+  }
+
+  void vert_aver_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t coeff = 1)
+  {
+    // assumes filled halos
+    using libmpdataxx::arakawa_c::h;
+    out(this->i, this->j, this->k) = coeff * (in(this->i, this->j, this->k - h) + in(this->i, this->j, this->k + h)) / 2;
   }
 
   void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)

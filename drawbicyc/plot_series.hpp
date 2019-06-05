@@ -479,7 +479,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // surface precipitation [mm/day]
         try
         {
-          res_prof(at) = (prec_vol - prec_vol_prev) / plotter.DomainSurf / (double(n["outfreq"]) * n["dt"] / 3600. / 24.) * 1e3;
+          res_prof(at) = plotter.calc_surf_precip(prec_vol - prec_vol_prev);
         }
         catch(...) {;}
       }
@@ -488,7 +488,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         // accumulated surface precipitation [mm]
         try
         {
-            res_prof(at) = prec_vol / plotter.DomainSurf * 1e3; 
+          res_prof(at) = plotter.calc_acc_surf_precip(prec_vol);
         }
         catch(...) {;}
       }
@@ -543,6 +543,46 @@ void plot_series(Plotter_t plotter, Plots plots)
 //          mean = blitz::mean(snap(tensor::j, tensor::i), tensor::j); // mean over x and y
           auto mean = plotter.horizontal_mean(snap);
           res_prof(at) = blitz::max(mean); // the max value
+        }
+        catch(...) {;}
+      }
+      else if (plt == "tot_tke")
+      {
+        try
+        {
+          auto u = plotter.h5load_timestep("u", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(u);
+          plotter.subtract_horizontal_mean(snap);
+          snap = snap * snap;
+          auto mean = plotter.horizontal_mean(snap);
+          res_prof(at) = blitz::sum(mean);
+
+          {
+            auto w = plotter.h5load_timestep("w", at * n["outfreq"]);
+            snap = w;
+            plotter.subtract_horizontal_mean(snap);
+            snap = snap * snap;
+            auto mean = plotter.horizontal_mean(snap);
+            res_prof(at) += blitz::sum(mean);
+          }
+        
+          if (Plotter_t::n_dims > 2)
+          {
+            auto v = plotter.h5load_timestep("v", at * n["outfreq"]);
+            snap = v;
+            plotter.subtract_horizontal_mean(snap);
+            snap = snap * snap;
+            auto mean = plotter.horizontal_mean(snap);
+            res_prof(at) += blitz::sum(mean);
+          }
+          
+          res_prof(at) *= 0.5 * n["dz"];
+
+          {
+            auto tke = plotter.h5load_timestep("tke", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tke);
+            res_prof(at) += blitz::sum(plotter.horizontal_mean(snap));
+          }
         }
         catch(...) {;}
       }
@@ -773,6 +813,12 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set title 'entrainment rate [cm / s]'\n";
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
+    }
+    else if (plt == "tot_tke")
+    {
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+      gp << "set title 'turbulent kinetic energy (resolved + sgs) [m^3 / s^2]'\n";
     }
 
     gp << "plot '-' with l";

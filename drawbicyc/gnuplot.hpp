@@ -15,7 +15,7 @@ void init_prof(
   boost::filesystem::create_directories(
     boost::filesystem::path(file).parent_path()
   );
-  gp << "set term svg dynamic enhanced fsize 16 size " << nx * 500 << "," << ny * 500 << "\n";
+  gp << "set term svg dynamic enhanced size " << nx * 500 << "," << ny * 500 << " font ',16'\n";
 //  gp << "set size square\n";
 //  gp << "set size ratio 0.3\n";
   gp << "set output '" << file << "'\n";
@@ -51,7 +51,7 @@ void init(
   const int xtics = 7;
   const int ytics = xtics * ratio + 0.5;
 
-  gp << "set term svg dynamic enhanced fsize 13 size " << nx * size_scale * 500 << "," << ny * size_scale * 500 << "\n";
+  gp << "set term svg dynamic enhanced size " << nx * size_scale * 500 << "," << ny * size_scale * 500 << " font ',13'\n";
 //  gp << "set size square\n";
   gp << "set size ratio "<< ratio <<" \n";
   gp << "set encoding utf8\n";
