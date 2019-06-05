@@ -261,6 +261,33 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(act1st, at);
   }
 
+  // surface precipitation since last output [mm/day]
+  double calc_surf_precip(double prec_vol_diff)
+  {
+    if(this->micro == "lgrngn")
+      return prec_vol_diff / this->DomainSurf / (double(this->map["outfreq"]) * this->map["dt"] / 3600. / 24.) * 1e3; // SDM
+    if(this->micro == "blk_1m")
+      return prec_vol_diff / double(this->map["outfreq"]) // flux in [kg / m^3 / s] averaged over time since last output and over cells on the bottom
+                     / (this->map["x"] * this->map["y"])
+                     * 3600. * 24. // per day
+                     * this->map["dz"]     // per m^2
+                     / 1e3         // to m^3 of water
+                     * 1e3;        // to mm
+  }
+
+  // accumulated surface precipitation [mm]
+  double calc_acc_surf_precip(double prec_vol)
+  {
+    if(this->micro == "lgrngn")
+      return prec_vol / this->DomainSurf * 1e3; 
+    if(this->micro == "blk_1m")
+      return prec_vol * this->map["dt"] 
+                     / (this->map["x"] * this->map["y"])
+                     * this->map["dz"]     // per m^2
+                     / 1e3         // to m^3 of water
+                     * 1e3;        // to mm
+  }
+
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),

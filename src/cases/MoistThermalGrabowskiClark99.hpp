@@ -136,12 +136,14 @@ namespace setup
     };
 
     // its in fact the moist thermal from our 2017 GMD paper on Twomey SDs? differences: kappa=1.28, i.e. sea salt aerosol
-    template<class rt_params_t, class ix, int n_dims>
-    class MoistThermalGrabowskiClark99Common : public CasesCommon<rt_params_t, ix, n_dims>
+    template<class case_ct_params_t, int n_dims>
+    class MoistThermalGrabowskiClark99Common : public CasesCommon<case_ct_params_t, n_dims>
     {
 
       protected:
-      using parent_t = CasesCommon<rt_params_t, ix, n_dims>;
+      using parent_t = CasesCommon<case_ct_params_t, n_dims>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
     
       void setopts_hlpr(rt_params_t &params, const user_params_t &user_params)
       {
@@ -162,6 +164,8 @@ namespace setup
         params.coriolis = false;
         params.radiation = false;
     //    params.n_iters=1;
+
+        this->setopts_sgs(params);
       }
     
       template <class index_t>
@@ -199,14 +203,16 @@ namespace setup
       // rhod - dry density profsile
       {
 
-        setup::real_t dz = (Z / si::metres) / (nz-1);
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
-    
         using setup::real_t;
+
+        parent_t::env_prof(profs, nz, user_params);
+
+        real_t dz = (Z / si::metres) / (nz-1);
         blitz::firstIndex k;
         // temperature and total pressure profiles
         arr_1D_t T(nz), pre_ref(nz);
@@ -305,17 +311,21 @@ namespace setup
       MoistThermalGrabowskiClark99Common()
       {
         this->kappa = 1.28; // NaCl aerosol
+        this->Z = Z;
       }
     };
 
     // 2d/3d children
-    template<class rt_params_t, class ix, int n_dims>
+    template<class case_ct_params_t, int n_dims>
     class MoistThermalGrabowskiClark99;
 
-    template<class rt_params_t, class ix>
-    class MoistThermalGrabowskiClark99<rt_params_t, ix, 2> : public MoistThermalGrabowskiClark99Common<rt_params_t, ix, 2>
+    template<class case_ct_params_t>
+    class MoistThermalGrabowskiClark99<case_ct_params_t, 2> : public MoistThermalGrabowskiClark99Common<case_ct_params_t, 2>
     {
-      using parent_t = MoistThermalGrabowskiClark99Common<rt_params_t, ix, 2>;
+      using parent_t = MoistThermalGrabowskiClark99Common<case_ct_params_t, 2>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       // function expecting a libmpdata solver parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -348,12 +358,21 @@ namespace setup
         );
      
       }
+
+      public:
+      MoistThermalGrabowskiClark99()
+      {
+        this->X = X;
+      }
     };
 
-    template<class rt_params_t, class ix>
-    class MoistThermalGrabowskiClark99<rt_params_t, ix, 3> : public MoistThermalGrabowskiClark99Common<rt_params_t, ix, 3>
+    template<class case_ct_params_t>
+    class MoistThermalGrabowskiClark99<case_ct_params_t, 3> : public MoistThermalGrabowskiClark99Common<case_ct_params_t, 3>
     {
-      using parent_t = MoistThermalGrabowskiClark99Common<rt_params_t, ix, 3>;
+      using parent_t = MoistThermalGrabowskiClark99Common<case_ct_params_t, 3>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       // function expecting a libmpdata solver parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -391,6 +410,13 @@ namespace setup
     
         solver.advectee(ix::v) = 0;
         solver.vab_relaxed_state(1) = 0;
+      }
+
+      public:
+      MoistThermalGrabowskiClark99()
+      {
+        this->X = X;
+        this->Y = Y;
       }
     };
   };

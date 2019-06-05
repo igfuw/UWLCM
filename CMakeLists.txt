@@ -31,7 +31,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
+# handle the mpdata options
+if(NOT MPDATA_OPTS)
+  set(MPDATA_OPTS "IGA;FCT") # iga, fct is the default
+endif()
+message(STATUS "UWLCM will use the following libmpdata++ options: ${MPDATA_OPTS}")
 
 add_subdirectory(src) 
-add_subdirectory(drawbicyc)
 add_subdirectory(tests)

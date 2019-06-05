@@ -193,6 +193,7 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
       my_clfrac = read_my_array(profiles_file)
       my_nc = read_my_array(profiles_file)
       my_ss = read_my_array(profiles_file)
+      my_rad_flx = read_my_array(profiles_file)
   #    my_nc_up = read_my_array(profiles_file)
   #    my_ss_up = read_my_array(profiles_file)
   
@@ -221,6 +222,8 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
         plot_my_array(axarr, plot_iter, my_ss, my_pos, nploty, xlabel='supersaturation [\%]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "ndrop_cld":
         plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      if var == "rad_flx":
+        plot_my_array(axarr, plot_iter, my_rad_flx, my_pos, nploty, xlabel='radiative flux [W m$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "ndrop_cod_zoom":
         plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
   #    # xrange of the nc_up plot
@@ -247,6 +250,7 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
       my_clfrac = 0
       my_nc = 0
       my_ss = 0
+      my_rad_flx = 0
     label_counter = label_counter+1
   plot_iter += 1
   return plot_iter
