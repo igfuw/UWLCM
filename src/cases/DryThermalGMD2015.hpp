@@ -90,6 +90,8 @@ namespace setup
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
+
+        parent_t::env_prof(profs, nz, user_params);
        
         profs.rhod = 1;
         profs.th_e = 300;
@@ -111,6 +113,12 @@ namespace setup
         profs.p_e = real_t(p / si::pascals); // total env pressure
 
         profs.th_ref = 300;
+      }
+
+      public:
+      DryThermalCommon()
+      {
+        this->Z = Z;
       }
     };
     
@@ -140,6 +148,12 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
+      }
+
+      public:
+      DryThermal()
+      {
+        this->X = X;
       }
     };
 

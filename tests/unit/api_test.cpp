@@ -11,7 +11,8 @@ using std::string;
 
 int main(int ac, char** av)
 {
-  if (ac != 2) error_macro("expecting one argument - CMAKE_BINARY_DIR");
+  if (ac != 2 && ac != 3) error_macro("expecting one or two arguments: 1. CMAKE_BINARY_DIR 2. additional command line options (optional)");
+  string opts_additional = ac == 3 ? av[2] : "";
 
   string outdir;
   string opts_common = 
@@ -56,7 +57,7 @@ int main(int ac, char** av)
               opts_p = opts_pig_from_lgrngn;
           }
           ostringstream cmd;
-          cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p;
+          cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p << " " << opts_additional;
           notice_macro("about to call: " << cmd.str())
   
           if (EXIT_SUCCESS != system(cmd.str().c_str()))

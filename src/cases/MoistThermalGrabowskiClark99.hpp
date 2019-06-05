@@ -203,14 +203,16 @@ namespace setup
       // rhod - dry density profsile
       {
 
-        setup::real_t dz = (Z / si::metres) / (nz-1);
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
-    
         using setup::real_t;
+
+        parent_t::env_prof(profs, nz, user_params);
+
+        real_t dz = (Z / si::metres) / (nz-1);
         blitz::firstIndex k;
         // temperature and total pressure profiles
         arr_1D_t T(nz), pre_ref(nz);
@@ -309,6 +311,7 @@ namespace setup
       MoistThermalGrabowskiClark99Common()
       {
         this->kappa = 1.28; // NaCl aerosol
+        this->Z = Z;
       }
     };
 
@@ -354,6 +357,12 @@ namespace setup
           blitz::tensor::j * dz
         );
      
+      }
+
+      public:
+      MoistThermalGrabowskiClark99()
+      {
+        this->X = X;
       }
     };
 
@@ -401,6 +410,13 @@ namespace setup
     
         solver.advectee(ix::v) = 0;
         solver.vab_relaxed_state(1) = 0;
+      }
+
+      public:
+      MoistThermalGrabowskiClark99()
+      {
+        this->X = X;
+        this->Y = Y;
       }
     };
   };

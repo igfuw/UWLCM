@@ -166,13 +166,15 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) override
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
+
+        parent_t::env_prof(profs, nz, user_params);
   
         // temp profile
         arr_1D_t T(nz);
@@ -270,17 +272,6 @@ namespace setup
         // for scalars
         z_0 = user_params.z_rlx_sclr;
         profs.hgt_fctr_sclr = exp(- k * dz / z_0) / z_0;
-
-        real_t sgs_delta;
-        if (user_params.sgs_delta > 0)
-        {
-          sgs_delta = user_params.sgs_delta;
-        }
-        else
-        {
-          sgs_delta = dz;
-        }
-        profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -331,6 +322,7 @@ namespace setup
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(3.75e-6); // [1/s] large-scale wind divergence used to calc subsidence of SDs, TODO: use boost.units to enforce 1/s
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
+        this->Z = Z;
       }
     };
     
@@ -358,6 +350,12 @@ namespace setup
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         this->make_cyclic(solver.advectee(ix::th));
+      }
+
+      public:
+      Dycoms()
+      {
+        this->X = X[RF-1];
       }
     };
 
@@ -409,6 +407,13 @@ namespace setup
         real_t dz = (Z / si::metres) / (nz-1);
         profs.geostr[0] = u(k * dz); 
         profs.geostr[1] = v()(k * dz); 
+      }
+
+      public:
+      Dycoms()
+      {
+        this->X = X[RF-1];
+        this->Y = Y[RF-1];
       }
     };
   };

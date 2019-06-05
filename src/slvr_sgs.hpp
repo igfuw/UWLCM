@@ -110,18 +110,18 @@ class slvr_sgs : public slvr_common<ct_params_t>
                   "UWLCM smagorinsky model requires compact stress differencing");
 
     tdef_sq(this->ijk) = formulae::stress::calc_tdef_sq_cmpct<ct_params_t::n_dims>(this->tau, this->ijk);
-
     calc_rcdsn_num();
 
     this->k_m(this->ijk).reindex(this->zero) = where(
                                  rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num < 1,
-                                 pow2(this->smg_c * (*this->params.mix_len)(this->vert_idx))
-                                 * sqrt(tdef_sq(this->ijk).reindex(this->zero)
-                                        * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
-                                 0
+                                   pow2(this->smg_c * (*this->params.mix_len)(this->vert_idx))
+                                   * sqrt(tdef_sq(this->ijk).reindex(this->zero)
+                                   * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
+                                   0
                                 );
     this->k_m(this->hrzntl_slice(0)) = this->k_m(this->hrzntl_slice(1));
     this->xchng_sclr(this->k_m, this->ijk, 1);
+    
    
     // calculate dissipation rate
 
@@ -204,7 +204,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
       // document why
       this->mem->barrier();
-      
+
       formulae::stress::multiply_vctr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(tmp_grad,
                                                                                     1.0 / prandtl_num,
                                                                                     this->k_m,
