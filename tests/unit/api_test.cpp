@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 #include <sstream> // std::ostringstream
+#include <fstream>
+#include <unordered_map>
 
 #include "../common.hpp"
 
@@ -41,6 +43,9 @@ int main(int ac, char** av)
 
   system("mkdir output");
 
+  // file with a dict translating hashed outdir into options
+  std::ofstream ofdict("hash_dict"+opts_additional+".txt");
+
   for (auto &opts_d : opts_dim)
     for (auto &opts_m : opts_micro)
       for (auto &opts_c : opts_case)
@@ -61,7 +66,12 @@ int main(int ac, char** av)
           }
           ostringstream cmd, opts;
           opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p << " " << opts_additional;
-          cmd << av[1] << "/src/bicycles " << opts.str() << " --outdir=\"output/" << opts.str() << "\"";
+          // we want outdir=opts.str(), but that gives a long outdir that h5diff has trouble with reading and gives error when comparing const.h5 with refdata
+          // hence we hash opts to get outdir
+          auto outdir = std::hash<std::string>{}(opts.str());
+          ofdict << outdir << " : " << opts.str() << std::endl;
+
+          cmd << av[1] << "/src/bicycles " << opts.str() << " --outdir=\"output/" << outdir << "\"";
           notice_macro("about to call: " << cmd.str())
   
           if (EXIT_SUCCESS != system(cmd.str().c_str()))
@@ -71,7 +81,7 @@ int main(int ac, char** av)
           if(opts_p == opts_piggy[1])
           {
             ostringstream cpcmd;
-            cpcmd << "cp \"output/" << opts.str() << "/velocity_out.dat\" .";
+            cpcmd << "cp \"output/" << outdir << "/velocity_out.dat\" .";
             notice_macro("about to call: " << cpcmd.str())
             system(cpcmd.str().c_str());
           }
