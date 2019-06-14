@@ -57,8 +57,14 @@ install:
 # hdf5
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-serial-dev hdf5-tools; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-dev hdf5-tools; fi
+# we need hdf5-1.10 for h5diff --enable-error-stack, so we install it manually
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then tar xf hdf5-1.10.5.tar; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd hdf5-1.10.5; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then CXXFLAGS=-w CFLAGS=-w ./configure --enable-cxx --enable-threadsafe; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo make install; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-dev hdf5-tools; fi
 
 before_script:
     - chmod +x ./.travis_scripts/*
