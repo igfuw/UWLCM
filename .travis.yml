@@ -5,7 +5,7 @@ compiler:
     - gcc
 env:
     - TEST_SUITE=unit_iles
-    - TEST_SUITE=unit_sgs
+    - TEST_SUITE=unit_smg
     - TEST_SUITE=moist_thermal
 addons:
   apt:
@@ -86,6 +86,6 @@ script:
   - cd UWLCM
   # run the unit tests
   - if [[ $TEST_SUITE == 'unit_iles' ]]; then . ./.travis_scripts/unit_iles.sh; fi
-  - if [[ $TEST_SUITE == 'unit_sgs' ]]; then . ./.travis_scripts/unit_sgs.sh; fi
+  - if [[ $TEST_SUITE == 'unit_smg' ]]; then . ./.travis_scripts/unit_smg.sh; fi
   # run the moist thermal test
   - if [[ $TEST_SUITE == 'moist_thermal' ]]; then . ./.travis_scripts/moist_thermal.sh; fi
