@@ -61,9 +61,10 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then tar xf hdf5-1.10.5.tar; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd hdf5-1.10.5; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then CXXFLAGS=-w CFLAGS=-w ./configure --enable-cxx --enable-threadsafe --enable-unsupported --prefix=/usr/local; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then CXXFLAGS=-w CFLAGS=-w ./configure --enable-cxx --enable-threadsafe --enable-unsupported --prefix=/usr; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo make install; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ldconfig; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd ..; fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-dev hdf5-tools; fi
 
