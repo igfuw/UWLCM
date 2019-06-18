@@ -8,7 +8,7 @@ add_test(api_test_iles_diff bash -c "
     while IFS= read -rd '' dir; do 
       echo \"working with $dir\"                                                                                                                           
       echo   'comparing const.h5'                                                                                                                          
-      h5diff --enable-error-stack \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/const.h5\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/$dir/const.h5\"                            
+      h5diff -v2 \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/const.h5\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/$dir/const.h5\"                            
       echo $?
       exit 1
     done  
