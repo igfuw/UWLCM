@@ -34,8 +34,13 @@ add_dependencies(bicycles git_revision.h)
 target_link_libraries(bicycles ${libmpdataxx_LIBRARIES})
 target_include_directories(bicycles PUBLIC ${libmpdataxx_INCLUDE_DIRS})
 
-target_link_libraries(bicycles ${libcloudphxx_LIBRARIES})
-target_include_directories(bicycles PUBLIC ${libcloudphxx_INCLUDE_DIRS})
+target_link_libraries(bicycles
+  PRIVATE
+    clphxx::cloudphxx_lgrngn
+)
+
+# enabling c++14
+target_compile_features(bicycles PUBLIC cxx_std_14)
 
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
 target_link_libraries(bicycles ${Boost_LIBRARIES})
