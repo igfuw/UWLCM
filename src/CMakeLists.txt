@@ -40,7 +40,8 @@ target_link_libraries(bicycles
     clphxx::cloudphxx_lgrngn
 )
 
-# enabling c++14
+# enabling c++14, but not gnu++14
+target_set_property(TARGET bicycles PROPERTY CXX_EXTENSIONS OFF)
 target_compile_features(bicycles PRIVATE cxx_std_14)
 
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
