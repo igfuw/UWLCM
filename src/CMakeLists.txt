@@ -41,7 +41,7 @@ target_link_libraries(bicycles
 )
 
 # enabling c++14, but not gnu++14
-set_target_properties(TARGET bicycles PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(bicycles PROPERTIES CXX_EXTENSIONS OFF)
 target_compile_features(bicycles PRIVATE cxx_std_14)
 
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
