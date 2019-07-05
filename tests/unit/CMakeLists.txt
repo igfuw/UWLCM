@@ -12,7 +12,7 @@ add_test(api_test_iles_diff bash -c "
       echo   'comparing temp.xmf'                                                                                                                                                      &&
       diff \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/temp.xmf\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/$dir/temp.xmf\"                                                         && 
       echo   'comparing timestep0000000000.h5'                                                                                                                                         &&
-      h5diff  -v2 --relative=1e-5 \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/timestep0000000000.h5\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/$dir/timestep0000000000.h5\"        &&
+      h5diff  -v2 --relative=2e-3 \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/timestep0000000000.h5\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/$dir/timestep0000000000.h5\"        &&
       echo   'comparing timestep0000000000.xmf'                                                                                                                                        &&
       diff \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/timestep0000000000.xmf\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/$dir/timestep0000000000.xmf\"                             || exit 1; 
     done  
@@ -27,7 +27,7 @@ add_test(api_test_smg_diff bash -c "
       echo   'comparing temp.xmf'                                                                                                                                                      &&
       diff \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/temp.xmf\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_smg/$dir/temp.xmf\"                                                          &&
       echo   'comparing timestep0000000000.h5'                                                                                                                                         &&
-      h5diff  -v2 --relative=1e-5 \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/timestep0000000000.h5\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_smg/$dir/timestep0000000000.h5\"         &&
+      h5diff  -v2 --relative=2e-3 \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/timestep0000000000.h5\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_smg/$dir/timestep0000000000.h5\"         &&
       echo   'comparing timestep0000000000.xmf'                                                                                                                                        &&
       diff \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/timestep0000000000.xmf\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_smg/$dir/timestep0000000000.xmf\"                              || exit 1; 
     done  
