@@ -10,7 +10,7 @@ The image works with CUDA Driver Version: 410.79 and CUDA Version: 10.0
 
 To run the image with GPU support use --nv flag:
 ```bash
-$ singularity shell --nv sng_ubuntu_18_04_cuda_10_0
+$ singularity shell --nv sng_ubuntu_18_04_cuda_10_0.sif
 ```
 
 Follow the libmpdata and libcloud readme on how to compile them and run tests.
