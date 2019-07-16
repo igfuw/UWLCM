@@ -7,6 +7,7 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="SGS"
 VERBOSE=1 make
 cd tests/unit
+h5diff --version
 OMP_NUM_THREADS=1 ctest -R api_test_iles || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 cd ../../..
 

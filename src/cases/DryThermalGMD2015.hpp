@@ -95,6 +95,7 @@ namespace setup
        
         profs.rhod = 1;
         profs.th_e = 300;
+        profs.rv_e = 0; // doesnt matter in dry case, just to have consistent output between runs
 
         const quantity<si::temperature, real_t> T(
           libcloudphxx::common::theta_dry::T(

@@ -144,6 +144,9 @@ namespace setup
     virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
     virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
     {
+      profs.geostr[0] = 0;
+      profs.geostr[1] = 0;
+
       blitz::firstIndex k;
       real_t dz = (Z / si::metres) / (nz-1);
 
