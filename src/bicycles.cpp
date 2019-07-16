@@ -351,10 +351,10 @@ int main(int argc, char** argv)
 
     // TODO: new micro
     // handling aerosol distribution parameters
-    user_params.MicroParameters.mean_rd = vm["mean_rd"].as<setup::real_t>();
-    user_params.MicroParameters.sdev_rd = vm["sdev_rd"].as<setup::real_t>();
-    user_params.MicroParameters.n_stp = vm["n_stp"].as<setup::real_t>();
-    user_params.MicroParameters.kappa = vm["kappa"].as<setup::real_t>();
+    p.MicroParameters.mean_rd = vm["mean_rd"].as<setup::real_t>();
+    p.MicroParameters.sdev_rd = vm["sdev_rd"].as<setup::real_t>();
+    p.MicroParameters.n_stp = vm["n_stp"].as<setup::real_t>();
+    p.MicroParameters.kappa = vm["kappa"].as<setup::real_t>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
