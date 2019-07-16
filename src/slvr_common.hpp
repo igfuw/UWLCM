@@ -123,6 +123,12 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters surf_latent_flux_in_watts_per_square_meter", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
       this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
      
+      // TODO: new micro
+      this->record_aux_const("MicroParameters mean_rd", params.MicroParameters.mean_rd);  
+      this->record_aux_const("MicroParameters sdev_rd", params.MicroParameters.sdev_rd);
+      this->record_aux_const("MicroParameters n_stp", params.MicroParameters.n_stp);
+      this->record_aux_const("MicroParameters kappa", params.MicroParameters.kappa);
+
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
       this->record_prof_const("p_e", params.p_e->data()); 
