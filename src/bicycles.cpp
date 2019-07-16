@@ -280,6 +280,12 @@ int main(int argc, char** argv)
       ("sgs", po::value<bool>()->default_value(false) , "is subgrid-scale turbulence model on")
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model delta")
       ("help", "produce a help message (see also --micro X --help)")
+      // TODO: new micro
+      // add micro param options
+      ("mean_rd", po::value<setup::real_t>()->default_value(0.1e-6) , "mean_rd")
+      ("sdev_rd", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd")
+      ("n_stp", po::value<setup::real_t>()->default_value(10e6) , "n_stp")
+      ("kappa", po::value<setup::real_t>()->default_value(0.6) , "kappa")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
@@ -342,6 +348,13 @@ int main(int argc, char** argv)
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();
     user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
+
+    // TODO: new micro
+    // handling aerosol distribution parameters
+    user_params.MicroParameters.mean_rd = vm["mean_rd"].as<setup::real_t>();
+    user_params.MicroParameters.sdev_rd = vm["sdev_rd"].as<setup::real_t>();
+    user_params.MicroParameters.n_stp = vm["n_stp"].as<setup::real_t>();
+    user_params.MicroParameters.kappa = vm["kappa"].as<setup::real_t>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
