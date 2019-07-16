@@ -7,7 +7,7 @@ rc('text', usetex=True)
 if sys.argv[len(sys.argv)-1] == "True":
   dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "rad_flx", "ndrop_cld_zoom"]
 else:
-  dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "rad_flx"]
+  dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld"]#, "rad_flx"]
 nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
