@@ -285,7 +285,7 @@ int main(int argc, char** argv)
       ("mean_rd1", po::value<setup::real_t>()->default_value(0.1e-6) , "mean_rd1")
       ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd1")
       ("n1_stp", po::value<setup::real_t>()->default_value(10e6) , "n1_stp")
-      ("kappa1", po::value<setup::real_t>()->default_value(0.6) , "kappa")
+      ("kappa1", po::value<setup::real_t>()->default_value(0.6) , "kappa1")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
