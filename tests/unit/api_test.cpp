@@ -28,9 +28,9 @@ int main(int ac, char** av)
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100"
   });
   vector<string> opts_case({
-    "--case=moist_thermal",
+//    "--case=moist_thermal",
     "--case=dry_thermal --cond=0 --coal=0",
-//    "--case=dycoms_rf01",
+    "--case=dycoms_rf01",
     "--case=dycoms_rf02",
 //    "--case=lasher_trapp"
   });
