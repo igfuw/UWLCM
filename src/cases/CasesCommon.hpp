@@ -22,10 +22,10 @@ struct user_params_t
   bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
   setup::real_t sgs_delta;
   // TODO: add micro params
-  quantity<si::length, setup::real_t> mean_rd;
-  quantity<si::dimensionless, setup::real_t> sdev_rd;
-  quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t> n_stp;
-  quantity<si::dimensionless, setup::real_t> kappa;
+  quantity<si::length, setup::real_t> mean_rd1, mean_rd2;
+  quantity<si::dimensionless, setup::real_t> sdev_rd1, sdev_rd2;
+  quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t> n1_stp, n2_stp;
+  quantity<si::dimensionless, setup::real_t> kappa1, kappa2;
 };
 
 

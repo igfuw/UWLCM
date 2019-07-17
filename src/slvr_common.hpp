@@ -124,10 +124,10 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
      
       // TODO: new micro
-      this->record_aux_const("aerosol dist params mean_rd", params.user_params.mean_rd);  
-      this->record_aux_const("aerosol dist params sdev_rd", params.user_params.sdev_rd);
-      this->record_aux_const("aerosol dist params n_stp", params.user_params.n_stp);
-      this->record_aux_const("aerosol dist params kappa", params.user_params.kappa);
+      this->record_aux_const("aerosol dist params mean_rd1", params.user_params.mean_rd1);  
+      this->record_aux_const("aerosol dist params sdev_rd1", params.user_params.sdev_rd1);
+      this->record_aux_const("aerosol dist params n1_stp", params.user_params.n1_stp);
+      this->record_aux_const("aerosol dist params kappa1", params.user_params.kappa1);
 
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
