@@ -100,13 +100,13 @@ void setopts_micro(
  // dist #1
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
-      user_params.kappa1,      // kappa1, aerosol hygroscopicity
+      user_params->kappa1,      // kappa1, aerosol hygroscopicity
       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        user_params.mean_rd1,  // mean_rd1, mean radius of lognormal distribution
+        user_params->mean_rd1,  // mean_rd1, mean radius of lognormal distribution
         thrust_real_t(1.0e-6) * si::metres, 
-        user_params.sdev_rd1,  // sdev_rd1, stdev radius of lognormal distribution
+        user_params->sdev_rd1,  // sdev_rd1, stdev radius of lognormal distribution
         thrust_real_t(1.0), 
-        user_params.n1_stp,    // n1_stp, number concentration of aerosol
+        user_params->n1_stp,    // n1_stp, number concentration of aerosol
         thrust_real_t(0) / si::cubic_metres
       )
     );
@@ -114,13 +114,13 @@ void setopts_micro(
 // dist #2
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
-      user_params.kappa2,      // kappa2, aerosol hygroscopicity
+      user_params->kappa2,      // kappa2, aerosol hygroscopicity
       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        user_params.mean_rd2,  // mean_rd2, mean radius of lognormal distribution
+        user_params->mean_rd2,  // mean_rd2, mean radius of lognormal distribution
         thrust_real_t(1.0e-6) * si::metres, 
-        user_params.sdev_rd2,  // sdev_rd2, stdev radius of lognormal distribution
+        user_params->sdev_rd2,  // sdev_rd2, stdev radius of lognormal distribution
         thrust_real_t(1.0), 
-        user_params.n2_stp,    // n2_stp, number concentration of aerosol
+        user_params->n2_stp,    // n2_stp, number concentration of aerosol
         thrust_real_t(0) / si::cubic_metres
       )
     );
