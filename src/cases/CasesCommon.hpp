@@ -45,16 +45,6 @@ namespace setup
     bool surf_latent_flux_in_watts_per_square_meter;
     bool surf_sensible_flux_in_watts_per_square_meter;
   };
-
-  // // TODO: new micro
-  // // container for constants that define the aerosol population
-  // struct MicroParameters_t
-  // {
-  //   quantity<si::length, real_t> mean_rd;
-  //   quantity<si::dimensionless, real_t> sdev_rd;
-  //   quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n_stp;
-  //   quantity<si::dimensionless, real_t> kappa;
-  // };
  
   // CAUTION: new profiles have to be added to both structs and in copy_profiles below
   // TODO: try a different design where it is not necessary ?
@@ -141,7 +131,6 @@ namespace setup
     real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
     ForceParameters_t ForceParameters;
-//    MicroParameters_t MicroParameters;
 
     template<bool enable_sgs = case_ct_params_t::enable_sgs>
     void setopts_sgs(rt_params_t &params,
@@ -207,13 +196,6 @@ namespace setup
       X = 0 * si::metres;
       Y = 0 * si::metres;
       Z = 0 * si::metres;
-
-      // // TODO: new micro
-      // // maybe don't need this here. hopefully not.
-      // MicroParameters.mean_rd = 0.1e-6 * si::metres; // aerosol lognormal distribution center [m]
-      // MicroParameters.sdev_rd = 1.2; // aerosol lognormal distribution stdev [-]
-      // MicroParameters.n_stp = 10e6 * si::cubic_metres; // aerosol number concentration [1/m3]
-      // MicroParameters.kappa = 0.6; // aerosol hygroscopicity [-]
     }
 
     virtual ~CasesCommon() = default;
