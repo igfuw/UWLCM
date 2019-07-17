@@ -217,9 +217,9 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
       if var == "w_var":
         plot_my_array(axarr, plot_iter, my_wvar, my_pos, nploty, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "w_skw":
-        plot_my_array(axarr, plot_iter, my_w3rd, my_pos, nploty, xlabel='3rd mom. of $w$ [m$^3$ s$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_w3rd, my_pos, nploty, xlabel='Third mom. of $w$ [m$^3$ s$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "ss":
-        plot_my_array(axarr, plot_iter, my_ss, my_pos, nploty, xlabel='supersaturation [\%]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_ss, my_pos, nploty, xlabel='Supersaturation [\%]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "ndrop_cld":
         plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       if var == "rad_flx":
@@ -391,7 +391,7 @@ def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=''
     if var == "w2_max":
       plot_my_array(axarr, plot_iter, my_times, my_max_w_var, nploty, xlabel=xlabel, ylabel='Max. $w$ variance [m$^{2}$ s$^{-2}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     if var == "precip":
-      plot_my_array(axarr, plot_iter, my_times, my_sp, nploty, xlabel=xlabel, ylabel='Surface precip. [mm / day]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      plot_my_array(axarr, plot_iter, my_times, my_sp, nploty, xlabel=xlabel, ylabel='Surface precip. [mm d$^{-1}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     if var == "ndrop_cld":
       plot_my_array(axarr, plot_iter, my_times, my_act_cond, nploty, xlabel=xlabel, ylabel='$N_c$ [cm$^{-3}$]', varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
     if var == "zb":
