@@ -129,18 +129,6 @@ namespace setup
         params.friction = true;
         params.radiation = true;
 
-/*
-        // TODO: add aerosol distribution params here
-        params.mean_rd1 = user_params.mean_rd1;
-        params.mean_rd2 = user_params.mean_rd2;
-        params.sdev_rd1 = user_params.sdev_rd1;
-        params.sdev_rd2 = user_params.sdev_rd2;
-        params.n1_stp = user_params.n1_stp;
-        params.n2_stp = user_params.n2_stp;
-        params.kappa1 = user_params.kappa1;
-        params.kappa2 = user_params.kappa2;
-*/
-
         this->setopts_sgs(params);
       }
   
