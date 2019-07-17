@@ -96,16 +96,17 @@ void setopts_micro(
   rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
  
  // if(!unit_test)
+ // TODO: set micro params
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
-      case_ptr->kappa, // key
+      user_params.kappa,      // kappa, aerosol hygroscopicity
       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        case_ptr->mean_rd1, // parameters
-        case_ptr->mean_rd2,
-        case_ptr->sdev_rd1,
-        case_ptr->sdev_rd2,
-        case_ptr->n1_stp,
-        case_ptr->n2_stp
+        user_params.mean_rd,  // mean_rd, mean radius of lognormal distribution
+        thrust_real_t(1.0e-6) * si::meters, 
+        user_params.sdev_rd,  // sdev_rd, stdev radius of lognormal distribution
+        thrust_real_t(1.0), 
+        user_params.n_stp,    // n_stp, number concentration of aerosol
+        thrust_real_t(0) / si::cubic_meters
       )
     );
    }

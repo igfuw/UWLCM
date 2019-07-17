@@ -21,6 +21,11 @@ struct user_params_t
   std::string outdir, model_case;
   bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
   setup::real_t sgs_delta;
+  // TODO: add micro params
+  quantity<si::length, real_t> mean_rd;
+  quantity<si::dimensionless, real_t> sdev_rd;
+  quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n_stp;
+  quantity<si::dimensionless, real_t> kappa;
 };
 
 
@@ -41,14 +46,15 @@ namespace setup
     bool surf_sensible_flux_in_watts_per_square_meter;
   };
 
-  // container for constants that define the aerosol population
-  struct MicroParameters_t
-  {
-    quantity<si::length, real_t> mean_rd;
-    quantity<dimensionless, real_t> sdev_rd;
-    quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n_stp;
-    quantity<dimensionless, real_t> kappa;
-  };
+  // // TODO: new micro
+  // // container for constants that define the aerosol population
+  // struct MicroParameters_t
+  // {
+  //   quantity<si::length, real_t> mean_rd;
+  //   quantity<si::dimensionless, real_t> sdev_rd;
+  //   quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n_stp;
+  //   quantity<si::dimensionless, real_t> kappa;
+  // };
  
   // CAUTION: new profiles have to be added to both structs and in copy_profiles below
   // TODO: try a different design where it is not necessary ?
@@ -115,6 +121,7 @@ namespace setup
     // domain size
     quantity<si::length, real_t> X,Y,Z;
 
+// TODO: new micro
 /* 
     //aerosol bimodal lognormal dist. - VOCALS by default
     quantity<si::length, real_t>
@@ -201,7 +208,8 @@ namespace setup
       Y = 0 * si::metres;
       Z = 0 * si::metres;
 
-      // maybe don't need this here. hopefully not.
+      // // TODO: new micro
+      // // maybe don't need this here. hopefully not.
       // MicroParameters.mean_rd = 0.1e-6 * si::metres; // aerosol lognormal distribution center [m]
       // MicroParameters.sdev_rd = 1.2; // aerosol lognormal distribution stdev [-]
       // MicroParameters.n_stp = 10e6 * si::cubic_metres; // aerosol number concentration [1/m3]
