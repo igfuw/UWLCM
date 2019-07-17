@@ -22,10 +22,10 @@ struct user_params_t
   bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
   setup::real_t sgs_delta;
   // TODO: add micro params
-  quantity<si::length, real_t> mean_rd;
-  quantity<si::dimensionless, real_t> sdev_rd;
-  quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t> n_stp;
-  quantity<si::dimensionless, real_t> kappa;
+  quantity<si::length, setup::real_t> mean_rd;
+  quantity<si::dimensionless, setup::real_t> sdev_rd;
+  quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t> n_stp;
+  quantity<si::dimensionless, setup::real_t> kappa;
 };
 
 
@@ -141,7 +141,7 @@ namespace setup
     real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
     ForceParameters_t ForceParameters;
-    MicroParameters_t MicroParameters;
+//    MicroParameters_t MicroParameters;
 
     template<bool enable_sgs = case_ct_params_t::enable_sgs>
     void setopts_sgs(rt_params_t &params,
