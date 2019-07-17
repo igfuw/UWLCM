@@ -129,6 +129,16 @@ namespace setup
         params.friction = true;
         params.radiation = true;
 
+        // TODO: add aerosol distribution params here
+        params.mean_rd1 = user_params.mean_rd1;
+        params.mean_rd2 = user_params.mean_rd2;
+        params.sdev_rd1 = user_params.sdev_rd1;
+        params.sdev_rd2 = user_params.sdev_rd2;
+        params.n1_stp = user_params.n1_stp;
+        params.n2_stp = user_params.n2_stp;
+        params.kappa1 = user_params.kappa1;
+        params.kappa2 = user_params.kappa2;
+
         this->setopts_sgs(params);
       }
   
@@ -314,12 +324,13 @@ namespace setup
       DycomsCommon()
       {
         //aerosol bimodal lognormal dist. - DYCOMS
-        this->mean_rd1 = real_t(.011e-6) * si::metres,
-        this->mean_rd2 = real_t(.06e-6) * si::metres;
-        this->sdev_rd1 = real_t(1.2),
-        this->sdev_rd2 = real_t(1.7);
-        this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
-        this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
+        // TODO: remove aerosol distribution params from dycoms case
+        // this->mean_rd1 = real_t(.011e-6) * si::metres,
+        // this->mean_rd2 = real_t(.06e-6) * si::metres;
+        // this->sdev_rd1 = real_t(1.2),
+        // this->sdev_rd2 = real_t(1.7);
+        // this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
+        // this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->div_LS = real_t(3.75e-6); // [1/s] large-scale wind divergence used to calc subsidence of SDs, TODO: use boost.units to enforce 1/s
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
         this->Z = Z;
