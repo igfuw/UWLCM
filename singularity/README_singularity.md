@@ -17,7 +17,8 @@ Follow the libmpdata and libcloud readme on how to compile them and run tests.
 
 Install both libraries in a local_folder:
 ```bash
-$ make install DESTDIR=/local_folder/
+$ cmake -DCMAKE_INSTALL_PREFIX=/local_folder/
+$ make install
 ```
 
 When compiling UWLCM tell cmake where to find the two locally installed libraries:
