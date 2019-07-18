@@ -96,7 +96,8 @@ void setopts_micro(
   rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
  
  // if(!unit_test)
- // TODO: set micro params
+ 
+ // CLARE: set micro params
  // dist #1
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -110,9 +111,7 @@ void setopts_micro(
         thrust_real_t(0) / si::cubic_metres
       )
     );
-   }
 // dist #2
-  {
     rt_params.cloudph_opts_init.dry_distros.emplace(
       user_params.kappa2,      // kappa2, aerosol hygroscopicity
       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
@@ -125,6 +124,7 @@ void setopts_micro(
       )
     );
    }
+
 /*  else if(unit_test)
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_unit_test<thrust_real_t> // value type
