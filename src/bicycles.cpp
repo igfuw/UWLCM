@@ -280,8 +280,7 @@ int main(int argc, char** argv)
       ("sgs", po::value<bool>()->default_value(false) , "is subgrid-scale turbulence model on")
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model delta")
       ("help", "produce a help message (see also --micro X --help)")
-      // TODO: new micro
-      // add aerosol distribution params options
+      // CLARE: add aerosol distribution params options
       ("mean_rd1", po::value<setup::real_t>()->default_value(0.1e-6) , "mean_rd1")
       ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd1")
       ("n1_stp", po::value<setup::real_t>()->default_value(10e6) , "n1_stp")
@@ -354,7 +353,7 @@ int main(int argc, char** argv)
     bool sgs = vm["sgs"].as<bool>();
     user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
 
-    // TODO: new micro
+    // CLARE: set aerosol params to user_params data structure
     // handling aerosol distribution parameters
     user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
     user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
@@ -366,11 +365,15 @@ int main(int argc, char** argv)
     user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
 
-    // TODO: printing aerosol dist params
+    // CLARE: printing aerosol dist params to check that user_params data structure has been set
     std::cout << "mean_rd1: " << user_params.mean_rd1 << std::endl;
     std::cout << "sdev_rd1: " << user_params.sdev_rd1 << std::endl;
     std::cout << "n1_stp: " << user_params.n1_stp << std::endl;
     std::cout << "kappa1: " << user_params.kappa1 << std::endl;
+    std::cout << "mean_rd2: " << user_params.mean_rd2 << std::endl;
+    std::cout << "sdev_rd2: " << user_params.sdev_rd2 << std::endl;
+    std::cout << "n2_stp: " << user_params.n2_stp << std::endl;
+    std::cout << "kappa2: " << user_params.kappa2 << std::endl;
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();

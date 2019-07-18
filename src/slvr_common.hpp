@@ -123,7 +123,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters surf_latent_flux_in_watts_per_square_meter", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
       this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
      
-      // TODO: new micro
+      // CLARE: record aerosol distribution params in const.h5 file
       this->record_aux_const("aerosol dist params mean_rd1", params.user_params.mean_rd1 / si::metres);  
       this->record_aux_const("aerosol dist params sdev_rd1", params.user_params.sdev_rd1);
       this->record_aux_const("aerosol dist params n1_stp", params.user_params.n1_stp * si::cubic_metres);

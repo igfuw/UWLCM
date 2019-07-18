@@ -173,6 +173,25 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_rng(0., .5e-6);
     prtcls->diag_wet_mom(3);
     this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
+
+    //CLARE record number concentration of aerosols with kappa in 3 given kappa ranges
+    // checking for kappa=0.3, 0.6, or 1.2
+    // this is a sanity check
+
+    // recording 0th dry mom of kappa of aerosols (0.29 < k < 0.31)
+    prtcls->diag_kappa_rng(0.29,0.31);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_0.29_0.31_rd_mom0", prtcls->outbuf());
+
+    // recording 0th dry mom of kappa of aerosols (0.59 < k < 0.61)
+    prtcls->diag_kappa_rng(0.59,0.61);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_0.59_0.61_rd_mom0", prtcls->outbuf());
+
+    // recording 0th dry mom of kappa of aerosols (1.19 < k < 1.21)
+    prtcls->diag_kappa_rng(1.19,1.21);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_1.19_1.21_rd_mom0", prtcls->outbuf());
    
     // recording divergence of the velocity field
     /*

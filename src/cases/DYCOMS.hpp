@@ -314,7 +314,7 @@ namespace setup
       DycomsCommon()
       {
         //aerosol bimodal lognormal dist. - DYCOMS
-        // TODO: remove aerosol distribution params from dycoms case
+        // CLARE: remove aerosol distribution params from dycoms case
         // this->mean_rd1 = real_t(.011e-6) * si::metres,
         // this->mean_rd2 = real_t(.06e-6) * si::metres;
         // this->sdev_rd1 = real_t(1.2),

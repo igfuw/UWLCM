@@ -21,7 +21,7 @@ struct user_params_t
   std::string outdir, model_case;
   bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
   setup::real_t sgs_delta;
-  // TODO: add micro params
+  // CLARE: add micro params
   quantity<si::length, setup::real_t> mean_rd1, mean_rd2;
   quantity<si::dimensionless, setup::real_t> sdev_rd1, sdev_rd2;
   quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t> n1_stp, n2_stp;
@@ -111,7 +111,7 @@ namespace setup
     // domain size
     quantity<si::length, real_t> X,Y,Z;
 
-// TODO: new micro
+// CLARE: remove aerosol params from here and add them to user_params
 /* 
     //aerosol bimodal lognormal dist. - VOCALS by default
     quantity<si::length, real_t>
@@ -192,7 +192,6 @@ namespace setup
       ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
       ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
       ForceParameters.coriolis_parameter = 0.;
-      
       X = 0 * si::metres;
       Y = 0 * si::metres;
       Z = 0 * si::metres;
