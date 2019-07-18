@@ -105,7 +105,7 @@ void setopts_micro(
         user_params.mean_rd1,  // mean_rd1, mean radius of lognormal distribution
         thrust_real_t(1.0e-6) * si::metres, 
         user_params.sdev_rd1,  // sdev_rd1, stdev radius of lognormal distribution
-        thrust_real_t(1.0), 
+        thrust_real_t(1.2), 
         user_params.n1_stp,    // n1_stp, number concentration of aerosol
         thrust_real_t(0) / si::cubic_metres
       )
@@ -119,7 +119,7 @@ void setopts_micro(
         user_params.mean_rd2,  // mean_rd2, mean radius of lognormal distribution
         thrust_real_t(1.0e-6) * si::metres, 
         user_params.sdev_rd2,  // sdev_rd2, stdev radius of lognormal distribution
-        thrust_real_t(1.0), 
+        thrust_real_t(1.2), 
         user_params.n2_stp,    // n2_stp, number concentration of aerosol
         thrust_real_t(0) / si::cubic_metres
       )
