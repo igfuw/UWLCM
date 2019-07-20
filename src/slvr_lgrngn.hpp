@@ -398,10 +398,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("x1", params.cloudph_opts_init.x1);  
       this->record_aux_const("y1", params.cloudph_opts_init.y1);  
       this->record_aux_const("z1", params.cloudph_opts_init.z1);  
-      //CLARE: output out_wet and out_dry strings of bin edges and calculated moments
-      this->record_aux_const("out_wet", params.out_wet);
-      this->record_aux_const("out_dry", params.out_dry);
-      //end CLARE
       this->record_aux_const("aerosol_independent_of_rhod", params.cloudph_opts_init.aerosol_independent_of_rhod);  
       this->record_aux_const("sd_conc", params.cloudph_opts_init.sd_conc);  
       this->record_aux_const("sd_conc_large_tail", params.cloudph_opts_init.sd_conc_large_tail);  
