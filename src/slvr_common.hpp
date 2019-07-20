@@ -134,10 +134,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("aerosol dist params n2_stp", params.user_params.n2_stp * si::cubic_metres);
       this->record_aux_const("aerosol dist params kappa2", params.user_params.kappa2);
 
-      // CLARE: record out_wet_str and out_dry_str in const.h5 file
-      this->record_aux_const("out_wet_str", params.user_params.out_wet_str);
-      this->record_aux_const("out_dry_str", params.user_params.out_dry_str);
-
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
       this->record_prof_const("p_e", params.p_e->data()); 
