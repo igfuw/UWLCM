@@ -290,6 +290,9 @@ int main(int argc, char** argv)
       ("sdev_rd2", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd2")
       ("n2_stp", po::value<setup::real_t>()->default_value(0.0) , "n2_stp")
       ("kappa2", po::value<setup::real_t>()->default_value(0.6) , "kappa2")
+      //CLARE: maybe I need to add it here as a place holder...
+      ("out_dry_str", po::value<std::string>()->default_value(""), "out_dry_str")
+      ("out_wet_str", po::value<std::string>()->default_value(""), "out_wet_str")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
