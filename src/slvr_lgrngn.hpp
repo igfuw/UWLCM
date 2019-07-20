@@ -398,6 +398,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("x1", params.cloudph_opts_init.x1);  
       this->record_aux_const("y1", params.cloudph_opts_init.y1);  
       this->record_aux_const("z1", params.cloudph_opts_init.z1);  
+      //CLARE: try again, output out_wet_str and out_dry_str here
+      this->record_aux_const("out_wet_str", params.out_wet_str);
+      this->record_aux_const("out_dry_str", params.out_dry_str);
+      //end CLARE
       this->record_aux_const("aerosol_independent_of_rhod", params.cloudph_opts_init.aerosol_independent_of_rhod);  
       this->record_aux_const("sd_conc", params.cloudph_opts_init.sd_conc);  
       this->record_aux_const("sd_conc_large_tail", params.cloudph_opts_init.sd_conc_large_tail);  
@@ -721,6 +725,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
     outmom_t<real_t> out_dry, out_wet;
+    //CLARE: add out_xxx_str as a field in rt_params
+    std::string out_dry_str, out_wet_str;
     bool flag_coal; // do we want coal after spinup
   };
 
