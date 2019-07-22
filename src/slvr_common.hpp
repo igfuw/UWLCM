@@ -77,6 +77,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     // record user_params and profiles
     if(this->rank==0)
     {
+
       this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, "git_revisions", -44);  
 #ifdef LIBMPDATAXX_GIT_REVISION
       this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, "git_revisions", -44);  
@@ -89,50 +90,50 @@ class slvr_common : public slvr_dim<ct_params_t>
       throw std::runtime_error("LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
-      this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
-      this->record_aux_const("user_params nt", params.user_params.nt);  
-      this->record_aux_const("user_params dt", params.user_params.dt);  
-      this->record_aux_const("user_params outfreq", params.user_params.outfreq);  
-      this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);  
-      this->record_aux_const("user_params spinup", params.user_params.spinup);  
-      this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);  
-      this->record_aux_const("user_params z_rlx_sclr", params.user_params.z_rlx_sclr);  
-      this->record_aux_const("user_params th_src", params.user_params.th_src);  
-      this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
-      this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
-      this->record_aux_const("user_params w_src", params.user_params.w_src);  
+      this->record_aux_const(std::string("case : ") + params.user_params.model_case, "user_params", -44);  
+      this->record_aux_const("nt", "user_params", params.user_params.nt);  
+      this->record_aux_const("dt", "user_params", params.user_params.dt);  
+      this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
+      this->record_aux_const(std::string("outdir : ") +  params.user_params.outdir, "user_params", -44);  
+      this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
+      this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
+      this->record_aux_const("z_rlx_sclr", "user_params", params.user_params.z_rlx_sclr);  
+      this->record_aux_const("th_src", "user_params", params.user_params.th_src);  
+      this->record_aux_const("rv_src", "user_params", params.user_params.rv_src);  
+      this->record_aux_const("uv_src", "user_params", params.user_params.uv_src);  
+      this->record_aux_const("w_src", "user_params", params.user_params.w_src);  
 
-      this->record_aux_const("rt_params th_src", params.th_src);  
-      this->record_aux_const("rt_params rv_src", params.rv_src);  
-      this->record_aux_const("rt_params uv_src", params.uv_src);  
-      this->record_aux_const("rt_params w_src", params.w_src);  
-      this->record_aux_const("rt_params spinup", params.spinup);  
-      this->record_aux_const("rt_params subsidence", params.subsidence);  
-      this->record_aux_const("rt_params coriolis", params.coriolis);  
-      this->record_aux_const("rt_params friction", params.friction);  
-      this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
+      this->record_aux_const("th_src", "rt_params", params.th_src);  
+      this->record_aux_const("rv_src", "rt_params", params.rv_src);  
+      this->record_aux_const("uv_src", "rt_params", params.uv_src);  
+      this->record_aux_const("w_src", "rt_params", params.w_src);  
+      this->record_aux_const("spinup", "rt_params", params.spinup);  
+      this->record_aux_const("subsidence", "rt_params", params.subsidence);  
+      this->record_aux_const("coriolis", "rt_params", params.coriolis);  
+      this->record_aux_const("friction", "rt_params", params.friction);  
+      this->record_aux_const("buoyancy_wet", "rt_params", params.buoyancy_wet);  
 
-      this->record_aux_const("ForceParameters q_i", params.ForceParameters.q_i);  
-      this->record_aux_const("ForceParameters heating_kappa", params.ForceParameters.heating_kappa);  
-      this->record_aux_const("ForceParameters F_0", params.ForceParameters.F_0);  
-      this->record_aux_const("ForceParameters F_1", params.ForceParameters.F_1);  
-      this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);  
-      this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
-      this->record_aux_const("ForceParameters u_fric", params.ForceParameters.u_fric);  
-      this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
-      this->record_aux_const("ForceParameters surf_latent_flux_in_watts_per_square_meter", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
-      this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
+      this->record_aux_const("q_i", "ForceParameters", params.ForceParameters.q_i);  
+      this->record_aux_const("heating_kappa", "ForceParameters", params.ForceParameters.heating_kappa);  
+      this->record_aux_const("F_0", "ForceParameters", params.ForceParameters.F_0);  
+      this->record_aux_const("F_1", "ForceParameters", params.ForceParameters.F_1);  
+      this->record_aux_const("rho_i", "ForceParameters", params.ForceParameters.rho_i);  
+      this->record_aux_const("D", "ForceParameters", params.ForceParameters.D);  
+      this->record_aux_const("u_fric", "ForceParameters", params.ForceParameters.u_fric);  
+      this->record_aux_const("coriolis_parameter", "ForceParameters", params.ForceParameters.coriolis_parameter);  
+      this->record_aux_const("surf_latent_flux_in_watts_per_square_meter", "ForceParameters", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
+      this->record_aux_const("surf_sensible_flux_in_watts_per_square_meter", "ForceParameters", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
      
       // CLARE: record aerosol distribution params in const.h5 file
-      this->record_aux_const("aerosol dist params mean_rd1", params.user_params.mean_rd1 / si::metres);  
-      this->record_aux_const("aerosol dist params sdev_rd1", params.user_params.sdev_rd1);
-      this->record_aux_const("aerosol dist params n1_stp", params.user_params.n1_stp * si::cubic_metres);
-      this->record_aux_const("aerosol dist params kappa1", params.user_params.kappa1);
+      this->record_aux_const("mean_rd1", "aerosol_dist_params", params.user_params.mean_rd1 / si::metres);  
+      this->record_aux_const("sdev_rd1", "aerosol_dist_params", params.user_params.sdev_rd1);
+      this->record_aux_const("n1_stp", "aerosol_dist_params", params.user_params.n1_stp * si::cubic_metres);
+      this->record_aux_const("kappa1", "aerosol_dist_params", params.user_params.kappa1);
       // dist #2
-      this->record_aux_const("aerosol dist params mean_rd2", params.user_params.mean_rd2 / si::metres);  
-      this->record_aux_const("aerosol dist params sdev_rd2", params.user_params.sdev_rd2);
-      this->record_aux_const("aerosol dist params n2_stp", params.user_params.n2_stp * si::cubic_metres);
-      this->record_aux_const("aerosol dist params kappa2", params.user_params.kappa2);
+      this->record_aux_const("mean_rd2", "aerosol_dist_params", params.user_params.mean_rd2 / si::metres);  
+      this->record_aux_const("sdev_rd2", "aerosol_dist_params", params.user_params.sdev_rd2);
+      this->record_aux_const("n2_stp", "aerosol_dist_params", params.user_params.n2_stp * si::cubic_metres);
+      this->record_aux_const("kappa2", "aerosol_dist_params", params.user_params.kappa2);
 
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
