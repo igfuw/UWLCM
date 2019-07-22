@@ -385,19 +385,19 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     if (this->rank == 0) 
     {
       this->record_aux_const("super-droplet microphysics", -44);  
-      this->record_aux_const("nx", params.cloudph_opts_init.nx);  
-      this->record_aux_const("ny", params.cloudph_opts_init.ny);  
-      this->record_aux_const("nz", params.cloudph_opts_init.nz);  
-      this->record_aux_const("dx", params.cloudph_opts_init.dx);  
-      this->record_aux_const("dy", params.cloudph_opts_init.dy);  
-      this->record_aux_const("dz", params.cloudph_opts_init.dz);  
-      this->record_aux_const("dt", params.cloudph_opts_init.dt);  
-      this->record_aux_const("x0", params.cloudph_opts_init.x0);  
-      this->record_aux_const("y0", params.cloudph_opts_init.y0);  
-      this->record_aux_const("z0", params.cloudph_opts_init.z0);  
-      this->record_aux_const("x1", params.cloudph_opts_init.x1);  
-      this->record_aux_const("y1", params.cloudph_opts_init.y1);  
-      this->record_aux_const("z1", params.cloudph_opts_init.z1);  
+      this->record_aux_const("nx", "grid_dimensions", params.cloudph_opts_init.nx);  
+      this->record_aux_const("ny", "grid_dimensions", params.cloudph_opts_init.ny);  
+      this->record_aux_const("nz", "grid_dimensions", params.cloudph_opts_init.nz);  
+      this->record_aux_const("dx", "grid_dimensions", params.cloudph_opts_init.dx);  
+      this->record_aux_const("dy", "grid_dimensions", params.cloudph_opts_init.dy);  
+      this->record_aux_const("dz", "grid_dimensions", params.cloudph_opts_init.dz);  
+      this->record_aux_const("dt", "grid_dimensions", params.cloudph_opts_init.dt);  
+      this->record_aux_const("x0", "grid_dimensions", params.cloudph_opts_init.x0);  
+      this->record_aux_const("y0", "grid_dimensions", params.cloudph_opts_init.y0);  
+      this->record_aux_const("z0", "grid_dimensions", params.cloudph_opts_init.z0);  
+      this->record_aux_const("x1", "grid_dimensions", params.cloudph_opts_init.x1);  
+      this->record_aux_const("y1", "grid_dimensions", params.cloudph_opts_init.y1);  
+      this->record_aux_const("z1", "grid_dimensions", params.cloudph_opts_init.z1);  
       //CLARE: try again, output out_wet_str and out_dry_str here
       this->record_aux_const(std::string("out_wet_str : ") + params.out_wet_str, -44);
       this->record_aux_const(std::string("out_dry_str : ") + params.out_dry_str, -44);
