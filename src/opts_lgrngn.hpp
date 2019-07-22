@@ -60,7 +60,7 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value(""),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
-    //CLARE
+    //CLARE, unnecessary
     //("out_dry_str", po::value<std::string>()->default_value(""), "out_dry_str")
     //("out_wet_str", po::value<std::string>()->default_value(""), "out_wet_str")
     //END CLARE
