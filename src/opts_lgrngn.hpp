@@ -98,7 +98,24 @@ void setopts_micro(
   else throw std::runtime_error("unrecognized adve_scheme optsion");
 
   rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
- 
+
+//CLARE: for now to test dycoms just make one dist with two modes
+  {
+    rt_params.cloudph_opts_init.dry_distros.emplace(
+      user_params.kappa1,      // kappa1, aerosol hygroscopicity
+      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+        user_params.mean_rd1,  // mean_rd1, mean radius of lognormal distribution
+        user_params.mean_rd2, 
+        user_params.sdev_rd1,  // sdev_rd1, stdev radius of lognormal distribution
+        user_params.sdev_rd2, 
+        user_params.n1_stp,    // n1_stp, number concentration of aerosol
+        user_params.n2_stp
+      )
+    );
+  }
+
+// didn't work
+/* 
 //CLARE: fix, add two dists
     rt_params.cloudph_opts_init.dry_distros.emplace(
       {user_params.kappa1,
@@ -122,6 +139,7 @@ void setopts_micro(
       }
     );
 // END CLARE
+*/
 
 /* 
 //CLARE: set micro params
