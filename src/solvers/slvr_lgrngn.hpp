@@ -1,6 +1,6 @@
 #pragma once
 #include "slvr_sgs.hpp"
-#include "outmom.hpp"
+#include "../detail/outmom.hpp"
 
 #include <libcloudph++/lgrngn/factory.hpp>
 

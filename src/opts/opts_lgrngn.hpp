@@ -10,8 +10,8 @@
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
 
 #include "opts_common.hpp"
-#include "slvr_lgrngn.hpp"
-#include "calc_forces_common.hpp"
+#include "../solvers/slvr_lgrngn.hpp"
+#include "../forcings/calc_forces_common.hpp"
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    

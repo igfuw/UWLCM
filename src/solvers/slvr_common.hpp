@@ -1,10 +1,10 @@
 #pragma once
-#include "cases/CasesCommon.hpp"
+#include "../cases/CasesCommon.hpp"
 #include "slvr_dim.hpp"
 #include <chrono>
 #include <libmpdata++/git_revision.hpp>
 #include <libcloudph++/git_revision.h>
-#include "../git_revision.h"
+#include "../../git_revision.h"
 
 struct smg_tag  {};
 struct iles_tag {};
