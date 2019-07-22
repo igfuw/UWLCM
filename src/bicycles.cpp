@@ -5,18 +5,18 @@
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 
-#include "setup.hpp"
-#include "concurr_types.hpp"
+#include "detail/setup.hpp"
+#include "detail/concurr_types.hpp"
 
 #include "cases/DYCOMS.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/LasherTrapp2001.hpp"
 
-#include "opts_lgrngn.hpp"
-#include "opts_blk_1m.hpp"
+#include "opts/opts_lgrngn.hpp"
+#include "opts/opts_blk_1m.hpp"
 
-#include "panic.hpp"
+#include "detail/panic.hpp"
 #include <map>
 
 // dimension-independent model run logic - the same for any microphysics
