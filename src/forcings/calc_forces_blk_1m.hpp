@@ -1,6 +1,5 @@
 //TODO: move calc_forces and forcings to case class?
 #pragma once
-#include "../solvers/slvr_blk_1m.hpp"
 #include "forcings.hpp"
 
 // single-moment bulk forcing functions
