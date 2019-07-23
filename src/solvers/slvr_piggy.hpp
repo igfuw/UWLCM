@@ -2,6 +2,7 @@
 #include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
 #include <libmpdata++/output/hdf5_xdmf.hpp>
 #include "../detail/checknan.cpp"
+#include "../opts/opts_common.hpp"
 
 template <class ct_params_t, class enableif = void>
 class slvr_piggy
