@@ -1,6 +1,6 @@
 //TODO: move calc_forces and forcings to case class?
-#pragma once
 #include "forcings.hpp"
+#include "../solvers/slvr_common.hpp"
 
 // helper functors
 struct calc_c_p
