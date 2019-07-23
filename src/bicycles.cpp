@@ -5,246 +5,36 @@
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 
-#include "detail/setup.hpp"
-#include "detail/concurr_types.hpp"
+#include <iostream>
+#include <random>
 
-#include "cases/DYCOMS.hpp"
-#include "cases/MoistThermalGrabowskiClark99.hpp"
-#include "cases/DryThermalGMD2015.hpp"
-#include "cases/LasherTrapp2001.hpp"
+//#include <libmpdata++/opts.hpp>
+//#include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
 
-#include "opts/opts_lgrngn.hpp"
-#include "opts/opts_blk_1m.hpp"
+#ifdef _OPENMP
+# include <omp.h>
+#endif
 
-#include "detail/panic.hpp"
+#include "run_hlpr.hpp"
+
+#include "detail/ct_params.hpp"
+//#include "detail/setup.hpp"
+//#include "detail/concurr_types.hpp"
+//
+//#include "cases/DYCOMS.hpp"
+//#include "cases/MoistThermalGrabowskiClark99.hpp"
+//#include "cases/DryThermalGMD2015.hpp"
+//#include "cases/LasherTrapp2001.hpp"
+
+#include "opts/opts_common.hpp"
+//#include "opts/opts_lgrngn.hpp"
+//#include "opts/opts_blk_1m.hpp"
+
+#include "solvers/slvr_lgrngn.hpp"
+#include "solvers/slvr_blk_1m.hpp"
+
+//#include "detail/panic.hpp"
 #include <map>
-
-// dimension-independent model run logic - the same for any microphysics
-template <class solver_t, int n_dims>
-void run(const int (&nps)[n_dims], const user_params_t &user_params)
-{
-  auto nz = nps[n_dims - 1];
-  
-  using concurr_any_t = concurr::any<
-    typename solver_t::real_t, 
-    n_dims
-  >;
-
-  using concurr_openmp_cyclic_t = typename concurr_openmp_cyclic<solver_t, n_dims>::type;
-  using concurr_openmp_rigid_t = typename concurr_openmp_rigid<solver_t, n_dims>::type;
-  using concurr_openmp_cyclic_rigid_t = typename concurr_openmp_cyclic_rigid<solver_t, n_dims>::type;
-  
-  using rt_params_t = typename solver_t::rt_params_t;
-  using ix = typename solver_t::ix;
-  
-  struct case_ct_params_t
-  {
-    using rt_params_t = typename solver_t::rt_params_t;
-    using ix = typename solver_t::ix;
-    enum {enable_sgs = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
-  };
-
-  using case_t = setup::CasesCommon<
-    case_ct_params_t, n_dims
-  >;
-
-  using case_ptr_t = std::unique_ptr<
-    case_t
-  >;
-
-  case_ptr_t case_ptr; 
-
-  // setup choice
-  if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>()); 
-  else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>()); 
-  else if (user_params.model_case == "dycoms_rf01")
-    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>()); 
-  else if (user_params.model_case == "dycoms_rf02")
-    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
-  else if (user_params.model_case == "lasher_trapp")
-    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
-  else
-    throw std::runtime_error("wrong case choice");
-
-  // instantiation of structure containing simulation parameters
-  rt_params_t p;
-
-  // copy force constants
-  p.ForceParameters = case_ptr->ForceParameters;
-
-  // copy functions used to update surface fluxes
-  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-
-  // copy user_params for output
-  p.user_params = user_params;
-
-  // output and simulation parameters
-  for (int d = 0; d < n_dims; ++d)
-  {
-    p.grid_size[d] = nps[d];
-  }
-
-  case_ptr->setopts(p, nps, user_params);
-  setopts_micro<solver_t>(p, user_params, case_ptr);
-
-  // reference profiles shared among threads
-  setup::profiles_t profs(nz); 
-  // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-
-  // assign their values
-  case_ptr->env_prof(profs, nz, user_params);
-  // pass them to rt_params
-  setup::copy_profiles(profs, p);
-
-  // set outvars
-  p.outvars.insert({ix::rv, {"rv", "[kg kg-1]"}});
-  p.outvars.insert({ix::th, {"th", "[K]"}});
-  p.outvars.insert({ix::u, {"u", "[m/s]"}});
-  p.outvars.insert({ix::w, {"w", "[m/s]"}});
-  if (n_dims > 2)
-  {
-    // WARNING: assumes certain ordering of variables to avoid tedious template programming !
-    p.outvars.insert({1, {"v", "[m/s]"}});
-  }
-
-  // solver instantiation
-  std::unique_ptr<concurr_any_t> concurr;
-
-  if(user_params.model_case == "dry_thermal")
-  {
-    concurr.reset(new concurr_openmp_cyclic_t(p));
-  }
-  else if(user_params.model_case == "lasher_trapp")
-  {
-    concurr.reset(new concurr_openmp_rigid_t(p));
-  }
-  else
-  {
-    concurr.reset(new concurr_openmp_cyclic_rigid_t(p));
-  }
-  
-  case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed);
-
-  // setup panic pointer and the signal handler
-  panic = concurr->panic_ptr();
-  set_sigaction();
- 
-  // timestepping
-  concurr->advance(user_params.nt);
-}
-
-// libmpdata++'s compile-time parameters
-struct ct_params_common : ct_params_default_t
-{
-  using real_t = setup::real_t;
-  enum { rhs_scheme = solvers::mixed }; 
-  enum { prs_scheme = solvers::cr };
-  enum { vip_vab = solvers::expl };
-};
-
-struct ct_params_2D_sd : ct_params_common
-{
-  enum { n_dims = 2 };
-  enum { n_eqns = 4 };
-  struct ix { enum {
-    u, w, th, rv, 
-    vip_i=u, vip_j=w, vip_den=-1
-  }; };
-  enum { delayed_step = opts::bit(ix::th) | opts::bit(ix::rv) };
-};
-
-struct ct_params_3D_sd : ct_params_common
-{
-  enum { n_dims = 3 };
-  enum { n_eqns = 5 };
-  struct ix { enum {
-    u, v, w, th, rv, 
-    vip_i=u, vip_j=v, vip_k=w, vip_den=-1
-  }; };
-  enum { delayed_step = opts::bit(ix::th) | opts::bit(ix::rv) };
-};
-
-struct ct_params_2D_blk_1m : ct_params_common
-{
-  enum { n_dims = 2 };
-  enum { n_eqns = 6 };
-  struct ix { enum {
-    u, w, th, rv, rc, rr,
-    vip_i=u, vip_j=w, vip_den=-1
-  }; };
-};
-
-struct ct_params_3D_blk_1m : ct_params_common
-{
-  enum { n_dims = 3 };
-  enum { n_eqns = 7 };
-  struct ix { enum {
-    u, v, w, th, rv, rc, rr, 
-    vip_i=u, vip_j=v, vip_k=w, vip_den=-1
-  }; };
-};
-
-// function used to modify ct_params before running
-template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
-void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
-{
-  struct ct_params_mpdata_opts : ct_params_dim_micro { enum { opts = opts::nug 
-#if defined(MPDATA_OPTS_IGA)
-  | opts::iga 
-#endif
-#if defined(MPDATA_OPTS_FCT)
-  | opts::fct 
-#endif
-#if defined(MPDATA_OPTS_ABS)
-  | opts::abs
-#endif
-  }; };
-
-  if(!piggy) // no piggybacking
-  {
-#if !defined(UWLCM_DISABLE_DRIVER)
-    struct ct_params_piggy : ct_params_mpdata_opts { enum { piggy = 0 }; };
-
-    if (sgs)
-    {
-  #if !defined(UWLCM_DISABLE_SGS)
-      struct ct_params_sgs : ct_params_piggy
-      {
-        enum { sgs_scheme = solvers::smg };
-        enum { stress_diff = solvers::compact };
-      };
-      run<slvr<ct_params_sgs>>(nps, user_params);
-  #else
-      throw std::runtime_error("SGS option was disabled at compile time");
-  #endif
-    }
-    else
-    {
-  #if !defined(UWLCM_DISABLE_ILES)
-      struct ct_params_sgs : ct_params_piggy {};
-      run<slvr<ct_params_sgs>>(nps, user_params);
-  #else
-      throw std::runtime_error("ILES option was disabled at compile time");
-  #endif
-    }
-#else
-      throw std::runtime_error("Driver option was disabled at compile time");
-#endif
-  }
-  else // piggybacking
-  {
-#if !defined(UWLCM_DISABLE_PIGGYBACKER)
-    struct ct_params_piggy : ct_params_mpdata_opts { enum { piggy = 1 }; };
-    run<slvr<ct_params_piggy>>(nps, user_params);
-#else
-      throw std::runtime_error("Piggybacker option was disabled at compile time");
-#endif
-  }
-}
-
 
 // all starts here with handling general options 
 int main(int argc, char** argv)

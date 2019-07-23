@@ -11,18 +11,8 @@
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
 
-
-// simulation parameters container
-// TODO: write them to rt_params directly in main()
-struct user_params_t
-{
-  int nt, outfreq, spinup, rng_seed;
-  setup::real_t dt, z_rlx_sclr;
-  std::string outdir, model_case;
-  bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
-  setup::real_t sgs_delta;
-};
-
+#include "../detail/user_params.hpp"
+#include "../detail/concurr_types.hpp"
 
 namespace setup 
 {
