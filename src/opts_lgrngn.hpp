@@ -99,6 +99,7 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
 
+/*
 //CLARE: for now to test dycoms just make one dist with two modes
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -113,35 +114,8 @@ void setopts_micro(
       )
     );
   }
-
-// didn't work
-/* 
-//CLARE: fix, add two dists
-    rt_params.cloudph_opts_init.dry_distros.emplace(
-      {user_params.kappa1,
-       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-         user_params.mean_rd1,
-         thrust_real_t(1.0e-6) * si::meters,
-         user_params.sdev_rd1,
-         thrust_real_t(1.2),
-         user_params.n1_stp,
-         thrust_real_t(0) / si::cubic_meters
-       ),
-       user_params.kappa2,
-       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-         user_params.mean_rd2,
-         thrust_real_t(1.0e-6) * si::meters,
-         user_params.sdev_rd2,
-         thrust_real_t(1.2),
-         user_params.n2_stp,
-         thrust_real_t(0) / si::cubic_meters
-       )
-      }
-    );
-// END CLARE
 */
-
-/* 
+ 
 //CLARE: set micro params
 // dist #1
   {
@@ -170,7 +144,6 @@ void setopts_micro(
     );
    }
 // END CLARE
-*/
 
 /*  else if(unit_test)
     boost::assign::ptr_map_insert<
