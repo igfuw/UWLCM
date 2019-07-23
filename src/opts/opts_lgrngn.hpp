@@ -10,8 +10,17 @@
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
 
 #include "opts_common.hpp"
-#include "../solvers/slvr_lgrngn.hpp"
-#include "../forcings/calc_forces_common.hpp"
+//#include "../solvers/slvr_lgrngn.hpp"
+//#include "../forcings/calc_forces_common.hpp"
+
+#include <libcloudph++/lgrngn/opts.hpp>
+#include <libcloudph++/lgrngn/backend.hpp>
+#include <libcloudph++/lgrngn/advection_scheme.hpp>
+#include <libcloudph++/lgrngn/kernel.hpp>
+#include <libcloudph++/lgrngn/terminal_velocity.hpp>
+#include <libcloudph++/lgrngn/RH_formula.hpp>
+
+#include <libcloudph++/blk_1m/options.hpp>
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
@@ -19,6 +28,8 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+
+#include "../detail/outmom.hpp"
 
 // simulation and output parameters for micro=lgrngn
 template <class solver_t, class user_params_t, class case_ptr_t>

@@ -5,6 +5,10 @@
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 
+#pragma once
+
+#include <set>
+
 // signal handling (kill, Ctrl+c)
 #if defined(__linux__)
 #  include <signal.h>
