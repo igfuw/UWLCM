@@ -174,27 +174,38 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_mom(3);
     this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
 
-    //CLARE record number concentration of aerosols with kappa in 3 given kappa ranges
-    // checking for kappa=0.3, 0.6, or 1.2
-    // this is a sanity check
 
-    // recording 0th dry mom of kappa of aerosols (0.29 < k < 0.31)
-    prtcls->diag_kappa_rng(0.29,0.31);
+//CLARE record number concentration of aerosols with certain kappa ranges
+// checking for x-small, small, medium, large, and x-large
+// ie (0.0-0.3), (0.3-0.6), (0.6-0.9), (0.9-1.2), (1.2-3.0)
+    // recording 0th dry mom of kappa of aerosols (0.0 < k < 0.3) = x-small
+    prtcls->diag_kappa_rng(0.0,0.3);
     prtcls->diag_dry_mom(0);
-    this->record_aux("kappa_rng_0.29_0.31_rd_mom0", prtcls->outbuf());
+    this->record_aux("kappa_rng_0.0_0.3_rd_mom0", prtcls->outbuf());
 
-    // recording 0th dry mom of kappa of aerosols (0.59 < k < 0.61)
-    prtcls->diag_kappa_rng(0.59,0.61);
+    // recording 0th dry mom of kappa of aerosols (0.3 < k < 0.6) = small
+    prtcls->diag_kappa_rng(0.3,0.6);
     prtcls->diag_dry_mom(0);
-    this->record_aux("kappa_rng_0.59_0.61_rd_mom0", prtcls->outbuf());
+    this->record_aux("kappa_rng_0.3_0.6_rd_mom0", prtcls->outbuf());
 
-    // recording 0th dry mom of kappa of aerosols (1.19 < k < 1.21)
-    prtcls->diag_kappa_rng(1.19,1.21);
+    // recording 0th dry mom of kappa of aerosols (0.6 < k < 0.9) = medium
+    prtcls->diag_kappa_rng(0.6,0.9);
     prtcls->diag_dry_mom(0);
-    this->record_aux("kappa_rng_1.19_1.21_rd_mom0", prtcls->outbuf());
+    this->record_aux("kappa_rng_0.6_0.9_rd_mom0", prtcls->outbuf());
    
+    // recording 0th dry mom of kappa of aerosols (0.9 < k < 1.2) = large
+    prtcls->diag_kappa_rng(0.9,1.2);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_0.9_1.2_rd_mom0", prtcls->outbuf());
+    
+    // recording 0th dry mom of kappa of aerosols (1.2 < k < 3.0) = x-large
+    prtcls->diag_kappa_rng(1.2,3.0);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_1.2_3.0_rd_mom0", prtcls->outbuf());
+//END CLARE
+
+/*    
     // recording divergence of the velocity field
-    /*
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
 */
