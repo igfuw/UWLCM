@@ -6,9 +6,6 @@
 #include <libcloudph++/blk_1m/rhs_cellwise.hpp>
 #include <libcloudph++/blk_1m/rhs_columnwise.hpp>
 
-#include "../forcings/calc_forces_blk_1m.hpp"
-
-
 template <class ct_params_t>
 class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
                                                      slvr_common<ct_params_t>,
