@@ -10,25 +10,6 @@
 #include <libmpdata++/opts.hpp>
 #include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
 
-//
-////#include "detail/setup.hpp"
-////#include "detail/concurr_types.hpp"
-////
-////#include "cases/DYCOMS.hpp"
-////#include "cases/MoistThermalGrabowskiClark99.hpp"
-////#include "cases/DryThermalGMD2015.hpp"
-////#include "cases/LasherTrapp2001.hpp"
-//
-//#include "opts/opts_common.hpp"
-////#include "opts/opts_lgrngn.hpp"
-////#include "opts/opts_blk_1m.hpp"
-//
-//#include "solvers/slvr_lgrngn.hpp"
-//#include "solvers/slvr_blk_1m.hpp"
-//
-////#include "detail/panic.hpp"
-//#include <map>
-
 // libmpdata++'s compile-time parameters
 struct ct_params_common : libmpdataxx::ct_params_default_t
 {

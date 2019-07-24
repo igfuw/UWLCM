@@ -10,8 +10,6 @@
 #include <boost/assign/ptr_map_inserter.hpp>  // for 'ptr_map_insert()'
 
 #include "opts_common.hpp"
-//#include "../solvers/slvr_lgrngn.hpp"
-//#include "../forcings/calc_forces_common.hpp"
 
 #include <libcloudph++/lgrngn/opts.hpp>
 #include <libcloudph++/lgrngn/backend.hpp>

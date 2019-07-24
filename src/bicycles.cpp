@@ -8,9 +8,6 @@
 #include <iostream>
 #include <random>
 
-//#include <libmpdata++/opts.hpp>
-//#include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
-
 #ifdef _OPENMP
 # include <omp.h>
 #endif
@@ -18,24 +15,14 @@
 #include "run_hlpr.hpp"
 
 #include "detail/ct_params.hpp"
-//#include "detail/setup.hpp"
-//#include "detail/concurr_types.hpp"
-//
-//#include "cases/DYCOMS.hpp"
-//#include "cases/MoistThermalGrabowskiClark99.hpp"
-//#include "cases/DryThermalGMD2015.hpp"
-//#include "cases/LasherTrapp2001.hpp"
 
 #include "opts/opts_common.hpp"
-//#include "opts/opts_lgrngn.hpp"
-//#include "opts/opts_blk_1m.hpp"
 
 #include "solvers/slvr_lgrngn.hpp"
 #include "solvers/slvr_blk_1m.hpp"
 #include "forcings/calc_forces_blk_1m.hpp"
 #include "forcings/calc_forces_common.hpp"
 
-//#include "detail/panic.hpp"
 #include <map>
 
 // all starts here with handling general options 
