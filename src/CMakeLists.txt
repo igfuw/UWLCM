@@ -1,3 +1,5 @@
+cmake_policy(SET CMP0057 NEW) # for the in_list operator
+
 # Select flags.
 #-g0 negates -g; -UBZ_DEBUG negates blitz debug; NOTE: don't use -Ofast as it makes std::isfinite(sum(x)) return true even if some elements of x are nan/inf
 SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libmpdataxx_CXX_FLAGS_DEBUG} -O3 -g0 -UBZ_DEBUG -march=native") 
@@ -5,7 +7,7 @@ SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libmpdataxx_CXX_FLAGS_DEBUG} -O3 -g0 -UBZ_
 SET(CMAKE_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE}")
 SET(CMAKE_CXX_FLAGS_DEBUG  "${libmpdataxx_CXX_FLAGS_DEBUG}")
 
-add_executable(bicycles opts/opts_common.cpp bicycles.cpp run_hlpr_2d_blk_1m.cpp run_hlpr_3d_blk_1m.cpp run_hlpr_2d_lgrngn.cpp run_hlpr_3d_lgrngn.cpp)
+add_executable(bicycles opts/opts_common.cpp bicycles.cpp)
 
 # std::future
 include(CheckCXXSourceCompiles)
@@ -26,7 +28,26 @@ if(UWLCM_DISABLE)
   foreach(disable ${UWLCM_DISABLE})
     target_compile_definitions(bicycles PRIVATE ${UWLCM_DISABLE_PREFIX}${disable})
   endforeach()
+
+  # add optional sources
+  if(NOT "2D_BLK_1M" IN_LIST UWLCM_DISABLE)
+    target_sources(bicycles PRIVATE run_hlpr_2d_blk_1m.cpp)
+  endif()
+  if(NOT "3D_BLK_1M" IN_LIST UWLCM_DISABLE)
+    target_sources(bicycles PRIVATE run_hlpr_3d_blk_1m.cpp)
+  endif()
+  if(NOT "2D_LGRNGN" IN_LIST UWLCM_DISABLE)
+    target_sources(bicycles PRIVATE run_hlpr_2d_lgrngn.cpp)
+  endif()
+  if(NOT "3D_LGRNGN" IN_LIST UWLCM_DISABLE)
+    target_sources(bicycles PRIVATE run_hlpr_3d_lgrngn.cpp)
+  endif()
+else()
+  # if no options were disabled, add all sources
+  target_sources(bicycles PRIVATE run_hlpr_2d_blk_1m.cpp run_hlpr_3d_blk_1m.cpp run_hlpr_2d_lgrngn.cpp run_hlpr_3d_lgrngn.cpp)
 endif()
+
+#add_executable(bicycles opts/opts_common.cpp bicycles.cpp run_hlpr_2d_blk_1m.cpp run_hlpr_3d_blk_1m.cpp run_hlpr_2d_lgrngn.cpp run_hlpr_3d_lgrngn.cpp)
 
 
 # ensure that bicycles is not built before current git_revision file is created

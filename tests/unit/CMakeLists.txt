@@ -1,3 +1,7 @@
+if(UWLCM_DISABLE)
+  message(WARNING "Compilation of some of the options was disabled via the UWLCM_DISABLE flag. Unit tests are most likely to fail.") 
+endif()
+
 add_executable(api_test api_test.cpp)
 
 add_test(api_test_iles api_test ${CMAKE_BINARY_DIR})
