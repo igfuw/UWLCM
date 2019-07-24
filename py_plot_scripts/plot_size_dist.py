@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
+from read_bins import get_bins
+
 def main():
     path = sys.argv[1]
     test = sys.argv[2]
@@ -25,7 +27,7 @@ def calc_sizes(folder):
         T = np.array(f["T"])
     
     # wet
-    (r, dr) = get_wet_bins()
+    (r, dr) = get_bins(folder, "wet")
     dat = np.zeros((len(r)+1,len(T)+2))
     dat[0,0] = np.nan
     dat[0,1] = np.nan
@@ -33,14 +35,16 @@ def calc_sizes(folder):
     dat[1:,1] = dr / 1e-6
     dat[0,2:] = T / 3600.
     for t,file in enumerate(filelist):
-        n = calc_wet_dist(file)
+        n = calc_dist(file, r, "w")
         dat[1:,t+2] = n
     
+    if not os.path.exists(folder+'plots/'):
+        os.makedirs(folder+'plots/')
     np.savetxt(folder+"plots/wet_dist.csv", dat, delimiter="\t",fmt="%.3e",
         header="Radius (um), Bin width (um), Num. conc. (mg-1) @ Time T (hours)")
 
     # dry
-    (r, dr) = get_dry_bins()
+    (r, dr) = get_bins(folder, "dry")
     dat = np.zeros((len(r)+1,len(T)+2))
     dat[0,0] = np.nan
     dat[0,1] = np.nan
@@ -48,49 +52,21 @@ def calc_sizes(folder):
     dat[1:,1] = dr / 1e-6
     dat[0,2:] = T / 3600.
     for t,file in enumerate(filelist):
-        n = calc_dry_dist(file)
+        n = calc_dist(file, r, "d")
         dat[1:,t+2] = n
     
     np.savetxt(folder+"plots/dry_dist.csv", dat, delimiter="\t",fmt="%.3e",
         header="Radius (um), Bin width (um), Num. conc. (mg-1) @ Time T (hours)")
 
-def calc_wet_dist(file):
-    (r,dr) = get_wet_bins()
+def calc_dist(file, r, bin_type):
     n = np.zeros(len(r))
     with h5py.File(file,"r") as f:
         for bin_num in np.arange(len(n)):
-            var = "rw_rng{:03d}_mom0".format(bin_num) # conc = number per mg of air
+            var = "r{}_rng{:03d}_mom0".format(bin_type, bin_num) # conc = number per mg of air
             dat = 1e-6 * np.array(f[var])
             avg = np.mean(dat)
             n[bin_num] = avg
     return n
-
-def get_wet_bins():
-    n = 27
-    exps = -3 + np.arange(n) * 0.2
-    left_edges = 1e-6 * 10**exps
-    centers = np.sqrt(left_edges[0:-1]*left_edges[1:])
-    widths = left_edges[1:] - left_edges[0:-1]
-    return (centers, widths)
-    
-def calc_dry_dist(file):
-    (r,dr) = get_dry_bins()
-    n = np.zeros(len(r))
-    with h5py.File(file,"r") as f:
-        for bin_num in np.arange(len(n)):
-            var = "rd_rng{:03d}_mom0".format(bin_num) # conc = number per mg of air
-            dat = 1e-6 * np.array(f[var])
-            avg = np.mean(dat)
-            n[bin_num] = avg
-    return n
-
-def get_dry_bins():
-    n = 40
-    exps = -3 + np.arange(n) * 0.1
-    left_edges = 1e-6 * 10**exps
-    centers = np.sqrt(left_edges[0:-1]*left_edges[1:])
-    widths = left_edges[1:] - left_edges[0:-1]
-    return (centers, widths)
 
 def plot_wet_dist(folder):
     path = folder+"plots/wet_dist.csv"
