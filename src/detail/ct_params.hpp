@@ -50,7 +50,7 @@ struct ct_params_common : libmpdataxx::ct_params_default_t
   };
 };
 
-struct ct_params_2D_sd : ct_params_common
+struct ct_params_2D_lgrngn : ct_params_common
 {
   enum { n_dims = 2 };
   enum { n_eqns = 4 };
@@ -61,7 +61,7 @@ struct ct_params_2D_sd : ct_params_common
   enum { delayed_step = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) };
 };
 
-struct ct_params_3D_sd : ct_params_common
+struct ct_params_3D_lgrngn : ct_params_common
 {
   enum { n_dims = 3 };
   enum { n_eqns = 5 };

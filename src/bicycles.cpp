@@ -144,14 +144,14 @@ int main(int argc, char** argv)
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
 #if !defined(UWLCM_DISABLE_2D_LGRNGN)
-      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+      run_hlpr<slvr_lgrngn, ct_params_2D_lgrngn>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
       throw std::runtime_error("2D Lagrangian option was disabled at compile time");
 #endif
 
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
 #if !defined(UWLCM_DISABLE_3D_LGRNGN)
-      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+      run_hlpr<slvr_lgrngn, ct_params_3D_lgrngn>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
       throw std::runtime_error("3D Lagrangian option was disabled at compile time");
 #endif
