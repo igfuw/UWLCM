@@ -149,8 +149,6 @@ void run_hlpr_piggy(bool sgs, const std::string &type, const int (&nps)[n_dims],
 #if !defined(UWLCM_DISABLE_PIGGYBACKER)
   struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
   run<slvr<ct_params_piggy>>(nps, user_params);
-#else
-    throw std::runtime_error("Piggybacker option was disabled at compile time");
 #endif
 }
 
@@ -162,28 +160,22 @@ void run_hlpr_driver(bool sgs, const std::string &type, const int (&nps)[n_dims]
 
   if (sgs)
   {
-#if !defined(UWLCM_DISABLE_SGS)
+  #if !defined(UWLCM_DISABLE_SGS)
     struct ct_params_sgs : ct_params_piggy
     {
       enum { sgs_scheme = libmpdataxx::solvers::smg };
       enum { stress_diff = libmpdataxx::solvers::compact };
     };
     run<slvr<ct_params_sgs>>(nps, user_params);
-#else
-    throw std::runtime_error("SGS option was disabled at compile time");
-#endif
+  #endif
   }
   else
   {
-#if !defined(UWLCM_DISABLE_ILES)
+  #if !defined(UWLCM_DISABLE_ILES)
     struct ct_params_sgs : ct_params_piggy {};
     run<slvr<ct_params_sgs>>(nps, user_params);
-#else
-    throw std::runtime_error("ILES option was disabled at compile time");
-#endif
+  #endif
   }
-#else
-    throw std::runtime_error("Driver option was disabled at compile time");
 #endif
 }
 
