@@ -133,6 +133,21 @@ int main(int argc, char** argv)
 
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();
+
+    // sanity check if desired options were compiled
+#if defined(UWLCM_DISABLE_PIGGYBACKER)
+    if(piggy)  throw std::runtime_error("Piggybacker option was disabled at compile time");
+#endif
+#if defined(UWLCM_DISABLE_DRIVER)
+    if(!piggy)  throw std::runtime_error("Driver option was disabled at compile time");
+#endif
+#if defined(UWLCM_DISABLE_SGS)
+    if(sgs)  throw std::runtime_error("SGS option was disabled at compile time");
+#endif
+#if defined(UWLCM_DISABLE_ILES)
+    if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
+#endif
+
     user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
 
     // handling the "micro" option
