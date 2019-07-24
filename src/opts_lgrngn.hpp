@@ -99,6 +99,7 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
 
+/*
 //CLARE: for now to test dycoms just make one dist with two modes, uses kappa1 only
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -113,8 +114,8 @@ void setopts_micro(
       )
     );
   }
+*/
 
-/* 
 //CLARE: set micro params
 // dist #1
   {
@@ -143,7 +144,6 @@ void setopts_micro(
     );
    }
 // END CLARE
-*/
 
 /*  else if(unit_test)
     boost::assign::ptr_map_insert<
