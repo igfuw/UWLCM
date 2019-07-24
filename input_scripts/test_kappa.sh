@@ -30,9 +30,9 @@ SIG1=1.2
 N1=10e6
 KAP1=0.61
 
-MU2=10.0e-6
+MU2=0.8e-6
 SIG2=1.5
-N2=1e6
+N2=10e6
 KAP2=1.28
 
 # run time params
@@ -45,7 +45,7 @@ NX=33
 NZ=76
 
 # output directory
-OUTPUT_DIR=$BASE/output_lgr/tests/two_kappas
+OUTPUT_DIR=$BASE/output_lgr/two_kappas/test2
 
 # copy this input script to the output directory
 mkdir $OUTPUT_DIR
