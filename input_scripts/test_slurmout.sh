@@ -16,7 +16,8 @@
 #SBATCH --mail-user=csinger@caltech.edu         # email address
 #SBATCH --mail-type=ALL                         # notify all
 
-BASE=/home/csinger/microphys/
+HOME=/home/csinger/microphys
+BASE=/central/groups/seinfeldgroup/csinger
 OUTPUT_DIR=$BASE/output_lgr/dycoms/test_slurm_copy
 mkdir $OUTPUT_DIR
 

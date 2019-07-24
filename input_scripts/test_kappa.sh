@@ -20,9 +20,9 @@ module load singularity/3.2.1
 module list
 
 # pathes to directories
-BASE=/home/csinger/microphys
-CONTAINER=$BASE/sng_output.sif
-MODEL=$BASE/UWLCM/build/src/bicycles
+HOME=/home/csinger/microphys
+CONTAINER=$HOME/sng_output.sif
+MODEL=$HOME/UWLCM/build/src/bicycles
 
 # aerosol distribution params
 MU1=0.1e-6
@@ -45,7 +45,8 @@ NX=33
 NZ=76
 
 # output directory
-OUTPUT_DIR=$BASE/output_lgr/two_kappas/test2
+BASE=/central/groups/seinfeldgroup/csinger
+OUTPUT_DIR=$BASE/output_lgr/two_kappas/test3
 
 # copy this input script to the output directory
 mkdir $OUTPUT_DIR
@@ -61,10 +62,6 @@ wet_bins_str=$(python make_bins.py "wet")
 dry_bins_str=$(python make_bins.py "dry")
 
 BINS="--out_wet=$wet_bins_str --out_dry=$dry_bins_str"
-
-# copy this input script to the output directory
-mkdir $OUTPUT_DIR
-cp ${0} $OUTPUT_DIR/input.sh
 
 # make .txt file in output directory with wet_bins_str and dry_bins_str
 BINS_FILE="bin_strs.txt"
