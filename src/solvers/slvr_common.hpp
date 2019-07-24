@@ -4,7 +4,7 @@
 #include <chrono>
 #include <libmpdata++/git_revision.hpp>
 #include <libcloudph++/git_revision.h>
-#include "../../git_revision.h"
+#include "../detail/get_uwlcm_git_revision.hpp"
 
 struct smg_tag  {};
 struct iles_tag {};
@@ -77,7 +77,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     // record user_params and profiles
     if(this->rank==0)
     {
-      this->record_aux_const(std::string("UWLCM git_revision : ") + UWLCM_GIT_REVISION, "git_revisions", -44);  
+      this->record_aux_const(std::string("UWLCM git_revision : ") + get_uwlcm_git_revision(), "git_revisions", -44);  
 #ifdef LIBMPDATAXX_GIT_REVISION
       this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, "git_revisions", -44);  
 #else
