@@ -21,6 +21,8 @@
 
 #include "solvers/slvr_lgrngn.hpp"
 #include "solvers/slvr_blk_1m.hpp"
+#include "forcings/calc_forces_blk_1m.hpp"
+#include "forcings/calc_forces_common.hpp"
 
 #include "run_hlpr.hpp"
 
