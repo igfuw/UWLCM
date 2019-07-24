@@ -5,7 +5,7 @@ SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libmpdataxx_CXX_FLAGS_DEBUG} -O3 -g0 -UBZ_
 SET(CMAKE_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE}")
 SET(CMAKE_CXX_FLAGS_DEBUG  "${libmpdataxx_CXX_FLAGS_DEBUG}")
 
-add_executable(bicycles opts/opts_common.cpp bicycles.cpp run_hlpr.cpp)
+add_executable(bicycles opts/opts_common.cpp bicycles.cpp run_hlpr_2d_blk_1m.cpp run_hlpr_3d_blk_1m.cpp run_hlpr_2d_lgrngn.cpp run_hlpr_3d_lgrngn.cpp)
 
 # std::future
 include(CheckCXXSourceCompiles)

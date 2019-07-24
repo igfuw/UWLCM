@@ -195,8 +195,3 @@ void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_
   else
     run_hlpr_driver<slvr, ct_params_dim_micro, n_dims>(sgs, type, nps, user_params);
 }
-
-// explicit instantiation
-template
-void run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m, 3>(bool piggy, bool sgs, const std::string &type, const int (&nps)[3], const user_params_t &user_params);
-
