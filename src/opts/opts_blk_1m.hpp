@@ -7,10 +7,13 @@
 
 #pragma once
 
+#include <libcloudph++/blk_1m/options.hpp>
+
 #include "opts_common.hpp"
 //#include "../solvers/slvr_blk_1m.hpp"
 //#include "../forcings/calc_forces_common.hpp"
 //#include "../forcings/calc_forces_blk_1m.hpp"
+
 
 // simulation and output parameters for micro=blk_1m
 template <class solver_t, class user_params_t, class case_ptr_t>

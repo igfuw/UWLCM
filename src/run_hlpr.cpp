@@ -144,46 +144,37 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 }
 
 template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
-void run_hlpr_piggy(bool sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
-{
-#if !defined(UWLCM_DISABLE_PIGGYBACKER)
-  struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
-  run<slvr<ct_params_piggy>>(nps, user_params);
-#endif
-}
-
-template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
-void run_hlpr_driver(bool sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
-{
-#if !defined(UWLCM_DISABLE_DRIVER)
-  struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
-
-  if (sgs)
-  {
-  #if !defined(UWLCM_DISABLE_SGS)
-    struct ct_params_sgs : ct_params_piggy
-    {
-      enum { sgs_scheme = libmpdataxx::solvers::smg };
-      enum { stress_diff = libmpdataxx::solvers::compact };
-    };
-    run<slvr<ct_params_sgs>>(nps, user_params);
-  #endif
-  }
-  else
-  {
-  #if !defined(UWLCM_DISABLE_ILES)
-    struct ct_params_sgs : ct_params_piggy {};
-    run<slvr<ct_params_sgs>>(nps, user_params);
-  #endif
-  }
-#endif
-}
-
-template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
 void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
 {
-  if(piggy)
-    run_hlpr_piggy<slvr, ct_params_dim_micro, n_dims>(sgs, type, nps, user_params);
-  else
-    run_hlpr_driver<slvr, ct_params_dim_micro, n_dims>(sgs, type, nps, user_params);
+  if(piggy) // piggybacker
+  {
+#if !defined(UWLCM_DISABLE_PIGGYBACKER)
+    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
+    run<slvr<ct_params_piggy>>(nps, user_params);
+#endif
+  }
+  else // driver
+  {
+#if !defined(UWLCM_DISABLE_DRIVER)
+    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
+    if (sgs)
+    {
+  #if !defined(UWLCM_DISABLE_SGS)
+      struct ct_params_sgs : ct_params_piggy
+      {
+        enum { sgs_scheme = libmpdataxx::solvers::smg };
+        enum { stress_diff = libmpdataxx::solvers::compact };
+      };
+      run<slvr<ct_params_sgs>>(nps, user_params);
+  #endif
+    }
+    else
+    {
+  #if !defined(UWLCM_DISABLE_ILES)
+      struct ct_params_sgs : ct_params_piggy {};
+      run<slvr<ct_params_sgs>>(nps, user_params);
+  #endif
+    }
+#endif
+  }
 }

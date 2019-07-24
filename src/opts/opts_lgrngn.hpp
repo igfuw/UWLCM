@@ -20,7 +20,6 @@
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/RH_formula.hpp>
 
-#include <libcloudph++/blk_1m/options.hpp>
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
