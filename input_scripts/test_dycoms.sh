@@ -21,9 +21,9 @@ module load singularity/3.2.1
 module list
 
 # pathes to directories
-BASE=/home/csinger/microphys
-CONTAINER=$BASE/sng_output.sif
-MODEL=$BASE/UWLCM/build/src/bicycles
+HOME=/home/csinger/microphys
+CONTAINER=$HOME/sng_output.sif
+MODEL=$HOME/UWLCM/build/src/bicycles
 
 # aerosol distribution params
 MU1=0.011e-6
@@ -46,6 +46,7 @@ NX=33 #129
 NZ=76 #301
 
 # output directory
+BASE=/central/groups/seinfeldgroup/csinger
 OUTPUT_DIR=$BASE/output_lgr/dycoms/spin_${SPIN}_nt_${NT}_out_${OUTFREQ}
 
 # set param strings

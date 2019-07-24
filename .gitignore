@@ -2,3 +2,4 @@ git_revision.h
 build/
 .DS_Store
 *.png
+*.out
