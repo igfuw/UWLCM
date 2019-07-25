@@ -12,17 +12,52 @@ import sys
 ###########
 
 def main():
-    path = '../output_lgr/dycoms/6hrs_highres/'
+    path = '../../output/mu_0.01e-6_kappa_1.3/'
     folder_list = ['exp1/', 'exp2/', 'exp3/', 'exp4/', 'exp5/']
+
+    calc_avgs(path, folder_list)
+
     plot_mult_lwp(path, folder_list)
     plot_mult_cc(path, folder_list)
     plot_mult_cthickness(path, folder_list)
     plot_mult_precip(path, folder_list)
 
+def calc_avgs(path, folder_list):
+    folders = [path + x for x in folder_list]
+    file = folders[0] + "plots/dat.csv"
+    dat = np.genfromtxt(file,delimiter="\t")
+    time = dat[1:,0]
+    
+    lwp_arr = np.zeros((len(folder_list), len(time)))
+    cc_arr = np.zeros((len(folder_list), len(time)))
+    cthick_arr = np.zeros((len(folder_list), len(time)))
+    precip_arr = np.zeros((len(folder_list), len(time)))
+
+    for i,folder in enumerate(folders):
+        file = folder+"plots/dat.csv"
+        dat = np.genfromtxt(file,delimiter="\t")
+        lwp_arr[i,:] = dat[1:,1]
+        cc_arr[i,:] = dat[1:,3]
+        cthick_arr[i,:] = dat[1:,5]
+        precip_arr[i,:] = dat[1:,6]
+
+    lwp = np.mean(lwp_arr,axis=0)
+    lwp_std = np.std(lwp_arr,axis=0)
+    cc = np.mean(cc_arr,axis=0)
+    cc_std = np.std(cc_arr,axis=0)
+    cthick = np.mean(cthick_arr,axis=0)
+    cthick_std = np.std(cthick_arr,axis=0)
+    precip = np.mean(precip_arr,axis=0)
+    precip_std = np.std(precip_arr,axis=0)
+
+    dat = np.array([time, lwp, lwp_std, cc, cc_std, cthick, cthick_std, precip, precip_std]).T
+    np.savetxt(path+"ensemble_mean_dat.csv", dat, delimiter="\t",fmt="%.2e",header="Time, LWP (g/m^2), std, Cloud Cover, std, Cloud Thickness (m), std, Surf Precip (mm/d), std")
+    
+
 def plot_mult_lwp(path, folder_list):
     folders = [path + x for x in folder_list]
     for folder in folders:
-        file = folder+"dat.csv"
+        file = folder+"plots/dat.csv"
         dat = np.genfromtxt(file,delimiter="\t")
         time = dat[1:,0]
         mean = dat[1:,1]
@@ -46,7 +81,7 @@ def plot_mult_lwp(path, folder_list):
 def plot_mult_cc(path, folder_list):
     folders = [path + x for x in folder_list]
     for folder in folders:
-        file = folder+"dat.csv"
+        file = folder+"plots/dat.csv"
         dat = np.genfromtxt(file,delimiter="\t")
         time = dat[1:,0]
         mean = dat[1:,3]
@@ -72,7 +107,7 @@ def plot_mult_cc(path, folder_list):
 def plot_mult_cthickness(path, folder_list):
     folders = [path + x for x in folder_list]
     for folder in folders:
-        file = folder+"dat.csv"
+        file = folder+"plots/dat.csv"
         dat = np.genfromtxt(file,delimiter="\t")
         time = dat[1:,0]
         cthick = dat[1:,5]
@@ -96,7 +131,7 @@ def plot_mult_cthickness(path, folder_list):
 def plot_mult_precip(path, folder_list):
     folders = [path + x for x in folder_list]
     for folder in folders:
-        file = folder+"dat.csv"
+        file = folder+"plots/dat.csv"
         dat = np.genfromtxt(file,delimiter="\t")
         time = dat[1:,0]
         precip = dat[1:,6]
