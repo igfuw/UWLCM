@@ -5,10 +5,9 @@
 #include <boost/tuple/tuple.hpp>
 #include "plots.hpp"
 
+using namespace blitz;
 
-BZ_USING_NAMESPACE(blitz)
-
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
   Array<double, 1> snap;
   Array<double, 1> res;
@@ -17,7 +16,7 @@ int main(int argc, char* argv[])
   blitz::Array<float, 1> res_pos;
 
   int prof_ctr = 0;
-  for (auto &plt : series_dycoms) 
+  for (auto &plt : series_dycoms)
   {
     Gnuplot gp;
     std::string file = argv[1] +  std::string("series_compare_") + plt + std::string(".svg");
