@@ -23,9 +23,9 @@ MODEL=$HOME/UWLCM/build/src/bicycles
 
 # aerosol distribution params
 MU1=0.01e-6
-SIG1=1.2
-N1=100e6
-KAP1=0.1
+SIG1=1.2  # keep fixed
+N1=100e6  # keep fixed
+KAP1=1.3
 
 # run time params
 SPIN=3600
@@ -37,7 +37,7 @@ NX=129
 NZ=301
 
 # output directory
-OUTPUT_DIR=$HOME/output/mu_${MU1}_kappa_${KAP1}/exp1
+OUTPUT_DIR=$HOME/output/mu_${MU1}_kappa_${KAP1}/exp5
 
 # set param strings
 CASE_PARAMS="--case=dycoms_rf02 --nx=$NX --ny=0 --nz=$NZ"
