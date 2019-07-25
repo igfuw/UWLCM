@@ -70,8 +70,8 @@ class PlotterCommon
       // read output frequency
       float outfreq;
       {
-        auto user_params_group = h5f.openGroup("/user_params/");
-        auto attr = user_params_group.openAttribute("outfreq");
+        auto root_group = h5f.openGroup("/");
+        auto attr = root_group.openAttribute("user_params outfreq");
         attr.read(attr.getDataType(), &outfreq);
       }
       map["outfreq"] = outfreq;
