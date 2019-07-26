@@ -1,13 +1,12 @@
 import h5py
 import numpy as np
 import glob
-import matplotlib as mpl
 from matplotlib import cm
 import matplotlib.pyplot as plt
 import os
 import sys
 
-from read_bins import get_bins
+from read_data import read_bins
 
 def main():
     path = sys.argv[1]
@@ -27,7 +26,7 @@ def calc_sizes(folder):
         T = np.array(f["T"])
     
     # wet
-    (r, dr) = get_bins(folder, "wet")
+    (r, dr) = read_bins(folder, "wet")
     dat = np.zeros((len(r)+1,len(T)+2))
     dat[0,0] = np.nan
     dat[0,1] = np.nan
@@ -44,7 +43,7 @@ def calc_sizes(folder):
         header="Radius (um), Bin width (um), Num. conc. (mg-1) @ Time T (hours)")
 
     # dry
-    (r, dr) = get_bins(folder, "dry")
+    (r, dr) = read_bins(folder, "dry")
     dat = np.zeros((len(r)+1,len(T)+2))
     dat[0,0] = np.nan
     dat[0,1] = np.nan

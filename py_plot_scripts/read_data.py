@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 
-def read_data(file,var):
+def read_hdf(file,var):
     water_density = 1e3 # (kg/m^3)
     # load data
     with h5py.File(file,'r') as f:
@@ -25,4 +25,22 @@ def read_data(file,var):
             dat = np.array(f['precip_rate']) * 4/3 * np.pi * water_density   # precip rate (m/s)
         # elif var == 'ef':
         #     dat = np.array(f['rw_rng000_mom3']) / np.array(f['rw_rng000_mom2']) * 1e6 # effective radius (um)
+        else:
+            dat = np.array(f[var])
     return dat
+
+def read_bins(folder, bin_type):
+    with open(folder+"bin_strs.txt","r") as f:
+        lines = f.read().splitlines()
+    lines = np.array(lines)
+
+    line_num = np.where(lines == bin_type+"_bins_str:")[0][0] + 1
+    bins_str = lines[line_num] 
+    
+    x = bins_str.replace(';',':')
+    x = x.split(":")
+    x = x[::2]
+    left_edges = np.array([float(i) for i in x])
+    centers = np.sqrt(left_edges[0:-1]*left_edges[1:])
+    widths = left_edges[1:] - left_edges[0:-1]
+    return (centers, widths)

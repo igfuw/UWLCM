@@ -7,7 +7,7 @@ from matplotlib import cm
 import os
 import sys
 
-from plot_hlpr import read_data
+from read_data import read_hdf
 
 def main():
     path = sys.argv[1]
@@ -40,7 +40,7 @@ def calc_profs(folder):
     np.savetxt(folder+"plots/cf_z.csv", cf_z, delimiter="\t",fmt="%.2f",header="Z, CF @ Time T")
 
 def calc_cf_z(file, rhod):
-    nc = read_data(file,'nc')
+    nc = read_hdf(file,'nc')
     rhod = np.tile(rhod, np.shape(nc)[0]).reshape(np.shape(nc))
     nc *= rhod # (1/cm^3)
     cloudy_cutoff = 50 # cloudy if nc > X mg^-1

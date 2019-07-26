@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
-from plot_hlpr import read_data
+from read_data import read_hdf
 
 ###########
 # plot time series of variables:
@@ -24,11 +24,6 @@ def main():
     plot_cc(folder)
     plot_cthickness(folder)
     plot_precip(folder)
-
-    # folders = ['../DYCOMS/lgr_r0.1_n100/', '../DYCOMS/lgr_r0.01_n100/', '../DYCOMS/lgr_r0.1_n1000/', '../DYCOMS/lgr_r0.01_n1000/',]
-    # plot_mult_lwp(folders)
-    # plot_mult_cc(folders)
-    # plot_mult_cthickness(folders)
 
 ############
 # functions
@@ -68,9 +63,9 @@ def calc_stats(folder):
         "Liquid water path\nTime, Mean LWP (g/m^2), Std LWP (g/m^2), Mean Cloud Cover, Std Cloud Cover, Mean Thickness (m), Mean Surface Precip (mm/d)")
 
 def calc_lwp(file, rhod, z):
-    cwc = read_data(file,'cwc')  # (g/kg)
-    rwc = read_data(file,'rwc')  # (g/kg)
-    rv = read_data(file,'rv')   # (g/kg)
+    cwc = read_hdf(file,'cwc')  # (g/kg)
+    rwc = read_hdf(file,'rwc')  # (g/kg)
+    rv = read_hdf(file,'rv')   # (g/kg)
 
     rho = rhod * (1 + rv/1e3 + cwc/1e3 + rwc/1e3)
 
@@ -80,7 +75,7 @@ def calc_lwp(file, rhod, z):
     return lwp
 
 def calc_ccover(file, rhod):
-    nc = read_data(file,'nc')
+    nc = read_hdf(file,'nc')
     rhod = np.tile(rhod, np.shape(nc)[0]).reshape(np.shape(nc))
     nc *= rhod # (1/cm^3)
     cloudy_cutoff = 50 # cloudy if nc > X mg^-1
@@ -93,7 +88,7 @@ def calc_ccover(file, rhod):
 def calc_cthickness(file, rhod, Z):
     z = Z[0,:]
 
-    nc = read_data(file,'nc')
+    nc = read_hdf(file,'nc')
     rhod = np.tile(rhod, np.shape(nc)[0]).reshape(np.shape(nc))
     nc *= rhod # (1/cm^3)
     cloudy_cutoff = 50 # cloudy if nc > cloudy_cutoff mg^-1
@@ -205,79 +200,6 @@ def plot_precip(folder):
 
     plt.tight_layout()
     plt.savefig(folder+"plots/surf_precip.png",dpi=300)
-    plt.close()
-
-def plot_mult_lwp(folders):
-    for folder in folders:
-        path = folder+"plots/dat.csv"
-        dat = np.genfromtxt(path,delimiter="\t")
-        time = dat[1:,0]
-        mean = dat[1:,1]
-        #std = dat[1:,2]
-
-        name = folder.split("/")[2]
-        plt.plot(time/3600., mean, "o-",label=name)
-        #plt.fill_between(time/3600., mean-std, mean+std, facecolor="b", alpha=0.5)
-
-    # set plot attributes
-    fs = 12
-    plt.xlabel("Time (hours)",fontsize=fs)
-    plt.ylabel("LWP (g/m$^2$)",fontsize=fs)
-    plt.xticks(fontsize=fs-2)
-    plt.yticks(fontsize=fs-2)
-    plt.title("Liquid water path", fontsize=fs)
-    plt.legend(loc=4)
-
-    plt.tight_layout()
-    plt.savefig("mult_lwp.png",dpi=300)
-    plt.close()
-
-def plot_mult_cc(folders):
-    for folder in folders:
-        path = folder+"plots/dat.csv"
-        dat = np.genfromtxt(path,delimiter="\t")
-        time = dat[1:,0]
-        mean = dat[1:,3]
-        std = dat[1:,4]
-
-        name = folder.split("/")[2]
-        plt.plot(time/3600., mean, "o-",label=name)
-        #plt.fill_between(time/3600., mean-std, mean+std, facecolor="b", alpha=0.5)
-
-    # set plot attributes
-    fs = 12
-    plt.xlabel("Time (hours)",fontsize=fs)
-    plt.ylabel("Cloud cover (%)",fontsize=fs)
-    plt.xticks(fontsize=fs-2)
-    plt.yticks(fontsize=fs-2)
-    plt.title("Cloud fraction", fontsize=fs)
-    plt.legend(loc=3)
-
-    plt.tight_layout()
-    plt.savefig("mult_cf.png",dpi=300)
-    plt.close()
-
-def plot_mult_cthickness(folders):
-    for folder in folders:
-        path = folder+"plots/dat.csv"
-        dat = np.genfromtxt(path,delimiter="\t")
-        time = dat[1:,0]
-        cthick = dat[1:,5]
-
-        name = folder.split("/")[2]
-        plt.plot(time/3600., cthick, "o-", label=name)
-
-    # set plot attributes
-    fs = 12
-    plt.xlabel("Time (hours)",fontsize=fs)
-    plt.ylabel("Thickness (m)",fontsize=fs)
-    plt.xticks(fontsize=fs-2)
-    plt.yticks(fontsize=fs-2)
-    plt.title("Cloud thickness", fontsize=fs)
-    plt.legend(loc=4)
-
-    plt.tight_layout()
-    plt.savefig("mult_cthick.png",dpi=300)
     plt.close()
 
 if __name__ == "__main__":
