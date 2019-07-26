@@ -45,8 +45,7 @@ NX=33
 NZ=76
 
 # output directory
-BASE=/central/groups/seinfeldgroup/csinger
-OUTPUT_DIR=$BASE/output_lgr/two_kappas/test3
+OUTPUT_DIR=$HOME/output/test1
 
 # copy this input script to the output directory
 mkdir $OUTPUT_DIR
