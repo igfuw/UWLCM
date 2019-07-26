@@ -79,7 +79,7 @@ def plot_wet_dist(folder):
         n = dat[1:,i+2]
         plt.loglog(r,n/dr,"o-",c=cm.plasma(t/np.max(time)),label="{:.2f}".format(t))
 
-        # set plot attributes
+    # set plot attributes
     fs = 12
     plt.xlabel(r"Wet radius ($\mu$m)",fontsize=fs)
     plt.ylabel(r"dn/dr (mg$^{-1}$ $\mu$m$^{-1}$)",fontsize=fs)

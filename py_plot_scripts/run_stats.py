@@ -19,6 +19,9 @@ def main():
     calc_series(folder)
     calc_profs(folder)
 
+    folder_list = ['exp1/', 'exp2/', 'exp3/', 'exp4/', 'exp5/']
+    calc_series_avgs(path, folder_list)
+
 def calc_sizes(folder):
     filelist = glob.glob(folder+"timestep*"+"*.h5")
     list.sort(filelist, key=lambda x: int(x.split("step")[-1].split(".h5")[0]))
@@ -89,7 +92,7 @@ def calc_series(folder):
     dat = np.array([T,m_lwp,s_lwp,m_cc,s_cc,cthick,surf_precip]).T
 
     np.savetxt(folder+"plots/dat_series.csv", dat, delimiter="\t",fmt="%.2e",header=
-        "Liquid water path\nTime, Mean LWP (g/m^2), Std LWP (g/m^2), Mean Cloud Cover, Std Cloud Cover, Mean Thickness (m), Mean Surface Precip (mm/d)")
+        "Liquid water path\nTime, Mean LWP (g/m^2), std, Mean Cloud Cover, std, Mean Thickness (m), Mean Surface Precip (mm/d)")
 
 def calc_profs(folder):
     filelist = glob.glob(folder+"timestep*"+"*.h5")
@@ -114,6 +117,38 @@ def calc_profs(folder):
         dat[1:,t+1] = calc_cf_z(file, rhod)
 
     np.savetxt(folder+"plots/dat_cf_prof.csv", dat, delimiter="\t",fmt="%.2f",header="Z, CF @ Time T")
+
+def calc_series_avgs(path, folder_list):
+    folders = [path + x for x in folder_list]
+    file = folders[0] + "plots/dat_series.csv"
+    dat = np.genfromtxt(file,delimiter="\t")
+    time = dat[1:,0]
+    
+    lwp_arr = np.zeros((len(folder_list), len(time)))
+    cc_arr = np.zeros((len(folder_list), len(time)))
+    cthick_arr = np.zeros((len(folder_list), len(time)))
+    precip_arr = np.zeros((len(folder_list), len(time)))
+
+    for i,folder in enumerate(folders):
+        file = folder+"plots/dat_series.csv"
+        dat = np.genfromtxt(file,delimiter="\t")
+        lwp_arr[i,:] = dat[1:,1]
+        cc_arr[i,:] = dat[1:,3]
+        cthick_arr[i,:] = dat[1:,5]
+        precip_arr[i,:] = dat[1:,6]
+
+    lwp = np.mean(lwp_arr,axis=0)
+    lwp_std = np.std(lwp_arr,axis=0)
+    cc = np.mean(cc_arr,axis=0)
+    cc_std = np.std(cc_arr,axis=0)
+    cthick = np.mean(cthick_arr,axis=0)
+    cthick_std = np.std(cthick_arr,axis=0)
+    precip = np.mean(precip_arr,axis=0)
+    precip_std = np.std(precip_arr,axis=0)
+
+    dat = np.array([time, lwp, lwp_std, cc, cc_std, cthick, cthick_std, precip, precip_std]).T
+    np.savetxt(path+"ensemble_mean_dat.csv", dat, delimiter="\t",fmt="%.2e",header=
+        "Time, LWP (g/m^2), std, Cloud Cover, std, Cloud Thickness (m), std, Surf Precip (mm/d), std")
 
 if __name__ == "__main__":
     main()
