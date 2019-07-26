@@ -25,7 +25,7 @@ MODEL=$HOME/UWLCM/build/src/bicycles
 MU1=0.01e-6
 SIG1=1.2  # keep fixed
 N1=100e6  # keep fixed
-KAP1=1.3
+KAP1=0.7
 
 # run time params
 SPIN=3600
