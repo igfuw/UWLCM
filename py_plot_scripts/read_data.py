@@ -23,10 +23,10 @@ def read_hdf(file,var):
             dat = np.array(f['w'])      # vertical velocity (m/s)
         elif var == 'precip_rate':
             dat = np.array(f['precip_rate']) * 4/3 * np.pi * water_density   # precip rate (m/s)
-        # elif var == 'ef':
-        #     dat = np.array(f['rw_rng000_mom3']) / np.array(f['rw_rng000_mom2']) * 1e6 # effective radius (um)
         else:
             dat = np.array(f[var])
+        # elif var == 'ef':
+        #     dat = np.array(f['rw_rng000_mom3']) / np.array(f['rw_rng000_mom2']) * 1e6 # effective radius (um)
     return dat
 
 def read_bins(folder, bin_type):
