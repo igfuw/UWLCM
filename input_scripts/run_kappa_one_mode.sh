@@ -23,18 +23,13 @@ MODEL=$HOME/UWLCM/build/src/bicycles
 
 # aerosol distribution params
 MU1=0.01e-6
-SIG1=1.2
-N1=100e6
-KAP1=0.1
-
-MU2=0.1e-6
-SIG2=1.2
-N2=0.0
-KAP2=0.5
+SIG1=1.2  # keep fixed
+N1=100e6  # keep fixed
+KAP1=1.3
 
 # run time params
-SPIN=600
-NT=1200
+SPIN=3600
+NT=21600
 OUTFREQ=300
 
 # case params
@@ -42,15 +37,13 @@ NX=129
 NZ=301
 
 # output directory
-BASE=/central/groups/seinfeldgroup/csinger
-ENSEMBLE_DIR=$BASE/output_lgr/mu_${MU1}_kappa_${KAP1}
-OUTPUT_DIR=$ENSEMBLE_DIR/short-exp1
+OUTPUT_DIR=$HOME/output/mu_${MU1}_kappa_${KAP1}/exp5
 
 # set param strings
 CASE_PARAMS="--case=dycoms_rf02 --nx=$NX --ny=0 --nz=$NZ"
 RUN_PARAMS="--dt=1 --spinup=$SPIN --nt=$NT --outfreq=$OUTFREQ --backend=CUDA"
 COMMON_PARAMS="--sstp_cond=10 --sstp_coal=10 --rng_seed=0"
-MICRO_PARAMS="--micro=lgrngn --mean_rd1=$MU1 --sdev_rd1=$SIG1 --n1_stp=$N1 --kappa1=$KAP1 --mean_rd2=$MU2 --sdev_rd2=$SIG2 --n2_stp=$N2 --kappa2=$KAP2 --sd_conc=40"
+MICRO_PARAMS="--micro=lgrngn --mean_rd1=$MU1 --sdev_rd1=$SIG1 --n1_stp=$N1 --kappa1=$KAP1 --sd_conc=40"
 
 wet_bins_str=$(python make_bins.py "wet")
 dry_bins_str=$(python make_bins.py "dry")
@@ -58,7 +51,6 @@ dry_bins_str=$(python make_bins.py "dry")
 BINS="--out_wet=$wet_bins_str --out_dry=$dry_bins_str"
 
 # copy this input script to the output directory
-mkdir $ENSEMBLE_DIR
 mkdir $OUTPUT_DIR
 cp ${0} $OUTPUT_DIR/input.sh
 
