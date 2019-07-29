@@ -3,6 +3,7 @@ if(UWLCM_DISABLE)
 endif()
 
 add_executable(api_test api_test.cpp)
+target_compile_features(api_test PRIVATE cxx_std_11)
 
 add_test(api_test_iles api_test ${CMAKE_BINARY_DIR})
 add_test(api_test_smg  api_test ${CMAKE_BINARY_DIR} " --sgs=1 ")
