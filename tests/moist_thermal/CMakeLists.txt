@@ -10,5 +10,7 @@ target_link_libraries(moist_thermal PRIVATE ${HDF5_LIBRARIES})
 target_include_directories(moist_thermal PUBLIC ${HDF5_INCLUDE_DIRS})
 
 find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
-target_link_libraries(moist_thermal PRIVATE Boost::program_options Boost::filesystem Boost::system)
+# we dont link using targets, because they are not set if there is some discrepancy between cmake and boost version
+#target_link_libraries(moist_thermal PRIVATE Boost::program_options Boost::filesystem Boost::system)
+target_link_libraries(moist_thermal PRIVATE ${Boost_LIBRARIES})
 
