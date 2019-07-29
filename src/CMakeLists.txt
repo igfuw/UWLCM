@@ -80,9 +80,11 @@ target_compile_features(bicycles PRIVATE cxx_std_14)
 
 # search for Boost
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
-if(_Boost_IMPORTED_TARGETS)
+if(TARGET Boost::thread AND TARGET Boost::iostreams AND TARGET Boost::system AND TARGET Boost::timer AND TARGET Boost::program_options AND TARGET Boost::filesystem)
+  message("linkiing boost targets")
   target_link_libraries(bicycles PRIVATE Boost::thread Boost::iostreams Boost::system Boost::timer Boost::program_options Boost::filesystem) 
 else()
+  message("linkiing boost without targets")
   # we dont link using targets, because they are not set if there is some discrepancy between cmake and boost version
   target_link_libraries(bicycles PRIVATE ${Boost_LIBRARIES})
 endif()
