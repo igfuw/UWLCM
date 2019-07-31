@@ -6,6 +6,8 @@
 #include <libcloudph++/common/theta_std.hpp>
 #include <libcloudph++/common/theta_dry.hpp>
 
+#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
+
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
 
@@ -18,6 +20,7 @@ struct user_params_t
   setup::real_t dt, z_rlx_sclr;
   std::string outdir, model_case;
   bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
+  setup::real_t sgs_delta;
 };
 
 
@@ -42,13 +45,13 @@ namespace setup
   // TODO: try a different design where it is not necessary ?
   struct profiles_t
   {
-    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr;
+    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr, mix_len;
     std::array<arr_1D_t, 2> geostr;
 
     profiles_t(int nz) :
     // rhod needs to be bigger, cause it divides vertical courant number
     // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz)
+      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), mix_len(nz)
     {
       geostr[0].resize(nz);
       geostr[1].resize(nz);
@@ -56,7 +59,7 @@ namespace setup
   };
   struct profile_ptrs_t
   {
-    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *geostr[2];
+    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *mix_len, *geostr[2];
   };
   // copy external profiles into rt_parameters
   // TODO: more elegant way
@@ -73,6 +76,7 @@ namespace setup
       {p.th_ref       , profs.th_ref       },
       {p.rhod         , profs.rhod         },
       {p.w_LS         , profs.w_LS         },
+      {p.mix_len      , profs.mix_len      },
       {p.geostr[0]    , profs.geostr[0]    },
       {p.geostr[1]    , profs.geostr[1]    }
     };
@@ -83,20 +87,24 @@ namespace setup
     }
   }
 
-  template<class rt_params_t, class ix, int n_dims>
+  template<class case_ct_params_t, int n_dims>
   class CasesCommon
   {
     public:
+
+    using ix = typename case_ct_params_t::ix;
+    using rt_params_t = typename case_ct_params_t::rt_params_t;
 
     using concurr_any_t = libmpdataxx::concurr::any<
       real_t, 
       n_dims
     >;
 
-    ForceParameters_t ForceParameters;
-
     //th, rv and surface fluxes relaxation time and height
     const quantity<si::time, real_t> tau_rlx = 300 * si::seconds;
+
+    // domain size
+    quantity<si::length, real_t> X,Y,Z;
 
     //aerosol bimodal lognormal dist. - VOCALS by default
     quantity<si::length, real_t>
@@ -108,17 +116,58 @@ namespace setup
     quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
       n1_stp = real_t(70.47e6) / si::cubic_metres, // gives 60e6 at surface of moist thermal
       n2_stp = real_t(46.98e6) / si::cubic_metres;  // gives 40e6 at surface of moist thermal
-    real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
     // hygroscopicity kappa of the aerosol 
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
 
+    real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
+
+    ForceParameters_t ForceParameters;
+
+    template<bool enable_sgs = case_ct_params_t::enable_sgs>
+    void setopts_sgs(rt_params_t &params,
+                     typename std::enable_if<!enable_sgs>::type* = 0)
+    {}
+
+    template<bool enable_sgs = case_ct_params_t::enable_sgs>
+    void setopts_sgs(rt_params_t &params,
+                     typename std::enable_if<enable_sgs>::type* = 0)
+    {
+      params.c_m = 0.0856;
+      params.smg_c = 0.165;
+      params.prandtl_num = 0.42;
+      params.cdrag = 0.;
+      params.friction = 0; // disable explicit momentum surface fluxes when using sgs scheme
+    }
+
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
-    virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) = 0;
-    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims - 1> &surf_flux_sens, int timestep, real_t dt)
-    {if(timestep==0) surf_flux_sens = 0.;}; 
-    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims - 1> &surf_flux_lat, int timestep, real_t dt)
+    virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+    {
+      profs.geostr[0] = 0;
+      profs.geostr[1] = 0;
+
+      blitz::firstIndex k;
+      real_t dz = (Z / si::metres) / (nz-1);
+
+      real_t sgs_delta;
+      if (user_params.sgs_delta > 0)
+      {
+        sgs_delta = user_params.sgs_delta;
+      }
+      else
+      {
+        sgs_delta = dz;
+      }
+      profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
+    }
+
+    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens, 
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    {if(timestep==0) surf_flux_sens = 0.;};
+
+    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims>  surf_flux_lat, 
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
 
     // ctor
@@ -135,6 +184,9 @@ namespace setup
       ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
       ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
       ForceParameters.coriolis_parameter = 0.;
+      X = 0 * si::metres;
+      Y = 0 * si::metres;
+      Z = 0 * si::metres;
     }
 
     virtual ~CasesCommon() = default;

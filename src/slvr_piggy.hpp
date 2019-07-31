@@ -1,5 +1,5 @@
 #pragma once
-#include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
+#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
 #include <libmpdata++/output/hdf5_xdmf.hpp>
 #include "detail/checknan.cpp"
 
@@ -21,7 +21,7 @@ class slvr_piggy<
   typename std::enable_if<ct_params_t::piggy == 0 >::type
 > : public 
   output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t, minhalo>
+    solvers::mpdata_rhs_vip_prs_sgs<ct_params_t, minhalo>
   >
 {
   private:
@@ -30,7 +30,7 @@ class slvr_piggy<
 
   protected:
   using parent_t = output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs<ct_params_t, minhalo>
+    solvers::mpdata_rhs_vip_prs_sgs<ct_params_t, minhalo>
   >;  
 
   std::ofstream f_vel_out; // file for velocity field

@@ -21,6 +21,7 @@ IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
    SET(CMAKE_BUILD_TYPE Release)
 ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 
+# c++11 needed e.g. by the std_future test
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # generate a header file with git revision id
@@ -31,7 +32,11 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   )
 endif()
 
+# handle the mpdata options
+if(NOT MPDATA_OPTS)
+  set(MPDATA_OPTS "IGA;FCT") # iga, fct is the default
+endif()
+message(STATUS "UWLCM will use the following libmpdata++ options: ${MPDATA_OPTS}")
 
 add_subdirectory(src) 
-add_subdirectory(drawbicyc)
 add_subdirectory(tests)

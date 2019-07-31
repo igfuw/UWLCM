@@ -19,7 +19,7 @@ class PlotterCommon
   H5::DataSpace h5s;
 
   void h5load(
-    const string &file, 
+    const string &file,
     const string &dataset
   )
   {

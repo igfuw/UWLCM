@@ -8,7 +8,7 @@
 #include "setup.hpp"
 #include "concurr_types.hpp"
 
-#include "cases/DYCOMS98.hpp"
+#include "cases/DYCOMS.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/LasherTrapp2001.hpp"
@@ -36,9 +36,16 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   
   using rt_params_t = typename solver_t::rt_params_t;
   using ix = typename solver_t::ix;
+  
+  struct case_ct_params_t
+  {
+    using rt_params_t = typename solver_t::rt_params_t;
+    using ix = typename solver_t::ix;
+    enum {enable_sgs = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
+  };
 
   using case_t = setup::CasesCommon<
-    rt_params_t, ix, n_dims
+    case_ct_params_t, n_dims
   >;
 
   using case_ptr_t = std::unique_ptr<
@@ -49,13 +56,17 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<rt_params_t, ix, n_dims>()); 
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal<rt_params_t, ix, n_dims>()); 
-  else if (user_params.model_case == "dycoms")
-    case_ptr.reset(new setup::dycoms::Dycoms98<rt_params_t, ix, n_dims>()); 
+    case_ptr.reset(new setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>()); 
+  else if (user_params.model_case == "dycoms_rf01")
+    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>()); 
+  else if (user_params.model_case == "dycoms_rf02")
+    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
-    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<rt_params_t, ix, n_dims>()); 
+    case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
+  else
+    throw std::runtime_error("wrong case choice");
 
   // instantiation of structure containing simulation parameters
   rt_params_t p;
@@ -64,8 +75,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   p.ForceParameters = case_ptr->ForceParameters;
 
   // copy functions used to update surface fluxes
-  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
-  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3);
+  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
   // copy user_params for output
   p.user_params = user_params;
@@ -178,35 +189,59 @@ struct ct_params_3D_blk_1m : ct_params_common
 
 // function used to modify ct_params before running
 template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
-void run_hlpr(bool piggy, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
+void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
 {
+  struct ct_params_mpdata_opts : ct_params_dim_micro { enum { opts = opts::nug 
+#if defined(MPDATA_OPTS_IGA)
+  | opts::iga 
+#endif
+#if defined(MPDATA_OPTS_FCT)
+  | opts::fct 
+#endif
+#if defined(MPDATA_OPTS_ABS)
+  | opts::abs
+#endif
+  }; };
+
   if(!piggy) // no piggybacking
   {
-    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
-    if(type == "moist_thermal") // use abs option in moist_thermal
+#if !defined(UWLCM_DISABLE_DRIVER)
+    struct ct_params_piggy : ct_params_mpdata_opts { enum { piggy = 0 }; };
+
+    if (sgs)
     {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(nps, user_params);
+  #if !defined(UWLCM_DISABLE_SGS)
+      struct ct_params_sgs : ct_params_piggy
+      {
+        enum { sgs_scheme = solvers::smg };
+        enum { stress_diff = solvers::compact };
+      };
+      run<slvr<ct_params_sgs>>(nps, user_params);
+  #else
+      throw std::runtime_error("SGS option was disabled at compile time");
+  #endif
     }
-    else // default is the iga | fct option
+    else
     {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(nps, user_params);
+  #if !defined(UWLCM_DISABLE_ILES)
+      struct ct_params_sgs : ct_params_piggy {};
+      run<slvr<ct_params_sgs>>(nps, user_params);
+  #else
+      throw std::runtime_error("ILES option was disabled at compile time");
+  #endif
     }
+#else
+      throw std::runtime_error("Driver option was disabled at compile time");
+#endif
   }
   else // piggybacking
   {
-    struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
-    if(type == "moist_thermal") // use abs option in moist_thermal
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::abs }; };
-      run<slvr<ct_params_final>>(nps, user_params);
-    }
-    else // default is the iga | fct option
-    {
-      struct ct_params_final : ct_params_piggy { enum { opts = opts::nug | opts::iga | opts::fct }; };
-      run<slvr<ct_params_final>>(nps, user_params);
-    }
+#if !defined(UWLCM_DISABLE_PIGGYBACKER)
+    struct ct_params_piggy : ct_params_mpdata_opts { enum { piggy = 1 }; };
+    run<slvr<ct_params_piggy>>(nps, user_params);
+#else
+      throw std::runtime_error("Piggybacker option was disabled at compile time");
+#endif
   }
 }
 
@@ -228,7 +263,7 @@ int main(int argc, char** argv)
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
       ("nt", po::value<int>()->default_value(3600) , "timestep count")
-      ("rng_seed", po::value<int>()->default_value(-1) , "rng seed, negative for random")
+      ("rng_seed", po::value<int>()->default_value(0) , "rng seed, 0 for random")
       ("dt", po::value<setup::real_t>()->required() , "timestep length")
       ("z_rlx_sclr", po::value<setup::real_t>()->default_value(25) , "scalars surface flux charasteristic heihjt")
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
@@ -242,6 +277,8 @@ int main(int argc, char** argv)
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
+      ("sgs", po::value<bool>()->default_value(false) , "is subgrid-scale turbulence model on")
+      ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model delta")
       ("help", "produce a help message (see also --micro X --help)")
     ;
     po::variables_map vm;
@@ -278,7 +315,7 @@ int main(int argc, char** argv)
  
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();
-    if(user_params.rng_seed < 0) //if negative, get random seed
+    while(user_params.rng_seed == 0) //if = 0, get random seed
     {
       std::random_device rd; 
       user_params.rng_seed = rd();
@@ -303,6 +340,8 @@ int main(int argc, char** argv)
     user_params.w_src = vm["w_src"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();
+    bool sgs = vm["sgs"].as<bool>();
+    user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
@@ -315,16 +354,32 @@ int main(int argc, char** argv)
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, user_params.model_case, {nx, nz}, user_params);
+#if !defined(UWLCM_DISABLE_2D_LGRNGN)
+      run_hlpr<slvr_lgrngn, ct_params_2D_sd>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Lagrangian option was disabled at compile time");
+#endif
 
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
-      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, user_params.model_case, {nx, ny, nz}, user_params);
+#if !defined(UWLCM_DISABLE_3D_LGRNGN)
+      run_hlpr<slvr_lgrngn, ct_params_3D_sd>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Lagrangian option was disabled at compile time");
+#endif
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
-      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, user_params.model_case, {nx, nz}, user_params);
+#if !defined(UWLCM_DISABLE_2D_BLK_1M)
+      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Bulk 1-moment option was disabled at compile time");
+#endif
 
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
-      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, user_params.model_case, {nx, ny, nz}, user_params);
+#if !defined(UWLCM_DISABLE_3D_BLK_1M)
+      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Bulk 1-moment option was disabled at compile time");
+#endif
 
   // TODO: not only micro can be wrong
     else throw 
