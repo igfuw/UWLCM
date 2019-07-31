@@ -37,8 +37,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
   int k_i = 0; // inversion cell
 
-  int first_timestep =  vm["prof_start"].as<int>() / n["dt"] / n["outfreq"];
-  int last_timestep =  vm["prof_end"].as<int>() / n["dt"] / n["outfreq"];
+  int first_timestep =  vm["prof_start"].as<int>() / int(n["dt"] * n["outfreq"]);
+  int last_timestep =  vm["prof_end"].as<int>() / int(n["dt"] * n["outfreq"]);
 
   // some ugly constants
   const double p_1000 = 100000.;
@@ -534,6 +534,13 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         // turn 3rd mom * velocity into flux in [W/m^2]
         gp << "set title 'precipitation flux [W/m^2]'\n";
       }
+      else if (plt == "rad_flx")
+      {
+        auto tmp = plotter.h5load_timestep("radiative_flux", at * n["outfreq"]);
+        typename Plotter_t::arr_t snap(tmp);
+        res += snap; 
+        gp << "set title 'radiative flux [W/m2]'\n";
+      }
       else if (plt == "wvar")
       {
 	// variance of vertical velocity, w_mean=0
@@ -551,6 +558,66 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         snap = snap * snap * snap; // 3rd power
         res += snap;
         gp << "set title '3rd mom of w [m^3 / s^3]'\n";
+      }
+      else if (plt == "sgs_tke")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("tke", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs tke [TODO]'\n";
+      }
+      else if (plt == "k_m")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("k_m", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'k_m [TODO]'\n";
+      }
+      else if (plt == "sgs_tht_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_tht_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs tht flux [TODO]'\n";
+      }
+      else if (plt == "sgs_rv_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_rv_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs rv flux [TODO]'\n";
+      }
+      else if (plt == "sgs_rc_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_rc_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs rc flux [TODO]'\n";
+      }
+      else if (plt == "sgs_u_flux")
+      {
+        {
+          auto tmp = plotter.h5load_timestep("sgs_u_flux", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap;
+        }
+        res += res_tmp;
+        gp << "set title 'sgs u flux [TODO]'\n";
       }
 //      else assert(false);
     } // time loop

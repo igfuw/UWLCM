@@ -44,12 +44,14 @@ namespace setup
       return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
     }
 
-    template<class rt_params_t, class ix, int n_dims>
-    class LasherTrapp2001Common : public CasesCommon<rt_params_t, ix, n_dims>
+    template<class case_ct_params_t, int n_dims>
+    class LasherTrapp2001Common : public CasesCommon<case_ct_params_t, n_dims>
     {
 
       protected:
-      using parent_t = CasesCommon<rt_params_t, ix, n_dims>;
+      using parent_t = CasesCommon<case_ct_params_t, n_dims>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -70,6 +72,8 @@ namespace setup
         params.friction = true;
         params.coriolis = false;
         params.radiation = false;
+
+        this->setopts_sgs(params);
       }
   
   
@@ -127,6 +131,8 @@ namespace setup
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
+
+        parent_t::env_prof(profs, nz, user_params);
 
         // read the soundings
         // containers for soundings
@@ -229,16 +235,13 @@ namespace setup
       }
 
       // functions that set surface fluxes per timestep
-      void update_surf_flux_sens(blitz::Array<real_t, n_dims - 1> &surf_flux_sens, int timestep, real_t dt)
+      void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens, 
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0) 
           surf_flux_sens = .1; // [K * m/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
-          int nx = surf_flux_sens.extent(0);
-          int ny = surf_flux_sens.extent(1);
-          real_t dx = 10000. / (nx-1);
-          real_t dy = 10000. / (ny-1);
           if(surf_flux_sens.rank() == 2) // TODO: make it a compile-time decision
             surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
           else if(surf_flux_sens.rank() == 1)
@@ -246,16 +249,13 @@ namespace setup
         }
       }
       
-      void update_surf_flux_lat(blitz::Array<real_t, n_dims - 1> &surf_flux_lat, int timestep, real_t dt)
+      void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0)
           surf_flux_lat = .4e-4; // [1/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
-          int nx = surf_flux_lat.extent(0);
-          int ny = surf_flux_lat.extent(1);
-          real_t dx = 10000. / (nx-1);
-          real_t dy = 10000. / (ny-1);
           if(surf_flux_lat.rank() == 2) // TODO: make it a compile-time decision
             surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
           else if(surf_flux_lat.rank() == 1)
@@ -277,16 +277,20 @@ namespace setup
         this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
         this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
         this->ForceParameters.u_fric = 0.28;
+        this->Z = Z;
       }
     };
     
-    template<class rt_params_t, class ix, int n_dims>
+    template<class case_ct_params_t, int n_dims>
     class LasherTrapp2001;
 
-    template<class rt_params_t, class ix>
-    class LasherTrapp2001<rt_params_t, ix, 2> : public LasherTrapp2001Common<rt_params_t, ix, 2>
+    template<class case_ct_params_t>
+    class LasherTrapp2001<case_ct_params_t, 2> : public LasherTrapp2001Common<case_ct_params_t, 2>
     {
-      using parent_t = LasherTrapp2001Common<rt_params_t, ix, 2>;
+      using parent_t = LasherTrapp2001Common<case_ct_params_t, 2>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -302,12 +306,21 @@ namespace setup
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         this->make_cyclic(solver.advectee(ix::th));
       }
+
+      public:
+      LasherTrapp2001()
+      {
+        this->X = X;
+      }
     };
 
-    template<class rt_params_t, class ix>
-    class LasherTrapp2001<rt_params_t, ix, 3> : public LasherTrapp2001Common<rt_params_t, ix, 3>
+    template<class case_ct_params_t>
+    class LasherTrapp2001<case_ct_params_t, 3> : public LasherTrapp2001Common<case_ct_params_t, 3>
     {
-      using parent_t = LasherTrapp2001Common<rt_params_t, ix, 3>;
+      using parent_t = LasherTrapp2001Common<case_ct_params_t, 3>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -329,6 +342,13 @@ namespace setup
   
         solver.advectee(ix::v)= 0;
         solver.vab_relaxed_state(1) = solver.advectee(ix::v);
+      }
+
+      public:
+      LasherTrapp2001()
+      {
+        this->X = X;
+        this->Y = Y;
       }
     };
   };

@@ -16,6 +16,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
   std::string micro;
   arr_t res;
   arr_t rhod;
+  const double L_evap = 2264.76e3; // latent heat of evaporation [J/kg]
 
   public:
   // functions for diagnosing fields
@@ -93,10 +94,22 @@ class PlotterMicro_t : public Plotter_t<NDims>
       res = this->h5load_timestep("precip_rate", at)
               *  4./3 * 3.14 * 1e3 // to get mass
               / this->CellVol    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
-              * 2264.76e3;         // latent heat of evaporation [J/kg]
+              * L_evap;
     }
     else if(this->micro == "blk_1m")
-      res = 0;
+      try
+      {
+        res = this->h5load_timestep("precip_rate", at); // precip_rate is the difference between influx and outflux
+        for(int z = this->map["z"] - 2; z>=0; --z)
+        {
+          res(this->hrzntl_slice(z)) = res(this->hrzntl_slice(z+1)) - res(this->hrzntl_slice(z)); 
+        }
+        res *= rhod * this->map["dz"] * L_evap;
+      }
+      catch(...)
+      {
+        res = 0;
+      }
     return blitz::safeToReturn(res + 0);
   }
 
@@ -246,6 +259,33 @@ class PlotterMicro_t : public Plotter_t<NDims>
     act1st = where(act1st < 0, 0, act1st);
     act1st = sqrt(act1st);
     return cloud_hlpr(act1st, at);
+  }
+
+  // surface precipitation since last output [mm/day]
+  double calc_surf_precip(double prec_vol_diff)
+  {
+    if(this->micro == "lgrngn")
+      return prec_vol_diff / this->DomainSurf / (double(this->map["outfreq"]) * this->map["dt"] / 3600. / 24.) * 1e3; // SDM
+    if(this->micro == "blk_1m")
+      return prec_vol_diff / double(this->map["outfreq"]) // flux in [kg / m^3 / s] averaged over time since last output and over cells on the bottom
+                     / (this->map["x"] * this->map["y"])
+                     * 3600. * 24. // per day
+                     * this->map["dz"]     // per m^2
+                     / 1e3         // to m^3 of water
+                     * 1e3;        // to mm
+  }
+
+  // accumulated surface precipitation [mm]
+  double calc_acc_surf_precip(double prec_vol)
+  {
+    if(this->micro == "lgrngn")
+      return prec_vol / this->DomainSurf * 1e3; 
+    if(this->micro == "blk_1m")
+      return prec_vol * this->map["dt"] 
+                     / (this->map["x"] * this->map["y"])
+                     * this->map["dz"]     // per m^2
+                     / 1e3         // to m^3 of water
+                     * 1e3;        // to mm
   }
 
   //ctor
