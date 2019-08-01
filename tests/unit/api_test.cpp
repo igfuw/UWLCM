@@ -56,6 +56,11 @@ int main(int ac, char** av)
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue; 
           }
+          if((opts_c == opts_case[1]) && opts_m == opts_micro[1])
+          {
+            std::cout << "skipping dry thermal tests with Lagrangian microphysics" << std::endl;
+            continue; 
+          }
 
           // more cells in 3d lgrngn to avoid n overflow
           if(opts_d == opts_dim[1] && opts_m == opts_micro[1])
