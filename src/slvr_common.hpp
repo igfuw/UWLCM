@@ -426,8 +426,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     k_i.resize(this->shape(this->hrzntl_subdomain)); 
     k_i.reindexSelf(this->base(this->hrzntl_subdomain));
-    surf_flux_sens.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
-    surf_flux_lat.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
     surf_flux_zero = 0.;
   }
