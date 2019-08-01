@@ -9,10 +9,11 @@ class slvr_piggy
 
 using namespace libmpdataxx; // TODO: get rid of it?
 
-// require minimal halo of 2, because pred_corr advection scheme of super-droplets requires a halo of courant number;
+// require minimal halo of 3, because pred_corr advection scheme of super-droplets requires a halo of 2 courant number;
+// TODO: minhalo=1 for non-pred_corr runs... would extend compilation time again...
 // TODO: this is probably not optimal, because all fields have bigger halos
 // TODO: make libcloudphxx exchange halos of courant number and dont require the courant number field already with halo
-constexpr int minhalo = 2; 
+constexpr int minhalo = 3; 
 
 // driver
 template <class ct_params_t>
