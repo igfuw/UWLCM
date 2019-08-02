@@ -99,7 +99,24 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
 
-//CLARE: set micro params
+// CLARE: this is for dycoms...
+  {
+    rt_params.cloudph_opts_init.dry_distros.emplace(
+      user_params.kappa1,
+      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+        user_params.mean_rd1,
+        user_params.mean_rd2,
+        user_params.sdev_rd1,
+        user_params.sdev_rd2,
+        user_params.n1_stp,
+        user_params.n2_stp
+      )
+    );
+  }
+
+/*
+// CLARE: set micro params
+// dist #1
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
       user_params.kappa1,      // kappa1, aerosol hygroscopicity
@@ -112,8 +129,7 @@ void setopts_micro(
         thrust_real_t(0) / si::cubic_metres
       )
     );
-// only need one dist for my tests, but
-// need second dist for dycoms case
+// dist #2
     rt_params.cloudph_opts_init.dry_distros.emplace(
       user_params.kappa2,      // kappa2, aerosol hygroscopicity
       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
@@ -127,6 +143,9 @@ void setopts_micro(
     );
    }
 // END CLARE
+*/
+
+
 
 
 /*  else if(unit_test)
