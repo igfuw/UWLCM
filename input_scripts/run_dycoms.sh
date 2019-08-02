@@ -42,7 +42,7 @@ NX=129
 NZ=301
 
 # output directory
-OUTPUT_DIR=$HOME/output/dycoms_6hrs_highres/exp6
+OUTPUT_DIR=$HOME/output/dycoms_6hrs_highres/exp10
 
 # set param strings
 CASE_PARAMS="--case=dycoms_rf02 --nx=$NX --ny=0 --nz=$NZ"
