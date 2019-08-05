@@ -304,7 +304,9 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        this->make_cyclic(solver.advectee(ix::th));
+        auto th_global = solver.advectee_global(ix::th);
+        this->make_cyclic(th_global);
+        solver.advectee_global_set(th_global, ix::th);
       }
 
       public:
@@ -335,7 +337,9 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        this->make_cyclic(solver.advectee(ix::th));
+        auto th_global = solver.advectee_global(ix::th);
+        this->make_cyclic(th_global);
+        solver.advectee_global_set(th_global, ix::th);
   
         int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
