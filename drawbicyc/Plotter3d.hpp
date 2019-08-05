@@ -94,6 +94,7 @@ class Plotter_t<3> : public PlotterCommon
   void plot(gp_t &gp, const data_t &data, const blitz::Range &yrange_override)
   {
   //  throw std::runtime_error("3d fields plotting doesn't work yet");
+    parent_t::plot(gp);
     blitz::Array<float, 3> tmp3d(data);
     using namespace blitz::tensor;
     // select a slize in second dimension to average over

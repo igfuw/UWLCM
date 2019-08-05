@@ -248,6 +248,32 @@ void plot_fields(Plotter_t plotter, Plots plots)
         }
         catch(...){}
       }   
+      else if (plt == "gccn_conc")
+      {   
+        try{
+	std::string title = "gccn(rd>2um) concentration [1/kg]"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        typename Plotter_t::arr_t tmp(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+        plotter.plot(gp, tmp);
+        }
+        catch(...){}
+      }   
+      else if (plt == "gccn_mean_rw")
+      {   
+        try{
+	std::string title = "gccn(rd>2um) mean rw [um]"; 
+	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        //auto mom1 = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]);
+        //auto mom0 = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
+        //auto meanr = mom1 / mom0;
+        typename Plotter_t::arr_t tmp1(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+        typename Plotter_t::arr_t tmp2(plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"])*1e6);
+        typename Plotter_t::arr_t tmp3((plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6) / plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+        auto tmp4 = tmp2 / tmp1;
+        plotter.plot(gp, tmp4);
+        }
+        catch(...){}
+      }   
     } // var loop
   } // time loop
 }
