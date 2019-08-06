@@ -1,11 +1,10 @@
 #pragma once
-#include "slvr_common.hpp"
+#include "slvr_sgs.hpp"
 
 #include <libcloudph++/blk_1m/options.hpp>
 #include <libcloudph++/blk_1m/adj_cellwise.hpp>
 #include <libcloudph++/blk_1m/rhs_cellwise.hpp>
 #include <libcloudph++/blk_1m/rhs_columnwise.hpp>
-
 
 template <class ct_params_t>
 class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
