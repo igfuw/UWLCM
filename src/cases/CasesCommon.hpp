@@ -11,18 +11,8 @@
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
 
-
-// simulation parameters container
-// TODO: write them to rt_params directly in main()
-struct user_params_t
-{
-  int nt, outfreq, spinup, rng_seed;
-  setup::real_t dt, z_rlx_sclr;
-  std::string outdir, model_case;
-  bool th_src, rv_src, rc_src, rr_src, uv_src, w_src;
-  setup::real_t sgs_delta;
-};
-
+#include "../detail/user_params.hpp"
+#include "../detail/concurr_types.hpp"
 
 namespace setup 
 {
@@ -61,10 +51,11 @@ namespace setup
   {
     arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *mix_len, *geostr[2];
   };
+
   // copy external profiles into rt_parameters
   // TODO: more elegant way
   template<class params_t>
-  void copy_profiles(profiles_t &profs, params_t &p)
+  inline void copy_profiles(profiles_t &profs, params_t &p)
   {
     std::vector<std::pair<std::reference_wrapper<setup::arr_1D_t*>, std::reference_wrapper<setup::arr_1D_t>>> tobecopied = {
       {p.hgt_fctr_sclr, profs.hgt_fctr_sclr},
