@@ -33,7 +33,7 @@ namespace setup
 
 
     // RH T and p to rv assuming RH = r_v / r_vs
-    quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
+    inline quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
     {
       return  RH * const_cp::r_vs<real_t>(T, p);
     }
