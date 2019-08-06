@@ -5,15 +5,10 @@
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 
-#pragma once
-
 // command-line option handling
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/program_options/parsers.hpp>
-namespace po = boost::program_options;
+#include "opts_common.hpp"
 
-// some globals for option handling
+// define globals for option handling
 int ac; 
 char** av; // TODO: write it down to a file as in icicle ... write the default (i.e. not specified) values as well!
 po::options_description opts_main("General options"); 
