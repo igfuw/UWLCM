@@ -25,7 +25,6 @@ addons:
   apt:
     packages:
       - g++-6
-      - boost1.61
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
       - ubuntu-toolchain-r-test
@@ -48,21 +47,17 @@ before_install:
     - export PATH=/usr/local/bin:$PATH
 
 install:
-# compile dependencies the same way as in libmpdata++
-# TODO: now it downloads from mpi branch on pdziekan, change to master from igfuw once it's merged
-    - wget https://raw.githubusercontent.com/pdziekan/libmpdataxx/distmem_merge_master/.travis_scripts/install_common.sh
-    - chmod +x install_common.sh
-    - . install_common.sh
-
 #compiler
-#    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-6; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-6; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
 
 # cmake 
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
 
-# recent boost is installed using addons functionality
+    - if [[ $MPI != 'none'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
+
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo $apt_get_install boost1.61; fi
 
 #libcloudphxx dependencies
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev python-pytest; fi
@@ -77,17 +72,17 @@ install:
 
 # hdf5
 ##    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0; fi
-## we need hdf5-1.10 for h5diff --enable-error-stack, so we install it manually
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then tar xf hdf5-1.10.5.tar; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd hdf5-1.10.5; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then CXXFLAGS=-w CFLAGS=-w ./configure --enable-cxx --enable-threadsafe --enable-unsupported --prefix=/usr; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo make install; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ldconfig; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd ..; fi
-##    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-dev hdf5-tools; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0; fi
+# we need hdf5-1.10 for h5diff --enable-error-stack, so we install it manually
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then tar xf hdf5-1.10.5.tar; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then cd hdf5-1.10.5; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then CXXFLAGS=-w CFLAGS=-w ./configure --enable-cxx --enable-threadsafe --enable-unsupported --prefix=/usr; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then make; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo make install; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo ldconfig; fi
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then cd ..; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-dev hdf5-tools; fi
 
 before_script:
     - chmod +x ./.travis_scripts/*
@@ -136,11 +131,7 @@ job_info: &precache_default
   language: cpp
   compiler: gcc
   install: 
-# compile mpi dependencies the same way as in libmpdata++
-# TODO: now it downloads from mpi branch on pdziekan, change to master from igfuw once it's merged
-    - wget https://raw.githubusercontent.com/pdziekan/libmpdataxx/distmem_merge_master/.travis_scripts/install_common.sh
-    - chmod +x install_common.sh
-    - . install_common.sh
+    - . .travis_scripts/install_mpi_dependencies.sh
   script: echo "Preparing cache finished"
 
 jobs:
