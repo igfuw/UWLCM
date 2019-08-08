@@ -95,7 +95,7 @@ script:
   - cd libcloudphxx
   - mkdir build
   - cd build
-  - cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+  - cmake -DBoost_DEBUG=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
   - make
   - sudo make install
   - cd ../..
