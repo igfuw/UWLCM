@@ -55,12 +55,12 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
 
+#libcloudphxx dependencies
+    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev python-pytest; fi
+
     - if [[ $MPI != 'none'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
 
     - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo $apt_get_install boost1.61; fi
-
-#libcloudphxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev python-pytest; fi
 
 # newest thrust
     - git clone --depth=1 git://github.com/thrust/thrust.git;
