@@ -23,5 +23,14 @@ if(NOT MPDATA_OPTS)
 endif()
 message(STATUS "UWLCM will use the following libmpdata++ options: ${MPDATA_OPTS}")
 
+
+# search for libmpdata
+# done here to set USE_MPI if it is a mpi build
+message(STATUS "Looking for libmpdata++")
+find_package(libmpdata++)
+if (NOT libmpdataxx_FOUND)
+  message(FATAL_ERROR "libmpdata++ not found")
+endif()
+
 add_subdirectory(src) 
 add_subdirectory(tests)

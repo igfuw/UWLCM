@@ -4,7 +4,6 @@ endif()
 
 add_executable(moist_thermal moist_thermal.cpp)
 target_compile_features(moist_thermal PRIVATE cxx_std_11)
-add_test(moist_thermal moist_thermal ${CMAKE_BINARY_DIR})
 
 target_link_libraries(moist_thermal PRIVATE ${HDF5_LIBRARIES})
 target_include_directories(moist_thermal PUBLIC ${HDF5_INCLUDE_DIRS})
@@ -17,3 +16,8 @@ else()
   target_link_libraries(moist_thermal PRIVATE ${Boost_LIBRARIES})
 endif()
 
+if(USE_MPI)
+  add_test(NAME moist_thermal COMMAND moist_thermal "${libmpdataxx_MPIRUN} -np 3 ${CMAKE_BINARY_DIR}") # TODO: why 3? :)
+else()
+  add_test(moist_thermal moist_thermal ${CMAKE_BINARY_DIR})
+endif()

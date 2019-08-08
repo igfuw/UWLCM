@@ -1,12 +1,5 @@
 cmake_policy(SET CMP0057 NEW) # for the in_list operator
 
-# search for libmpdata
-message(STATUS "Looking for libmpdata++")
-find_package(libmpdata++)
-if (NOT libmpdataxx_FOUND)
-  message(FATAL_ERROR "libmpdata++ not found")
-endif()
-
 
 # Select flags.
 #-g0 negates -g; -UBZ_DEBUG negates blitz debug; NOTE: don't use -Ofast as it makes std::isfinite(sum(x)) return true even if some elements of x are nan/inf
