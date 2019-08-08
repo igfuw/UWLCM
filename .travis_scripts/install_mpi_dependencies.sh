@@ -49,7 +49,7 @@ if [[ $MPI != 'none'    ]]; then export CC=${DEPS_DIR}/mvapich2-2.3b/bin/mpicc ;
       echo "using mpi : $CC ;" >> $HOME/user-config.jam
       cat $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then
-        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=serialization,mpi,thread,date_time,system,iostreams,timer,filesystem,program_options,python
+        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=serialization,mpi,thread,date_time,system,iostreams,timer,filesystem,program_options,python,python_numpy
         ./b2 -d0 install
       fi
       if [[ $COMPILER == 'clang++' ]]; then 
