@@ -54,13 +54,13 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install python-numpy; fi
       cat $HOME/user-config.jam
       if [[ $COMPILER == 'g++' ]]; then
         ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=serialization,mpi,thread,date_time,system,iostreams,timer,filesystem,program_options,python,atomic,regex
-        ./b2 -d0 install
+        travis_wait 20 ./b2 -d0 install
       fi
       if [[ $COMPILER == 'clang++' ]]; then 
         #clang installation taken from https://gist.github.com/jimporter/10442880
         ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=serialization,mpi,thread,date_time,system,iostreams,timer,filesystem,program_options,python,atomic,regex --with-toolset=clang
         ./b2 clean
-        ./b2 toolset=clang cxxflags="-std=c++14 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=${DEPS_DIR}/boost/ -j 4 stage release
+        travis_wait 20 ./b2 toolset=clang cxxflags="-std=c++14 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=${DEPS_DIR}/boost/ -j 4 stage release
         ./b2 install toolset=clang cxxflags="-std=c++14 -stdlib=libc++" linkflags="-stdlib=libc++" --prefix=${DEPS_DIR}/boost/
       fi
       cd ..
