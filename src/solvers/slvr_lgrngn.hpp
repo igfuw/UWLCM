@@ -187,6 +187,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
        this->f_puddle << elem.first << " " << elem.second << "\n";
     }   
     this->f_puddle << "\n";
+    this->f_puddle.flush();
    
     // recording requested statistical moments
     {
