@@ -99,6 +99,7 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
 
+/*
 // CLARE: this is for dycoms...
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -113,9 +114,25 @@ void setopts_micro(
       )
     );
   }
+*/
+
+// CLARE: this is for one mode...
+  {
+    rt_params.cloudph_opts_init.dry_distros.emplace(
+      user_params.kappa1,	// kappa1, aerosol hygroscopicity
+      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+        user_params.mean_rd1,	// mean_rd1, mean radius of lognormal distribution
+        thrust_real_t(1.0e-6) * si::metres,
+        user_params.sdev_rd1,	// sdev_rd1, stdev radius of lognormal distribution
+        thrust_real_t(1.2),
+        user_params.n1_stp,	// n1_stp, number concentration of aerosol
+        thrust_real_t(0) / si::cubic_metres
+      )
+    );
+  }
 
 /*
-// CLARE: set micro params
+// CLARE: this is for two modes...
 // dist #1
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -141,11 +158,8 @@ void setopts_micro(
         thrust_real_t(0) / si::cubic_metres
       )
     );
-   }
-// END CLARE
+  }
 */
-
-
 
 
 /*  else if(unit_test)

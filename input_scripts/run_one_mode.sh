@@ -22,10 +22,10 @@ CONTAINER=$HOME/sng_output.sif
 MODEL=$HOME/UWLCM/build/src/bicycles
 
 # aerosol distribution params
-MU1=0.1e-6
+MU1=0.05e-6
 SIG1=1.2  # keep fixed
 N1=100e6  # keep fixed
-KAP1=0.1
+KAP1=1.3
 
 # run time params
 SPIN=3600
@@ -37,7 +37,7 @@ NX=129
 NZ=301
 
 # output directory
-OUTPUT_DIR=$HOME/output/mu_${MU1}_kappa_${KAP1}/exp1
+OUTPUT_DIR=$HOME/output/mu_${MU1}_kappa_${KAP1}/exp5
 
 # set param strings
 CASE_PARAMS="--case=dycoms_rf02 --nx=$NX --ny=0 --nz=$NZ"
@@ -51,7 +51,7 @@ dry_bins_str=$(python make_bins.py "dry")
 BINS="--out_wet=$wet_bins_str --out_dry=$dry_bins_str"
 
 # copy this input script to the output directory
-mkdir $OUTPUT_DIR
+mkdir -p $OUTPUT_DIR
 cp ${0} $OUTPUT_DIR/input.sh
 
 # make .txt file in output directory with wet_bins_str and dry_bins_str

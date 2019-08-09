@@ -22,7 +22,7 @@ CONTAINER=$HOME/sng_output.sif
 MODEL=$HOME/UWLCM/build/src/bicycles
 
 # aerosol distribution params
-MU1=0.01e-6
+MU1=0.05e-6
 SIG1=1.2
 N1=100e6
 KAP1=0.1
@@ -51,7 +51,7 @@ dry_bins_str=$(python make_bins.py "dry")
 BINS="--out_wet=$wet_bins_str --out_dry=$dry_bins_str"
 
 # copy this input script to the output directory
-mkdir $OUTPUT_DIR
+mkdir -p $OUTPUT_DIR
 cp ${0} $OUTPUT_DIR/input.sh
 
 # make .txt file in output directory with wet_bins_str and dry_bins_str
