@@ -91,8 +91,7 @@ script:
 
   # install libcloudphxx in RelWithDebInfo mode
   - cd ..
-  - if [[ $MPI == 'none'     ]]; then git clone --depth=1 git://github.com/igfuw/libcloudphxx.git; fi
-  - if [[ $MPI != 'none'     ]]; then git clone -b mpi_merge_again --depth=1 git://github.com/pdziekan/libcloudphxx.git; fi
+  - git clone -b mpi_merge_again --depth=1 git://github.com/pdziekan/libcloudphxx.git
   - cd libcloudphxx
   - mkdir build
   - cd build
@@ -102,8 +101,7 @@ script:
   - cd ../..
 
   # install libmpdataxx
-  - if [[ $MPI == 'none'     ]]; then git clone --depth=1 git://github.com/igfuw/libmpdataxx.git; fi
-  - if [[ $MPI != 'none'     ]]; then git clone -b distmem_merge_master --depth=1 git://github.com/pdziekan/libmpdataxx.git; fi
+  - git clone -b distmem_merge_master --depth=1 git://github.com/pdziekan/libmpdataxx.git
   - cd libmpdataxx/libmpdata++
   - mkdir build
   - cd build
