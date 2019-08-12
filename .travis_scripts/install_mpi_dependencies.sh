@@ -81,6 +81,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install -o Dpkg::Options
 #if [[ $TRAVIS_OS_NAME == 'linux' && $MPI != 'none' ]]; then sudo $apt_get_install libhdf5-openmpi-dev; fi 
 # ... so we are installing it manually:
   if [[ $TRAVIS_OS_NAME == 'linux' && $MPI != 'none' ]]; then 
+    export HDF5_USE_FILE_LOCKING=FALSE
     ls -A ${DEPS_DIR}/hdf5
     if [[ -z "$(ls -A ${DEPS_DIR}/hdf5)" ]]; then
       wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar
