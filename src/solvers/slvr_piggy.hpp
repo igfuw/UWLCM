@@ -51,6 +51,7 @@ class slvr_piggy<
       this->record_aux_const("save_vel", save_vel);  
       this->record_aux_const("rt_params prs_tol", prs_tol);  
     }
+    this->mem->barrier();
   }
 
   void hook_post_step()

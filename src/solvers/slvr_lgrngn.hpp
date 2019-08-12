@@ -421,8 +421,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
       this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);  
     }
-
-    // TODO: barrier?
+    this->mem->barrier();
   }
 
   void hook_mixed_rhs_ante_loop()
