@@ -136,6 +136,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         this->record_prof_const("v_geostr", params.geostr[1]->data()); 
       }
     }
+    this->mem->barrier();
  
     // initialize surf fluxes with timestep==0
     params.update_surf_flux_sens(surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
