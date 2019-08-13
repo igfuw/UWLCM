@@ -370,6 +370,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->record_aux_dsc("radiative_flux", radiative_flux); 
   } 
 
+/*
   void record_all()
   {
     assert(this->rank == 0);
@@ -385,6 +386,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     tend = clock::now();
     tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
   }
+  */
 
   public:
 
