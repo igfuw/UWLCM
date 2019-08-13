@@ -45,10 +45,10 @@ int main(int ac, char** av)
 
   string outdir;
   string opts_common = 
-    "--outfreq=60 --nt=600 --spinup=0 --dt=1 --nx=21 --nz=21 --case=moist_thermal";
+    "--outfreq=1 --nt=2 --spinup=0 --dt=1 --nx=21 --nz=21 --case=moist_thermal";
   unordered_map<string, string> opts_micro({
     {"blk_1m", "--micro=blk_1m --outdir=tmp_out_blk_1m --cond=true --cevp=true --revp=false --conv=false --accr=false --sedi=false"},
-    {"lgrngn", "--micro=lgrngn --outdir=tmp_out_lgrngn --cond=true --adve=true --sedi=false --coal=false --backend=OpenMP --sd_conc=16 --rng_seed=44 --async=0"}
+    {"lgrngn", "--micro=lgrngn --outdir=tmp_out_lgrngn --cond=true --adve=true --sedi=false --coal=false --backend=OpenMP --sd_conc=16 --rng_seed=44"}
   });
 
   // container for the expecged result and the epslion (req precision) for each tested statistic
