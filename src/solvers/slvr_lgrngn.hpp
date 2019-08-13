@@ -304,7 +304,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         else
           params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
           
-        if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
+        if(params.backend == libcloudphxx::lgrngn::multi_CUDA || this->mem->distmem.size()>1)
           params.cloudph_opts_init.n_sd_max *= 1.4; // more space for copied SDs
       }
       else // 3D
@@ -329,7 +329,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         else
           params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
 
-        if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
+        if(params.backend == libcloudphxx::lgrngn::multi_CUDA || this->mem->distmem.size()>1)
           params.cloudph_opts_init.n_sd_max *= 1.3; // more space for copied SDs
       }
 
