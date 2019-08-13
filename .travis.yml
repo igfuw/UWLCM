@@ -108,13 +108,13 @@ script:
   - cmake -DCMAKE_INSTALL_PREFIX=/usr ..
   - sudo make install
 
-  - cd ../tests/sandbox
+  - cd ../../tests/sandbox
   - mkdir build
   - cd build
   - cmake ..
   - VERBOSE=1 make pbl_iles_travis
   - OMP_NUM_THREADS=4 ctest -V -R pbl_iles_travis || cat Testing/Temporary/LastTest.log /
-  - cd ../..
+  - cd ..
 
   - cd ../../..
 
