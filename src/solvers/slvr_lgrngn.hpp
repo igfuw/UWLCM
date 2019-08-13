@@ -365,6 +365,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     // TODO: add git revisions of libmpdata, libcloud and uwlcm
     if (this->rank == 0) 
     {
+      /*
       this->record_aux_const("super-droplet microphysics", -44);  
       this->record_aux_const("nx", params.cloudph_opts_init.nx);  
       this->record_aux_const("ny", params.cloudph_opts_init.ny);  
@@ -420,6 +421,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("supstp_src", params.cloudph_opts_init.supstp_src);  
       this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
       this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);  
+      */
     }
     this->mem->barrier();
   }
