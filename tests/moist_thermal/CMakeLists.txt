@@ -17,7 +17,7 @@ else()
 endif()
 
 if(USE_MPI)
-  add_test(NAME moist_thermal COMMAND moist_thermal "${libmpdataxx_MPIRUN} -np 3 ${CMAKE_BINARY_DIR}") # TODO: why 3? :)
+  add_test(NAME moist_thermal COMMAND moist_thermal "${libmpdataxx_MPIRUN} -np 1 ${CMAKE_BINARY_DIR}") # TODO: why 3? :)
 else()
   add_test(moist_thermal moist_thermal ${CMAKE_BINARY_DIR})
 endif()
