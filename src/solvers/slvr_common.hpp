@@ -75,7 +75,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       f_puddle.open(this->outdir+"/prec_vol.dat");
 
     // record user_params and profiles
-    /*
     if(this->rank==0)
     {
       this->record_aux_const(std::string("UWLCM git_revision : ") + get_uwlcm_git_revision(), "git_revisions", -44);  
@@ -137,7 +136,6 @@ class slvr_common : public slvr_dim<ct_params_t>
         this->record_prof_const("v_geostr", params.geostr[1]->data()); 
       }
     }
-    */
     this->mem->barrier();
  
     // initialize surf fluxes with timestep==0
@@ -368,8 +366,8 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   virtual void diag()
   {
-  //  assert(this->rank == 0);
-//    this->record_aux_dsc("radiative_flux", radiative_flux); 
+    assert(this->rank == 0);
+    this->record_aux_dsc("radiative_flux", radiative_flux); 
   } 
 
 /*

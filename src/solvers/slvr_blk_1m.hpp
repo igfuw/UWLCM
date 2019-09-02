@@ -116,7 +116,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t::hook_ante_loop(nt); // forcings after adjustments
 
     // recording parameters
-    /*
     if(this->rank==0)
     {
       this->record_aux_const("single-moment bulk microphysics", -44);  
@@ -134,7 +133,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       this->record_aux_const("rt_params rc_src", params.rc_src);  
       this->record_aux_const("rt_params rr_src", params.rr_src);  
     }
-    */
     this->mem->barrier();
   }
 
