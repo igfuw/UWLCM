@@ -370,7 +370,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->record_aux_dsc("radiative_flux", radiative_flux); 
   } 
 
-/*
   void record_all()
   {
     assert(this->rank == 0);
@@ -379,14 +378,13 @@ class slvr_common : public slvr_dim<ct_params_t>
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
 //    parent_t::parent_t::record_all();
-//    this->diag();
+    this->diag();
     // xmf markup
     this->write_xmfs();
 
     tend = clock::now();
     tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
   }
-  */
 
   public:
 
