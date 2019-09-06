@@ -8,22 +8,11 @@
 #include <vector>
 #include "gnuplot.hpp"
 #include "common_filters.hpp"
+#include "notice_macros.hpp"
 #include <boost/units/systems/si.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/parsers.hpp>
-
-// error reporting
-#define error_macro(msg) \
-{ \
-  cerr << "error: " << msg << endl; \
-  throw exception(); \
-}
-
-#define notice_macro(msg) \
-{ \
-  cerr << " info: " << msg << endl; \
-}
 
 using std::array;
 using std::string;
