@@ -284,8 +284,16 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
       params.cloudph_opts_init.nx = this->mem->grid_size[0].length();
       params.cloudph_opts_init.dx = this->di;
-      params.cloudph_opts_init.x0 = this->di / 2;
-      params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
+
+      if(this->mem->distmem.rank() == 0)
+        params.cloudph_opts_init.x0 = this->di / 2;
+      else
+        params.cloudph_opts_init.x0 = 0.;
+
+      if(this->mem->distmem.rank() == this->mem->distmem.size()-1)
+        params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
+      else
+        params.cloudph_opts_init.x1 =  params.cloudph_opts_init.nx       * this->di;
 
       if(parent_t::n_dims == 2) // 2D
       {
