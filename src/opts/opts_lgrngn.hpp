@@ -27,6 +27,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 #include "../detail/outmom.hpp"
+#include "../detail/bins.hpp"
 
 // simulation and output parameters for micro=lgrngn
 template <class solver_t, class user_params_t, class case_ptr_t>
@@ -75,6 +76,8 @@ void setopts_micro(
     ("turb_adve", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_adve), "turbulence effects in SD motion (1=on, 0=off)")
     ("turb_coal", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_coal) , "turbulence effects in SD coalescence (1=on, 0=off)")
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
+    ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
+    ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
 
     // TODO: MAC, HAC, vent_coef
   ;
@@ -134,8 +137,8 @@ void setopts_micro(
 //std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
 
+/*
     // GCCNs following Jensen and Nugent, JAS 2016
-    /*
     rt_params.cloudph_opts_init.dry_sizes.emplace(
       1.28, // kappa
       std::map<setup::real_t, std::pair<setup::real_t, int> > {
@@ -304,4 +307,33 @@ void setopts_micro(
       ));  
     }
   } 
+
+  if(vm["out_wet_spec"].as<bool>())
+  {
+    auto left_edges = bins_wet();
+    for (int i = 0; i < left_edges.size()-1; ++i)
+    {
+      rt_params.out_wet.push_back(outmom_t<thrust_real_t>::value_type({
+        outmom_t<thrust_real_t>::value_type::first_type(
+          left_edges[i] ,
+          left_edges[i+1]
+        ), 
+        outmom_t<setup::real_t>::value_type::second_type{0}
+      }));
+    }
+  }
+  if(vm["out_dry_spec"].as<bool>())
+  {
+    auto left_edges = bins_dry();
+    for (int i = 0; i < left_edges.size()-1; ++i)
+    {
+      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type({
+        outmom_t<thrust_real_t>::value_type::first_type(
+          left_edges[i] ,
+          left_edges[i+1]
+        ), 
+        outmom_t<setup::real_t>::value_type::second_type{0}
+      }));
+    }
+  }
 }
