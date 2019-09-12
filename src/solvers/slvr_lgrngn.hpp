@@ -613,9 +613,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
       // start sync/async run of step_cond
       // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
-      using libcloudphxx::lgrngn::particles_t;
-      using libcloudphxx::lgrngn::CUDA;
-      using libcloudphxx::lgrngn::multi_CUDA;
 
 #if defined(STD_FUTURE_WORKS)
       if (params.async)
