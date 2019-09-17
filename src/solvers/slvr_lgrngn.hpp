@@ -294,7 +294,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
           n_sd_from_dry_sizes += rcm.second.second;
         
       const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes;
-      std::cerr << "n sd per cell = " << n_sd_per_cell << std::endl;
 
       if(parent_t::n_dims == 2) // 2D
       {
