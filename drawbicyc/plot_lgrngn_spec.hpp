@@ -1,7 +1,7 @@
 #include "common.hpp"
 #include "PlotterMicro.hpp"
 #include "plots.hpp"
-#include "bins.hpp"
+#include "focus.hpp"
 #include <map>
 
 namespace
