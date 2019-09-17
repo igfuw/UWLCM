@@ -318,7 +318,7 @@ void setopts_micro(
           left_edges[i] ,
           left_edges[i+1]
         ), 
-        outmom_t<setup::real_t>::value_type::second_type{0}
+        outmom_t<setup::real_t>::value_type::second_type(1,0)
       }));
     }
   }
@@ -332,7 +332,7 @@ void setopts_micro(
           left_edges[i] ,
           left_edges[i+1]
         ), 
-        outmom_t<setup::real_t>::value_type::second_type{0}
+        outmom_t<setup::real_t>::value_type::second_type(1,0)
       }));
     }
   }
