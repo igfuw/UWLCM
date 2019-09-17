@@ -288,6 +288,14 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       params.cloudph_opts_init.x0 = this->di / 2;
       params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
 
+      int n_sd_from_dry_sizes = 0;
+      for (auto const& krcm : params.cloudph_opts_init.dry_sizes)
+        for (auto const& rcm : krcm.second)
+          n_sd_from_dry_sizes += rcm.second.second;
+        
+      const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes;
+      std::cerr << "n sd per cell = " << n_sd_per_cell << std::endl;
+
       if(parent_t::n_dims == 2) // 2D
       {
         params.cloudph_opts_init.nz = this->mem->grid_size[1].length();
@@ -298,9 +306,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         if(params.cloudph_opts_init.sd_conc)
         {
           if(params.cloudph_opts_init.sd_conc_large_tail)
-            params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc; /// 1.2 to make space for large tail
+            params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell; /// 1.2 to make space for large tail
           else
-            params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * (params.cloudph_opts_init.sd_conc + 38);  // 38 GCCNs
+            params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell;
         }
         else
           params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
@@ -323,9 +331,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         if(params.cloudph_opts_init.sd_conc)
         {
           if(params.cloudph_opts_init.sd_conc_large_tail)
-            params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc; /// 1.2 to make space for large tail
+            params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; /// 1.2 to make space for large tail
           else
-            params.cloudph_opts_init.n_sd_max =       params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * (params.cloudph_opts_init.sd_conc + 38); 
+            params.cloudph_opts_init.n_sd_max =       params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; 
         }
         else
           params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
