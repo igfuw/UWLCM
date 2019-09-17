@@ -318,8 +318,8 @@ void setopts_micro(
     {
       rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type({
         outmom_t<thrust_real_t>::value_type::first_type(
-          1. * si::meters,
-          1.1 * si::meters
+          setup::real_t(1.)  * si::meters,
+          setup::real_t(1.1) * si::meters
         ), 
         outmom_t<setup::real_t>::value_type::second_type()
       }));
