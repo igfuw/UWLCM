@@ -324,6 +324,30 @@ void setopts_micro(
         outmom_t<setup::real_t>::value_type::second_type()
       }));
 
+      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type({
+        outmom_t<thrust_real_t>::value_type::first_type(
+          setup::real_t(1.)  * si::meters,
+          setup::real_t(1.1) * si::meters
+        ), 
+        outmom_t<setup::real_t>::value_type::second_type(1, 0)
+      }));
+
+      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type({
+        outmom_t<thrust_real_t>::value_type::first_type(
+          left_edges.at(i),
+          left_edges.at(i+1)
+        ), 
+        outmom_t<setup::real_t>::value_type::second_type(1, 0)
+      }));
+
+      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
+        outmom_t<thrust_real_t>::value_type::first_type(
+          setup::real_t(1.)  * si::meters,
+          setup::real_t(1.1) * si::meters
+        ), 
+        outmom_t<setup::real_t>::value_type::second_type(1, 0)
+      ));
+/*
       rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
         outmom_t<thrust_real_t>::value_type::first_type(
           1. * si::meters,
@@ -347,6 +371,7 @@ void setopts_micro(
         ), 
         std::vector<int>(1,0)
       ));
+      */
     }
   }
   if(rt_params.out_dry_spec)
