@@ -313,13 +313,13 @@ void setopts_micro(
     auto left_edges = bins_wet();
     for (int i = 0; i < left_edges.size()-1; ++i)
     {
-      rt_params.out_wet.push_back(outmom_t<thrust_real_t>::value_type({
+      rt_params.out_wet.push_back(outmom_t<thrust_real_t>::value_type(
         outmom_t<thrust_real_t>::value_type::first_type(
-          left_edges[i] ,
-          left_edges[i+1]
+          left_edges.at(i),
+          left_edges.at(i+1)
         ), 
         outmom_t<setup::real_t>::value_type::second_type(1,0)
-      }));
+      ));
     }
   }
   if(vm["out_dry_spec"].as<bool>())
@@ -327,13 +327,13 @@ void setopts_micro(
     auto left_edges = bins_dry();
     for (int i = 0; i < left_edges.size()-1; ++i)
     {
-      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type({
+      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
         outmom_t<thrust_real_t>::value_type::first_type(
-          left_edges[i] ,
-          left_edges[i+1]
+          left_edges.at(i),
+          left_edges.at(i+1)
         ), 
         outmom_t<setup::real_t>::value_type::second_type(1,0)
-      }));
+      ));
     }
   }
 }
