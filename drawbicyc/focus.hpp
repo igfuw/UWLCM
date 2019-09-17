@@ -1,24 +1,6 @@
 #pragma once
 
-// bin sizes for calc and plot
-/*
-vector<quantity<si::length> > bins_dry()
-{
-  vector<quantity<si::length> > ret;
-  // dry radius bins: .001 ... .01 ... 10 (40 bins in total)
-  for (int i = 0; i < 40; ++i)
-    ret.push_back(1e-6 * pow(10, -3 + i * .1) * si::metres);
-  return ret;
-}
-*/
-
-vector<quantity<si::length> > bins_wet()
-{
-  vector<quantity<si::length> > ret;
-  for (int i = 0; i < 16; ++i)
-    ret.push_back(2e-6 * i * si::metres); 
-  return ret;
-}
+#include "../src/detail/bins.hpp"
 
 // focus plot locations
 const int yslice_idx=75;
