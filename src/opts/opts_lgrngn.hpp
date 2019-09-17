@@ -316,12 +316,12 @@ void setopts_micro(
     std::vector<quantity<si::length> > left_edges = bins_wet();
     for (int i = 0; i < left_edges.size()-1; ++i)
     {
-      rt_params.out_wet.push_back(outmom_t<thrust_real_t>::value_type(
+      rt_params.out_wet.push_back(std::make_pair(
         std::make_pair(
           quantity<si::length>(left_edges.at(i)),
           quantity<si::length>(left_edges.at(i+1))
         ), 
-        outmom_t<setup::real_t>::value_type::second_type(1,0)
+        std::vector<int>(1,0)
       ));
     }
   }
