@@ -318,8 +318,8 @@ void setopts_micro(
     {
       rt_params.out_wet.push_back(outmom_t<thrust_real_t>::value_type(
         outmom_t<thrust_real_t>::value_type::first_type(
-          left_edges.at(i),
-          left_edges.at(i+1)
+          quantity<si::length>(left_edges.at(i)),
+          quantity<si::length>(left_edges.at(i+1))
         ), 
         outmom_t<setup::real_t>::value_type::second_type(1,0)
       ));
@@ -332,8 +332,8 @@ void setopts_micro(
     {
       rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
         outmom_t<thrust_real_t>::value_type::first_type(
-          left_edges.at(i),
-          left_edges.at(i+1)
+          quantity<si::length>(left_edges.at(i)),
+          quantity<si::length>(left_edges.at(i+1))
         ), 
         outmom_t<setup::real_t>::value_type::second_type(1,0)
       ));
