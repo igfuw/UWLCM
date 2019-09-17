@@ -313,7 +313,7 @@ void setopts_micro(
 
   if(rt_params.out_wet_spec)
   {
-    auto left_edges = bins_wet();
+    std::vector<quantity<si::length> > left_edges = bins_wet();
     for (int i = 0; i < left_edges.size()-1; ++i)
     {
       rt_params.out_wet.push_back(outmom_t<thrust_real_t>::value_type(
@@ -327,7 +327,7 @@ void setopts_micro(
   }
   if(rt_params.out_dry_spec)
   {
-    auto left_edges = bins_dry();
+    std::vector<quantity<si::length> > left_edges = bins_dry();
     for (int i = 0; i < left_edges.size()-1; ++i)
     {
       rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
