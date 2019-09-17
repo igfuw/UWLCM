@@ -403,6 +403,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("cond", params.cloudph_opts.cond);  
       this->record_aux_const("coal", params.flag_coal);  // cloudph_opts.coal could be 0 here due to spinup
       this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
+      this->record_aux_const("out_dry_spec", params.out_dry_spec);  
+      this->record_aux_const("out_wet_spec", params.out_wet_spec);  
+      this->record_aux_const("gccn", params.gccn);  
       this->record_aux_const("turb_adve", params.cloudph_opts.turb_adve);  
       this->record_aux_const("turb_cond", params.cloudph_opts.turb_cond);  
       this->record_aux_const("turb_coal", params.cloudph_opts.turb_coal);  
@@ -704,6 +707,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
     outmom_t<real_t> out_dry, out_wet;
     bool flag_coal; // do we want coal after spinup
+    bool gccn;
+    bool out_wet_spec, out_dry_spec;
   };
 
   private:
