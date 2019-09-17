@@ -91,7 +91,9 @@ void setopts_micro(
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
 
   rt_params.async = vm["async"].as<bool>();
-  bool gccn = vm["gccn"].as<bool>();
+  rt_params.gccn = vm["gccn"].as<bool>();
+  rt_params.out_wet_spec = vm["out_wet_spec"].as<bool>();
+  rt_params.out_dry_spec = vm["out_dry_spec"].as<bool>();
 //  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
@@ -137,52 +139,53 @@ void setopts_micro(
 //std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
 
-/*
     // GCCNs following Jensen and Nugent, JAS 2016
-    rt_params.cloudph_opts_init.dry_sizes.emplace(
-      1.28, // kappa
-      std::map<setup::real_t, std::pair<setup::real_t, int> > {
-        {0.8e-6, {111800, 1}},
-        {1.0e-6, {68490,  1}},
-        {1.2e-6, {38400,  1}},
-        {1.4e-6, {21820,  1}},
-        {1.6e-6, {13300,  1}},
-        {1.8e-6, {8496,  1}},
-        {2.0e-6, {5486,  1}},
-        {2.2e-6, {3805,  1}},
-        {2.4e-6, {2593,  1}},
-        {2.6e-6, {1919,  1}},
-        {2.8e-6, {1278,  1}},
-        {3.0e-6, {988.4,  1}},
-        {3.2e-6, {777.9,  1}},
-        {3.4e-6, {519.5,  1}},
-        {3.6e-6, {400.5,  1}},
-        {3.8e-6, {376.9,  1}},
-        {4.0e-6, {265.3,  1}},
-        {4.2e-6, {212.4,  1}},
-        {4.4e-6, {137.8,  1}},
-        {4.6e-6, {121.4,  1}},
-        {4.8e-6, {100.9,  1}},
-        {5.0e-6, {122.2,  1}},
-        {5.2e-6, {50.64,  1}},
-        {5.4e-6, {38.30,  1}},
-        {5.6e-6, {55.47,  1}},
-        {5.8e-6, {21.45,  1}},
-        {6.0e-6, {12.95,  1}},
-        {6.2e-6, {43.23,  1}},
-        {6.4e-6, {26.26,  1}},
-        {6.6e-6, {30.50,  1}},
-        {6.8e-6, {4.385,  1}},
-        {7.0e-6, {4.372,  1}},
-        {7.2e-6, {4.465,  1}},
-        {7.4e-6, {4.395,  1}},
-        {7.6e-6, {4.427,  1}},
-        {7.8e-6, {4.411,  1}},
-        {8.6e-6, {4.522,  1}},
-        {9.0e-6, {4.542,  1}}
-      }
-    );
-*/
+    if(rt_params.gccn)
+    {
+      rt_params.cloudph_opts_init.dry_sizes.emplace(
+        1.28, // kappa
+        std::map<setup::real_t, std::pair<setup::real_t, int> > {
+          {0.8e-6, {111800, 1}},
+          {1.0e-6, {68490,  1}},
+          {1.2e-6, {38400,  1}},
+          {1.4e-6, {21820,  1}},
+          {1.6e-6, {13300,  1}},
+          {1.8e-6, {8496,  1}},
+          {2.0e-6, {5486,  1}},
+          {2.2e-6, {3805,  1}},
+          {2.4e-6, {2593,  1}},
+          {2.6e-6, {1919,  1}},
+          {2.8e-6, {1278,  1}},
+          {3.0e-6, {988.4,  1}},
+          {3.2e-6, {777.9,  1}},
+          {3.4e-6, {519.5,  1}},
+          {3.6e-6, {400.5,  1}},
+          {3.8e-6, {376.9,  1}},
+          {4.0e-6, {265.3,  1}},
+          {4.2e-6, {212.4,  1}},
+          {4.4e-6, {137.8,  1}},
+          {4.6e-6, {121.4,  1}},
+          {4.8e-6, {100.9,  1}},
+          {5.0e-6, {122.2,  1}},
+          {5.2e-6, {50.64,  1}},
+          {5.4e-6, {38.30,  1}},
+          {5.6e-6, {55.47,  1}},
+          {5.8e-6, {21.45,  1}},
+          {6.0e-6, {12.95,  1}},
+          {6.2e-6, {43.23,  1}},
+          {6.4e-6, {26.26,  1}},
+          {6.6e-6, {30.50,  1}},
+          {6.8e-6, {4.385,  1}},
+          {7.0e-6, {4.372,  1}},
+          {7.2e-6, {4.465,  1}},
+          {7.4e-6, {4.395,  1}},
+          {7.6e-6, {4.427,  1}},
+          {7.8e-6, {4.411,  1}},
+          {8.6e-6, {4.522,  1}},
+          {9.0e-6, {4.542,  1}}
+        }
+      );
+    }
    }
 /*  else if(unit_test)
     boost::assign::ptr_map_insert<
@@ -308,7 +311,7 @@ void setopts_micro(
     }
   } 
 
-  if(vm["out_wet_spec"].as<bool>())
+  if(rt_params.out_wet_spec)
   {
     auto left_edges = bins_wet();
     for (int i = 0; i < left_edges.size()-1; ++i)
@@ -322,7 +325,7 @@ void setopts_micro(
       ));
     }
   }
-  if(vm["out_dry_spec"].as<bool>())
+  if(rt_params.out_dry_spec)
   {
     auto left_edges = bins_dry();
     for (int i = 0; i < left_edges.size()-1; ++i)
