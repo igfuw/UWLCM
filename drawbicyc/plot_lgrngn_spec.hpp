@@ -201,7 +201,7 @@ void plot_lgrngn_spec(Plotter_t plotter)
       const string name = "rw_rng" + zeropad(i + off) + "_mom0";
       auto tmp_w = plotter.h5load_timestep(name, spectra_step * n["outfreq"]);
 
-      focus_w[(left_edges_rw[i] + left_edges_rw[i+1]) / (real_t(2. * 1e-6) * si::metres)] =
+      focus_w[(left_edges_rw[i] + left_edges_rw[i+1]) / (setup::real_t(2. * 1e-6) * si::metres)] =
         sum((tmp_w*rhod)(focusBox))
         * 1e-6 // per cm^{-3}
         / pow(2*box_size+1,3) 
