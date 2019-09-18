@@ -63,7 +63,11 @@ class PlotterMicro_t : public Plotter_t<NDims>
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     if(this->micro == "lgrngn")
-      res = this->h5load_timestep("actrw_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
+    {
+      res = this->h5load_timestep("cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
+      res += arr_t(this->h5load_timestep("aerosol_rw_mom3", at) * 4./3. * 3.1416 * 1e3);
+      res += arr_t(this->h5load_timestep("rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3);
+    }
     else if(this->micro == "blk_1m")
     {
       res = this->h5load_timestep("rc", at);

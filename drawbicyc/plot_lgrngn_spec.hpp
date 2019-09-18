@@ -1,7 +1,7 @@
 #include "common.hpp"
 #include "PlotterMicro.hpp"
 #include "plots.hpp"
-#include "bins.hpp"
+#include "focus.hpp"
 #include <map>
 
 namespace
@@ -193,7 +193,7 @@ void plot_lgrngn_spec(Plotter_t plotter)
     std::map<float, float> focus_w;
 
     //info on the number and location of histogram edges
-    vector<quantity<si::length>> left_edges_rw = bins_wet();
+    auto left_edges_rw = bins_wet();
     int nsw = left_edges_rw.size() - 1;
 
     for (int i = 0; i < nsw; ++i)
@@ -201,11 +201,11 @@ void plot_lgrngn_spec(Plotter_t plotter)
       const string name = "rw_rng" + zeropad(i + off) + "_mom0";
       auto tmp_w = plotter.h5load_timestep(name, spectra_step * n["outfreq"]);
 
-      focus_w[(left_edges_rw[i] + left_edges_rw[i+1]) / 2. / 1e-6 / si::metres] =
+      focus_w[(left_edges_rw[i] + left_edges_rw[i+1]) / (setup::real_t(2. * 1e-6) * si::metres)] =
         sum((tmp_w*rhod)(focusBox))
         * 1e-6 // per cm^{-3}
         / pow(2*box_size+1,3) 
-        / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
+        / ((left_edges_rw[i+1] - left_edges_rw[i]) / (setup::real_t(1e-6) * si::metres)); // per micrometre
     }
     const string name = "rw_rng" + zeropad(nsw + off) + "_mom0";
     auto tmp_w = plotter.h5load_timestep(name, spectra_step * n["outfreq"]);
