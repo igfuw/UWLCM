@@ -193,7 +193,7 @@ void plot_lgrngn_spec(Plotter_t plotter)
     std::map<float, float> focus_w;
 
     //info on the number and location of histogram edges
-    vector<quantity<si::length>> left_edges_rw = bins_wet();
+    auto left_edges_rw = bins_wet();
     int nsw = left_edges_rw.size() - 1;
 
     for (int i = 0; i < nsw; ++i)
