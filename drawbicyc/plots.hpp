@@ -6,7 +6,9 @@ const std::vector<std::string> series_dycoms({
 //"mass_dry", 
  "acc_precip",
  "cl_nc",
- "cloud_base"
+ "cloud_base",
+ "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
+,"cl_avg_cloud_rad"
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
 });
@@ -64,14 +66,16 @@ std::vector<std::string> profs_moist_thermal({
 
 
 std::vector<std::string> fields_dycoms({
-"rl", "nc",
- "rr", "nr",
-"ef", "na", 
-"th", "rv",     
-"u", "w", 
-"sd_conc",//, "r_dry", 
-"RH", "supersat",
-"lib_pres", "lib_temp"
+//"rl", "nc",
+// "rr", "nr",
+//"ef", "na", 
+//"th", "rv",     
+//"u", "w", 
+//"sd_conc",//, "r_dry", 
+//"RH", "supersat",
+//"lib_pres", "lib_temp"
+"gccn_conc",
+"gccn_mean_rw"
 });
 
 std::vector<std::string> fields_moist_thermal({
