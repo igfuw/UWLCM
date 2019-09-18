@@ -205,7 +205,7 @@ void plot_lgrngn_spec(Plotter_t plotter)
         sum((tmp_w*rhod)(focusBox))
         * 1e-6 // per cm^{-3}
         / pow(2*box_size+1,3) 
-        / ((left_edges_rw[i+1] - left_edges_rw[i]) / 1e-6 / si::metres); // per micrometre
+        / ((left_edges_rw[i+1] - left_edges_rw[i]) / (setup::real_t(1e-6) * si::metres)); // per micrometre
     }
     const string name = "rw_rng" + zeropad(nsw + off) + "_mom0";
     auto tmp_w = plotter.h5load_timestep(name, spectra_step * n["outfreq"]);
