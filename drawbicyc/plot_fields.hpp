@@ -119,7 +119,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
       {
 	// aerosol concentration
 	blitz::Array<float, 3> tmp(h5load(h5, "rw_rng002_mom0", at * n["outfreq"]));
-	vector<quantity<si::length>> left_edges = bins_wet();
+	auto left_edges = bins_wet();
 	for (int i = 1; i < left_edges.size()-1; ++i)
 	{
 	  if (left_edges[i + 1] > 1e-6 * si::metres) break;
