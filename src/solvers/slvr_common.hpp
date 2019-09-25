@@ -369,7 +369,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     tbeg = clock::now();
 
     // plain (no xdmf) hdf5 output
-    parent_t::parent_t::record_all();
+    parent_t::parent_t::parent_t::parent_t::record_all();
     this->diag();
     // xmf markup
     this->write_xmfs();
