@@ -99,8 +99,8 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
 
-/*
-// CLARE: this is for dycoms...
+
+// CLARE: this is for preset cases (dycoms or rico)...
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
       user_params.kappa1,
@@ -114,8 +114,9 @@ void setopts_micro(
       )
     );
   }
-*/
 
+
+/*
 // CLARE: this is for one mode...
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -130,6 +131,7 @@ void setopts_micro(
       )
     );
   }
+*/
 
 /*
 // CLARE: this is for two modes...
