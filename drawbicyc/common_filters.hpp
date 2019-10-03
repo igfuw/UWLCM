@@ -43,3 +43,9 @@ double isupdraught(double x)
   return  x > 0.2 ? 1. : 0.; 
 }
 BZ_DECLARE_FUNCTION(isupdraught)
+
+double ispositive(double x)
+{
+  return x > 0. ? 1. : 0.; 
+}
+BZ_DECLARE_FUNCTION(ispositive)
