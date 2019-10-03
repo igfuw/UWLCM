@@ -38,6 +38,7 @@ NZ=301
 
 # output directory
 OUTPUT_DIR=$HOME/output/mu_${MU1}_kappa_${KAP1}/short-exp1
+OUTPUT_DIR=$HOME/output/hpc_test
 
 # set param strings
 CASE_PARAMS="--case=dycoms_rf02 --nx=$NX --ny=0 --nz=$NZ"
