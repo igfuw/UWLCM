@@ -62,7 +62,9 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   else if (user_params.model_case == "dycoms_rf01")
     case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>()); 
   else if (user_params.model_case == "dycoms_rf02")
-    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>());
+  else if (user_params.model_case == "rico")
+    case_ptr.reset(new setup::rico::Rico<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
   else
@@ -258,7 +260,7 @@ int main(int argc, char** argv)
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
-      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, lasher_trapp")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, lasher_trapp,rico")
       ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
