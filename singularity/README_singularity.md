@@ -13,6 +13,11 @@ To run the image with GPU support use --nv flag:
 $ singularity shell --nv sng_ubuntu_18_04_cuda_10_0.sif
 ```
 
+It may be necessary to run the image in a clean environment: 
+```bash
+$ env -i singularity shell --nv sng_ubuntu_18_04_cuda_10_0.sif
+```
+
 Follow the libmpdata and libcloud readme on how to compile them and run tests.
 
 Install both libraries in a local_folder:
