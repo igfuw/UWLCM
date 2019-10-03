@@ -83,7 +83,6 @@ namespace setup
       {
         real_t operator()(const real_t &z) const
         {
-          const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s]
           return - D * z; 
         }
         BZ_DECLARE_FUNCTOR(w_LS_fctr);
@@ -322,17 +321,7 @@ namespace setup
         // this->sdev_rd2 = real_t(1.7);
         // this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         // this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
-	
-        this->ForceParameters.heating_kappa = 85; // m^2/kg
-        this->ForceParameters.F_0 = 70; // w/m^2
-        this->ForceParameters.F_1 = 22; // w/m^2
-        this->ForceParameters.q_i = 8e-3; // kg/kg
-        this->ForceParameters.D = 3.75e-6; // large-scale wind horizontal divergence [1/s]
         this->div_LS = real_t(3.75e-6); // [1/s] large-scale wind divergence used to calc subsidence of SDs, TODO: use boost.units to enforce 1/s
-        this->ForceParameters.rho_i = 1.12; // kg/m^3
-        this->ForceParameters.u_fric = 0.25; // m/s; friction velocity
-        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
-        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
         this->Z = Z;
       }
