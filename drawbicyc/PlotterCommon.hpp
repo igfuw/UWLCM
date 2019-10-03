@@ -19,7 +19,7 @@ class PlotterCommon
   H5::DataSpace h5s;
 
   void h5load(
-    const string &file, 
+    const string &file,
     const string &dataset
   )
   {
@@ -29,6 +29,14 @@ class PlotterCommon
     notice_macro("about to read dataset: " << dataset)
     h5d = h5f.openDataSet(dataset);
     h5s = h5d.getSpace();
+  }
+
+  template <class gp_t>
+  void plot(gp_t &gp)
+  {
+    //gp << "set cbtics format \"%.2tE%+03T\"\n";
+    gp << "set cbtics font \", 8\"\n";
+  //  gp << "set rmargin 2cm\n";
   }
 
   public:

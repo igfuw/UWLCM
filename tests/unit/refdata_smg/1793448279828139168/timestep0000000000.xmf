@@ -33,6 +33,12 @@
 			<Attribute Name="cloud_rw_mom3" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="39 39 39 " NumberType="Float" Format="HDF">timestep0000000000.h5:/cloud_rw_mom3</DataItem>
 			</Attribute>
+			<Attribute Name="gccn_rw_mom0" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="39 39 39 " NumberType="Float" Format="HDF">timestep0000000000.h5:/gccn_rw_mom0</DataItem>
+			</Attribute>
+			<Attribute Name="gccn_rw_mom1" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="39 39 39 " NumberType="Float" Format="HDF">timestep0000000000.h5:/gccn_rw_mom1</DataItem>
+			</Attribute>
 			<Attribute Name="k_m" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="39 39 39 " NumberType="Float" Format="HDF">timestep0000000000.h5:/k_m</DataItem>
 			</Attribute>

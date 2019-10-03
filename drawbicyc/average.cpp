@@ -5,8 +5,7 @@
 #include <boost/tuple/tuple.hpp>
 #include "plots.hpp"
 
-
-BZ_USING_NAMESPACE(blitz)
+using namespace blitz;
 
 void average(int argc, char* argv[], std::vector<std::string> types, std::string suffix)
 {
@@ -21,7 +20,7 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
   types.insert(types.begin(), "position");
 
   int prof_ctr = 0;
-  for (auto &plt : types) 
+  for (auto &plt : types)
   {
     avg = 0;
     int opened_files = 0;
@@ -38,7 +37,7 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
       }
       for(int k=0; k<=prof_ctr; ++k)
         iprof_file >> snap;
-  
+
       if(i==2)
       {
         avg.resize(snap.shape());
@@ -54,7 +53,7 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
   }
 }
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
   average(argc, argv, series_dycoms, "_series.dat");
   average(argc, argv, profs_dycoms, "_profiles_7200_21600.dat");
