@@ -1,10 +1,10 @@
 //TODO: move calc_forces and forcings to case class?
 #pragma once
-#include "forcings/buoyancy.hpp"
-#include "forcings/coriolis.hpp"
-#include "forcings/radiation.hpp"
-#include "forcings/subsidence.hpp"
-#include "forcings/surface_fluxes.hpp"
+#include "buoyancy.hpp"
+#include "coriolis.hpp"
+#include "radiation.hpp"
+#include "subsidence.hpp"
+#include "surface_fluxes.hpp"
 #include "../solvers/slvr_common.hpp"
 
 // helper functors

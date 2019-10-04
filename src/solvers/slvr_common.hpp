@@ -35,9 +35,18 @@ class slvr_common : public slvr_dim<ct_params_t>
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i;
 
+/*
+  TODO: an array (map?) of surf fluxes, something like:
   // array with sensible and latent heat surface flux
   // one of them is a surface flux array filled with zeros ... TODO: add a way to set zero flux directly in libmpdata
   std::array<blitz::Array<real_t, parent_t::n_dims>, n_flxs> surf_fluxes;
+  */
+
+  blitz::Array<real_t, parent_t::n_dims> surf_flux_sens,
+                                         surf_flux_lat,
+                                         surf_flux_u,
+                                         surf_flux_v,
+                                         surf_flux_zero; // zero-filled array, find a way to avoid this
 
   // horizontal velocity magnitude at ground level
   blitz::Array<real_t, parent_t::n_dims-1> U_ground;
