@@ -2,3 +2,4 @@
 build/
 git_revision.h
 input_scripts/
+*.out
