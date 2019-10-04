@@ -33,7 +33,7 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     auto noground = idxperm::pi<perm_no>(rng_t(1, nz-1), this->hrzntl_subdomain);
     auto notop = idxperm::pi<perm_no>(rng_t(0, nz-2), this->hrzntl_subdomain);
   
-    F(ijk) = params.ForceParameters.F_0 * exp(tmp1(ijk)); 
+    radiative_flux(ijk) = params.ForceParameters.F_0 * exp(tmp1(ijk)); 
   
     // calc sum of r_l below certain level and store it in tmp1
     tmp1(ijk) = r_l(ijk);
@@ -48,15 +48,15 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     for(int z = 1 ; z <= nz-1; ++z)
       tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z-1, this->hrzntl_subdomain));
 
-    F(ijk) += params.ForceParameters.F_1 * exp(tmp1(ijk));
+    radiative_flux(ijk) += params.ForceParameters.F_1 * exp(tmp1(ijk));
   
     // free atmosphere part
-    F(ijk).reindex(this->zero) += where(this->vert_idx > k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j),  // works even in 2D ?!?!
+    radiative_flux(ijk).reindex(this->zero) += where(this->vert_idx > k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j),  // works even in 2D ?!?!
         (libcloudphxx::common::moist_air::c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) * params.ForceParameters.rho_i * params.ForceParameters.D *
         (0.25 * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 4./3) +
         (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 1./3))
         , 0);
   }
   else
-    F(ijk)=0.;
+    radiative_flux(ijk)=0.;
 }
