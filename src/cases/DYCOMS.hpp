@@ -140,7 +140,7 @@ namespace setup
         real_t dz = (Z / si::metres) / (nz-1); 
   
         solver.advectee(ix::rv) = r_t()(index * dz); 
-        solver.advectee(ix::u)= u()(index * dz);
+        solver.advectee(ix::u)= u{}(index * dz);
         solver.advectee(ix::w) = 0;  
        
         // absorbers
@@ -167,13 +167,15 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) override
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
+
+        parent_t::env_prof(profs, nz, user_params);
   
         // temp profile
         arr_1D_t T(nz);
@@ -262,7 +264,6 @@ namespace setup
 //        for(int k=1; k<nz; ++k)
   //        th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
 
-  
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
         profs.th_LS = 0.; // no large-scale horizontal advection
@@ -271,17 +272,6 @@ namespace setup
         // calc surf flux divergence directly
         real_t z_0 = z_rlx / si::metres;
         profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
-
-        real_t sgs_delta;
-        if (user_params.sgs_delta > 0)
-        {
-          sgs_delta = user_params.sgs_delta;
-        }
-        else
-        {
-          sgs_delta = dz;
-        }
-        profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -289,12 +279,15 @@ namespace setup
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
-          surf_flux_sens = RF == 1 ? 15. : 16.; // [W/m^2]
-          // for simulations with sgs scheme convert surface flux to required sign convention and units
-          if (case_ct_params_t::enable_sgs)
+          auto flux_value = RF == 1 ? 15. : 16.; // [W/m^2]
+          if (!case_ct_params_t::enable_sgs)
+          {
+            surf_flux_sens = flux_value;
+          }
+          else // for simulations with sgs scheme convert surface flux to required sign convention and units
           {
             auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-            surf_flux_sens /= -conv_fctr_sens; // [K * kg / (m^2 * s)]
+            surf_flux_sens = -flux_value / conv_fctr_sens; // [K * kg / (m^2 * s)]
           }
         }
       }
@@ -304,12 +297,15 @@ namespace setup
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
-          surf_flux_lat = RF == 1 ? 115. : 93.; // [W/m^2]
-          // for simulations with sgs scheme convert surface flux to required sign convention and units
-          if (case_ct_params_t::enable_sgs)
+          auto flux_value = RF == 1 ? 115. : 93.; // [W/m^2]
+          if (!case_ct_params_t::enable_sgs)
+          {
+            surf_flux_lat = flux_value;
+          }
+          else // for simulations with sgs scheme convert surface flux to required sign convention and units
           {
             auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-            surf_flux_lat /= -conv_fctr_lat; // [kg / (m^2 * s)]
+            surf_flux_lat = -flux_value / conv_fctr_lat; // [kg / (m^2 * s)]
           }
         }
       }
@@ -326,6 +322,7 @@ namespace setup
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
         this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
+        this->Z = Z;
       }
     };
     
@@ -353,6 +350,12 @@ namespace setup
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         this->make_cyclic(solver.advectee(ix::th));
+      }
+
+      public:
+      Dycoms()
+      {
+        this->X = X[RF-1];
       }
     };
 
@@ -404,6 +407,13 @@ namespace setup
         real_t dz = (Z / si::metres) / (nz-1);
         profs.geostr[0] = u(k * dz); 
         profs.geostr[1] = v()(k * dz); 
+      }
+
+      public:
+      Dycoms()
+      {
+        this->X = X[RF-1];
+        this->Y = Y[RF-1];
       }
     };
   };

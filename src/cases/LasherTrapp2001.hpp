@@ -31,19 +31,6 @@ namespace setup
     const real_t z_abs = 7000;
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
 
-    // env profiles of th and rv from the sounding
-    arr_1D_t th_dry_env;
-    arr_1D_t th_std_env;
-    arr_1D_t p_env;
-    arr_1D_t rv_env;
-
-
-    // RH T and p to rv
-    quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
-    {
-      return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
-    }
-
     template<class case_ct_params_t, int n_dims>
     class LasherTrapp2001Common : public CasesCommon<case_ct_params_t, n_dims>
     {
@@ -52,6 +39,12 @@ namespace setup
       using parent_t = CasesCommon<case_ct_params_t, n_dims>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+
+      // env profiles of th and rv from the sounding
+      arr_1D_t th_dry_env;
+      arr_1D_t th_std_env;
+      arr_1D_t p_env;
+      arr_1D_t rv_env;
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -76,6 +69,11 @@ namespace setup
         this->setopts_sgs(params);
       }
   
+      // RH T and p to rv
+      quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
+      {
+        return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
+      }
   
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
@@ -131,6 +129,8 @@ namespace setup
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
+
+        parent_t::env_prof(profs, nz, user_params);
 
         // read the soundings
         // containers for soundings
@@ -275,6 +275,7 @@ namespace setup
         this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
         this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
         this->ForceParameters.u_fric = 0.28;
+        this->Z = Z;
       }
     };
     
@@ -302,6 +303,12 @@ namespace setup
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         this->make_cyclic(solver.advectee(ix::th));
+      }
+
+      public:
+      LasherTrapp2001()
+      {
+        this->X = X;
       }
     };
 
@@ -333,6 +340,13 @@ namespace setup
   
         solver.advectee(ix::v)= 0;
         solver.vab_relaxed_state(1) = solver.advectee(ix::v);
+      }
+
+      public:
+      LasherTrapp2001()
+      {
+        this->X = X;
+        this->Y = Y;
       }
     };
   };
