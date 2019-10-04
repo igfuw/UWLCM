@@ -37,14 +37,14 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
   int k_i = 0; // inversion cell
 
-  int first_timestep =  vm["prof_start"].as<int>() / n["dt"] / n["outfreq"];
-  int last_timestep =  vm["prof_end"].as<int>() / n["dt"] / n["outfreq"];
+  int first_timestep =  vm["prof_start"].as<int>() / int(n["dt"] * n["outfreq"]);
+  int last_timestep =  vm["prof_end"].as<int>() / int(n["dt"] * n["outfreq"]);
 
   // some ugly constants
   const double p_1000 = 100000.;
   const double L = 2.5e6;
-  const double R_d = 287.;
-  const double c_p = 1004;
+  const double R_d = 287.0024888;
+  const double c_p = 1005;
   const double c_pd = c_p;
 
   double z_i;
@@ -459,6 +459,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_prof += where(res_pos > 0 , plotter.horizontal_sum(snap2) / res_pos, 0);
         }
         catch(...){;}
+        gp << "set title 'cloud droplets concentration in cloudy cells [1/cm^3]'\n";
       }
       else if (plt == "thl")
       {
@@ -473,9 +474,11 @@ void plot_profiles(Plotter_t plotter, Plots plots)
   //        typename Plotter_t::arr_t th_d(tmp); 
           typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
           ///auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
-          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
+//          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
 
-          typename Plotter_t::arr_t T(plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
+          typename Plotter_t::arr_t T = th.copy();
+          T *= pow(plotter.p_e(plotter.LastIndex) / p_1000, R_d / c_pd);
+// (plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
           // init pressure, from rv just to get correct size
 //          typename Plotter_t::arr_t p(rv); 
   //        T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
@@ -532,6 +535,13 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         // turn 3rd mom * velocity into flux in [W/m^2]
         gp << "set title 'precipitation flux [W/m^2]'\n";
       }
+      else if (plt == "rad_flx")
+      {
+        auto tmp = plotter.h5load_timestep("radiative_flux", at * n["outfreq"]);
+        typename Plotter_t::arr_t snap(tmp);
+        res += snap; 
+        gp << "set title 'radiative flux [W/m2]'\n";
+      }
       else if (plt == "wvar")
       {
 	// variance of vertical velocity, w_mean=0
@@ -550,7 +560,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res += snap;
         gp << "set title '3rd mom of w [m^3 / s^3]'\n";
       }
-      else if (plt == "tke")
+      else if (plt == "sgs_tke")
       {
         {
           auto tmp = plotter.h5load_timestep("tke", at * n["outfreq"]);
@@ -558,7 +568,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp = snap;
         }
         res += res_tmp;
-        gp << "set title 'tke [TODO]'\n";
+        gp << "set title 'sgs tke [TODO]'\n";
       }
       else if (plt == "k_m")
       {

@@ -90,9 +90,12 @@ namespace setup
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
+
+        parent_t::env_prof(profs, nz, user_params);
        
         profs.rhod = 1;
         profs.th_e = 300;
+        profs.rv_e = 0; // doesnt matter in dry case, just to have consistent output between runs
 
         const quantity<si::temperature, real_t> T(
           libcloudphxx::common::theta_dry::T(
@@ -114,6 +117,12 @@ namespace setup
         profs.w_LS = 0.;  // no subsidence
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
+      }
+
+      public:
+      DryThermalCommon()
+      {
+        this->Z = Z;
       }
     };
     
@@ -143,6 +152,12 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
+      }
+
+      public:
+      DryThermal()
+      {
+        this->X = X;
       }
     };
 

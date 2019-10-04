@@ -9,7 +9,7 @@ class PlotterCommon
   public:
   const string file;
   std::map<std::string, double> map;
-  blitz::Array<float, 1> timesteps;
+  blitz::Array<float, 1> timesteps, p_e;
   double CellVol, DomainSurf;
 
   protected:
@@ -19,7 +19,7 @@ class PlotterCommon
   H5::DataSpace h5s;
 
   void h5load(
-    const string &file, 
+    const string &file,
     const string &dataset
   )
   {
@@ -29,6 +29,14 @@ class PlotterCommon
     notice_macro("about to read dataset: " << dataset)
     h5d = h5f.openDataSet(dataset);
     h5s = h5d.getSpace();
+  }
+
+  template <class gp_t>
+  void plot(gp_t &gp)
+  {
+    //gp << "set cbtics format \"%.2tE%+03T\"\n";
+    gp << "set cbtics font \", 8\"\n";
+  //  gp << "set rmargin 2cm\n";
   }
 
   public:
@@ -52,7 +60,6 @@ class PlotterCommon
       }
       map["dt"] = dt;
 
-
       // read number of timesteps
       hsize_t n;
       h5load(file + "/const.h5", "T");
@@ -61,6 +68,13 @@ class PlotterCommon
       // read timesteps
       timesteps.resize(n);
       h5d.read(timesteps.data(), H5::PredType::NATIVE_FLOAT);
+
+      // read environmental pressure profile
+      h5load(file + "/const.h5", "p_e");
+      h5s.getSimpleExtentDims(&n, NULL);
+      p_e.resize(n);
+      h5d.read(p_e.data(), H5::PredType::NATIVE_FLOAT);
+
       // read output frequency
       float outfreq;
       {
