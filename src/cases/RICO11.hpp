@@ -27,116 +27,115 @@ namespace setup
     const real_t z_abs = 3500;
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
-  
-    // liquid water potential temperature at height z
-    quantity<si::temperature, real_t> th_l(const real_t &z)
-    {
-      quantity<si::temperature, real_t> ret;
-      ret = z < 740. ?
-        297.9 * si::kelvins : 
-        (297.9 + (317. - 297.9)/(4000. - 740) * (z-740)) * si::kelvins;
-      return ret;
-    }
-  
-    // water mixing ratio at height z
-    struct r_t
-    {
-      quantity<si::dimensionless, real_t> operator()(const real_t &z) const
-      {
-        const quantity<si::dimensionless, real_t> q_t = z < 740 ?
-          (16 + (13.8 - 16) / 740. * z) * 1e-3 : 
-          z < 3260 ?
-            (13.8 + (2.4 - 13.8) / (3260 - 740) * (z-740)) * 1e-3 :
-            (2.4 + (1.8 - 2.4) / (4000 - 3260) * (z-3260)) * 1e-3;
-        return q_t;
-      }
-      BZ_DECLARE_FUNCTOR(r_t);
-    };
-  
-    // initial dry air potential temp at height z, assuming theta_std = theta_l (spinup needed)
-    /*
-    struct th_dry_fctr
-    {
-      real_t operator()(const real_t &z) const
-      {
-        return th_l(z) / si::kelvins;
-      }
-      BZ_DECLARE_FUNCTOR(th_dry_fctr);
-    };
-*/
-  
-    // westerly wind
-    struct u
-    {
-      real_t operator()(const real_t &z) const
-      {
-        return -9.9 + 2e-3 * z; 
-      }
-      BZ_DECLARE_FUNCTOR(u);
-    };
-  
-    // large-scale vertical wind
-    struct w_LS_fctr
-    {
-      real_t operator()(const real_t &z) const
-      {
-        real_t sub_vel = z < 2260 ?
-          -(0.005 / 2260) * z :
-          -0.005;
-        return sub_vel; 
-      }
-      BZ_DECLARE_FUNCTOR(w_LS_fctr);
-    };
-  
-    // large-scale horizontal advection of th + radiative cooling [K/s]
-    struct th_LS_fctr
-    {
-      real_t operator()(const real_t &z) const
-      {
-        return -2.5 / 86400;
-      }
-      BZ_DECLARE_FUNCTOR(th_LS_fctr);
-    };
-  
-    // large-scale horizontal advection of rv [1/s]
-    struct rv_LS_fctr
-    {
-      real_t operator()(const real_t &z) const
-      {
-        real_t rv_LS = z < 2980 ?
-          -1. / 86400 + (1.3456 / 86400) * z / 2980 :
-          4e-6;
-        return rv_LS * 1e-3; 
-      }
-      BZ_DECLARE_FUNCTOR(rv_LS_fctr);
-    };
-  
-    // density profile as a function of altitude
-    // hydrostatic and assuming constant theta (not used now)
-/*    struct rhod_fctr
-    {
-      real_t operator()(real_t z) const
-      {
-        quantity<si::pressure, real_t> p = hydrostatic::p(
-  	z * si::metres, th_dry_fctr()(0.) * si::kelvins, r_t()(0.), z_0, p_0
-        );
-        
-        quantity<si::mass_density, real_t> rhod = theta_std::rhod(
-  	p, th_dry_fctr()(0.) * si::kelvins, r_t()(0.)
-        );
-  
-        return rhod / si::kilograms * si::cubic_metres;
-      }
-  
-      // to make the rhod() functor accept Blitz arrays as arguments
-      BZ_DECLARE_FUNCTOR(rhod_fctr);
-    };
-*/
     template<class concurr_t>
     class Rico11Common : public CasesCommon<concurr_t>
     {
-
       protected:
+
+      // liquid water potential temperature at height z
+      quantity<si::temperature, real_t> th_l(const real_t &z)
+      {
+        quantity<si::temperature, real_t> ret;
+        ret = z < 740. ?
+          297.9 * si::kelvins : 
+          (297.9 + (317. - 297.9)/(4000. - 740) * (z-740)) * si::kelvins;
+        return ret;
+      }
+    
+      // water mixing ratio at height z
+      struct r_t
+      {
+        quantity<si::dimensionless, real_t> operator()(const real_t &z) const
+        {
+          const quantity<si::dimensionless, real_t> q_t = z < 740 ?
+            (16 + (13.8 - 16) / 740. * z) * 1e-3 : 
+            z < 3260 ?
+              (13.8 + (2.4 - 13.8) / (3260 - 740) * (z-740)) * 1e-3 :
+              (2.4 + (1.8 - 2.4) / (4000 - 3260) * (z-3260)) * 1e-3;
+          return q_t;
+        }
+        BZ_DECLARE_FUNCTOR(r_t);
+      };
+    
+      // initial dry air potential temp at height z, assuming theta_std = theta_l (spinup needed)
+      /*
+      struct th_dry_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return th_l(z) / si::kelvins;
+        }
+        BZ_DECLARE_FUNCTOR(th_dry_fctr);
+      };
+  */
+    
+      // westerly wind
+      struct u
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return -9.9 + 2e-3 * z; 
+        }
+        BZ_DECLARE_FUNCTOR(u);
+      };
+    
+      // large-scale vertical wind
+      struct w_LS_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          real_t sub_vel = z < 2260 ?
+            -(0.005 / 2260) * z :
+            -0.005;
+          return sub_vel; 
+        }
+        BZ_DECLARE_FUNCTOR(w_LS_fctr);
+      };
+    
+      // large-scale horizontal advection of th + radiative cooling [K/s]
+      struct th_LS_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return -2.5 / 86400;
+        }
+        BZ_DECLARE_FUNCTOR(th_LS_fctr);
+      };
+    
+      // large-scale horizontal advection of rv [1/s]
+      struct rv_LS_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          real_t rv_LS = z < 2980 ?
+            -1. / 86400 + (1.3456 / 86400) * z / 2980 :
+            4e-6;
+          return rv_LS * 1e-3; 
+        }
+        BZ_DECLARE_FUNCTOR(rv_LS_fctr);
+      };
+    
+      // density profile as a function of altitude
+      // hydrostatic and assuming constant theta (not used now)
+  /*    struct rhod_fctr
+      {
+        real_t operator()(real_t z) const
+        {
+          quantity<si::pressure, real_t> p = hydrostatic::p(
+    	z * si::metres, th_dry_fctr()(0.) * si::kelvins, r_t()(0.), z_0, p_0
+          );
+          
+          quantity<si::mass_density, real_t> rhod = theta_std::rhod(
+    	p, th_dry_fctr()(0.) * si::kelvins, r_t()(0.)
+          );
+    
+          return rhod / si::kilograms * si::cubic_metres;
+        }
+    
+        // to make the rhod() functor accept Blitz arrays as arguments
+        BZ_DECLARE_FUNCTOR(rhod_fctr);
+      };
+  */
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
