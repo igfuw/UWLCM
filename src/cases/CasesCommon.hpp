@@ -43,6 +43,10 @@ namespace setup
     {
       geostr[0].resize(nz);
       geostr[1].resize(nz);
+
+      // set to zero just to have predicatble output in cases without Coriolis
+      geostr[0] = 0.;
+      geostr[1] = 0.;
     }
   };
   struct profile_ptrs_t
@@ -134,22 +138,22 @@ namespace setup
     virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
     virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
     {
-      profs.geostr[0] = 0;
-      profs.geostr[1] = 0;
-
-      blitz::firstIndex k;
-      real_t dz = (Z / si::metres) / (nz-1);
-
-      real_t sgs_delta;
-      if (user_params.sgs_delta > 0)
+      // set SGS mixing length
       {
-        sgs_delta = user_params.sgs_delta;
+        blitz::firstIndex k;
+        real_t dz = (Z / si::metres) / (nz-1);
+
+        real_t sgs_delta;
+        if (user_params.sgs_delta > 0)
+        {
+          sgs_delta = user_params.sgs_delta;
+        }
+        else
+        {
+          sgs_delta = dz;
+        }
+        profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
       }
-      else
-      {
-        sgs_delta = dz;
-      }
-      profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
     }
 
     virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens, 
