@@ -75,16 +75,6 @@ namespace setup
       BZ_DECLARE_FUNCTOR(u);
     };
   
-    // southerly wind
-    struct v
-    {
-      real_t operator()(const real_t &z) const
-      {
-        return -3.8;
-      }
-      BZ_DECLARE_FUNCTOR(v);
-    };
-  
     // large-scale vertical wind
     struct w_LS_fctr
     {
@@ -220,7 +210,7 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
-      // TODO: move hgt_fctrs from cases to main code
+      // TODO: same in DYCOMS (and others?), move to a common function
       void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -316,12 +306,6 @@ namespace setup
 //        for(int k=1; k<nz; ++k)
   //        th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
 
-        // Coriolis parameter
-
-
-        // geostrophic wind equal to the initial velocity profile
-        profs.geostr[0] = u()(k * dz); 
-        profs.geostr[1] = v()(k * dz); 
   
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
@@ -358,6 +342,8 @@ namespace setup
         this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
+        this->X = X;
+        this->Z = Z;
       }
     };
     
@@ -382,11 +368,27 @@ namespace setup
         using ix = typename concurr_t::solver_t::ix;
         this->make_cyclic(solver.advectee(ix::th));
       }
+
+      public:
+      Rico11()
+      {
+        this->X = X;
+      }
     };
 
     template<class concurr_t>
     class Rico11<concurr_t, 3> : public Rico11Common<concurr_t>
     {
+      // southerly wind
+      struct v
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return -3.8;
+        }
+        BZ_DECLARE_FUNCTOR(v);
+      };
+
       void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -408,6 +410,24 @@ namespace setup
   
         solver.advectee(ix::v)= v()(k * dz);
         solver.vab_relaxed_state(1) = solver.advectee(ix::v);
+      }
+
+      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      {
+        parent_t::env_prof(profs, nz, user_params);
+        // geostrophic wind equal to the initial velocity profile
+        blitz::firstIndex k;
+        typename parent_t::u u;
+        real_t dz = (Z / si::metres) / (nz-1);
+        profs.geostr[0] = u()(k * dz);
+        profs.geostr[1] = v()(k * dz);
+      }
+
+      public:
+      Rico11()
+      {
+        this->X = X;
+        this->Y = Y;
       }
     };
   };
