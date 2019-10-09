@@ -49,8 +49,10 @@ void slvr_common<ct_params_t>::surf_latent()
 }
 
 
+// momentum surface fluxes always applies as rhs (even with sgs)
+
 template <class ct_params_t>
-void slvr_common<ct_params_t>::surf_u_impl(iles_tag)
+void slvr_common<ct_params_t>::surf_u_impl()
 {
   params.update_surf_flux_uv(surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin), this->timestep, this->dt, this->di, this->dj);
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
@@ -60,20 +62,13 @@ void slvr_common<ct_params_t>::surf_u_impl(iles_tag)
 }
 
 template <class ct_params_t>
-void slvr_common<ct_params_t>::surf_u_impl(smg_tag)
-{
-  params.update_surf_flux_uv(surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin), this->timestep, this->dt, this->di, this->dj);
-  F(this->ijk) = 0;
-}
-
-template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_u()
 {
-  surf_u_impl(sgs_tag{});
+  surf_u_impl();
 }
 
 template <class ct_params_t>
-void slvr_common<ct_params_t>::surf_v_impl(iles_tag)
+void slvr_common<ct_params_t>::surf_v_impl()
 {
   params.update_surf_flux_uv(surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin), this->timestep, this->dt, this->di, this->dj);
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
@@ -83,14 +78,7 @@ void slvr_common<ct_params_t>::surf_v_impl(iles_tag)
 }
 
 template <class ct_params_t>
-void slvr_common<ct_params_t>::surf_v_impl(smg_tag)
-{
-  params.update_surf_flux_uv(surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin), this->timestep, this->dt, this->di, this->dj);
-  F(this->ijk) = 0;
-}
-
-template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_v()
 {
-  surf_v_impl(sgs_tag{});
+  surf_v_impl();
 }

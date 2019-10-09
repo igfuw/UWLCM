@@ -262,6 +262,7 @@ namespace setup
         }
       }
 
+
       // ctor
       LasherTrapp2001Common()
       {
