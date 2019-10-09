@@ -417,7 +417,7 @@ namespace setup
         blitz::firstIndex k;
         typename parent_t::u u;
         real_t dz = (Z / si::metres) / (nz-1);
-        profs.geostr[0] = u(k * dz); 
+        profs.geostr[0] = u()(k * dz); 
         profs.geostr[1] = v()(k * dz); 
       }
 
