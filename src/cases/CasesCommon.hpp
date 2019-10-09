@@ -24,7 +24,7 @@ namespace setup
   // TODO: make forcing functions part of case class
   struct ForceParameters_t
   {
-    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, u_fric, coriolis_parameter;
+    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, coriolis_parameter;
     bool surf_latent_flux_in_watts_per_square_meter;
     bool surf_sensible_flux_in_watts_per_square_meter;
   };
@@ -160,6 +160,12 @@ namespace setup
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
 
+    virtual void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv,
+                               blitz::Array<real_t, n_dims>  uv_ground,   
+                               blitz::Array<real_t, n_dims>  U_ground,   
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    {if(timestep==0) surf_flux_uv = 0.;};
+
     // ctor
     // TODO: these are DYCOMS definitions, move them there
     CasesCommon()
@@ -169,7 +175,6 @@ namespace setup
       ForceParameters.F_1 = 22; // w/m^2
       ForceParameters.q_i = 8e-3; // kg/kg
       ForceParameters.rho_i = 1.12; // kg/m^3
-      ForceParameters.u_fric = 0.25; // m/s; friction velocity
       ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
       ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
       ForceParameters.coriolis_parameter = 0.;
