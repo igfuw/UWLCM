@@ -311,24 +311,15 @@ namespace setup
       }
 
       // one function for updating u or v
+      // the n_dims arrays have vertical extent of 1 - ground calculations only in here
       void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
-                               blitz::Array<real_t, n_dims-1>  uv_ground, // value of u or v on the ground
-                               blitz::Array<real_t, n_dims-1>  U_ground, // magnitude of horizontal ground wind
+                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
+                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
-        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-        {
-          auto flux_value = RF == 1 ? 115. : 93.; // [W/m^2]
-          if (!case_ct_params_t::enable_sgs)
-          {
-            surf_flux_lat = flux_value;
-          }
-          else // for simulations with sgs scheme convert surface flux to required sign convention and units
-          {
-            auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-            surf_flux_lat = -flux_value / conv_fctr_lat; // [kg / (m^2 * s)]
-          }
-        }
+        surf_flux_uv = where(U_ground == 0., 0.,
+            - 0.0625 * uv_ground / U_ground // 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s
+          );
       }
 
       // ctor

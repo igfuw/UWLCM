@@ -262,6 +262,18 @@ namespace setup
         }
       }
 
+      // one function for updating u or v
+      // the n_dims arrays have vertical extent of 1 - ground calculations only in here
+      void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
+                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
+                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+      {
+        surf_flux_uv = where(U_ground == 0., 0.,
+            - 0.0784 * uv_ground / U_ground // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+          );
+      }
+
 
       // ctor
       LasherTrapp2001Common()
@@ -275,7 +287,6 @@ namespace setup
         this->n2_stp = real_t(5*65e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
         this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
-        this->ForceParameters.u_fric = 0.28;
         this->Z = Z;
       }
     };

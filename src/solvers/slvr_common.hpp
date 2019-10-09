@@ -27,7 +27,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   //       either remove it and use profiling tools (e.g. vtune)
   //       or add some compile-time flag to turn it off
   clock::time_point tbeg, tend, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tvip_rhs, tnondelayed_step;
+  std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tnondelayed_step;
 
   int spinup; // number of timesteps
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
@@ -46,10 +46,8 @@ class slvr_common : public slvr_dim<ct_params_t>
                                          surf_flux_lat,
                                          surf_flux_u,
                                          surf_flux_v,
-                                         surf_flux_zero; // zero-filled array, find a way to avoid this
-
-  // horizontal velocity magnitude at ground level
-  blitz::Array<real_t, parent_t::n_dims-1> U_ground;
+                                         surf_flux_zero, // zero-filled array, find a way to avoid this
+                                         U_ground; 
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -129,7 +127,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters F_1", params.ForceParameters.F_1);  
       this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);  
       this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
-      this->record_aux_const("ForceParameters u_fric", params.ForceParameters.u_fric);  
       this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
       this->record_aux_const("ForceParameters surf_latent_flux_in_watts_per_square_meter", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
       this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
@@ -151,10 +148,24 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
  
     // initialize surf fluxes with timestep==0
+    U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
     params.update_surf_flux_sens(surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
     params.update_surf_flux_lat(surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
-    params.update_surf_flux_uv(surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
-    params.update_surf_flux_uv(surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
+    params.update_surf_flux_uv(
+      surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
+      this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
+      U_ground(this->hrzntl_slice(0)).reindex(this->origin),
+      0, this->dt, this->di, this->dj
+    );
+    if(parent_t::n_dims==3)
+    {
+      params.update_surf_flux_uv(
+        surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
+        this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
+        U_ground(this->hrzntl_slice(0)).reindex(this->origin),
+        0, this->dt, this->di, this->dj
+      );
+    }
   }
 
   void hook_ante_step()
@@ -185,9 +196,11 @@ class slvr_common : public slvr_dim<ct_params_t>
   void surf_latent_impl(smg_tag);
   void surf_latent_impl(iles_tag);
 
-  // same for sgs and iles
-  void surf_u_impl();
-  void surf_v_impl();
+  void surf_u_impl(smg_tag);
+  void surf_u_impl(iles_tag);
+
+  void surf_v_impl(smg_tag);
+  void surf_v_impl(iles_tag);
 
   void surf_sens();
   void surf_latent();
@@ -248,45 +261,27 @@ class slvr_common : public slvr_dim<ct_params_t>
 
             // Coriolis
             coriolis((type+1) % this->hori_vel.size());
-            if(type == ix::u)
+            if(type == ix::vip_i)
               rhs.at(type)(ijk) += F(ijk);
-            else
+            else if(type == ix::vip_j)
               rhs.at(type)(ijk) -= F(ijk);
           }
 
           // surface flux
           if(params.friction)
           {
-            U_ground = this->calc_U_ground();
+            U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
             for(auto type : this->hori_vel)
             {
-              if(type == ix::u)
+              if(type == ix::vip_i)
                 surf_u();
-              else
+              else if(type == ix::vip_j)
                 surf_v();
               rhs.at(type)(ijk) += F(ijk);
             }
           }
         }
 
-    // =====================================
-            /*
-            // kinematic momentum flux  = -u_fric^2 * u_i / |U| * exponential decay
-            U_ground = this->calc_U_ground();
-        
-            // loop over horizontal dimensions
-            for(int it = 0; it < parent_t::n_dims-1; ++it)
-            {
-              this->vip_rhs[it](this->ijk).reindex(this->zero) += 
-                where(U_ground(blitz::tensor::i, blitz::tensor::j) == 0., 0., 
-                  -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
-                  this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
-                  U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-                  (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
-                );
-            }
-            */
-    // =====================================
         break;
       }
       case (1):
@@ -405,7 +400,6 @@ class slvr_common : public slvr_dim<ct_params_t>
         std::cout <<  "wall time in milliseconds: " << std::endl
           << "loop: " << tloop.count() << std::endl
           << "custom rhs update: " << tupdate.count() << " ("<< setup::real_t(tupdate.count())/tloop.count()*100 <<"%)" << std::endl
-          << "custom vip_rhs: " << tvip_rhs.count() << " ("<< setup::real_t(tvip_rhs.count())/tloop.count()*100 <<"%)" << std::endl
           << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
           << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
           << "nondelayed step: " << tnondelayed_step.count() << " ("<< setup::real_t(tnondelayed_step.count())/tloop.count()*100 <<"%)" << std::endl
@@ -455,7 +449,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens;
     std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_lat;
-    std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
+    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
   };
 
   // per-thread copy of params
@@ -479,18 +473,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
     surf_flux_zero(args.mem->tmp[__FILE__][1][2]),
-    surf_flux_u(args.mem->tmp[__FILE__][1][3]),
-    surf_flux_v(args.mem->tmp[__FILE__][1][4])
+    U_ground(args.mem->tmp[__FILE__][1][3]),
+    surf_flux_u(args.mem->tmp[__FILE__][1][4]),
+    surf_flux_v(args.mem->tmp[__FILE__][1][5]) // flux_v needs to be last
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
-/*
-    for(auto&& surf_flux : surf_fluxes)
-    {
-      surf_flux.resize(this->shape(this->hrzntl_subdomain));
-      surf_flux.reindexSelf(this->hrzntl_origin);
-    }
-    */
-    U_ground.resize(this->shape(this->hrzntl_subdomain));
     r_l = 0.;
     surf_flux_zero = 0.;
   }
@@ -499,6 +486,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 7); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux
-    parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+1, "", true); // surf_flux sens/lat/hori_vel/zero
+    parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+2, "", true); // surf_flux sens/lat/hori_vel/zero, U_ground
   }
 };
