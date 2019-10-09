@@ -218,6 +218,8 @@ namespace setup
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
+
+        parent_t::env_prof(profs, nz, user_params);
   
         // temp profile
         arr_1D_t T(nz);
