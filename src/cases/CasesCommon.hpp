@@ -178,6 +178,7 @@ namespace setup
       ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
       ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
       ForceParameters.coriolis_parameter = 0.;
+      ForceParameters.D = 0.; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
       X = 0 * si::metres;
       Y = 0 * si::metres;
       Z = 0 * si::metres;

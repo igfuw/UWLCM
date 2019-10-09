@@ -333,7 +333,7 @@ namespace setup
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
-        this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
+        this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
         this->Z = Z;
       }
     };
