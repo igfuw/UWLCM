@@ -185,11 +185,9 @@ class slvr_common : public slvr_dim<ct_params_t>
   void surf_latent_impl(smg_tag);
   void surf_latent_impl(iles_tag);
 
-  void surf_u_impl(smg_tag);
-  void surf_u_impl(iles_tag);
-
-  void surf_v_impl(smg_tag);
-  void surf_v_impl(iles_tag);
+  // same for sgs and iles
+  void surf_u_impl();
+  void surf_v_impl();
 
   void surf_sens();
   void surf_latent();
@@ -262,7 +260,10 @@ class slvr_common : public slvr_dim<ct_params_t>
             U_ground = this->calc_U_ground();
             for(auto type : this->hori_vel)
             {
-          //    surf_uv(type);
+              if(type == ix::u)
+                surf_u();
+              else
+                surf_v();
               rhs.at(type)(ijk) += F(ijk);
             }
           }
