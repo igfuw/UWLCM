@@ -14,10 +14,10 @@ namespace setup
     quantity<si::pressure, real_t> p_0 = -10 * si::pascals; 
 
     // liquid water potential temperature at height z
-    virtual quantity<si::temperature, real_t> th_l(const real_t &z) =0;
+    virtual quantity<si::temperature, real_t> th_l(const real_t &z) {throw std::runtime_error("base Anelastic class th_l called");}
 
     // water mixing ratio at height z
-    virtual quantity<si::dimensionless, real_t> r_t(const real_t &z) =0;
+    virtual quantity<si::dimensionless, real_t> r_t(const real_t &z) {throw std::runtime_error("base Anelastic class r_t called");}
 
     // calculate the initial environmental theta and rv profiles
     // like in Wojtek's BabyEulag

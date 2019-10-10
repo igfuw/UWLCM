@@ -1,7 +1,7 @@
 #pragma once
 #include <random>
 #include <fstream>
-#include "CasesCommon.hpp"
+#include "Anelastic.hpp"
 #include "LasherTrapp2001_sounding/x7221545.adjdec2.hpp"
 
 namespace setup 
@@ -32,11 +32,11 @@ namespace setup
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
 
     template<class case_ct_params_t, int n_dims>
-    class LasherTrapp2001Common : public CasesCommon<case_ct_params_t, n_dims>
+    class LasherTrapp2001Common : public Anelastic<case_ct_params_t, n_dims>
     {
 
       protected:
-      using parent_t = CasesCommon<case_ct_params_t, n_dims>;
+      using parent_t = Anelastic<case_ct_params_t, n_dims>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -198,34 +198,14 @@ namespace setup
         profs.rl_e = 0;
         profs.th_e = th_std_env; // temp to calc rhod
   
-        // compute reference state theta and rhod
-        blitz::firstIndex k;
-        // calculate average stability
-        blitz::Range notopbot(1, nz-2);
-        arr_1D_t st(nz);
-        st=0;
-        st(notopbot) = (profs.th_e(notopbot+1) - profs.th_e(notopbot-1)) / profs.th_e(notopbot);
-        real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
-        // reference theta
-        profs.th_ref = profs.th_e(0) * exp(st_avg * k * dz);
-        // virtual temp at surface
-        using libcloudphxx::common::moist_air::R_d_over_c_pd;
-        using libcloudphxx::common::moist_air::c_pd;
-        using libcloudphxx::common::moist_air::R_d;
-        using libcloudphxx::common::theta_std::p_1000;
-  
-        real_t T_surf = profs.th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
-        real_t T_virt_surf = T_surf * (1. + 0.608 * profs.rv_e(0));
-        real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
-        real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
-        // rhod profsile
-        profs.rhod = rho_surf * exp(- st_avg * k * dz) * pow(
-                     1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
+        // calc reference profiles
+        this->ref_prof(profs, nz);
 
         profs.th_e = th_dry_env; // actual env profsile of theta_dry
   
         // calc divergence directly
         real_t z_0 = z_rlx / si::metres;
+        blitz::firstIndex k;
         profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
 
         profs.w_LS = 0.; // no subsidence
@@ -278,6 +258,7 @@ namespace setup
       // ctor
       LasherTrapp2001Common()
       {
+        this->p_0 = p_0;
         //aerosol bimodal lognormal dist. - DYCOMS
         this->mean_rd1 = real_t(.011e-6) * si::metres,
         this->mean_rd2 = real_t(.06e-6) * si::metres;
