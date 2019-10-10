@@ -183,7 +183,7 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params) override
+      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params) override
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -194,6 +194,7 @@ namespace setup
         blitz::firstIndex k;
         real_t dz = (this->Z / si::metres) / (nz-1);
 
+        parent_t::set_profs(profs, nz, user_params);
         parent_t::env_prof(profs, nz, user_params);
 
         // subsidence rate
@@ -343,9 +344,9 @@ namespace setup
         solver.vab_relaxed_state(1) = solver.advectee(ix::v);
       }
 
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
       {
-        parent_t::env_prof(profs, nz, user_params);
+        parent_t::set_profs(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile
         blitz::firstIndex k;
         typename parent_t::u u;

@@ -78,7 +78,7 @@ namespace setup
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        // we assume here that env_prof was called already, so that *_env profiles are initialized
+        // we assume here that set_profs was called already, so that *_env profiles are initialized
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
@@ -122,7 +122,7 @@ namespace setup
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -130,7 +130,7 @@ namespace setup
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
 
-        parent_t::env_prof(profs, nz, user_params);
+        parent_t::set_profs(profs, nz, user_params);
 
         // read the soundings
         // containers for soundings
