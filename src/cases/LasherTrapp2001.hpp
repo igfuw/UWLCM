@@ -1,7 +1,7 @@
 #pragma once
 #include <random>
 #include <fstream>
-#include "CasesCommon.hpp"
+#include "Anelastic.hpp"
 #include "LasherTrapp2001_sounding/x7221545.adjdec2.hpp"
 
 namespace setup 
@@ -32,11 +32,11 @@ namespace setup
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
 
     template<class case_ct_params_t, int n_dims>
-    class LasherTrapp2001Common : public CasesCommon<case_ct_params_t, n_dims>
+    class LasherTrapp2001Common : public Anelastic<case_ct_params_t, n_dims>
     {
 
       protected:
-      using parent_t = CasesCommon<case_ct_params_t, n_dims>;
+      using parent_t = Anelastic<case_ct_params_t, n_dims>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -78,7 +78,7 @@ namespace setup
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        // we assume here that env_prof was called already, so that *_env profiles are initialized
+        // we assume here that set_profs was called already, so that *_env profiles are initialized
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
@@ -122,7 +122,7 @@ namespace setup
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -130,7 +130,7 @@ namespace setup
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
 
-        parent_t::env_prof(profs, nz, user_params);
+        parent_t::set_profs(profs, nz, user_params);
 
         // read the soundings
         // containers for soundings
@@ -198,34 +198,14 @@ namespace setup
         profs.rl_e = 0;
         profs.th_e = th_std_env; // temp to calc rhod
   
-        // compute reference state theta and rhod
-        blitz::firstIndex k;
-        // calculate average stability
-        blitz::Range notopbot(1, nz-2);
-        arr_1D_t st(nz);
-        st=0;
-        st(notopbot) = (profs.th_e(notopbot+1) - profs.th_e(notopbot-1)) / profs.th_e(notopbot);
-        real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
-        // reference theta
-        profs.th_ref = profs.th_e(0) * exp(st_avg * k * dz);
-        // virtual temp at surface
-        using libcloudphxx::common::moist_air::R_d_over_c_pd;
-        using libcloudphxx::common::moist_air::c_pd;
-        using libcloudphxx::common::moist_air::R_d;
-        using libcloudphxx::common::theta_std::p_1000;
-  
-        real_t T_surf = profs.th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
-        real_t T_virt_surf = T_surf * (1. + 0.608 * profs.rv_e(0));
-        real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287
-        real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf;
-        // rhod profsile
-        profs.rhod = rho_surf * exp(- st_avg * k * dz) * pow(
-                     1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
+        // calc reference profiles
+        this->ref_prof(profs, nz);
 
         profs.th_e = th_dry_env; // actual env profsile of theta_dry
   
         // calc divergence directly
         real_t z_0 = z_rlx / si::metres;
+        blitz::firstIndex k;
         profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
 
         profs.w_LS = 0.; // no subsidence
@@ -262,9 +242,23 @@ namespace setup
         }
       }
 
+      // one function for updating u or v
+      // the n_dims arrays have vertical extent of 1 - ground calculations only in here
+      void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
+                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
+                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+      {
+        surf_flux_uv = where(U_ground == 0., 0.,
+            - 0.0784 * uv_ground / U_ground // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+          );
+      }
+
+
       // ctor
       LasherTrapp2001Common()
       {
+        this->p_0 = p_0;
         //aerosol bimodal lognormal dist. - DYCOMS
         this->mean_rd1 = real_t(.011e-6) * si::metres,
         this->mean_rd2 = real_t(.06e-6) * si::metres;
@@ -274,7 +268,6 @@ namespace setup
         this->n2_stp = real_t(5*65e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
         this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
-        this->ForceParameters.u_fric = 0.28;
         this->Z = Z;
       }
     };
