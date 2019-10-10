@@ -10,6 +10,7 @@
 #include "detail/ct_params.hpp"
 
 #include "cases/DYCOMS.hpp"
+#include "cases/RICO11.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/LasherTrapp2001.hpp"
@@ -72,6 +73,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
+  else if (user_params.model_case == "rico11")
+    case_ptr.reset(new setup::rico::Rico11<case_ct_params_t, n_dims>());
   else
     throw std::runtime_error("wrong case choice");
 

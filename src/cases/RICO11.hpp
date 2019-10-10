@@ -1,11 +1,10 @@
 // RICO trade cumulus based on 
 // http://projects.knmi.nl/rico/setup3d.html
 // https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2011MS000056
-// TODO: a lot in common with Dycoms case (profile setting) - move to a common file
 
 #pragma once
 #include <random>
-#include "CasesCommon.hpp"
+#include "Anelastic.hpp"
 
 namespace setup 
 {
@@ -27,47 +26,63 @@ namespace setup
     const real_t z_abs = 3500;
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
-    template<class concurr_t>
-    class Rico11Common : public CasesCommon<concurr_t>
+
+    quantity<si::temperature, real_t> th_l_rico(const real_t &z)
+    {
+      quantity<si::temperature, real_t> ret;
+      ret = z < 740. ?
+        297.9 * si::kelvins : 
+        (297.9 + (317. - 297.9)/(4000. - 740) * (z-740)) * si::kelvins;
+      return ret;
+    }
+
+    quantity<si::dimensionless, real_t> r_t_rico(const real_t &z)
+    {
+      const quantity<si::dimensionless, real_t> q_t = z < 740 ?
+        (16 + (13.8 - 16) / 740. * z) * 1e-3 : 
+        z < 3260 ?
+          (13.8 + (2.4 - 13.8) / (3260 - 740) * (z-740)) * 1e-3 :
+          (2.4 + (1.8 - 2.4) / (4000 - 3260) * (z-3260)) * 1e-3;
+      return q_t;
+    }
+
+    template<class case_ct_params_t, int n_dims>
+    class Rico11Common : public Anelastic<case_ct_params_t, n_dims>
     {
       protected:
+      using parent_t = Anelastic<case_ct_params_t, n_dims>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
 
-      // liquid water potential temperature at height z
-      quantity<si::temperature, real_t> th_l(const real_t &z)
+      quantity<si::temperature, real_t> th_l(const real_t &z) override
       {
-        quantity<si::temperature, real_t> ret;
-        ret = z < 740. ?
-          297.9 * si::kelvins : 
-          (297.9 + (317. - 297.9)/(4000. - 740) * (z-740)) * si::kelvins;
-        return ret;
+        return th_l_rico(z);
       }
-    
+
+      quantity<si::dimensionless, real_t> r_t(const real_t &z) override
+      {
+        return r_t_rico(z);
+      }
+
       // water mixing ratio at height z
-      struct r_t
+      struct r_t_fctr
       {
         quantity<si::dimensionless, real_t> operator()(const real_t &z) const
         {
-          const quantity<si::dimensionless, real_t> q_t = z < 740 ?
-            (16 + (13.8 - 16) / 740. * z) * 1e-3 : 
-            z < 3260 ?
-              (13.8 + (2.4 - 13.8) / (3260 - 740) * (z-740)) * 1e-3 :
-              (2.4 + (1.8 - 2.4) / (4000 - 3260) * (z-3260)) * 1e-3;
-          return q_t;
+          return r_t_rico(z);
         }
-        BZ_DECLARE_FUNCTOR(r_t);
+        BZ_DECLARE_FUNCTOR(r_t_fctr);
       };
-    
+
       // initial dry air potential temp at height z, assuming theta_std = theta_l (spinup needed)
-      /*
-      struct th_dry_fctr
+      struct th_std_fctr
       {
         real_t operator()(const real_t &z) const
         {
-          return th_l(z) / si::kelvins;
+          return th_l_rico(z) / si::kelvins;
         }
-        BZ_DECLARE_FUNCTOR(th_dry_fctr);
+        BZ_DECLARE_FUNCTOR(th_std_fctr);
       };
-  */
     
       // westerly wind
       struct u
@@ -157,19 +172,20 @@ namespace setup
         params.friction = true;
         params.coriolis = true;
         params.radiation = false;
+
+        this->setopts_sgs(params);
       }
   
   
   
       template <class index_t>
-      void intcond_hlpr(concurr_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        using ix = typename concurr_t::solver_t::ix;
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
   
-        solver.advectee(ix::rv) = r_t()(index * dz); 
-        solver.advectee(ix::u)= u()(index * dz);
+        solver.advectee(ix::rv) = r_t_fctr{}(index * dz); 
+        solver.advectee(ix::u)= u{}(index * dz);
         solver.advectee(ix::w) = 0;  
        
         // absorbers
@@ -181,7 +197,7 @@ namespace setup
         solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
   
         // initial potential temperature
-        solver.advectee(ix::th) = th_dry_fctr()(index * dz); 
+        solver.advectee(ix::th) = th_std_fctr{}(index * dz); 
 
         // randomly prtrb tht
         std::mt19937 gen(rng_seed);
@@ -218,95 +234,12 @@ namespace setup
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
 
-        parent_t::set_profs(profs, nz, user_params);
-  
-        // temp profile
-        arr_1D_t T(nz);
-        real_t dz = (Z / si::metres) / (nz-1);
-  
-        r_t rt;
-        // input sounding at z=0, for moist air, no liquid water
-        T(0) = th_l(0.) / si::kelvins *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
-        profs.p_e(0) = p_0 / si::pascals;
-        profs.th_e(0) = th_l(0.) / si::kelvins;
-        profs.rv_e(0) = rt(0.);
-        profs.rl_e(0) = 0.;
-  
-        real_t tt0 = 273.17;
-        real_t rv = 461; // specific gas constant for vapor
-        real_t ee0 = 611.;
-        real_t a = R_d<real_t>() / rv / si::joules * si::kelvins * si::kilograms; // aka epsilon
-        real_t b = l_tri<real_t>() / si::joules * si::kilograms / rv / tt0;
-        real_t c = l_tri<real_t>() / c_pd<real_t>() / si::kelvins;
-        real_t d = l_tri<real_t>() / si::joules * si::kilograms / rv;
-        real_t f = R_d_over_c_pd<real_t>(); 
-
-        real_t lwp_env = 0;
-  
-        for(int k=1; k<nz; ++k)
-        {
-          real_t bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * profs.rv_e(k-1)); // (p / rho) of moist air at k-1
-          real_t rho1 = profs.p_e(k-1) / bottom; // rho at k-1
-          profs.p_e(k) = profs.p_e(k-1) - rho1 * 9.81 * dz; // estimate of pre at k (dp = -g * rho * dz)
-          real_t thetme = pow(p_1000<real_t>() / si::pascals / profs.p_e(k), f); // 1/Exner
-          real_t thi = 1. / (th_l(k * dz) / si::kelvins); // 1/theta_std
-          real_t y = b * thetme * tt0 * thi; 
-          real_t ees = ee0 * exp(b-y); // saturation vapor pressure (Tetens equation or what?)
-          real_t qvs = a * ees / (profs.p_e(k) - ees);  // saturation vapor mixing ratio = R_d / R_v * ees / p_d
-// calculate linearized condensation rate
-          real_t cf1 = thetme*thetme*thi*thi;  // T^{-2}
-          cf1 *= c * d * profs.p_e(k) / (profs.p_e(k) - ees); // = l_tri^2 / (C_pd * R_v * T^2) * p/p_d
-          real_t delta = (rt(k*dz) - qvs) / (1 + qvs * cf1); // how much supersaturated is the air (divided by sth)
-          if(delta < 0.) delta = 0.;
-          profs.rv_e(k) = rt(k*dz) - delta;
-          profs.rl_e(k) = delta;
-          profs.th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
-          T(k) = profs.th_e(k) * pow(profs.p_e(k) / (p_1000<real_t>() / si::pascals),  f);
-
-          bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k) * (1 + 0.61 * profs.rv_e(k)); // (p / rho) of moist air at k-1
-          rho1 = profs.p_e(k) / bottom; // rho at k-1
-          lwp_env  += delta * rho1;
-        }
-        lwp_env = lwp_env * 5  * 1e3;
-  
-        // compute reference state theta and rhod
         blitz::firstIndex k;
-        // calculate average stability
-        blitz::Range notopbot(1, nz-2);
-        arr_1D_t st(nz);
-        st=0;
-        st(notopbot) = (profs.th_e(notopbot+1) - profs.th_e(notopbot-1)) / profs.th_e(notopbot);
-        real_t st_avg = blitz::sum(st) / (nz-2) / (2.*dz);
-        // reference theta
-        profs.th_ref = profs.th_e(0) * (1. + 0.608 * profs.rv_e(0)) * exp(st_avg * k * dz);
-      //  th_ref = th_e(0) * pow(1 + rv_e(0) / a, f) // calc dry theta at z=0 
-      //           * exp(st_avg * k * dz);
-        // virtual temp at surface
-        using libcloudphxx::common::moist_air::R_d_over_c_pd;
-        using libcloudphxx::common::moist_air::c_pd;
-        using libcloudphxx::common::moist_air::R_d;
-        using libcloudphxx::common::theta_std::p_1000;
-  
-        real_t T_surf = profs.th_e(0) *  pow(p_0 / p_1000<real_t>(),  R_d_over_c_pd<real_t>());
+        real_t dz = (this->Z / si::metres) / (nz-1);
 
-        real_t T_virt_surf = T_surf * (1. + 0.608 * profs.rv_e(0));
-        real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287, its the total, not dry density!
-//        rho_surf /= (1 + rv_e(0)); // turn it into dry air density! TODO: is this correct? TODO2: approp change in the paper
-
-     //   real_t rho_surf = (p_0 / si::pascals) / T_surf / (1. + 29. / 18. * rv_e(0)) / 287. ; // dry air density at the surface TODO: R_d instead of 287
-
-        // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf; // this is from Wojtek
-         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg
-                          / (profs.th_e(0)  * (1. + 0.608 * profs.rv_e(0))); 
-        // rhod profile
-        profs.rhod = rho_surf * exp(- st_avg * k * dz) * pow(
-                      1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
-
-
-        // theta_std env prof to theta_dry_e
-//        for(int k=1; k<nz; ++k)
-  //        th_e(k) = theta_dry::std2dry<real_t>(th_e(k) * si::kelvins, quantity<si::dimensionless, real_t>(rv_e(k))) / si::kelvins;
-
+        parent_t::set_profs(profs, nz, user_params);
+        parent_t::env_prof(profs, nz);
+        parent_t::ref_prof(profs, nz);
   
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
@@ -336,6 +269,7 @@ namespace setup
       // ctor
       Rico11Common()
       {
+        this->p_0 = p_0;
         this->mean_rd1 = real_t(.03e-6) * si::metres,
         this->mean_rd2 = real_t(.14e-6) * si::metres;
         this->sdev_rd1 = real_t(1.28),
@@ -348,13 +282,17 @@ namespace setup
       }
     };
     
-    template<class concurr_t, int n_dims>
+    template<class case_ct_params_t, int n_dims>
     class Rico11;
 
-    template<class concurr_t>
-    class Rico11<concurr_t, 2> : public Rico11Common<concurr_t>
+    template<class case_ct_params_t>
+    class Rico11<case_ct_params_t, 2> : public Rico11Common<case_ct_params_t, 2>
     {
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      using parent_t = Rico11Common<case_ct_params_t, 2>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -362,11 +300,10 @@ namespace setup
         params.dz = params.dj;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
         this->make_cyclic(solver.advectee(ix::th));
       }
 
@@ -377,9 +314,13 @@ namespace setup
       }
     };
 
-    template<class concurr_t>
-    class Rico11<concurr_t, 3> : public Rico11Common<concurr_t>
+    template<class case_ct_params_t>
+    class Rico11<case_ct_params_t, 3> : public Rico11Common<case_ct_params_t, 3>
     {
+      using parent_t = Rico11Common<case_ct_params_t, 3>;
+      using ix = typename case_ct_params_t::ix;
+      using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       // southerly wind
       struct v
       {
@@ -390,7 +331,7 @@ namespace setup
         BZ_DECLARE_FUNCTOR(v);
       };
 
-      void setopts(typename concurr_t::solver_t::rt_params_t &params, const int nps[], const user_params_t &user_params)
+      void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
         params.di = (X / si::metres) / (nps[0]-1); 
@@ -399,11 +340,10 @@ namespace setup
         params.dz = params.dk;
       }
 
-      void intcond(concurr_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      void intcond(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        using ix = typename concurr_t::solver_t::ix;
         this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
@@ -420,7 +360,7 @@ namespace setup
         blitz::firstIndex k;
         typename parent_t::u u;
         real_t dz = (Z / si::metres) / (nz-1);
-        profs.geostr[0] = u()(k * dz);
+        profs.geostr[0] = u(k * dz);
         profs.geostr[1] = v()(k * dz);
       }
 
