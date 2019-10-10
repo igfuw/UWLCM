@@ -10,6 +10,7 @@
 #include "detail/ct_params.hpp"
 
 #include "cases/DYCOMS.hpp"
+#include "cases/RICO11.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/LasherTrapp2001.hpp"
@@ -72,6 +73,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
+  else if (user_params.model_case == "rico11")
+    case_ptr.reset(new setup::rico::Rico11<case_ct_params_t, n_dims>());
   else
     throw std::runtime_error("wrong case choice");
 
@@ -82,8 +85,9 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   p.ForceParameters = case_ptr->ForceParameters;
 
   // copy functions used to update surface fluxes
-  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+  p.update_surf_flux_lat  = std::bind(&case_t::update_surf_flux_lat,  case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+  p.update_surf_flux_uv   = std::bind(&case_t::update_surf_flux_uv,   case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7);
 
   // copy user_params for output
   p.user_params = user_params;
@@ -101,7 +105,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(profs, nz, user_params);
+  case_ptr->set_profs(profs, nz, user_params);
   // pass them to rt_params
   setup::copy_profiles(profs, p);
 
