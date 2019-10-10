@@ -195,7 +195,8 @@ namespace setup
         real_t dz = (this->Z / si::metres) / (nz-1);
 
         parent_t::set_profs(profs, nz, user_params);
-        parent_t::env_prof(profs, nz, user_params);
+        parent_t::env_prof(profs, nz);
+        parent_t::ref_prof(profs, nz);
 
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
