@@ -27,7 +27,7 @@ namespace setup
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
 
-    quantity<si::temperature, real_t> th_l_rico(const real_t &z)
+    inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
       quantity<si::temperature, real_t> ret;
       ret = z < 740. ?
@@ -36,7 +36,7 @@ namespace setup
       return ret;
     }
 
-    quantity<si::dimensionless, real_t> r_t_rico(const real_t &z)
+    inline quantity<si::dimensionless, real_t> r_t_rico(const real_t &z)
     {
       const quantity<si::dimensionless, real_t> q_t = z < 740 ?
         (16 + (13.8 - 16) / 740. * z) * 1e-3 : 
@@ -264,6 +264,16 @@ namespace setup
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_lat = 93.; // [W/m^2]
+      }
+
+      // one function for updating u or v
+      // the n_dims arrays have vertical extent of 1 - ground calculations only in here
+      void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
+                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
+                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+      {
+        surf_flux_uv = - 0.0625 * uv_ground * U_ground; // 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s
       }
 
       // ctor
