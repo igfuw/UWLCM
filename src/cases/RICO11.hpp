@@ -210,7 +210,7 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: same in DYCOMS (and others?), move to a common function
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -218,7 +218,7 @@ namespace setup
         using libcloudphxx::common::const_cp::l_tri;
         using libcloudphxx::common::theta_std::p_1000;
 
-        parent_t::env_prof(profs, nz, user_params);
+        parent_t::set_profs(profs, nz, user_params);
   
         // temp profile
         arr_1D_t T(nz);
@@ -413,9 +413,9 @@ namespace setup
         solver.vab_relaxed_state(1) = solver.advectee(ix::v);
       }
 
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
       {
-        parent_t::env_prof(profs, nz, user_params);
+        parent_t::set_profs(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile
         blitz::firstIndex k;
         typename parent_t::u u;

@@ -84,14 +84,14 @@ namespace setup
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
       // like in Wojtek's BabyEulag
-      void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::theta_std::p_1000;
         using libcloudphxx::common::moist_air::R_d;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
 
-        parent_t::env_prof(profs, nz, user_params);
+        parent_t::set_profs(profs, nz, user_params);
        
         profs.rhod = 1;
         profs.th_e = 300;
