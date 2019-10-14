@@ -3,7 +3,6 @@
 	<Domain>
 		<Grid Name="TimeGrid" GridType="Collection" CollectionType="Temporal">
 			<xi:include href="timestep0000000000.xmf" xpointer="gid"/>
-			<xi:include href="timestep0000000000.xmf" xpointer="gid"/>
 		</Grid>
 	</Domain>
 </Xdmf>
