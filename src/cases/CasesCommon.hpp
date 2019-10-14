@@ -167,6 +167,7 @@ namespace setup
     virtual void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv,
                                blitz::Array<real_t, n_dims>  uv_ground,   
                                blitz::Array<real_t, n_dims>  U_ground,   
+                               const real_t &U_ground_z,
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
 

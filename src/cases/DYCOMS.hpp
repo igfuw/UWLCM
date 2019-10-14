@@ -249,6 +249,7 @@ namespace setup
       void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
+                               const real_t &U_ground_z,
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         surf_flux_uv = where(U_ground == 0., 0.,

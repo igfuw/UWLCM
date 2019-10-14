@@ -154,7 +154,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     params.update_surf_flux_uv(
       surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
-      U_ground(this->hrzntl_slice(0)).reindex(this->origin),
+      U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
       0, this->dt, this->di, this->dj
     );
     if(parent_t::n_dims==3)
@@ -162,7 +162,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       params.update_surf_flux_uv(
         surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
         this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
-        U_ground(this->hrzntl_slice(0)).reindex(this->origin),
+        U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
         0, this->dt, this->di, this->dj
       );
     }
@@ -449,7 +449,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens;
     std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_lat;
-    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
+    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
   };
 
   // per-thread copy of params
