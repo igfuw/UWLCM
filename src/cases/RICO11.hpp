@@ -5,6 +5,7 @@
 #pragma once
 #include <random>
 #include "Anelastic.hpp"
+#include "formulas.hpp"
 
 namespace setup 
 {
@@ -271,9 +272,10 @@ namespace setup
       void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
+                               const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
-        surf_flux_uv = - 0.0625 * uv_ground * U_ground; // 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s
+        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * uv_ground * U_ground;
       }
 
       // ctor
