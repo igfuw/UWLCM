@@ -254,20 +254,21 @@ namespace setup
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
-                                 blitz::Array<real_t, n_dims> uv_ground,    // value of u or v on the ground
+                                 blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
                                  blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
                                  const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
-        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-          surf_flux_sens = 16.; // [W/m^2]
+        surf_flux_sens = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0);
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
+                                 blitz::Array<real_t, n_dims> rt_ground,    // value of r_t on the ground
+                                 blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
+                                 const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
-        if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
-          surf_flux_lat = 93.; // [W/m^2]
+        surf_flux_lat = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (qt_ground - qsat_0);
       }
 
       // one function for updating u or v
@@ -278,7 +279,7 @@ namespace setup
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
-        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * uv_ground * U_ground;
+        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * uv_ground;
       }
 
       // ctor
@@ -291,6 +292,8 @@ namespace setup
         this->sdev_rd2 = real_t(1.75);
         this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
+        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
+        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
         this->X = X;
         this->Z = Z;
