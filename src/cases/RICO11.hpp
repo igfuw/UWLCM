@@ -254,6 +254,9 @@ namespace setup
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
+                                 blitz::Array<real_t, n_dims> uv_ground,    // value of u or v on the ground
+                                 blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
+                                 const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
