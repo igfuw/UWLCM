@@ -214,8 +214,11 @@ namespace setup
       }
 
       // functions that set surface fluxes per timestep
-      void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens, 
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+      void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
+                                       blitz::Array<real_t, n_dims> th_ground,   
+                                       blitz::Array<real_t, n_dims> U_ground,   
+                                       const real_t &U_ground_z,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         if(timestep == 0) 
           surf_flux_sens = .1; // [K * m/s]
@@ -229,7 +232,10 @@ namespace setup
       }
       
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+                                       blitz::Array<real_t, n_dims> qt_ground,   
+                                       blitz::Array<real_t, n_dims> U_ground,   
+                                       const real_t &U_ground_z,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         if(timestep == 0)
           surf_flux_lat = .4e-4; // [1/s]

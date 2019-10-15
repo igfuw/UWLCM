@@ -12,16 +12,16 @@ namespace setup
   namespace rico
   {
     namespace hydrostatic = libcloudphxx::common::hydrostatic;
-    namespace theta_std  = libcloudphxx::common::theta_std;
-    namespace theta_dry  = libcloudphxx::common::theta_dry;
-    namespace lognormal  = libcloudphxx::common::lognormal;
-    namespace const_cp   = libcloudphxx::common::const_cp;
+    namespace theta_std   = libcloudphxx::common::theta_std;
+    namespace theta_dry   = libcloudphxx::common::theta_dry;
+    namespace lognormal   = libcloudphxx::common::lognormal;
+    namespace const_cp    = libcloudphxx::common::const_cp;
 
   
     const quantity<si::pressure, real_t> 
       p_0 = 101540 * si::pascals;
     const quantity<si::temperature, real_t> 
-      T_SST = 299.8 * si::kelvins;
+      T_SST = real_t(299.8) * si::kelvins;
     const quantity<si::length, real_t> 
       z_0  = 0    * si::metres,
       Z    = 4000 * si::metres, 
@@ -263,7 +263,6 @@ namespace setup
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
-        std::cerr << "rico th_0 = " << th_0 << std::endl;
         surf_flux_sens = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0);
       }
 
@@ -273,7 +272,7 @@ namespace setup
                                  const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
-        static const real_t rsat_0 = common::const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
+        static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
         surf_flux_lat = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0);
       }
 
