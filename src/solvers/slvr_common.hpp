@@ -231,6 +231,9 @@ class slvr_common : public slvr_dim<ct_params_t>
       // for eulerian integration or used to init trapezoidal integration
       case (0):
       {
+        // calculate surface wind magnitude, TODO: not needed if there are no surface fluxes
+        U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
+
         // ---- water vapor sources ----
         rv_src();
         rhs.at(ix::rv)(ijk) += alpha(ijk);// + beta(ijk) * this->state(ix::rv)(ijk);
@@ -270,7 +273,6 @@ class slvr_common : public slvr_dim<ct_params_t>
           // surface flux
           if(params.friction)
           {
-            U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
             for(auto type : this->hori_vel)
             {
               if(type == ix::vip_i)
