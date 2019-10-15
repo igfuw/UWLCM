@@ -149,8 +149,19 @@ class slvr_common : public slvr_dim<ct_params_t>
  
     // initialize surf fluxes with timestep==0
     U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
-    params.update_surf_flux_sens(surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
-    params.update_surf_flux_lat(surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin), 0, this->dt, this->di, this->dj);
+
+    params.update_surf_flux_sens(
+      surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
+      this->state(ix::th)(this->hrzntl_slice(1)).reindex(this->origin),
+      U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
+      0, this->dt, this->di, this->dj
+    );
+    params.update_surf_flux_lat(
+      surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
+      this->state(ix::rv)(this->hrzntl_slice(1)).reindex(this->origin), // TODO: this should be rv + r_l
+      U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
+      0, this->dt, this->di, this->dj
+    );
     params.update_surf_flux_uv(
       surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
@@ -449,9 +460,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
 
     // functions for updating surface fluxes per timestep
-    std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens;
-    std::function<void(typename parent_t::arr_t, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_lat;
-    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
+    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;
   };
 
   // per-thread copy of params

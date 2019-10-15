@@ -42,7 +42,7 @@ void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
 {
   params.update_surf_flux_lat(
     surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
-    this->state(ix::rv)(this->hrzntl_slice(1)).reindex(this->origin) + this->r_l(this->hrzntl_slice(1)).reindex(this->origin), // when was r_l diagnosed? this or previous step? probably makes no difference (we are on the ground)
+    this->state(ix::rv)(this->hrzntl_slice(1)).reindex(this->origin), // TODO: this should be rv + r_l
     U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
     this->timestep, this->dt, this->di, this->dj
   );
@@ -58,7 +58,7 @@ void slvr_common<ct_params_t>::surf_latent_impl(smg_tag)
 {
   params.update_surf_flux_lat(
     surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
-    this->state(ix::rv)(this->hrzntl_slice(1)).reindex(this->origin) + this->r_l(this->hrzntl_slice(1)).reindex(this->origin), // when was r_l diagnosed? this or previous step? probably makes no difference (we are on the ground)
+    this->state(ix::rv)(this->hrzntl_slice(1)).reindex(this->origin), // TODO: this should be rv + r_l
     U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
     this->timestep, this->dt, this->di, this->dj
   );
