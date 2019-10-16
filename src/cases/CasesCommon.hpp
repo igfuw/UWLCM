@@ -130,8 +130,7 @@ namespace setup
       params.c_m = 0.0856;
       params.smg_c = 0.165;
       params.prandtl_num = 0.42;
-      params.cdrag = 0.;
-      params.friction = 0; // disable explicit momentum surface fluxes when using sgs scheme
+      params.cdrag = 0.; // turn off sgs momentum surface fluxes, they are done explicitly via surf_flux_uv
     }
 
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
@@ -156,18 +155,25 @@ namespace setup
       }
     }
 
-    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens, 
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
+                                       blitz::Array<real_t, n_dims> th_ground,   
+                                       blitz::Array<real_t, n_dims> U_ground,   
+                                       const real_t &U_ground_z,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_sens = 0.;};
 
-    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims>  surf_flux_lat, 
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
+                                       blitz::Array<real_t, n_dims> rt_ground,   
+                                       blitz::Array<real_t, n_dims> U_ground,   
+                                       const real_t &U_ground_z,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
 
-    virtual void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv,
-                               blitz::Array<real_t, n_dims>  uv_ground,   
-                               blitz::Array<real_t, n_dims>  U_ground,   
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    virtual void update_surf_flux_uv(blitz::Array<real_t, n_dims> surf_flux_uv,
+                                     blitz::Array<real_t, n_dims> uv_ground,   
+                                     blitz::Array<real_t, n_dims> U_ground,   
+                                     const real_t &U_ground_z,
+                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
 
     // ctor
