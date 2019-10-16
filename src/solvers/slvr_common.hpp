@@ -98,6 +98,42 @@ class slvr_common : public slvr_dim<ct_params_t>
       throw std::runtime_error("LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
+
+      this->record_aux_const(std::string("case : ") + params.user_params.model_case, "user_params", -44);  
+      this->record_aux_const("nt", "user_params", params.user_params.nt);  
+      this->record_aux_const("dt", "user_params", params.user_params.dt);  
+      this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
+      this->record_aux_const(std::string("outdir : ") +  params.user_params.outdir, "user_params", -44);  
+      this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
+      this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
+      this->record_aux_const("z_rlx_sclr", "user_params", params.user_params.z_rlx_sclr);  
+      this->record_aux_const("th_src", "user_params", params.user_params.th_src);  
+      this->record_aux_const("rv_src", "user_params", params.user_params.rv_src);  
+      this->record_aux_const("uv_src", "user_params", params.user_params.uv_src);  
+      this->record_aux_const("w_src", "user_params", params.user_params.w_src);  
+
+      this->record_aux_const("th_src", "rt_params", params.th_src);  
+      this->record_aux_const("rv_src", "rt_params", params.rv_src);  
+      this->record_aux_const("uv_src", "rt_params", params.uv_src);  
+      this->record_aux_const("w_src", "rt_params", params.w_src);  
+      this->record_aux_const("spinup", "rt_params", params.spinup);  
+      this->record_aux_const("subsidence", "rt_params", params.subsidence);  
+      this->record_aux_const("coriolis", "rt_params", params.coriolis);  
+      this->record_aux_const("friction", "rt_params", params.friction);  
+      this->record_aux_const("buoyancy_wet", "rt_params", params.buoyancy_wet);  
+
+      this->record_aux_const("q_i", "ForceParameters", params.ForceParameters.q_i);  
+      this->record_aux_const("heating_kappa", "ForceParameters", params.ForceParameters.heating_kappa);  
+      this->record_aux_const("F_0", "ForceParameters", params.ForceParameters.F_0);  
+      this->record_aux_const("F_1", "ForceParameters", params.ForceParameters.F_1);  
+      this->record_aux_const("rho_i", "ForceParameters", params.ForceParameters.rho_i);  
+      this->record_aux_const("D", "ForceParameters", params.ForceParameters.D);  
+      this->record_aux_const("u_fric", "ForceParameters", params.ForceParameters.u_fric);  
+      this->record_aux_const("coriolis_parameter", "ForceParameters", params.ForceParameters.coriolis_parameter);  
+      this->record_aux_const("surf_latent_flux_in_watts_per_square_meter", "ForceParameters", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
+      this->record_aux_const("surf_sensible_flux_in_watts_per_square_meter", "ForceParameters", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
+
+/*
       this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
       this->record_aux_const("user_params nt", params.user_params.nt);  
       this->record_aux_const("user_params dt", params.user_params.dt);  
@@ -130,7 +166,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
       this->record_aux_const("ForceParameters surf_latent_flux_in_watts_per_square_meter", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
       this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
-     
+*/  
+   
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
       this->record_prof_const("p_e", params.p_e->data()); 
