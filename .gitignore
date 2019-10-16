@@ -1,5 +1,5 @@
 .DS_Store
 build/
 git_revision.h
-input_scripts/
+*.png
 *.out
