@@ -92,7 +92,7 @@ void slvr_common<ct_params_t>::surf_u_impl(iles_tag)
 template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_u_impl(smg_tag)
 {
-  throw std::runtime_error("momentum surface (u) flux called in a Smagorinsky simulation.");
+  surf_u_impl(iles_tag); // explicit like in iles - UWLCM does not use surface momentunm flux from libmpdata++ sgs, because some cases (e.g. DYCOMS) formulate fluxes differently (? double check that's true)
 }
 
 template <class ct_params_t>
@@ -120,7 +120,7 @@ void slvr_common<ct_params_t>::surf_v_impl(iles_tag)
 template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_v_impl(smg_tag)
 {
-  throw std::runtime_error("momentum surface flux (v) called in a Smagorinsky simulation.");
+  surf_v_impl(iles_tag); // explicit like in iles - UWLCM does not use surface momentunm flux from libmpdata++ sgs, because some cases (e.g. DYCOMS) formulate fluxes differently (? double check that's true)
 }
 
 template <class ct_params_t>
