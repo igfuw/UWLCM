@@ -314,7 +314,7 @@ namespace setup
       // ctor
       MoistThermalGrabowskiClark99Common()
       {
-        this->kappa = 1.28; // NaCl aerosol
+        //CLARE this->kappa = 1.28; // NaCl aerosol
         this->Z = Z;
       }
     };
