@@ -130,8 +130,7 @@ namespace setup
       params.c_m = 0.0856;
       params.smg_c = 0.165;
       params.prandtl_num = 0.42;
-      params.cdrag = 0.;
-      params.friction = 0; // disable explicit momentum surface fluxes when using sgs scheme
+      params.cdrag = 0.; // turn off sgs momentum surface fluxes, they are done explicitly via surf_flux_uv
     }
 
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
