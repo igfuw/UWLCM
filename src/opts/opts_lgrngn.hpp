@@ -110,7 +110,39 @@ void setopts_micro(
   neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
- 
+
+//CLARE: for dycoms/rico
+ {
+   rt_params.cloudph_opts_init.dry_distros.emplace(
+     user_params.kappa1,
+     std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+       user_params.mean_rd1,
+       user_params.mean_rd2,
+       user_params.sdev_rd1,
+       user_params.sdev_rd2,
+       user_params.n1_stp,
+       user_params.n2_stp
+     )
+   );
+ }
+//CLARE: for one mode sensitivity tests
+/*
+ {
+   rt_params.cloudph_opts_init.dry_distros.emplace(
+     user_params.kappa1,
+     std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+       user_params.mean_rd1,
+       thrust_real_t(1.0e-6) * si::metres,
+       user_params.sdev_rd1,
+       thrust_real_t(1.2),
+       user_params.n1_stp,
+       thrust_real_t(0) / si::cubic_metres
+     )
+   );
+ }
+*/
+
+/* CLARE: remove
  // if(!unit_test)
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -124,6 +156,7 @@ void setopts_micro(
         case_ptr->n2_stp
       )
     );
+*/
 
     // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
     /*
