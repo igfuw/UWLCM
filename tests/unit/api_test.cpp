@@ -24,8 +24,8 @@ int main(int ac, char** av)
   });
   string opts_dim_lgrngn_3d =  "--nx=40 --ny=40 --nz=40"; // = 4 caused multiplicity overflows in the Lagrangian 3D
   vector<string> opts_micro({
-    "--micro=blk_1m --outdir=out"  ,
-    "--async=false --micro=lgrngn --outdir=out --backend=serial --sd_conc=8"
+    "--micro=blk_1m"  ,
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8"
   });
   vector<string> opts_case({
     "--case=moist_thermal",
