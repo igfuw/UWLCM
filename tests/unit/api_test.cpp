@@ -30,10 +30,11 @@ int main(int ac, char** av)
   vector<string> opts_case({
     "--case=moist_thermal",
     "--case=dry_thermal --cond=0 --coal=0",
-//    "--case=dycoms_rf01",
     "--case=dycoms_rf02",
     "--case=dycoms_rf02 --gccn=1 --out_dry_spec=1 --out_wet_spec=1",
-//    "--case=lasher_trapp"
+    "--case=dycoms_rico11",
+    "--case=dycoms_rf01",
+    "--case=lasher_trapp"
   });
   vector<string> opts_piggy({
     "--piggy=0",
