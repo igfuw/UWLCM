@@ -253,6 +253,10 @@ void setopts_micro(
   rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
 
+  // subsidence of SDs
+  rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
+  rt_params.cloudph_opts.subs = rt_params.subsidence;
+
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
   for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
