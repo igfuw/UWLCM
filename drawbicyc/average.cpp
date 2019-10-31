@@ -56,5 +56,5 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
 int main(int argc, char* argv[])
 {
   average(argc, argv, series_dycoms, "_series.dat");
-  average(argc, argv, profs_dycoms, "_profiles_7200_21600.dat");
+  average(argc, argv, profs_dycoms, "_profiles_7200_18000.dat");
 }
