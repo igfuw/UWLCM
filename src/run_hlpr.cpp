@@ -76,10 +76,20 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
   else if (user_params.model_case == "rico11")
     case_ptr.reset(new setup::rico::Rico11<case_ct_params_t, n_dims>());
+
+  // special versions for api test - they have much lower aerosol concentrations to avoid multiplicity overflow
+  if (user_params.model_case == "moist_thermal_api_test")
+    case_ptr.reset(new setup::api_test<setup::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>>()); 
+  else if (user_params.model_case == "dry_thermal_api_test")
+    case_ptr.reset(new setup::api_test<setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>>()); 
   else if (user_params.model_case == "dycoms_rf01_api_test")
     case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>>()); 
   else if (user_params.model_case == "dycoms_rf02_api_test")
     case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>>()); 
+  else if (user_params.model_case == "lasher_trapp_api_test")
+    case_ptr.reset(new setup::api_test<setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>>());
+  else if (user_params.model_case == "rico11_api_test")
+    case_ptr.reset(new setup::api_test<setup::rico::Rico11<case_ct_params_t, n_dims>>());
   else
     throw std::runtime_error("wrong case choice");
 

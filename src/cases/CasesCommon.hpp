@@ -44,9 +44,11 @@ namespace setup
       geostr[0].resize(nz);
       geostr[1].resize(nz);
 
-      // set to zero just to have predicatble output in cases without Coriolis
+      // set to zero just to have predicatble output in cases that dont need these profiles
       geostr[0] = 0.;
       geostr[1] = 0.;
+      hgt_fctr  = 0.;
+      rl_e      = 0.;
     }
   };
   struct profile_ptrs_t
