@@ -47,7 +47,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
   const double c_p = 1005;
   const double c_pd = c_p;
 
-  double z_i;
+//  double z_i;
 
   bool res_pos_out_done = false;
 
@@ -60,12 +60,14 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     typename Plotter_t::arr_t res_tmp2(rhod.shape());
     blitz::Array<float, 1> res_prof(n["z"]);
     blitz::Array<float, 1> res_prof2(n["z"]);
-    blitz::Array<float, 1> res_pos(n["z"]);
+    blitz::Array<float, 1> res_pos(n["z"]);      // uniform vertical axis, height normalized by initial inversion height
+    blitz::Array<float, 1> res_pos_hlpr(n["z"]); // actual vertical axis, height normalized by current inversion height
     blitz::Array<float, 1> prof_tmp(n["z"]);
     blitz::Range all = blitz::Range::all();
     res = 0;
     res_prof = 0;
     res_prof2 = 0;
+    res_pos = i * n["dz"] / 795; // TODO: hardcoded DYCOMS initial inversion height
 
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
@@ -421,10 +423,15 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res_tmp += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
         res_tmp += plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3; // vapour
 
-        res += res_tmp;
         res_prof = plotter.horizontal_mean(res_tmp); // average in x
         // find instantaneous inversion height
-        k_i +=  blitz::first((res_prof < 8.));
+        k_i =  blitz::first((res_prof < 8.));
+        // normalize vertical axis
+        res_pos_hlpr = i / float(k_i); 
+
+        res += res_tmp;
+//    z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
+//    std::cout << "average inversion height " << z_i;
         gp << "set title 'total water [g/kg]'\n";
       }
       else if (plt == "N_c")
@@ -625,9 +632,9 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     } // time loop
     res /= last_timestep - first_timestep + 1;
     
-    z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
-    std::cout << "average inversion height " << z_i;
-    res_pos = i * n["dz"] / z_i; 
+//    z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
+//    std::cout << "average inversion height " << z_i;
+//    res_pos = i * n["dz"] / z_i; 
     if(!res_pos_out_done)
     {
       oprof_file << res_pos;
@@ -666,6 +673,6 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
 //    plot(gp, res);
   } // var loop
-  oprof_file << z_i << std::endl;
+//  oprof_file << z_i << std::endl;
 }
 
