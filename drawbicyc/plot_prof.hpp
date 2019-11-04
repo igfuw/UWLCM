@@ -61,6 +61,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     blitz::Array<float, 1> res_prof(n["z"]);
     blitz::Array<float, 1> res_prof2(n["z"]);
     blitz::Array<float, 1> res_pos(n["z"]);
+    blitz::Array<float, 1> prof_tmp(n["z"]);
     blitz::Range all = blitz::Range::all();
     res = 0;
     res_prof = 0;
@@ -109,8 +110,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp *= res_tmp2; // apply the mask
         }
         // mean only over downdraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'non-gccn-based droplets mean wet radius (downdraughts only)'\n";
       }
       if (plt == "gccn_rw_down")
@@ -133,8 +134,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp *= res_tmp2;
         }
         // mean only over downdraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'gccn-based droplets mean wet radius (downdraughts only)'\n";
       }
       if (plt == "non_gccn_rw_up")
@@ -157,8 +158,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp *= res_tmp2;
         }
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'non-gccn-based droplets mean wet radius (updraughts only)'\n";
       }
       if (plt == "gccn_rw_up")
@@ -181,8 +182,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp *= res_tmp2;
         }
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'gccn-based droplets mean wet radius (updraughts only)'\n";
       }
       if (plt == "ugccn_rw_down")
@@ -205,8 +206,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp *= res_tmp2;
         }
         // mean only over downdraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'ultra-gccn-based droplets mean wet radius (downdraughts only)'\n";
       }
       if (plt == "act_conc_up")
@@ -229,8 +230,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
      //     res_tmp *= res_tmp2;
         }
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-       // res_prof2 += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+       // res_prof2 += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
 
         // 0th-mom of droplets with rw>rc
         {
@@ -241,7 +242,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         }
         // updraft only
         res_tmp *= res_tmp2;
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'activated droplets concentation [1/cm^3] (updrafts)'\n";
       }
       if (plt == "nc_up")
@@ -253,7 +254,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp2 = isupdraught(snap);
         }
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
 
         {
           auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
@@ -263,7 +264,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         }
         // updraft only
         res_tmp *= res_tmp2;
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
       }
       if (plt == "nc_down")
@@ -275,7 +276,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp2 = isdowndraught(snap);
         }
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
 
         {
           auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
@@ -285,7 +286,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         }
         // updraft only
         res_tmp *= res_tmp2;
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
       }
       if (plt == "act_rd_up")
@@ -312,8 +313,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
  //         res_tmp *= res_tmp2;
         }
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-//        res_prof2 += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+//        res_prof2 += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
 
 	// rw > rc droplets first dry mom
         {
@@ -329,7 +330,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         }
         // updraft only
         res_tmp *= res_tmp2;
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'activated droplets mean dry radius (updrafts)'\n";
       }
       if (plt == "actRH_rd")
@@ -403,8 +404,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           res_tmp *= res_tmp2;
         }
         // mean only over updraught cells
-        res_pos = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
-        res_prof += where(res_pos > 0 , plotter.horizontal_sum(res_tmp) / res_pos, 0);
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
 
 //        mean over all cells
 //        res_prof += plotter.horizontal_sum(res_tmp);
@@ -455,8 +456,8 @@ void plot_profiles(Plotter_t plotter, Plots plots)
           snap2 *= snap;
 
           // mean only over cloudy cells
-          res_pos = plotter.horizontal_sum(snap); // number of cloudy cells on a given level
-          res_prof += where(res_pos > 0 , plotter.horizontal_sum(snap2) / res_pos, 0);
+          prof_tmp = plotter.horizontal_sum(snap); // number of cloudy cells on a given level
+          res_prof += where(prof_tmp > 0 , plotter.horizontal_sum(snap2) / prof_tmp, 0);
         }
         catch(...){;}
         gp << "set title 'cloud droplets concentration in cloudy cells [1/cm^3]'\n";
