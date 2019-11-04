@@ -5,7 +5,7 @@
 #include "plots.hpp"
 
 template<class Plotter_t>
-void plot_profiles(Plotter_t plotter, Plots plots)
+void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
 {
 
   // read opts
@@ -67,11 +67,11 @@ void plot_profiles(Plotter_t plotter, Plots plots)
     blitz::Range all = blitz::Range::all();
 
     res_prof_sum = 0;
-/*
-    res_prof = 0;
-    res_prof_hlpr = 0;
-    prof_tmp = 0;*/
-    res_pos = i * n["dz"] / 795; // TODO: hardcoded DYCOMS initial inversion height
+
+    if(normalize)
+      res_pos = i * n["dz"] / 795; // TODO: using hardcoded DYCOMS initial inversion height just to get some uniform grid
+    else
+      res_pos = i * n["dz"];
 
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
@@ -379,8 +379,11 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
         gp << "set title 'rv [g/kg] averaged over 2h-6h, w/o rw<0.5um'\n";
-        gp << "set yrange [0.:0.6]\n";
-        gp << "set xrange [9.2:9.5]\n";
+        if(normalize)
+        {
+          gp << "set yrange [0.:0.6]\n";
+          gp << "set xrange [9.2:9.5]\n";
+        }
       }
       else if (plt == "sat_RH")
       {
@@ -421,11 +424,15 @@ void plot_profiles(Plotter_t plotter, Plots plots)
         res += plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3; // vapour
 
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        // find instantaneous inversion height
-        int k_i =  blitz::first((res_prof_hlpr < 8.)); // inversion cell index
 
-        // normalize vertical axis
-        res_pos_hlpr = i / float(k_i); 
+        if(normalize)
+        {
+          // find instantaneous inversion height
+          int k_i =  blitz::first((res_prof_hlpr < 8.)); // inversion cell index
+
+          // normalize vertical axis
+          res_pos_hlpr = i / float(k_i); 
+        }
 
 //    z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
 //    std::cout << "average inversion height " << z_i;
@@ -634,25 +641,30 @@ void plot_profiles(Plotter_t plotter, Plots plots)
       }
 
 
-      // interpolate profile to uniform vertical grid (height normalized by inversion height)
-      // lowest level the same, no need to interpolate
-      res_prof[0] = res_prof_hlpr[0];
-      for(int k = 1; k < n["nz"]; ++k)
+      if(normalize)
       {
-        auto last = blitz::last(res_pos_hlpr < res_pos[k]);
-        if(last == n["nz"]-1) // need to extrapolate up
+        // interpolate profile to uniform vertical grid (height normalized by inversion height)
+        // lowest level the same, no need to interpolate
+        res_prof[0] = res_prof_hlpr[0];
+        for(int k = 1; k < n["nz"]; ++k)
         {
-          res_prof[k] = res_prof_hlpr[last] + 
-                       (res_prof_hlpr[last] - res_prof_hlpr[last-1]) / (res_pos_hlpr[last] - res_pos_hlpr[last-1]) *
-                       (res_pos[k] - res_pos_hlpr[last]);
-        }
-        else // interpolate
-        {
-          res_prof[k] = res_prof_hlpr[last] + 
-                       (res_prof_hlpr[last+1] - res_prof_hlpr[last]) / (res_pos_hlpr[last+1] - res_pos_hlpr[last]) *
-                       (res_pos[k] - res_pos_hlpr[last]);
+          auto last = blitz::last(res_pos_hlpr < res_pos[k]);
+          if(last == n["nz"]-1) // need to extrapolate up
+          {
+            res_prof[k] = res_prof_hlpr[last] + 
+                         (res_prof_hlpr[last] - res_prof_hlpr[last-1]) / (res_pos_hlpr[last] - res_pos_hlpr[last-1]) *
+                         (res_pos[k] - res_pos_hlpr[last]);
+          }
+          else // interpolate
+          {
+            res_prof[k] = res_prof_hlpr[last] + 
+                         (res_prof_hlpr[last+1] - res_prof_hlpr[last]) / (res_pos_hlpr[last+1] - res_pos_hlpr[last]) *
+                         (res_pos[k] - res_pos_hlpr[last]);
+          }
         }
       }
+      else
+        res_prof = res_prof_hlpr;
 
       res_prof_sum += res_prof;
 
@@ -680,7 +692,7 @@ void plot_profiles(Plotter_t plotter, Plots plots)
 
     oprof_file << res_prof_sum ;
 
-    if(plt == "rv" || plt == "sat" || plt == "sat_RH")
+    if(normalize && (plt == "rv" || plt == "sat" || plt == "sat_RH"))
     {
       gp << "set yrange [0.:1.2]\n";
       gp << "set xrange [*:*]\n";
