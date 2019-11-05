@@ -49,11 +49,19 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
 
 //  double z_i;
 
+  blitz::firstIndex i;
+
   bool res_pos_out_done = false;
+
+  blitz::Array<float, 1> res_pos(n["z"]);      // uniform vertical axis, height normalized by initial inversion height
+  blitz::Array<float, 1> res_pos_hlpr(n["z"]); // actual vertical axis, height normalized by current inversion height
+  if(normalize)
+    res_pos = i * n["dz"] / 795; // TODO: using hardcoded DYCOMS initial inversion height just to get some uniform grid
+  else
+    res_pos = i * n["dz"];
 
   for (auto &plt : plots.profs)
   {
-    blitz::firstIndex i;
     blitz::secondIndex j;
     typename Plotter_t::arr_t res(rhod.shape());
     typename Plotter_t::arr_t res_tmp(rhod.shape());
@@ -61,17 +69,10 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
     blitz::Array<float, 1> res_prof_sum(n["z"]);  // profile interpolate to the uniform grid summed over timesteps
     blitz::Array<float, 1> res_prof(n["z"]);      // profile interpolate to the uniform grid
     blitz::Array<float, 1> res_prof_hlpr(n["z"]); // actual profile
-    blitz::Array<float, 1> res_pos(n["z"]);      // uniform vertical axis, height normalized by initial inversion height
-    blitz::Array<float, 1> res_pos_hlpr(n["z"]); // actual vertical axis, height normalized by current inversion height
     blitz::Array<float, 1> prof_tmp(n["z"]);
     blitz::Range all = blitz::Range::all();
 
     res_prof_sum = 0;
-
-    if(normalize)
-      res_pos = i * n["dz"] / 795; // TODO: using hardcoded DYCOMS initial inversion height just to get some uniform grid
-    else
-      res_pos = i * n["dz"];
 
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
@@ -641,25 +642,28 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
       }
 
 
+
+// ======================================================================================
+
       if(normalize)
       {
         // interpolate profile to uniform vertical grid (height normalized by inversion height)
         // lowest level the same, no need to interpolate
-        res_prof[0] = res_prof_hlpr[0];
-        for(int k = 1; k < n["nz"]; ++k)
+        res_prof(0) = res_prof_hlpr(0);
+        for(int k = 1; k < n["z"]; ++k)
         {
-          auto last = blitz::last(res_pos_hlpr < res_pos[k]);
-          if(last == n["nz"]-1) // need to extrapolate up
+          auto last = blitz::last(res_pos_hlpr < res_pos(k));
+          if(last == n["z"]-1) // need to extrapolate up
           {
-            res_prof[k] = res_prof_hlpr[last] + 
-                         (res_prof_hlpr[last] - res_prof_hlpr[last-1]) / (res_pos_hlpr[last] - res_pos_hlpr[last-1]) *
-                         (res_pos[k] - res_pos_hlpr[last]);
+            res_prof(k) = res_prof_hlpr(last) + 
+                         (res_prof_hlpr(last) - res_prof_hlpr(last-1)) / (res_pos_hlpr(last) - res_pos_hlpr(last-1)) *
+                         (res_pos(k) - res_pos_hlpr(last));
           }
           else // interpolate
           {
-            res_prof[k] = res_prof_hlpr[last] + 
-                         (res_prof_hlpr[last+1] - res_prof_hlpr[last]) / (res_pos_hlpr[last+1] - res_pos_hlpr[last]) *
-                         (res_pos[k] - res_pos_hlpr[last]);
+            res_prof(k) = res_prof_hlpr(last) + 
+                         (res_prof_hlpr(last+1) - res_prof_hlpr(last)) / (res_pos_hlpr(last+1) - res_pos_hlpr(last)) *
+                         (res_pos(k) - res_pos_hlpr(last));
           }
         }
       }
