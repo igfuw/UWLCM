@@ -5,7 +5,7 @@
 #pragma once
 #include <random>
 #include "Anelastic.hpp"
-#include "formulas.hpp"
+#include "detail/formulas.hpp"
 
 namespace setup 
 {
