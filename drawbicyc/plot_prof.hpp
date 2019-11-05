@@ -401,6 +401,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
       else if (plt == "sat_RH")
       {
         res = plotter.h5load_RH_timestep(at * n["outfreq"]);
+        res = (res -1) * 100;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
         gp << "set title 'supersaturation RH-based'\n";
       }
