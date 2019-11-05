@@ -173,9 +173,39 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_rng(0., .5e-6);
     prtcls->diag_wet_mom(3);
     this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
+
+
+//CLARE record number concentration of aerosols with certain kappa ranges
+// checking for x-small, small, medium, large, and x-large
+// ie (0.0-0.3), (0.3-0.6), (0.6-0.9), (0.9-1.2), (1.2-3.0)
+    // recording 0th dry mom of kappa of aerosols (0.0 < k < 0.3) = x-small
+    prtcls->diag_kappa_rng(0.0,0.3);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_0.0_0.3_rd_mom0", prtcls->outbuf());
+
+    // recording 0th dry mom of kappa of aerosols (0.3 < k < 0.6) = small
+    prtcls->diag_kappa_rng(0.3,0.6);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_0.3_0.6_rd_mom0", prtcls->outbuf());
+
+    // recording 0th dry mom of kappa of aerosols (0.6 < k < 0.9) = medium
+    prtcls->diag_kappa_rng(0.6,0.9);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_0.6_0.9_rd_mom0", prtcls->outbuf());
    
+    // recording 0th dry mom of kappa of aerosols (0.9 < k < 1.2) = large
+    prtcls->diag_kappa_rng(0.9,1.2);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_0.9_1.2_rd_mom0", prtcls->outbuf());
+    
+    // recording 0th dry mom of kappa of aerosols (1.2 < k < 3.0) = x-large
+    prtcls->diag_kappa_rng(1.2,3.0);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("kappa_rng_1.2_3.0_rd_mom0", prtcls->outbuf());
+//END CLARE
+
+/*    
     // recording divergence of the velocity field
-    /*
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
 */
@@ -374,7 +404,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     if (this->rank == 0) 
     {
       this->record_aux_const("super-droplet microphysics", -44);  
-
       this->record_aux_const("nx", "grid_dimensions", params.cloudph_opts_init.nx);  
       this->record_aux_const("ny", "grid_dimensions", params.cloudph_opts_init.ny);  
       this->record_aux_const("nz", "grid_dimensions", params.cloudph_opts_init.nz);  
@@ -388,23 +417,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("x1", "grid_dimensions", params.cloudph_opts_init.x1);  
       this->record_aux_const("y1", "grid_dimensions", params.cloudph_opts_init.y1);  
       this->record_aux_const("z1", "grid_dimensions", params.cloudph_opts_init.z1); 
-
-/*
-      this->record_aux_const("nx", params.cloudph_opts_init.nx);  
-      this->record_aux_const("ny", params.cloudph_opts_init.ny);  
-      this->record_aux_const("nz", params.cloudph_opts_init.nz);  
-      this->record_aux_const("dx", params.cloudph_opts_init.dx);  
-      this->record_aux_const("dy", params.cloudph_opts_init.dy);  
-      this->record_aux_const("dz", params.cloudph_opts_init.dz);  
-      this->record_aux_const("dt", params.cloudph_opts_init.dt);  
-      this->record_aux_const("x0", params.cloudph_opts_init.x0);  
-      this->record_aux_const("y0", params.cloudph_opts_init.y0);  
-      this->record_aux_const("z0", params.cloudph_opts_init.z0);  
-      this->record_aux_const("x1", params.cloudph_opts_init.x1);  
-      this->record_aux_const("y1", params.cloudph_opts_init.y1);  
-      this->record_aux_const("z1", params.cloudph_opts_init.z1);  
- */
- 
+      //CLARE: this works, removing it because netcdf won't save such a long string
+      //this->record_aux_const(std::string("out_wet_str : ") + params.out_wet_str, -44);
+      //this->record_aux_const(std::string("out_dry_str : ") + params.out_dry_str, -44);
+      //end CLARE
       this->record_aux_const("aerosol_independent_of_rhod", params.cloudph_opts_init.aerosol_independent_of_rhod);  
       this->record_aux_const("sd_conc", params.cloudph_opts_init.sd_conc);  
       this->record_aux_const("sd_conc_large_tail", params.cloudph_opts_init.sd_conc_large_tail);  
@@ -733,6 +749,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
     outmom_t<real_t> out_dry, out_wet;
+    //CLARE: add out_xxx_str as a field in rt_params
+    std::string out_dry_str, out_wet_str;
     bool flag_coal; // do we want coal after spinup
     bool gccn;
     bool out_wet_spec, out_dry_spec;

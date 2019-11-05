@@ -102,8 +102,8 @@ namespace setup
     // domain size
     quantity<si::length, real_t> X,Y,Z;
 
-//CLARE
-/*
+// CLARE: remove aerosol params from here and add them to user_params
+/* 
     //aerosol bimodal lognormal dist. - VOCALS by default
     quantity<si::length, real_t>
       mean_rd1 = real_t(.02e-6) * si::metres,

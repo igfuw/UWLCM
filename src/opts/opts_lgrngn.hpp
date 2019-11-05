@@ -69,6 +69,10 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value(""),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    //CLARE, unnecessary
+    //("out_dry_str", po::value<std::string>()->default_value(""), "out_dry_str")
+    //("out_wet_str", po::value<std::string>()->default_value(""), "out_wet_str")
+    //END CLARE
     ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
@@ -142,21 +146,10 @@ void setopts_micro(
  }
 */
 
-/* CLARE: remove
+
+
+// CLARE: remove
  // if(!unit_test)
-  {
-    rt_params.cloudph_opts_init.dry_distros.emplace(
-      case_ptr->kappa, // key
-      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        case_ptr->mean_rd1, // parameters
-        case_ptr->mean_rd2,
-        case_ptr->sdev_rd1,
-        case_ptr->sdev_rd2,
-        case_ptr->n1_stp,
-        case_ptr->n2_stp
-      )
-    );
-*/
     // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
     /*
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -286,6 +279,10 @@ void setopts_micro(
   
   rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
+  
+  //CLARE: set out_xxx_str from command line option input
+  rt_params.out_dry_str = vm["out_dry"].as<std::string>();
+  rt_params.out_wet_str = vm["out_wet"].as<std::string>();
 
   // subsidence of SDs
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;

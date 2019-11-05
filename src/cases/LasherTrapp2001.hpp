@@ -267,7 +267,7 @@ namespace setup
       {
         this->p_0 = p_0;
         //aerosol bimodal lognormal dist. - DYCOMS
-        //CLARE
+        //CLARE remove this
         /*
         this->mean_rd1 = real_t(.011e-6) * si::metres,
         this->mean_rd2 = real_t(.06e-6) * si::metres;
