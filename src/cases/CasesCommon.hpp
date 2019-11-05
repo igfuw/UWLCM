@@ -20,13 +20,11 @@ namespace setup
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
 
-  const real_t D =  3.75e-6; // large-scale wind horizontal divergence [1/s]
-
   // container for constants that appear in forcings, some are not needed in all cases, etc...
   // TODO: make forcing functions part of case class
   struct ForceParameters_t
   {
-    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, u_fric, coriolis_parameter;
+    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, coriolis_parameter;
     bool surf_latent_flux_in_watts_per_square_meter;
     bool surf_sensible_flux_in_watts_per_square_meter;
   };
@@ -35,21 +33,27 @@ namespace setup
   // TODO: try a different design where it is not necessary ?
   struct profiles_t
   {
-    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr_sclr, hgt_fctr_vctr, mix_len;
+    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr, th_LS, rv_LS, mix_len;
     std::array<arr_1D_t, 2> geostr;
 
     profiles_t(int nz) :
     // rhod needs to be bigger, cause it divides vertical courant number
     // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr_vctr(nz), hgt_fctr_sclr(nz), mix_len(nz)
+      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr(nz), th_LS(nz), rv_LS(nz), mix_len(nz)
     {
       geostr[0].resize(nz);
       geostr[1].resize(nz);
+
+      // set to zero just to have predicatble output in cases that dont need these profiles
+      geostr[0] = 0.;
+      geostr[1] = 0.;
+      hgt_fctr  = 0.;
+      rl_e      = 0.;
     }
   };
   struct profile_ptrs_t
   {
-    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr_sclr, *hgt_fctr_vctr, *mix_len, *geostr[2];
+    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr, *geostr[2], *th_LS, *rv_LS, *mix_len;
   };
 
   // copy external profiles into rt_parameters
@@ -58,8 +62,7 @@ namespace setup
   inline void copy_profiles(profiles_t &profs, params_t &p)
   {
     std::vector<std::pair<std::reference_wrapper<setup::arr_1D_t*>, std::reference_wrapper<setup::arr_1D_t>>> tobecopied = {
-      {p.hgt_fctr_sclr, profs.hgt_fctr_sclr},
-      {p.hgt_fctr_vctr, profs.hgt_fctr_vctr},
+      {p.hgt_fctr     , profs.hgt_fctr     },
       {p.th_e         , profs.th_e         },
       {p.p_e          , profs.p_e          },
       {p.rv_e         , profs.rv_e         },
@@ -67,9 +70,11 @@ namespace setup
       {p.th_ref       , profs.th_ref       },
       {p.rhod         , profs.rhod         },
       {p.w_LS         , profs.w_LS         },
-      {p.mix_len      , profs.mix_len      },
+      {p.th_LS        , profs.th_LS        },
+      {p.rv_LS        , profs.rv_LS        },
       {p.geostr[0]    , profs.geostr[0]    },
-      {p.geostr[1]    , profs.geostr[1]    }
+      {p.geostr[1]    , profs.geostr[1]    },
+      {p.mix_len      , profs.mix_len      }
     };
 
     for (auto dst_src : tobecopied)
@@ -127,39 +132,51 @@ namespace setup
       params.c_m = 0.0856;
       params.smg_c = 0.165;
       params.prandtl_num = 0.42;
-      params.cdrag = 0.;
-      params.friction = 0; // disable explicit momentum surface fluxes when using sgs scheme
+      params.cdrag = 0.; // turn off sgs momentum surface fluxes, they are done explicitly via surf_flux_uv
     }
 
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
-    virtual void env_prof(profiles_t &profs, int nz, const user_params_t &user_params)
+    virtual void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
     {
-      profs.geostr[0] = 0;
-      profs.geostr[1] = 0;
-
-      blitz::firstIndex k;
-      real_t dz = (Z / si::metres) / (nz-1);
-
-      real_t sgs_delta;
-      if (user_params.sgs_delta > 0)
+      // set SGS mixing length
       {
-        sgs_delta = user_params.sgs_delta;
+        blitz::firstIndex k;
+        real_t dz = (Z / si::metres) / (nz-1);
+
+        real_t sgs_delta;
+        if (user_params.sgs_delta > 0)
+        {
+          sgs_delta = user_params.sgs_delta;
+        }
+        else
+        {
+          sgs_delta = dz;
+        }
+        profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
       }
-      else
-      {
-        sgs_delta = dz;
-      }
-      profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
     }
 
-    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens, 
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
+                                       blitz::Array<real_t, n_dims> th_ground,   
+                                       blitz::Array<real_t, n_dims> U_ground,   
+                                       const real_t &U_ground_z,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_sens = 0.;};
 
-    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims>  surf_flux_lat, 
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
+                                       blitz::Array<real_t, n_dims> rt_ground,   
+                                       blitz::Array<real_t, n_dims> U_ground,   
+                                       const real_t &U_ground_z,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
+
+    virtual void update_surf_flux_uv(blitz::Array<real_t, n_dims> surf_flux_uv,
+                                     blitz::Array<real_t, n_dims> uv_ground,   
+                                     blitz::Array<real_t, n_dims> U_ground,   
+                                     const real_t &U_ground_z,
+                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    {if(timestep==0) surf_flux_uv = 0.;};
 
     // ctor
     // TODO: these are DYCOMS definitions, move them there
@@ -169,12 +186,11 @@ namespace setup
       ForceParameters.F_0 = 70; // w/m^2
       ForceParameters.F_1 = 22; // w/m^2
       ForceParameters.q_i = 8e-3; // kg/kg
-      ForceParameters.D = D; // large-scale wind horizontal divergence [1/s]
       ForceParameters.rho_i = 1.12; // kg/m^3
-      ForceParameters.u_fric = 0.25; // m/s; friction velocity
       ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
       ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
       ForceParameters.coriolis_parameter = 0.;
+      ForceParameters.D = 0.; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
       X = 0 * si::metres;
       Y = 0 * si::metres;
       Z = 0 * si::metres;

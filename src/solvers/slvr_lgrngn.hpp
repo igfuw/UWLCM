@@ -407,6 +407,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("async", params.async);  
       this->record_aux_const("adve", params.cloudph_opts.adve);  
       this->record_aux_const("sedi", params.cloudph_opts.sedi);  
+      this->record_aux_const("subs", params.cloudph_opts.subs);  
       this->record_aux_const("cond", params.cloudph_opts.cond);  
       this->record_aux_const("coal", params.flag_coal);  // cloudph_opts.coal could be 0 here due to spinup
       this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
@@ -419,6 +420,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("chem_switch", params.cloudph_opts_init.chem_switch);  
       this->record_aux_const("coal_switch", params.cloudph_opts_init.coal_switch);  
       this->record_aux_const("sedi_switch", params.cloudph_opts_init.sedi_switch);  
+      this->record_aux_const("subs_switch", params.cloudph_opts_init.subs_switch);  
       this->record_aux_const("src_switch", params.cloudph_opts_init.src_switch);  
       this->record_aux_const("turb_adve_switch", params.cloudph_opts_init.turb_adve_switch);  
       this->record_aux_const("turb_cond_switch", params.cloudph_opts_init.turb_cond_switch);  
