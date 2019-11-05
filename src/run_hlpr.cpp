@@ -9,7 +9,9 @@
 #include "detail/concurr_types.hpp"
 #include "detail/ct_params.hpp"
 
+#include "cases/detail/api_test.hpp"
 #include "cases/DYCOMS.hpp"
+#include "cases/RICO11.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/LasherTrapp2001.hpp"
@@ -72,6 +74,21 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
+  else if (user_params.model_case == "rico11")
+    case_ptr.reset(new setup::rico::Rico11<case_ct_params_t, n_dims>());
+  // special versions for api test - they have much lower aerosol concentrations to avoid multiplicity overflow
+  else if (user_params.model_case == "moist_thermal_api_test")
+    case_ptr.reset(new setup::api_test<setup::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>>()); 
+  else if (user_params.model_case == "dry_thermal_api_test")
+    case_ptr.reset(new setup::api_test<setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>>()); 
+  else if (user_params.model_case == "dycoms_rf01_api_test")
+    case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>>()); 
+  else if (user_params.model_case == "dycoms_rf02_api_test")
+    case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>>()); 
+  else if (user_params.model_case == "lasher_trapp_api_test")
+    case_ptr.reset(new setup::api_test<setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>>());
+  else if (user_params.model_case == "rico11_api_test")
+    case_ptr.reset(new setup::api_test<setup::rico::Rico11<case_ct_params_t, n_dims>>());
   else
     throw std::runtime_error("wrong case choice");
 
@@ -82,8 +99,9 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   p.ForceParameters = case_ptr->ForceParameters;
 
   // copy functions used to update surface fluxes
-  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-  p.update_surf_flux_lat = std::bind(&case_t::update_surf_flux_lat, case_ptr.get(), std::placeholders::_1,std::placeholders:: _2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8);
+  p.update_surf_flux_lat  = std::bind(&case_t::update_surf_flux_lat,  case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8);
+  p.update_surf_flux_uv   = std::bind(&case_t::update_surf_flux_uv,   case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8);
 
   // copy user_params for output
   p.user_params = user_params;
@@ -95,16 +113,18 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   }
 
   case_ptr->setopts(p, nps, user_params);
-  setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // reference profiles shared among threads
   setup::profiles_t profs(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
-  case_ptr->env_prof(profs, nz, user_params);
+  case_ptr->set_profs(profs, nz, user_params);
   // pass them to rt_params
   setup::copy_profiles(profs, p);
+
+  // set micro-specific options, needs to be done after copy_profiles
+  setopts_micro<solver_t>(p, user_params, case_ptr);
 
   // set outvars
   p.outvars.insert({ix::rv, {"rv", "[kg kg-1]"}});

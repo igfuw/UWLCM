@@ -106,7 +106,10 @@ void setopts_micro(
   else if (adve_scheme_str == "pred_corr") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
   else throw std::runtime_error("unrecognized adve_scheme optsion");
 
-  rt_params.cloudph_opts_init.div_LS = case_ptr->div_LS;
+  setup::arr_1D_t neg_w_LS = rt_params.w_LS->copy(); 
+  neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
+  std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
+  rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
  
  // if(!unit_test)
   {
@@ -249,6 +252,10 @@ void setopts_micro(
   
   rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
+
+  // subsidence of SDs
+  rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
+  rt_params.cloudph_opts.subs = rt_params.subsidence;
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
