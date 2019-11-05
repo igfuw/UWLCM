@@ -134,10 +134,7 @@ class Plots
     std::vector<std::string> profs;
     std::vector<std::string> fields;
 
-  Plots(const std::string &type, bool sgs):
-    series(type == "dycoms" ? series_dycoms : series_moist_thermal),
-    profs(type == "dycoms" ? profs_dycoms : profs_moist_thermal),
-    fields(type == "dycoms" ? fields_dycoms : fields_moist_thermal)
+  Plots(const std::string &type, bool sgs)
   {
     if(type == "dycoms") { 
       profs.insert(profs.end(), profs_dycoms.begin(), profs_dycoms.end());
