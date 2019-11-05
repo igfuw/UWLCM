@@ -104,6 +104,17 @@ std::vector<std::string> fields_dycoms({
 "gccn_mean_rw"
 });
 
+std::vector<std::string> fields_rico({
+"rl", "nc",
+ "rr", "nr",
+//"ef", "na", 
+"th", "rv",     
+"u", "w", 
+//"sd_conc",//, "r_dry", 
+//"RH", "supersat",
+//"lib_pres", "lib_temp"
+});
+
 std::vector<std::string> fields_moist_thermal({
 //"mrk", "vel_div",
 "vel_div",
@@ -128,25 +139,24 @@ class Plots
     profs(type == "dycoms" ? profs_dycoms : profs_moist_thermal),
     fields(type == "dycoms" ? fields_dycoms : fields_moist_thermal)
   {
-    switch (type) {
-      case "dycoms" : 
-        profs.insert(profs.end(), profs_dycoms.begin(), profs_dycoms.end());
-        series.insert(series.end(), series_dycoms.begin(), series_dycoms.end());
-        fields.insert(fields.end(), fields_dycoms.begin(), fields_dycoms.end());
-        break;
-      case "rico" : 
-        profs.insert(profs.end(), profs_rico.begin(), profs_rico.end());
-        series.insert(series.end(), series_rico.begin(), series_rico.end());
-        fields.insert(fields.end(), fields_rico.begin(), fields_rico.end());
-        break;
-      case "moist_thermal" : 
-        profs.insert(profs.end(), profs_moist_thermal.begin(), profs_moist_thermal.end());
-        series.insert(series.end(), series_moist_thermal.begin(), series_moist_thermal.end());
-        fields.insert(fields.end(), fields_moist_thermal.begin(), fields_moist_thermal.end());
-        break;
-      default:
-        throw std::runtime_error("drawbicyc Plots.hpp: unknown 'type'.");
+    if(type == "dycoms") { 
+      profs.insert(profs.end(), profs_dycoms.begin(), profs_dycoms.end());
+      series.insert(series.end(), series_dycoms.begin(), series_dycoms.end());
+      fields.insert(fields.end(), fields_dycoms.begin(), fields_dycoms.end());
     }
+    else if(type == "rico") { 
+      profs.insert(profs.end(), profs_rico.begin(), profs_rico.end());
+      series.insert(series.end(), series_rico.begin(), series_rico.end());
+      fields.insert(fields.end(), fields_rico.begin(), fields_rico.end());
+    }
+    else if(type == "moist_thermal") { 
+      profs.insert(profs.end(), profs_moist_thermal.begin(), profs_moist_thermal.end());
+      series.insert(series.end(), series_moist_thermal.begin(), series_moist_thermal.end());
+      fields.insert(fields.end(), fields_moist_thermal.begin(), fields_moist_thermal.end());
+    }
+    else
+      throw std::runtime_error("drawbicyc Plots.hpp: unknown 'type'.");
+    
     if (sgs)
     {
       profs.insert(profs.end(), profs_sgs.begin(), profs_sgs.end());
