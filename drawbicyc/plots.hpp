@@ -13,6 +13,19 @@ const std::vector<std::string> series_dycoms({
 // "tot_water"
 });
 
+const std::vector<std::string> series_rico({
+ "clfrac", "lwp",
+ "surf_precip", 
+//"mass_dry", 
+ "acc_precip",
+ "cl_nc",
+ "cloud_base",
+// "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
+//,"cl_avg_cloud_rad"
+// "sd_conc_avg", "sd_conc_std_dev",
+// "tot_water"
+});
+
 const std::vector<std::string> series_moist_thermal({
 "cloud_avg_act_conc", //"cloud_std_dev_act_conc",
 "ract_avg", //"ract_std_dev",
@@ -46,6 +59,19 @@ std::vector<std::string> profs_dycoms({
 ,"cl_nc"
 ,"sat_RH"
 ,"rad_flx"
+//, "nc_up" 
+//,"sat_RH_up"
+//, "act_conc_up" 
+//, "nc_down" 
+}); // rtot has to be first
+
+std::vector<std::string> profs_rico({
+"00rtot", "rliq", "thl", "wvar", 
+ "prflux"
+,"clfrac"
+//, "N_c", 
+,"cl_nc"
+,"u", "v",
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
@@ -102,6 +128,25 @@ class Plots
     profs(type == "dycoms" ? profs_dycoms : profs_moist_thermal),
     fields(type == "dycoms" ? fields_dycoms : fields_moist_thermal)
   {
+    switch (type) {
+      case "dycoms" : 
+        profs.insert(profs.end(), profs_dycoms.begin(), profs_dycoms.end());
+        series.insert(series.end(), series_dycoms.begin(), series_dycoms.end());
+        fields.insert(fields.end(), fields_dycoms.begin(), fields_dycoms.end());
+        break;
+      case "rico" : 
+        profs.insert(profs.end(), profs_rico.begin(), profs_rico.end());
+        series.insert(series.end(), series_rico.begin(), series_rico.end());
+        fields.insert(fields.end(), fields_rico.begin(), fields_rico.end());
+        break;
+      case "moist_thermal" : 
+        profs.insert(profs.end(), profs_moist_thermal.begin(), profs_moist_thermal.end());
+        series.insert(series.end(), series_moist_thermal.begin(), series_moist_thermal.end());
+        fields.insert(fields.end(), fields_moist_thermal.begin(), fields_moist_thermal.end());
+        break;
+      default:
+        throw std::runtime_error("drawbicyc Plots.hpp: unknown 'type'.");
+    }
     if (sgs)
     {
       profs.insert(profs.end(), profs_sgs.begin(), profs_sgs.end());
