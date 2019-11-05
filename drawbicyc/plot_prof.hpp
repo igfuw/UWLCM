@@ -386,6 +386,18 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
           gp << "set xrange [9.2:9.5]\n";
         }
       }
+      else if (plt == "u")
+      {
+        res = plotter.h5load_timestep("u", at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        gp << "set title 'u [m/s]'\n";
+      }
+      else if (plt == "v")
+      {
+        res = plotter.h5load_timestep("v", at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        gp << "set title 'v [m/s]'\n";
+      }
       else if (plt == "sat_RH")
       {
         res = plotter.h5load_RH_timestep(at * n["outfreq"]);
