@@ -260,12 +260,13 @@ namespace setup
                                  blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
                                  blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
                                  const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
+                                 blitz::Array<real_t, 1> rhod,
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
         if (!case_ct_params_t::enable_sgs)
           surf_flux_sens = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0);
-        else  // opposite sign convention
+        else  // opposite sign convention and units
           surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0);
       }
 
@@ -273,13 +274,14 @@ namespace setup
                                  blitz::Array<real_t, n_dims> rt_ground,    // value of r_t on the ground
                                  blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
                                  const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
+                                 blitz::Array<real_t, 1> rhod,
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
         if (!case_ct_params_t::enable_sgs)
-          surf_flux_lat = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0);
-        else  // opposite sign convention
-          surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0);
+          surf_flux_lat = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0); // [m/s]
+        else  // opposite sign convention and units
+          surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * (*params.rhod)(this->vert_idx); // [kg / (m^2 s)]
       }
 
       // one function for updating u or v
@@ -288,6 +290,7 @@ namespace setup
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
+                               blitz::Array<real_t, 1> rhod,
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * uv_ground;

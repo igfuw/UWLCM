@@ -212,6 +212,7 @@ namespace setup
                                        blitz::Array<real_t, n_dims> th_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
@@ -224,27 +225,35 @@ namespace setup
           else // for simulations with sgs scheme convert surface flux to required sign convention and units
           {
             auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+/////////////////////////////////
+    // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
+//    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
+  //    calc_c_p()(rv(ijk).reindex(this->zero)) * 
+  //    (*params.rhod)(this->vert_idx);
+////////////////////////////////
             surf_flux_sens = -flux_value / conv_fctr_sens; // [K * kg / (m^2 * s)]
           }
         }
       }
 
-      void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
+      template <class vert_idx_t>
+      void update_surf_flux_lat_hlpr(blitz::Array<real_t, n_dims> surf_flux_lat,
                                        blitz::Array<real_t, n_dims> qt_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, vert_idx_t vert_idx)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
           auto flux_value = RF == 1 ? 115. : 93.; // [W/m^2]
+          auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
           if (!case_ct_params_t::enable_sgs)
           {
-            surf_flux_lat = flux_value;
+            surf_flux_lat = flux_value / conv_fctr_lat / rhod(vert_idx); // [m / s]
           }
           else // for simulations with sgs scheme convert surface flux to required sign convention and units
           {
-            auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
             surf_flux_lat = -flux_value / conv_fctr_lat; // [kg / (m^2 * s)]
           }
         }
@@ -256,6 +265,7 @@ namespace setup
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const real_t &U_ground_z,
+                               blitz::Array<real_t, 1> rhod,
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         surf_flux_uv = where(U_ground == 0., 0.,
@@ -304,6 +314,18 @@ namespace setup
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         this->make_cyclic(solver.advectee(ix::th));
+      }
+
+      void update_surf_flux_lat(blitz::Array<real_t, 2> surf_flux_lat,
+                                       blitz::Array<real_t, 2> qt_ground,   
+                                       blitz::Array<real_t, 2> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_lat_hlpr(
+          surf_flux_lat, qt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::secondIndex{}
+        );
       }
 
       public:

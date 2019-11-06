@@ -1,5 +1,6 @@
 #pragma once
 #include "slvr_common.hpp"
+#include "../detail/blitz_hlpr_fctrs.hpp"
 
 template <class ct_params_t>
 class slvr_sgs : public slvr_common<ct_params_t>
