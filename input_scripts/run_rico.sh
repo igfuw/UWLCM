@@ -2,9 +2,9 @@
 
 # Submit this script with: sbatch <this-filename>
 #SBATCH --account=seinfeldgroup 		# accounting resource
-#SBATCH --job-name=run-dycoms			# job name
+#SBATCH --job-name=run-rico			# job name
 
-#SBATCH --time=05:00:00				# walltime
+#SBATCH --time=03:00:00				# walltime
 #SBATCH --nodes=1				# 1 GPU node
 #SBATCH --ntasks=1				# 1 CPU core to drive GPU
 #SBATCH --gres=gpu:1				# request 1 GPU
@@ -42,10 +42,10 @@ NX=129
 NZ=101
 
 # output directory
-OUTPUT_DIR=$HOME/output/rico/exp1
+OUTPUT_DIR=$HOME/output/rico_default/exp3
 
 # set param strings
-CASE_PARAMS="--case=rico --nx=$NX --ny=0 --nz=$NZ"
+CASE_PARAMS="--case=rico11 --nx=$NX --ny=0 --nz=$NZ"
 RUN_PARAMS="--dt=1 --spinup=$SPIN --nt=$NT --outfreq=$OUTFREQ --backend=CUDA"
 COMMON_PARAMS="--sstp_cond=10 --sstp_coal=10 --rng_seed=0"
 MICRO_PARAMS="--micro=lgrngn --mean_rd1=$MU1 --sdev_rd1=$SIG1 --n1_stp=$N1 --kappa1=$KAP1 --mean_rd2=$MU2 --sdev_rd2=$SIG2 --n2_stp=$N2 --kappa2=$KAP2 --sd_conc=40"
@@ -56,7 +56,7 @@ dry_bins_str=$(python make_bins.py "dry")
 BINS="--out_wet=$wet_bins_str --out_dry=$dry_bins_str"
 
 # copy this input script to the output directory
-mkdir $OUTPUT_DIR
+mkdir -p $OUTPUT_DIR
 cp ${0} $OUTPUT_DIR/input.sh
 
 # make .txt file in output directory with wet_bins_str and dry_bins_str
