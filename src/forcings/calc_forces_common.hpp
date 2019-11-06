@@ -6,28 +6,7 @@
 #include "subsidence.hpp"
 #include "surface_fluxes.hpp"
 #include "../solvers/slvr_common.hpp"
-
-// helper functors
-struct calc_c_p
-{
-  setup::real_t operator()(setup::real_t rv) const
-  {return libcloudphxx::common::moist_air::c_p<setup::real_t>(rv) * si::kilograms * si::kelvins / si::joules;}
-  BZ_DECLARE_FUNCTOR(calc_c_p)
-};
-
-struct calc_T
-{
-  setup::real_t operator()(setup::real_t th, setup::real_t rhod) const
-  {return libcloudphxx::common::theta_dry::T<setup::real_t>(th * si::kelvins, rhod * si::kilograms / si::metres  / si::metres / si::metres) / si::kelvins;}
-  BZ_DECLARE_FUNCTOR2(calc_T)
-};
-
-struct calc_exner
-{
-  setup::real_t operator()(setup::real_t p) const
-  {return libcloudphxx::common::theta_std::exner<setup::real_t>(p * si::pascals);}
-  BZ_DECLARE_FUNCTOR(calc_exner)
-};
+#include "../detail/blitz_hlpr_fctrs.hpp"
 
 // common forcing functions
 // TODO: make functions return blitz arrays to avoid unnecessary copies
@@ -39,12 +18,7 @@ void slvr_common<ct_params_t>::rv_src()
   {
     // surface flux
     surf_latent();
-    // sum of rv flux
     alpha(ijk) = F(ijk);
-
-    // change of rv[1/s] = latent heating[W/m^3] / lat_heat_of_evap[J/kg] / density[kg/m^3]
-    if(params.ForceParameters.surf_latent_flux_in_watts_per_square_meter)
-      alpha(ijk).reindex(this->zero) /= (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules) * (*params.rhod)(this->vert_idx);
 
     // large-scale vertical wind
     subsidence(ix::rv);
