@@ -23,6 +23,9 @@ class PlotterCommon
     const string &dataset
   )
   {
+    notice_macro("about to close current file")
+    h5f.close();
+
     notice_macro("about to open file: " << file)
     h5f.openFile(file, H5F_ACC_RDONLY);
 
