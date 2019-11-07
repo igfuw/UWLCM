@@ -270,18 +270,19 @@ namespace setup
           surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0);
       }
 
-      void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                 blitz::Array<real_t, n_dims> rt_ground,    // value of r_t on the ground
-                                 blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
-                                 const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                                 blitz::Array<real_t, 1> rhod,
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+      template <class vert_idx_t>
+      void update_surf_flux_lat_hlpr(blitz::Array<real_t, n_dims> surf_flux_lat,
+                                       blitz::Array<real_t, n_dims> rt_ground,   
+                                       blitz::Array<real_t, n_dims> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, vert_idx_t vert_idx)
       {
         static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
         if (!case_ct_params_t::enable_sgs)
           surf_flux_lat = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0); // [m/s]
         else  // opposite sign convention and units
-          surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * (*params.rhod)(this->vert_idx); // [kg / (m^2 s)]
+          surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * rhod(vert_idx); // [kg / (m^2 s)]
       }
 
       // one function for updating u or v
@@ -339,6 +340,18 @@ namespace setup
         this->make_cyclic(solver.advectee(ix::th));
       }
 
+      void update_surf_flux_lat(blitz::Array<real_t, 2> surf_flux_lat,
+                                       blitz::Array<real_t, 2> rt_ground,   
+                                       blitz::Array<real_t, 2> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_lat_hlpr(
+          surf_flux_lat, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::secondIndex{}
+        );
+      }
+
       public:
       Rico11()
       {
@@ -383,6 +396,18 @@ namespace setup
   
         solver.advectee(ix::v)= v()(k * dz);
         solver.vab_relaxed_state(1) = solver.advectee(ix::v);
+      }
+
+      void update_surf_flux_lat(blitz::Array<real_t, 3> surf_flux_lat,
+                                       blitz::Array<real_t, 3> rt_ground,   
+                                       blitz::Array<real_t, 3> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_lat_hlpr(
+          surf_flux_lat, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
+        );
       }
 
       void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
