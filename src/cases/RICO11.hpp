@@ -256,18 +256,19 @@ namespace setup
         profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
       }
 
-      void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
+      template <class vert_idx_t>
+      void update_surf_flux_sens_hlpr(blitz::Array<real_t, n_dims> surf_flux_sens,
                                  blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
                                  blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
                                  const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                  blitz::Array<real_t, 1> rhod,
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, vert_idx_t vert_idx)
       {
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
         if (!case_ct_params_t::enable_sgs)
-          surf_flux_sens = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0);
+          surf_flux_sens = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0); // [K m/s]
         else  // opposite sign convention and units
-          surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0);
+          surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * rhod(vert_idx); // [K kg / (m^2 s)];
       }
 
       template <class vert_idx_t>
@@ -350,6 +351,18 @@ namespace setup
         );
       }
 
+      void update_surf_flux_sens(blitz::Array<real_t, 2> surf_flux_sens,
+                                       blitz::Array<real_t, 2> rt_ground,   
+                                       blitz::Array<real_t, 2> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_sens_hlpr(
+          surf_flux_sens, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::secondIndex{}
+        );
+      }
+
       public:
       Rico11()
       {
@@ -405,6 +418,18 @@ namespace setup
       {
         this->update_surf_flux_lat_hlpr(
           surf_flux_lat, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
+        );
+      }
+
+      void update_surf_flux_sens(blitz::Array<real_t, 3> surf_flux_sens,
+                                       blitz::Array<real_t, 3> rt_ground,   
+                                       blitz::Array<real_t, 3> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_sens_hlpr(
+          surf_flux_sens, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
         );
       }
 
