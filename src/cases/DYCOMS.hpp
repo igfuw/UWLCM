@@ -208,29 +208,24 @@ namespace setup
         profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
       }
 
-      void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
+      template <class vert_idx_t>
+      void update_surf_flux_sens_hlpr(blitz::Array<real_t, n_dims> surf_flux_sens,
                                        blitz::Array<real_t, n_dims> th_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
                                        blitz::Array<real_t, 1> rhod,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, vert_idx_t vert_idx)
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
           auto flux_value = RF == 1 ? 15. : 16.; // [W/m^2]
+          auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
           if (!case_ct_params_t::enable_sgs)
           {
-            surf_flux_sens = flux_value;
+            surf_flux_sens = flux_value / conv_fctr_sens / rhod(vert_idx); // [K m/s]
           }
           else // for simulations with sgs scheme convert surface flux to required sign convention and units
           {
-            auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-/////////////////////////////////
-    // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
-//    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
-  //    calc_c_p()(rv(ijk).reindex(this->zero)) * 
-  //    (*params.rhod)(this->vert_idx);
-////////////////////////////////
             surf_flux_sens = -flux_value / conv_fctr_sens; // [K * kg / (m^2 * s)]
           }
         }
@@ -328,6 +323,18 @@ namespace setup
         );
       }
 
+      void update_surf_flux_sens(blitz::Array<real_t, 2> surf_flux_sens,
+                                       blitz::Array<real_t, 2> rt_ground,   
+                                       blitz::Array<real_t, 2> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_sens_hlpr(
+          surf_flux_sens, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::secondIndex{}
+        );
+      }
+
       public:
       Dycoms()
       {
@@ -383,6 +390,18 @@ namespace setup
       {
         this->update_surf_flux_lat_hlpr(
           surf_flux_lat, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
+        );
+      }
+
+      void update_surf_flux_sens(blitz::Array<real_t, 3> surf_flux_sens,
+                                       blitz::Array<real_t, 3> rt_ground,   
+                                       blitz::Array<real_t, 3> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_sens_hlpr(
+          surf_flux_sens, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
         );
       }
 

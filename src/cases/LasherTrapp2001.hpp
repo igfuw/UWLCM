@@ -214,12 +214,13 @@ namespace setup
       }
 
       // functions that set surface fluxes per timestep
-      void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
+      template <class vert_idx_t>
+      void update_surf_flux_sens_hlpr(blitz::Array<real_t, n_dims> surf_flux_sens,
                                        blitz::Array<real_t, n_dims> th_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
                                        blitz::Array<real_t, 1> rhod,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, vert_idx_t vert_idx)
       {
         if(timestep == 0) 
           surf_flux_sens = .1; // [K * m/s]
@@ -230,6 +231,12 @@ namespace setup
           else if(surf_flux_sens.rank() == 2)
             surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
         }
+        else // dont change flux otherwise
+          return;
+        
+        // if flux was changed this timestep, change it according to sgs sign and unit convention
+        if (case_ct_params_t::enable_sgs)
+          surf_flux_sens = - surf_flux_sens * rhod(vert_idx); // [K kg / (m^2 s)]
       }
       
 
@@ -313,6 +320,18 @@ namespace setup
         this->make_cyclic(solver.advectee(ix::th));
       }
 
+      void update_surf_flux_sens(blitz::Array<real_t, 2> surf_flux_sens,
+                                       blitz::Array<real_t, 2> rt_ground,   
+                                       blitz::Array<real_t, 2> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_sens_hlpr(
+          surf_flux_sens, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::secondIndex{}
+        );
+      }
+
       void update_surf_flux_lat(blitz::Array<real_t, 2> surf_flux_lat,
                                        blitz::Array<real_t, 2> rt_ground,   
                                        blitz::Array<real_t, 2> U_ground,   
@@ -371,6 +390,18 @@ namespace setup
       {
         this->update_surf_flux_lat_hlpr(
           surf_flux_lat, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
+        );
+      }
+
+      void update_surf_flux_sens(blitz::Array<real_t, 3> surf_flux_sens,
+                                       blitz::Array<real_t, 3> rt_ground,   
+                                       blitz::Array<real_t, 3> U_ground,   
+                                       const real_t &U_ground_z,
+                                       blitz::Array<real_t, 1> rhod,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+      {
+        this->update_surf_flux_sens_hlpr(
+          surf_flux_sens, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
         );
       }
 
