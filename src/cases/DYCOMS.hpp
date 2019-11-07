@@ -203,9 +203,10 @@ namespace setup
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
   
-        // calc surf flux divergence directly
+        // fraction of surface flux that goes through the bottom of k-th cell
         real_t z_0 = z_rlx / si::metres;
-        profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
+        profs.hgt_fctr = exp(- (k - 0.5) * dz / z_0);
+        profs.hgt_fctr(0) = 1.;
       }
 
       template <class vert_idx_t>

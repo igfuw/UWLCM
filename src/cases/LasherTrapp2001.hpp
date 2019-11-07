@@ -206,7 +206,8 @@ namespace setup
         // calc divergence directly
         real_t z_0 = z_rlx / si::metres;
         blitz::firstIndex k;
-        profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
+        profs.hgt_fctr = exp(- (k - 0.5) * dz / z_0);
+        profs.hgt_fctr(0) = 1.;
 
         profs.w_LS = 0.; // no subsidence
         profs.th_LS = 0.; // no large-scale horizontal advection
