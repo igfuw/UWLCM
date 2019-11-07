@@ -285,7 +285,7 @@ namespace setup
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
-        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * uv_ground * -1;
+        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * uv_ground * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
       }
 
       // ctor

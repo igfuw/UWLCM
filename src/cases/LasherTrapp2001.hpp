@@ -259,7 +259,7 @@ namespace setup
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         surf_flux_uv = where(U_ground == 0., 0.,
-            - 0.0784 * uv_ground / U_ground * -1 // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+            - 0.0784 * uv_ground / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)// 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
           );
       }
 
