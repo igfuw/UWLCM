@@ -29,7 +29,7 @@ namespace setup
       Y    = 12800 * si::metres; 
     const real_t z_abs = 3500;
 //    const real_t z_i = 795; //initial inversion height
-    const quantity<si::length, real_t> z_rlx = 25 * si::metres;
+    const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
     inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
