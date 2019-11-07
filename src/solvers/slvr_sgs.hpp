@@ -1,6 +1,5 @@
 #pragma once
 #include "slvr_common.hpp"
-#include "../detail/blitz_hlpr_fctrs.hpp"
 
 template <class ct_params_t>
 class slvr_sgs : public slvr_common<ct_params_t>
@@ -233,24 +232,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
       if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
         calc_sgs_flux(s);
     
-      if (s == ix::th) // dth/dt = dT/dt / exner
-      {
-        this->rhs.at(s)(this->ijk).reindex(this->zero) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
-                                      tmp_grad,
-                                      *this->mem->G,
-                                      this->ijk,
-                                      this->dijk
-                                    ) / calc_exner()((*params.p_e)(this->vert_idx));
-      }
-      else
-      {
-        this->rhs.at(s)(this->ijk) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
+      this->rhs.at(s)(this->ijk) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
                                       tmp_grad,
                                       *this->mem->G,
                                       this->ijk,
                                       this->dijk
                                     );
-      }
     }
   }
 
