@@ -159,7 +159,6 @@ namespace setup
                                        blitz::Array<real_t, n_dims> th_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
-                                       blitz::Array<real_t, 1> rhod,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_sens = 0.;};
 
@@ -167,7 +166,6 @@ namespace setup
                                        blitz::Array<real_t, n_dims> rt_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
-                                       blitz::Array<real_t, 1> rhod,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
 
@@ -175,7 +173,6 @@ namespace setup
                                      blitz::Array<real_t, n_dims> uv_ground,   
                                      blitz::Array<real_t, n_dims> U_ground,   
                                      const real_t &U_ground_z,
-                                     blitz::Array<real_t, 1> rhod,
                                      const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
 

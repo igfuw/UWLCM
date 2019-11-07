@@ -257,34 +257,24 @@ namespace setup
         profs.hgt_fctr(0) = 1.;
       }
 
-      template <class vert_idx_t>
-      void update_surf_flux_sens_hlpr(blitz::Array<real_t, n_dims> surf_flux_sens,
+      void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
                                  blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
                                  blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
                                  const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                                 blitz::Array<real_t, 1> rhod,
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, vert_idx_t vert_idx)
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
-        if (!case_ct_params_t::enable_sgs)
-          surf_flux_sens = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0); // [K m/s]
-        else  // opposite sign convention and units
-          surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * rhod(vert_idx); // [K kg / (m^2 s)];
+        surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * rhod_0; // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
       }
 
-      template <class vert_idx_t>
-      void update_surf_flux_lat_hlpr(blitz::Array<real_t, n_dims> surf_flux_lat,
+      void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
                                        blitz::Array<real_t, n_dims> rt_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
-                                       blitz::Array<real_t, 1> rhod,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, vert_idx_t vert_idx)
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
-        if (!case_ct_params_t::enable_sgs)
-          surf_flux_lat = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0); // [m/s]
-        else  // opposite sign convention and units
-          surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * rhod(vert_idx); // [kg / (m^2 s)]
+        surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * rhod_0; // [kg / (m^2 s)]
       }
 
       // one function for updating u or v
@@ -293,8 +283,7 @@ namespace setup
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                               blitz::Array<real_t, 1> rhod,
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * uv_ground;
       }
@@ -338,30 +327,6 @@ namespace setup
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
         this->make_cyclic(solver.advectee(ix::th));
-      }
-
-      void update_surf_flux_lat(blitz::Array<real_t, 2> surf_flux_lat,
-                                       blitz::Array<real_t, 2> rt_ground,   
-                                       blitz::Array<real_t, 2> U_ground,   
-                                       const real_t &U_ground_z,
-                                       blitz::Array<real_t, 1> rhod,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
-      {
-        this->update_surf_flux_lat_hlpr(
-          surf_flux_lat, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::secondIndex{}
-        );
-      }
-
-      void update_surf_flux_sens(blitz::Array<real_t, 2> surf_flux_sens,
-                                       blitz::Array<real_t, 2> rt_ground,   
-                                       blitz::Array<real_t, 2> U_ground,   
-                                       const real_t &U_ground_z,
-                                       blitz::Array<real_t, 1> rhod,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
-      {
-        this->update_surf_flux_sens_hlpr(
-          surf_flux_sens, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::secondIndex{}
-        );
       }
 
       public:
@@ -408,30 +373,6 @@ namespace setup
   
         solver.advectee(ix::v)= v()(k * dz);
         solver.vab_relaxed_state(1) = solver.advectee(ix::v);
-      }
-
-      void update_surf_flux_lat(blitz::Array<real_t, 3> surf_flux_lat,
-                                       blitz::Array<real_t, 3> rt_ground,   
-                                       blitz::Array<real_t, 3> U_ground,   
-                                       const real_t &U_ground_z,
-                                       blitz::Array<real_t, 1> rhod,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
-      {
-        this->update_surf_flux_lat_hlpr(
-          surf_flux_lat, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
-        );
-      }
-
-      void update_surf_flux_sens(blitz::Array<real_t, 3> surf_flux_sens,
-                                       blitz::Array<real_t, 3> rt_ground,   
-                                       blitz::Array<real_t, 3> U_ground,   
-                                       const real_t &U_ground_z,
-                                       blitz::Array<real_t, 1> rhod,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
-      {
-        this->update_surf_flux_sens_hlpr(
-          surf_flux_sens, rt_ground, U_ground, U_ground_z, rhod, timestep, dt, dx, dy, blitz::thirdIndex{}
-        );
       }
 
       void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
