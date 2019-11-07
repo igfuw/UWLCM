@@ -264,7 +264,7 @@ namespace setup
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
-        surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * rhod_0; // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
+        surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
@@ -274,7 +274,7 @@ namespace setup
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
-        surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * rhod_0; // [kg / (m^2 s)]
+        surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * (this->rhod_0 / si::kilograms * si::cubic_meters); // [kg / (m^2 s)]
       }
 
       // one function for updating u or v

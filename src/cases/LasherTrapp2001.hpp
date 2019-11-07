@@ -222,13 +222,13 @@ namespace setup
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         if(timestep == 0) 
-          surf_flux_sens = .1 * -1 * rhod_0; // [K kg / (m^2 s)]; -1 because negative gradient of upward flux means inflow
+          surf_flux_sens = .1 * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; -1 because negative gradient of upward flux means inflow
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_sens.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) ) * -1 * rhod_0;
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
           else if(surf_flux_sens.rank() == 2)
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) ) * -1 * rhod_0;
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
         }
       }
       
@@ -240,13 +240,13 @@ namespace setup
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         if(timestep == 0)
-          surf_flux_lat = .4e-4 * -1 * rhod_0; // [m/s]
+          surf_flux_lat = .4e-4 * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [m/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_lat.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) ) * -1 * rhod_0;
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
           else if(surf_flux_lat.rank() == 2)
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) ) * -1 * rhod_0;
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
         }
       }
 
