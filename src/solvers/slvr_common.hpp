@@ -128,8 +128,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);  
       this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
       this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
-      this->record_aux_const("ForceParameters surf_latent_flux_in_watts_per_square_meter", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
-      this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
      
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 

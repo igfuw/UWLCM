@@ -283,8 +283,6 @@ namespace setup
         this->sdev_rd2 = real_t(1.7);
         this->n1_stp = real_t(5*125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(5*65e6) / si::cubic_metres;  // 65 || 16
-        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
-        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
         this->Z = Z;
       }
     };
