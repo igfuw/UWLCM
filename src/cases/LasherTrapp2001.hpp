@@ -242,7 +242,7 @@ namespace setup
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, vert_idx_t vert_idx)
       {
         if(timestep == 0)
-          surf_flux_lat = .4e-4; // [1/s]
+          surf_flux_lat = .4e-4; // [m/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_lat.rank() == 3) // TODO: make it a compile-time decision
@@ -250,6 +250,12 @@ namespace setup
           else if(surf_flux_lat.rank() == 2)
             surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
         }
+        else // dont change flux otherwise
+          return;
+        
+        // if flux was changed this timestep, change it according to sgs sign and unit convention
+        if (case_ct_params_t::enable_sgs)
+          surf_flux_lat = - surf_flux_lat * rhod(vert_idx); // [kg / (m^2 s)]
       }
 
       // one function for updating u or v
