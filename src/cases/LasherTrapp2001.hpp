@@ -203,7 +203,7 @@ namespace setup
 
         profs.th_e = th_dry_env; // actual env profsile of theta_dry
   
-        // calc divergence directly
+        // calc surf flux divergence directly
         real_t z_0 = z_rlx / si::metres;
         blitz::firstIndex k;
         profs.hgt_fctr = exp(- (k - 0.5) * dz / z_0);
