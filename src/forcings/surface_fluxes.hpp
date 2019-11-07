@@ -88,7 +88,7 @@ void slvr_common<ct_params_t>::surf_u_impl(iles_tag)
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    tmp1(this->hrzntl_slice(k)) = surf_flux_u(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k); // [m/s m/s]
+    tmp1(this->hrzntl_slice(k)) = surf_flux_u(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k); // [m/s m/s]
   }
   this->vert_grad_fwd(tmp1, F, params.dz); // [m/s^2]
 }
@@ -117,7 +117,7 @@ void slvr_common<ct_params_t>::surf_v_impl(iles_tag)
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    tmp1(this->hrzntl_slice(k)) = surf_flux_v(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k); // [m/s m/s]
+    tmp1(this->hrzntl_slice(k)) = surf_flux_v(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k); // [m/s m/s]
   }
   this->vert_grad_fwd(tmp1, F, params.dz); // [m/s^2]
 }
