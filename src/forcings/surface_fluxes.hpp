@@ -1,3 +1,4 @@
+#include "../detail/blitz_hlpr_fctrs.hpp"
 #pragma once
 
 //TODO: make these functions return arrays
@@ -10,11 +11,11 @@ void slvr_common<ct_params_t>::surf_sens_impl(iles_tag)
     this->state(ix::th)(this->hrzntl_slice(1)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
     params.dz, this->timestep, this->dt, this->di, this->dj
-  ); // [K m/s]
+  ); // [ K kg / (m^2 s)]
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    tmp1(this->hrzntl_slice(k)) = surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k); // [K m/s]
+    tmp1(this->hrzntl_slice(k)) = surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k) / calc_exner()((*params.p_e)(k)); // [K m/s]
   }
   this->vert_grad_fwd(tmp1, F, params.dz); // [K/s]
 }
@@ -46,11 +47,11 @@ void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
     this->state(ix::rv)(this->hrzntl_slice(1)).reindex(this->origin), // TODO: this should be rv + r_l
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
     params.dz, this->timestep, this->dt, this->di, this->dj
-  );  // [m/s]
+  );  // [lg / (m^2 s)]
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    tmp1(this->hrzntl_slice(k)) = surf_flux_lat(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k); // [m/s]
+    tmp1(this->hrzntl_slice(k)) = surf_flux_lat(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k)  /  (*params.rhod)(k); // [m/s]
   }
   this->vert_grad_fwd(tmp1, F, params.dz); // [1/s]
 }
