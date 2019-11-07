@@ -246,7 +246,7 @@ namespace setup
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         surf_flux_uv = where(U_ground == 0., 0.,
-            - 0.0625 * uv_ground / U_ground // 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s
+            - 0.0625 * uv_ground / U_ground * -1 // 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s; * -1 because negative gradient of upward flux means inflow
           );
       }
 

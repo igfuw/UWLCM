@@ -222,7 +222,7 @@ namespace setup
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         if(timestep == 0) 
-          surf_flux_sens = .1 * -1 * rhod_0; // [K kg / (m^2 s)]; -1 because positive gradient of upward flux means inflow
+          surf_flux_sens = .1 * -1 * rhod_0; // [K kg / (m^2 s)]; -1 because negative gradient of upward flux means inflow
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_sens.rank() == 3) // TODO: make it a compile-time decision
@@ -259,7 +259,7 @@ namespace setup
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         surf_flux_uv = where(U_ground == 0., 0.,
-            - 0.0784 * uv_ground / U_ground // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+            - 0.0784 * uv_ground / U_ground * -1 // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
           );
       }
 
