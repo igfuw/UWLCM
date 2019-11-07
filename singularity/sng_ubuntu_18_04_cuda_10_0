@@ -37,7 +37,7 @@ apt-get update -qq \
         python-matplotlib \
         python-pytest \
 	python-tk\
-	dvipny\
+	dvipng\
 	texlive-latex-extra\
         libthrust-dev \
         libboost-all-dev
