@@ -251,7 +251,7 @@ namespace setup
         profs.th_LS = th_LS_fctr()(k * dz);
         profs.rv_LS = rv_LS_fctr()(k * dz);
   
-        // calc surf flux divergence directly
+        // fraction of surface flux that goes through the bottom of k-th cell
         real_t z_0 = z_rlx / si::metres;
         profs.hgt_fctr = exp(- (k - 0.5) * dz / z_0);
         profs.hgt_fctr(0) = 1.;
