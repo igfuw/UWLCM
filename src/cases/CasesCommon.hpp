@@ -25,8 +25,6 @@ namespace setup
   struct ForceParameters_t
   {
     real_t q_i, heating_kappa, F_0, F_1, rho_i, D, coriolis_parameter;
-    bool surf_latent_flux_in_watts_per_square_meter;
-    bool surf_sensible_flux_in_watts_per_square_meter;
   };
  
   // CAUTION: new profiles have to be added to both structs and in copy_profiles below
@@ -190,8 +188,6 @@ namespace setup
       ForceParameters.F_1 = 22; // w/m^2
       ForceParameters.q_i = 8e-3; // kg/kg
       ForceParameters.rho_i = 1.12; // kg/m^3
-      ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
-      ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
       ForceParameters.coriolis_parameter = 0.;
       ForceParameters.D = 0.; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
       X = 0 * si::metres;

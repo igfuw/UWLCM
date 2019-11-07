@@ -51,14 +51,6 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     this->vert_grad_fwd(radiative_flux, alpha, params.dz);
     alpha(ijk) *= -1; // negative gradient means inflow
     nancheck(alpha(ijk), "sum of th flux");
-
-    // surface flux
-    if(params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
-    {
-      surf_sens();
-      nancheck(F(ijk), "sensible surf forcing");
-      alpha(ijk) += F(ijk);
-    }
   
     // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
     alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
@@ -67,13 +59,10 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 
     nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
-    // surf flux if it is specified as mean(theta*w)
-    if(!params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter)
-    {
-      surf_sens();
-      nancheck(F(ijk), "sensible surf forcing");
-      alpha(ijk) += F(ijk);
-    }
+    // surf flux = d/dz mean(theta*w) [K/s]
+    surf_sens();
+    nancheck(F(ijk), "sensible surf forcing");
+    alpha(ijk) += F(ijk);
   
     // large-scale vertical wind
     subsidence(ix::th); 
