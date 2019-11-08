@@ -84,7 +84,7 @@ namespace setup
   template<class case_ct_params_t, int n_dims>
   class CasesCommon
   {
-    protected:
+    public: 
 
     using ix = typename case_ct_params_t::ix;
     using rt_params_t = typename case_ct_params_t::rt_params_t;
@@ -132,7 +132,6 @@ namespace setup
       params.cdrag = 0.; // turn off sgs momentum surface fluxes, they are done explicitly via surf_flux_uv
     }
 
-    public: 
 
     ForceParameters_t ForceParameters;
 
