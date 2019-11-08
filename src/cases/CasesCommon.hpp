@@ -167,6 +167,11 @@ namespace setup
         // uppermost and lowermost cells are lower
         profs.hgt_fctr(0) = (exp(- 0.5 * dz / z_0) - 1.) / (0.5 * dz);
         profs.hgt_fctr(nz-1) = (exp(- (nz - 1) * dz / z_0) - exp(- (nz - 1.5) * dz / z_0) ) / (0.5 * dz);
+
+        // shift upwards by 1 cell - we want to add flux starting from cell1, 1st cell above ground... (for sure?)
+        for(int kk = nz-1; kk>0; --kk)
+          profs.hgt_fctr(kk) = profs.hgt_fctr(kk-1);
+        profs.hgt_fctr(0) = 0; // no surf flux at ground level
       }
     }
 
