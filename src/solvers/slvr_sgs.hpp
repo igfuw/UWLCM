@@ -235,12 +235,14 @@ class slvr_sgs : public slvr_common<ct_params_t>
     
       if (s == ix::th) // dth/dt = dT/dt / exner
       {
-        this->rhs.at(s)(this->ijk).reindex(this->zero) += formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
+        this->tmp1(this->ijk) = formulae::stress::flux_div_cmpct<parent_t::n_dims, ct_params_t::opts>(
                                       tmp_grad,
                                       *this->mem->G,
                                       this->ijk,
                                       this->dijk
-                                    ) / calc_exner()((*params.p_e)(this->vert_idx));
+                                    );
+        this->tmp1(this->ijk).reindex(this->zero) /= calc_exner()((*params.p_e)(this->vert_idx));
+        this->rhs.at(s)(this->ijk) += this->tmp1(this->ijk); 
       }
       else
       {
@@ -307,7 +309,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
   struct rt_params_t : parent_t::rt_params_t 
   { 
     real_t prandtl_num;
-    setup::arr_1D_t *mix_len;
   };
 
   // per-thread copy of params
