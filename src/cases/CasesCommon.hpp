@@ -162,10 +162,12 @@ namespace setup
       {
         blitz::firstIndex k;
         // (fraction of surface flux going out through upper cell boundary - fraction of surface flux going in through lower cell boundary) / cell height
-        profs.hgt_fctr = (exp(- (k + 1 - 0.5) * dz / z_0) - exp(- (k - 0.5) * dz / z_0)) / dz;
+        profs.hgt_fctr = (exp(- (k + 1 - 1.0) * dz / z_0) - exp(- (k - 1.0) * dz / z_0)) / dz;
+
         // uppermost and lowermost cells are lower
-        profs.hgt_fctr(0) = (exp(- 0.5 * dz / z_0) - 1.) / (0.5 * dz);
-        profs.hgt_fctr(nz-1) = (exp(- (nz - 1) * dz / z_0) - exp(- (nz - 1.5) * dz / z_0) ) / (0.5 * dz);
+//        profs.hgt_fctr(0) = (exp(- 0.5 * dz / z_0) - 1.) / (0.5 * dz);
+        profs.hgt_fctr(0) = 0;
+        profs.hgt_fctr(nz-1) = (exp(- (nz - 1.5) * dz / z_0) - exp(- (nz - 2.0) * dz / z_0) ) / (0.5 * dz);
       }
     }
 
