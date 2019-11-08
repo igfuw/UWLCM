@@ -46,6 +46,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                                          surf_flux_lat,
                                          surf_flux_u,
                                          surf_flux_v,
+                                         surf_flux_tmp,
                                          surf_flux_zero, // zero-filled array, find a way to avoid this
                                          U_ground; 
 
@@ -429,6 +430,14 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     assert(this->rank == 0);
     this->record_aux_dsc("radiative_flux", radiative_flux); 
+
+    auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+    surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
+    this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
+
+    auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
+    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
   } 
 
   void record_all()
@@ -486,8 +495,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
     surf_flux_zero(args.mem->tmp[__FILE__][1][2]),
     U_ground(args.mem->tmp[__FILE__][1][3]),
-    surf_flux_u(args.mem->tmp[__FILE__][1][4]),
-    surf_flux_v(args.mem->tmp[__FILE__][1][5]) // flux_v needs to be last
+    surf_flux_tmp(args.mem->tmp[__FILE__][1][4]),
+    surf_flux_u(args.mem->tmp[__FILE__][1][5]),
+    surf_flux_v(args.mem->tmp[__FILE__][1][6]) // flux_v needs to be last
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
@@ -498,6 +508,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 7); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux
-    parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+2, "", true); // surf_flux sens/lat/hori_vel/zero, U_ground
+    parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+3, "", true); // surf_flux sens/lat/hori_vel/zero/tmp, U_ground
   }
 };
