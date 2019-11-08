@@ -202,11 +202,6 @@ namespace setup
         profs.w_LS = w_LS_fctr()(k * dz);
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
-  
-        // fraction of surface flux that goes through the bottom of k-th cell
-        real_t z_0 = z_rlx / si::metres;
-        profs.hgt_fctr = exp(- (k - 0.5) * dz / z_0);
-        profs.hgt_fctr(0) = 1.;
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -264,6 +259,7 @@ namespace setup
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
         this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
         this->Z = Z;
+        this->z_rlx = z_rlx;
       }
     };
     

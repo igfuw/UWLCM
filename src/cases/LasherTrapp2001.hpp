@@ -202,12 +202,6 @@ namespace setup
         this->ref_prof(profs, nz);
 
         profs.th_e = th_dry_env; // actual env profsile of theta_dry
-  
-        // calc surf flux divergence directly
-        real_t z_0 = z_rlx / si::metres;
-        blitz::firstIndex k;
-        profs.hgt_fctr = exp(- (k - 0.5) * dz / z_0);
-        profs.hgt_fctr(0) = 1.;
 
         profs.w_LS = 0.; // no subsidence
         profs.th_LS = 0.; // no large-scale horizontal advection
@@ -276,6 +270,7 @@ namespace setup
         this->n1_stp = real_t(5*125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(5*65e6) / si::cubic_metres;  // 65 || 16
         this->Z = Z;
+        this->z_rlx = z_rlx;
       }
     };
     

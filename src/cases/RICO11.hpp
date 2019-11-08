@@ -250,11 +250,6 @@ namespace setup
         // large-scale horizontal advection
         profs.th_LS = th_LS_fctr()(k * dz);
         profs.rv_LS = rv_LS_fctr()(k * dz);
-  
-        // fraction of surface flux that goes through the bottom of k-th cell
-        real_t z_0 = z_rlx / si::metres;
-        profs.hgt_fctr = exp(- (k - 0.5) * dz / z_0);
-        profs.hgt_fctr(0) = 1.;
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -301,6 +296,7 @@ namespace setup
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
         this->X = X;
         this->Z = Z;
+        this->z_rlx = z_rlx;
       }
     };
     
