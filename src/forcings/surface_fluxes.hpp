@@ -15,9 +15,8 @@ void slvr_common<ct_params_t>::surf_sens_impl(iles_tag)
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    tmp1(this->hrzntl_slice(k)) = surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k) / calc_exner()((*params.p_e)(k)); // [K m/s]
+    F(this->hrzntl_slice(k)) = surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k) / calc_exner()((*params.p_e)(k)); // [K/s]
   }
-  this->vert_grad_fwd(tmp1, F, params.dz); // [K/s]
 }
 
 template <class ct_params_t>
@@ -51,9 +50,8 @@ void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    tmp1(this->hrzntl_slice(k)) = surf_flux_lat(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k)  /  (*params.rhod)(k); // [m/s]
+    F(this->hrzntl_slice(k)) = surf_flux_lat(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k)  /  (*params.rhod)(k); // [1/s]
   }
-  this->vert_grad_fwd(tmp1, F, params.dz); // [1/s]
 }
 
 template <class ct_params_t>
@@ -88,9 +86,8 @@ void slvr_common<ct_params_t>::surf_u_impl(iles_tag)
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    tmp1(this->hrzntl_slice(k)) = surf_flux_u(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k); // [m/s m/s]
+    F(this->hrzntl_slice(k)) = surf_flux_u(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k); // [m/s^2]
   }
-  this->vert_grad_fwd(tmp1, F, params.dz); // [m/s^2]
 }
 
 template <class ct_params_t>
@@ -117,9 +114,8 @@ void slvr_common<ct_params_t>::surf_v_impl(iles_tag)
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    tmp1(this->hrzntl_slice(k)) = surf_flux_v(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k); // [m/s m/s]
+    F(this->hrzntl_slice(k)) = surf_flux_v(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k); // [m/s^2]
   }
-  this->vert_grad_fwd(tmp1, F, params.dz); // [m/s^2]
 }
 
 template <class ct_params_t>
