@@ -113,7 +113,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    abs(this->state(ix::vip_i)(hrzntl_slice(1))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
+    abs(this->state(ix::vip_i)(this->hrzntl_slice(1))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
   )
 
   // ctor
@@ -212,7 +212,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    sqrt(pow2(this->state(ix::vip_i)(hrzntl_slice(1))) + pow2(this->state(ix::vip_j)(hrzntl_slice(1))))
+    sqrt(pow2(this->state(ix::vip_i)(this->hrzntl_slice(1))) + pow2(this->state(ix::vip_j)(this->hrzntl_slice(1))))
   )
 
   // ctor
