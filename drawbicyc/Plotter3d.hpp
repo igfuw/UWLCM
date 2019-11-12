@@ -16,41 +16,43 @@ class Plotter_t<3> : public PlotterCommon
   using parent_t = PlotterCommon;
   hsize_t n[3];
   enum {x, y, z};
-  arr_t tmp;
+  arr_t tmp, tmp_srfc;
   blitz::Range yrange;
 
   public:
 
   auto h5load(
     const string &file, 
-    const string &dataset
+    const string &dataset,
+    bool srfc = false // load a horiznotal slice 
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     parent_t::h5load(file, dataset);
     this->h5s.getSimpleExtentDims(n, NULL);
   
     hsize_t 
-      cnt[3] = { n[x],  n[y],  n[z] }, 
+      cnt[3] = { n[x],  n[y],  srfc ? 1 : n[z] }, 
       off[3] = { 0,     0,     0    };
     this->h5s.selectHyperslab( H5S_SELECT_SET, cnt, off);
   
     hsize_t ext[3] = {
       hsize_t(tmp.extent(0)), 
       hsize_t(tmp.extent(1)), 
-      hsize_t(tmp.extent(2)) 
+      hsize_t(srfc ? tmp_srfc.extent(2) : tmp.extent(2)) 
     };
-    this->h5d.read(tmp.data(), H5::PredType::NATIVE_FLOAT, H5::DataSpace(3, ext), h5s);
+    this->h5d.read(srfc ? tmp_srfc.data() : tmp.data(), H5::PredType::NATIVE_FLOAT, H5::DataSpace(3, ext), h5s);
 
-    return blitz::safeToReturn(tmp + 0);
+    return blitz::safeToReturn((srfc ? tmp_srfc : tmp) + 0);
   }
 
   auto h5load_timestep(
     const string &dataset,
-    int at
+    int at,
+    bool srfc = false
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     string timestep_file = this->file + "/timestep" + zeropad(at, 10) + ".h5";
-    return h5load(timestep_file, dataset);
+    return h5load(timestep_file, dataset, srfc);
   }
 
   auto horizontal_mean(
@@ -154,6 +156,7 @@ class Plotter_t<3> : public PlotterCommon
 
     // other dataset are of the size x*z, resize tmp
     tmp.resize(n[0]-1, n[1]-1, n[2]-1);
+    tmp_srfc.resize(n[0]-1, n[1]-1, 1);
   }
 };
 

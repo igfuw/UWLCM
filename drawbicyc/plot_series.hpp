@@ -507,6 +507,28 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }   
+      else if (plt == "surf_flux_latent")
+      {   
+        try
+        {
+          {
+            typename Plotter_t::arr_t snap(plotter.h5load_timestep("latent surface flux", at * n["outfreq"], true)); 
+            res_prof(at) = blitz::mean(snap); 
+          }
+        }
+        catch(...) {;}
+      }   
+      else if (plt == "surf_flux_sensible")
+      {   
+        try
+        {
+          {
+            typename Plotter_t::arr_t snap(plotter.h5load_timestep("sensible surface flux", at * n["outfreq"], true)); 
+            res_prof(at) = blitz::mean(snap); 
+          }
+        }
+        catch(...) {;}
+      }   
       else if (plt == "er")
       {   
         //entrainment rate as in the 2009 Ackerman paper
@@ -907,6 +929,14 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set title 'average gccn conc [1/cm^3]'\n";
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
+    }
+    else if (plt == "surf_flux_sensible")
+    {
+      gp << "set title 'sensible surf flux [W/m^2]'\n";
+    }
+    else if (plt == "surf_flux_latent")
+    {
+      gp << "set title 'latent surf flux [W/m^2]'\n";
     }
     else if (plt == "er")
     {

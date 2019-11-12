@@ -16,10 +16,12 @@ const std::vector<std::string> series_dycoms({
 const std::vector<std::string> series_rico({
  "clfrac", "lwp",
  "surf_precip", 
-//"mass_dry", 
  "acc_precip",
  "cl_nc",
  "cloud_base",
+ "surf_flux_latent",
+ "surf_flux_sensible"
+//"mass_dry", 
 // "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
 //,"cl_avg_cloud_rad"
 // "sd_conc_avg", "sd_conc_std_dev",
