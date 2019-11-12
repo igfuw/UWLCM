@@ -33,7 +33,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
 
   // array with index of inversion
-  blitz::Array<real_t, parent_t::n_dims-1> k_i;
+  blitz::Array<real_t, parent_t::n_dims-1> k_i; // TODO: allocate k_i with alloc surf + in MPI calc average k_i over all processes
 
 /*
   TODO: an array (map?) of surf fluxes, something like:
