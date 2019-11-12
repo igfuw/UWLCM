@@ -44,7 +44,6 @@ int main(int argc, char** argv)
       ("nt", po::value<int>()->default_value(3600) , "timestep count")
       ("rng_seed", po::value<int>()->default_value(0) , "rng seed, 0 for random")
       ("dt", po::value<setup::real_t>()->required() , "timestep length")
-      ("z_rlx_sclr", po::value<setup::real_t>()->default_value(25) , "scalars surface flux charasteristic heihjt")
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
@@ -103,9 +102,6 @@ int main(int argc, char** argv)
    
     //handling timestep length
     user_params.dt = vm["dt"].as<setup::real_t>();
-
-    //handling z_rlx_sclr
-    user_params.z_rlx_sclr = vm["z_rlx_sclr"].as<setup::real_t>();
 
     // handling serial-advection-forcing flag
     if(vm["serial"].as<bool>()) setenv("OMP_NUM_THREADS", "1", 1);

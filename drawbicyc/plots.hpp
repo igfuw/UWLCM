@@ -6,7 +6,22 @@ const std::vector<std::string> series_dycoms({
 //"mass_dry", 
  "acc_precip",
  "cl_nc",
- "cloud_base"
+ "cloud_base",
+ "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
+,"cl_avg_cloud_rad"
+// "sd_conc_avg", "sd_conc_std_dev",
+// "tot_water"
+});
+
+const std::vector<std::string> series_rico({
+ "clfrac", "lwp",
+ "surf_precip", 
+//"mass_dry", 
+ "acc_precip",
+ "cl_nc",
+ "cloud_base",
+// "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
+//,"cl_avg_cloud_rad"
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
 });
@@ -51,6 +66,19 @@ std::vector<std::string> profs_dycoms({
 //, "nc_down" 
 }); // rtot has to be first
 
+std::vector<std::string> profs_rico({
+"00rtot", "rliq", "thl", "wvar", 
+ "prflux"
+,"clfrac"
+//, "N_c", 
+,"cl_nc"
+,"u", "v",
+//, "nc_up" 
+//,"sat_RH_up"
+//, "act_conc_up" 
+//, "nc_down" 
+}); // rtot has to be first
+
 std::vector<std::string> profs_sgs({
  "sgs_tke"
 ,"k_m"
@@ -65,14 +93,27 @@ std::vector<std::string> profs_moist_thermal({
 
 
 std::vector<std::string> fields_dycoms({
+//"rl", "nc",
+// "rr", "nr",
+//"ef", "na", 
+//"th", "rv",     
+//"u", "w", 
+//"sd_conc",//, "r_dry", 
+//"RH", "supersat",
+//"lib_pres", "lib_temp"
+"gccn_conc",
+"gccn_mean_rw"
+});
+
+std::vector<std::string> fields_rico({
 "rl", "nc",
  "rr", "nr",
-"ef", "na", 
+//"ef", "na", 
 "th", "rv",     
 "u", "w", 
-"sd_conc",//, "r_dry", 
-"RH", "supersat",
-"lib_pres", "lib_temp"
+//"sd_conc",//, "r_dry", 
+//"RH", "supersat",
+//"lib_pres", "lib_temp"
 });
 
 std::vector<std::string> fields_moist_thermal({
@@ -94,11 +135,26 @@ class Plots
     std::vector<std::string> profs;
     std::vector<std::string> fields;
 
-  Plots(const std::string &type, bool sgs):
-    series(type == "dycoms" ? series_dycoms : series_moist_thermal),
-    profs(type == "dycoms" ? profs_dycoms : profs_moist_thermal),
-    fields(type == "dycoms" ? fields_dycoms : fields_moist_thermal)
+  Plots(const std::string &type, bool sgs)
   {
+    if(type == "dycoms") { 
+      profs.insert(profs.end(), profs_dycoms.begin(), profs_dycoms.end());
+      series.insert(series.end(), series_dycoms.begin(), series_dycoms.end());
+      fields.insert(fields.end(), fields_dycoms.begin(), fields_dycoms.end());
+    }
+    else if(type == "rico") { 
+      profs.insert(profs.end(), profs_rico.begin(), profs_rico.end());
+      series.insert(series.end(), series_rico.begin(), series_rico.end());
+      fields.insert(fields.end(), fields_rico.begin(), fields_rico.end());
+    }
+    else if(type == "moist_thermal") { 
+      profs.insert(profs.end(), profs_moist_thermal.begin(), profs_moist_thermal.end());
+      series.insert(series.end(), series_moist_thermal.begin(), series_moist_thermal.end());
+      fields.insert(fields.end(), fields_moist_thermal.begin(), fields_moist_thermal.end());
+    }
+    else
+      throw std::runtime_error("drawbicyc Plots.hpp: unknown 'type'.");
+    
     if (sgs)
     {
       profs.insert(profs.end(), profs_sgs.begin(), profs_sgs.end());
