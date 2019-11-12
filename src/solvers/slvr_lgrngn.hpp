@@ -84,7 +84,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->record_aux("precip_rate", prtcls->outbuf());
 
     // recording 1st mom of rw of gccns
-    /*
     prtcls->diag_dry_rng(2e-6, 1);
     prtcls->diag_wet_mom(1);
     this->record_aux("gccn_rw_mom1", prtcls->outbuf());
@@ -94,6 +93,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_mom(0);
     this->record_aux("gccn_rw_mom0", prtcls->outbuf());
 
+    /*
     // recording 1st mom of rw of non-gccns
     prtcls->diag_dry_rng(0., 2e-6);
     prtcls->diag_wet_mom(1);
@@ -187,6 +187,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
        this->f_puddle << elem.first << " " << elem.second << "\n";
     }   
     this->f_puddle << "\n";
+    this->f_puddle.flush();
    
     // recording requested statistical moments
     {
@@ -295,6 +296,13 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       else
         params.cloudph_opts_init.x1 =  params.cloudph_opts_init.nx       * this->di;
 
+      int n_sd_from_dry_sizes = 0;
+      for (auto const& krcm : params.cloudph_opts_init.dry_sizes)
+        for (auto const& rcm : krcm.second)
+          n_sd_from_dry_sizes += rcm.second.second;
+        
+      const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes;
+
       if(parent_t::n_dims == 2) // 2D
       {
         params.cloudph_opts_init.nz = this->mem->grid_size[1].length();
@@ -305,9 +313,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         if(params.cloudph_opts_init.sd_conc)
         {
           if(params.cloudph_opts_init.sd_conc_large_tail)
-            params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc; /// 1.2 to make space for large tail
+            params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell; /// 1.2 to make space for large tail
           else
-            params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc; 
+            params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell;
         }
         else
           params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
@@ -330,9 +338,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         if(params.cloudph_opts_init.sd_conc)
         {
           if(params.cloudph_opts_init.sd_conc_large_tail)
-            params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc; /// 1.2 to make space for large tail
+            params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; /// 1.2 to make space for large tail
           else
-            params.cloudph_opts_init.n_sd_max =       params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * params.cloudph_opts_init.sd_conc; 
+            params.cloudph_opts_init.n_sd_max =       params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; 
         }
         else
           params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
@@ -407,15 +415,20 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("async", params.async);  
       this->record_aux_const("adve", params.cloudph_opts.adve);  
       this->record_aux_const("sedi", params.cloudph_opts.sedi);  
+      this->record_aux_const("subs", params.cloudph_opts.subs);  
       this->record_aux_const("cond", params.cloudph_opts.cond);  
       this->record_aux_const("coal", params.flag_coal);  // cloudph_opts.coal could be 0 here due to spinup
       this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
+      this->record_aux_const("out_dry_spec", params.out_dry_spec);  
+      this->record_aux_const("out_wet_spec", params.out_wet_spec);  
+      this->record_aux_const("gccn", params.gccn);  
       this->record_aux_const("turb_adve", params.cloudph_opts.turb_adve);  
       this->record_aux_const("turb_cond", params.cloudph_opts.turb_cond);  
       this->record_aux_const("turb_coal", params.cloudph_opts.turb_coal);  
       this->record_aux_const("chem_switch", params.cloudph_opts_init.chem_switch);  
       this->record_aux_const("coal_switch", params.cloudph_opts_init.coal_switch);  
       this->record_aux_const("sedi_switch", params.cloudph_opts_init.sedi_switch);  
+      this->record_aux_const("subs_switch", params.cloudph_opts_init.subs_switch);  
       this->record_aux_const("src_switch", params.cloudph_opts_init.src_switch);  
       this->record_aux_const("turb_adve_switch", params.cloudph_opts_init.turb_adve_switch);  
       this->record_aux_const("turb_cond_switch", params.cloudph_opts_init.turb_cond_switch);  
@@ -678,8 +691,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
-    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
+    negcheck2(this->mem->advectee(ix::th)(this->ijk), this->rhs.at(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs (+ output of th rhs)");
+    negcheck2(this->mem->advectee(ix::rv)(this->ijk), this->rhs.at(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs (+ output of rv rhs)");
   }
   
   void record_all()
@@ -704,6 +717,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
     outmom_t<real_t> out_dry, out_wet;
     bool flag_coal; // do we want coal after spinup
+    bool gccn;
+    bool out_wet_spec, out_dry_spec;
   };
 
   private:

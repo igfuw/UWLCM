@@ -13,7 +13,6 @@ apt-get update -qq \
         build-essential \
         pkg-config \
         git \
-        cmake \
         ca-certificates \
         software-properties-common \
         vim \
@@ -37,8 +36,14 @@ apt-get update -qq \
         python-scipy \
         python-matplotlib \
         python-pytest \
+	python-tk\
+	dvipng\
+	texlive-latex-extra\
         libthrust-dev \
         libboost-all-dev
+
+wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh
+sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
 
 git clone --depth=1 git://github.com/thrust/thrust.git
 sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust

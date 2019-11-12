@@ -46,13 +46,13 @@ class slvr_dim<
   idx_t<2> Cy_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h}); // just fill in with Cz_domain to avoid some asserts
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
 
+
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
   blitz::TinyVector<int, 1> zero_plane = blitz::TinyVector<int, 1>({0});
   blitz::TinyVector<int, 2> origin = blitz::TinyVector<int, 2>({this->i.first(), this->j.first()});
 
   blitz::secondIndex vert_idx;
   const rng_t &vert_rng = this->j;
-  libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::u};
 
   idx_t<2> hrzntl_slice(int k)
@@ -113,7 +113,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    abs(this->state(ix::vip_i)(this->i, 0).reindex({0}))
+    abs(this->state(ix::vip_i)(hrzntl_slice(1))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
   )
 
   // ctor
@@ -121,10 +121,8 @@ class slvr_dim<
     typename parent_t::ctor_args_t args,
     typename parent_t::rt_params_t const &p
   ) :
-    parent_t(args, p)
-  {
-    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_i)(this->i, 0).reindex({0})));
-  }
+    parent_t(args, p) 
+    {}
 };
 
 // 3D version
@@ -154,7 +152,6 @@ class slvr_dim<
 
   blitz::thirdIndex vert_idx;
   const rng_t &vert_rng = this->k;
-  libmpdataxx::arrvec_t<arr_sub_t> vip_ground;
   std::set<int> hori_vel = std::set<int>{ix::u, ix::v};
 
   idx_t<3> hrzntl_slice(int k)
@@ -215,7 +212,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    sqrt(pow2(this->state(ix::vip_i)(this->i, this->j, 0).reindex({0,0})) + pow2(this->state(ix::vip_j)(this->i, this->j, 0).reindex({0,0})))
+    sqrt(pow2(this->state(ix::vip_i)(hrzntl_slice(1))) + pow2(this->state(ix::vip_j)(hrzntl_slice(1))))
   )
 
   // ctor
@@ -224,9 +221,6 @@ class slvr_dim<
     typename parent_t::rt_params_t const &p
   ) : 
     parent_t(args, p)
-  {
-    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_i)(this->i, this->j, 0).reindex({0,0})));
-    vip_ground.push_back(new arr_sub_t(this->state(ix::vip_j)(this->i, this->j, 0).reindex({0,0})));
-  }
+    {}
 };
 

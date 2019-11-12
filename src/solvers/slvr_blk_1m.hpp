@@ -71,6 +71,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
        this->f_puddle << i << " " << (i == 8 ? this->puddle : 0) << "\n";
     }   
     this->f_puddle << "\n";
+    this->f_puddle.flush();
 
     // recording precipitation flux
     this->record_aux_dsc("precip_rate", precipitation_rate);

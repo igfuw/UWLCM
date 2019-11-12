@@ -22,24 +22,24 @@ int main(int ac, char** av)
     "--nx=4 --nz=4",
     "--nx=4 --ny=4 --nz=4"
   });
-  string opts_dim_lgrngn_3d =  "--nx=40 --ny=40 --nz=40"; // = 4 caused multiplicity overflows in the Lagrangian 3D
   vector<string> opts_micro({
     "--micro=blk_1m"  ,
-    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --z_rlx_sclr=100"
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8" 
   });
   vector<string> opts_case({
-    "--case=moist_thermal",
-    "--case=dry_thermal --cond=0 --coal=0",
-//    "--case=dycoms_rf01",
-    "--case=dycoms_rf02",
-//    "--case=lasher_trapp"
+    "--case=moist_thermal_api_test",
+    "--case=dry_thermal_api_test --cond=0 --coal=0",
+    "--case=dycoms_rf02_api_test",
+    "--case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1",
+    "--case=rico11_api_test",
+    "--case=dycoms_rf01_api_test",
+    "--case=lasher_trapp_api_test"
   });
   vector<string> opts_piggy({
     "--piggy=0",
     "--piggy=0 --save_vel=1",
     "--piggy=1 --vel_in=velocity_out.dat"  // take vel file from blk, cause it's ran first
   });
-  string opts_pig_from_lgrngn = "--piggy=1 --vel_in=velocity_out.dat";
 
   system("mkdir output");
 
@@ -62,13 +62,6 @@ int main(int ac, char** av)
             continue; 
           }
 
-          // more cells in 3d lgrngn to avoid n overflow
-          if(opts_d == opts_dim[1] && opts_m == opts_micro[1])
-          {
-            opts_d = opts_dim_lgrngn_3d;
-            if(opts_p == opts_piggy[2])
-              opts_p = opts_pig_from_lgrngn;
-          }
           ostringstream cmd, opts;
           opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p << " " << opts_additional;
           // we want outdir=opts.str(), but that gives a long outdir that h5diff has trouble with reading and gives error when comparing const.h5 with refdata
@@ -77,6 +70,8 @@ int main(int ac, char** av)
           ofdict << outdir << " : " << opts.str() << std::endl;
 
           cmd << av[1] << "/src/bicycles " << opts.str() << " --outdir=\"output/" << outdir << "\"";
+ 
+          cerr << endl << "=========" << endl;
           notice_macro("about to call: " << cmd.str())
   
           if (EXIT_SUCCESS != system(cmd.str().c_str()))
