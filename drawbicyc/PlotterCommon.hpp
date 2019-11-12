@@ -20,7 +20,8 @@ class PlotterCommon
 
   void h5load(
     const string &file,
-    const string &dataset
+    const string &dataset,
+    bool srfc = false
   )
   {
     notice_macro("about to close current file")
