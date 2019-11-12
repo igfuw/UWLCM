@@ -18,7 +18,7 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     // index of first cell above inversion
     tmp1(ijk)  = rv(ijk) + r_l(ijk);
   
-    k_i(this->hrzntl_subdomain) = blitz::first( tmp1(ijk).reindex(this->zero) < params.ForceParameters.q_i, this->vert_idx); // vertical index of first cell above inversion (inversion is at the lower edge of this cell)
+    k_i.reindex(this->zero_plane) = blitz::first( tmp1(ijk).reindex(this->zero) < params.ForceParameters.q_i, this->vert_idx); // vertical index of first cell above inversion (inversion is at the lower edge of this cell)
   
     // calc Eqs. 5 and 6 from Ackerman et al 2009
     // calc sum of r_l above certain level and store it in tmp1
@@ -51,11 +51,11 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     radiative_flux(ijk) += params.ForceParameters.F_1 * exp(tmp1(ijk));
   
     // free atmosphere part
-    radiative_flux(ijk).reindex(this->zero) += where(this->vert_idx > k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j),  // works even in 2D ?!?!
+    radiative_flux(ijk).reindex(this->zero) += where(this->vert_idx > k_i.reindex(this->zero_plane)(blitz::tensor::i, blitz::tensor::j),  // works even in 2D ?!?!
         (libcloudphxx::common::moist_air::c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) * params.ForceParameters.rho_i * params.ForceParameters.D *
-        (0.25 * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 4./3) +
-        (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz * pow((this->vert_idx - 0.5) * params.dz - (k_i(this->hrzntl_subdomain)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 1./3))
-        , 0);
+        (0.25 * pow((this->vert_idx - 0.5) * params.dz - (k_i.reindex(this->zero_plane)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 4./3) +
+        (k_i.reindex(this->zero_plane)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz * pow((this->vert_idx - 0.5) * params.dz - (k_i.reindex(this->zero_plane)(blitz::tensor::i, blitz::tensor::j) - .5) * params.dz, 1./3))
+      , 0);
   }
   else
     radiative_flux(ijk)=0.;
