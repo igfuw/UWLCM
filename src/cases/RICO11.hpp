@@ -27,7 +27,7 @@ namespace setup
       Z    = 4000 * si::metres, 
       X    = 12800 * si::metres, 
       Y    = 12800 * si::metres; 
-    const real_t z_abs = 3500;
+    const real_t z_abs = 3000;
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
