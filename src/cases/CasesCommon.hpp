@@ -14,7 +14,6 @@
 #include "../detail/user_params.hpp"
 #include "../detail/concurr_types.hpp"
 
-namespace setup 
 {
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
   namespace theta_std = libcloudphxx::common::theta_std;
@@ -28,7 +27,7 @@ namespace setup
     bool surf_latent_flux_in_watts_per_square_meter;
     bool surf_sensible_flux_in_watts_per_square_meter;
   };
- 
+
   // CAUTION: new profiles have to be added to both structs and in copy_profiles below
   // TODO: try a different design where it is not necessary ?
   struct profiles_t
@@ -113,7 +112,7 @@ namespace setup
       n1_stp = real_t(70.47e6) / si::cubic_metres, // gives 60e6 at surface of moist thermal
       n2_stp = real_t(46.98e6) / si::cubic_metres;  // gives 40e6 at surface of moist thermal
 
-    // hygroscopicity kappa of the aerosol 
+    // hygroscopicity kappa of the aerosol
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
 
     real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
@@ -199,22 +198,22 @@ namespace setup
     virtual ~CasesCommon() = default;
 
     protected:
-  
+
     // function enforcing cyclic values in horizontal directions
     // 2D version
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 2>::type* = 0)
     { arr(arr.extent(0) - 1, blitz::Range::all()) = arr(0, blitz::Range::all()); }
-  
+
     // 3D version
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 3>::type* = 0)
-    { 
-      arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) = 
-        arr(0, blitz::Range::all(), blitz::Range::all()); 
-      arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) = 
+    {
+      arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) =
+        arr(0, blitz::Range::all(), blitz::Range::all());
+      arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) =
         arr(blitz::Range::all(), 0, blitz::Range::all());
     }
   };

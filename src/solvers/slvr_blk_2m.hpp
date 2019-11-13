@@ -1,13 +1,12 @@
 #pragma once
 #include "slvr_sgs.hpp"
 
-#include <libcloudph++/blk_1m/options.hpp>
-#include <libcloudph++/blk_1m/adj_cellwise.hpp>
-#include <libcloudph++/blk_1m/rhs_cellwise.hpp>
-#include <libcloudph++/blk_1m/rhs_columnwise.hpp>
+#include <libcloudph++/blk_2m/options.hpp>
+#include <libcloudph++/blk_2m/rhs_cellwise.hpp>
+#include <libcloudph++/blk_2m/rhs_columnwise.hpp>
 
 template <class ct_params_t>
-class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
                                                      slvr_common<ct_params_t>,
                                                      slvr_sgs<ct_params_t>
                                                     >
@@ -43,14 +42,14 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       &p_e_arg = p_e(this->ijk);
 
 /*
-    libcloudphxx::blk_1m::adj_cellwise<real_t>(
+    libcloudphxx::blk_2m::adj_cellwise<real_t>(
       opts, rhod, th, rv, rc, rr, this->dt
     );
-    libcloudphxx::blk_1m::adj_cellwise_constp<real_t>(
+    libcloudphxx::blk_2m::adj_cellwise_constp<real_t>(
       opts, rhod, p_e_arg, th, rv, rc, rr, this->dt
     );
 */
-    libcloudphxx::blk_1m::adj_cellwise_nwtrph<real_t>(
+    libcloudphxx::blk_2m::adj_cellwise_nwtrph<real_t>(
       opts, p_e_arg, th, rv, rc, this->dt
     );
     this->mem->barrier();
@@ -117,7 +116,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     // recording parameters
     if(this->rank==0)
     {
-      this->record_aux_const("single-moment bulk microphysics", -44);
+      this->record_aux_const("double-moment bulk microphysics", -44);
       this->record_aux_const("cond", opts.cond);
       this->record_aux_const("cevp", opts.cevp);
       this->record_aux_const("revp", opts.revp);
@@ -191,7 +190,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 	rr   = this->state(ix::rr)(this->ijk),
         rhod = (*this->mem->G)(this->ijk),
         &p_e_arg = p_e(this->ijk);
-      libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(
+      libcloudphxx::blk_2m::rhs_cellwise_nwtrph<real_t>(
           opts,
           dot_th, dot_rv, dot_rc, dot_rr,
           rhod, p_e_arg, th, rv, rc, rr,
@@ -261,13 +260,13 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   }
 
-  libcloudphxx::blk_1m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
+  libcloudphxx::blk_2m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
 
   public:
 
   struct rt_params_t : parent_t::rt_params_t
   {
-    libcloudphxx::blk_1m::opts_t<real_t> cloudph_opts;
+    libcloudphxx::blk_2m::opts_t<real_t> cloudph_opts;
   };
 
   protected:
@@ -285,7 +284,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   }
 
   // ctor
-  slvr_blk_1m_common(
+  slvr_blk_2m_common(
     typename parent_t::ctor_args_t args,
     const rt_params_t &p
   ) :
@@ -299,7 +298,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 };
 
 template <class ct_params_t, class enableif = void>
-class slvr_blk_1m
+class slvr_blk_2m
 {};
 
 using libmpdataxx::arakawa_c::h;
@@ -307,18 +306,18 @@ using namespace libmpdataxx; // TODO: get rid of it?
 
 // 2D version
 template <class ct_params_t>
-class slvr_blk_1m<
+class slvr_blk_2m<
   ct_params_t,
   typename std::enable_if<ct_params_t::n_dims == 2 >::type
-> : public slvr_blk_1m_common<ct_params_t>
+> : public slvr_blk_2m_common<ct_params_t>
 {
   public:
-  using parent_t = slvr_blk_1m_common<ct_params_t>;
+  using parent_t = slvr_blk_2m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
   using clock = typename parent_t::clock;
 
   // ctor
-  slvr_blk_1m(
+  slvr_blk_2m(
     typename parent_t::ctor_args_t args,
     const typename parent_t::rt_params_t &p
   ) :
@@ -347,7 +346,7 @@ class slvr_blk_1m<
         const auto 
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j);
-        this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+        this->puddle += - libcloudphxx::blk_2m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
       }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
@@ -365,18 +364,18 @@ class slvr_blk_1m<
 
 // 3D version
 template <class ct_params_t>
-class slvr_blk_1m<
+class slvr_blk_2m<
   ct_params_t,
   typename std::enable_if<ct_params_t::n_dims == 3 >::type
-> : public slvr_blk_1m_common<ct_params_t>
+> : public slvr_blk_2m_common<ct_params_t>
 {
   public:
-  using parent_t = slvr_blk_1m_common<ct_params_t>;
+  using parent_t = slvr_blk_2m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
   using clock = typename parent_t::clock;
 
   // ctor
-  slvr_blk_1m(
+  slvr_blk_2m(
     typename parent_t::ctor_args_t args,
     const typename parent_t::rt_params_t &p
   ) :
@@ -406,7 +405,7 @@ class slvr_blk_1m<
           const auto 
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k);
-          this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+          this->puddle += - libcloudphxx::blk_2m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
         }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
