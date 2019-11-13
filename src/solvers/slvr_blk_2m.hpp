@@ -1,59 +1,24 @@
 #pragma once
-#include "slvr_sgs.hpp"
+#include "slvr_common.hpp"
 
 #include <libcloudph++/blk_2m/options.hpp>
 #include <libcloudph++/blk_2m/rhs_cellwise.hpp>
 #include <libcloudph++/blk_2m/rhs_columnwise.hpp>
 
-template <class ct_params_t>
-class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
-                                                     slvr_common<ct_params_t>,
-                                                     slvr_sgs<ct_params_t>
-                                                    >
-{
 
-  using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
-                                    slvr_common<ct_params_t>,
-                                    slvr_sgs<ct_params_t>
-                                   >;
+template <class ct_params_t>
+class slvr_blk_2m_common : public slvr_common<ct_params_t>
+{
+  using parent_t = slvr_common<ct_params_t>;
 
   public:
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
-  using arr_sub_t = typename parent_t::arr_sub_t;
   using clock = typename parent_t::clock;
-
-  protected:
-  typename parent_t::arr_t &precipitation_rate; 
-
   private:
-  // a 2D/3D array with copy of the environmental total pressure of dry air 
+
+  // a 2D/3D array with copy of the environmental total pressure of dry air
   typename parent_t::arr_t &p_e;
-
-  void condevap()
-  {
-    auto
-      th   = this->state(ix::th)(this->ijk), // potential temperature
-      rv   = this->state(ix::rv)(this->ijk), // water vapour mixing ratio
-      rc   = this->state(ix::rc)(this->ijk), // cloud water mixing ratio
-      rr   = this->state(ix::rr)(this->ijk); // rain water mixing ratio
-    auto const
-      rhod = (*this->mem->G)(this->ijk),
-      &p_e_arg = p_e(this->ijk);
-
-/*
-    libcloudphxx::blk_2m::adj_cellwise<real_t>(
-      opts, rhod, th, rv, rc, rr, this->dt
-    );
-    libcloudphxx::blk_2m::adj_cellwise_constp<real_t>(
-      opts, rhod, p_e_arg, th, rv, rc, rr, this->dt
-    );
-*/
-    libcloudphxx::blk_2m::adj_cellwise_nwtrph<real_t>(
-      opts, p_e_arg, th, rv, rc, this->dt
-    );
-    this->mem->barrier();
-  }
 
   protected:
 
@@ -62,7 +27,8 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void diag()
   {
-    parent_t::diag();
+    assert(this->rank == 0);
+    parent_t::tbeg = parent_t::clock::now();
 
     // recording puddle
     for(int i=0; i < 10; ++i)
@@ -70,46 +36,53 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
        this->f_puddle << i << " " << (i == 8 ? this->puddle : 0) << "\n";
     }
     this->f_puddle << "\n";
-    this->f_puddle.flush();
 
-    // recording precipitation flux
-    this->record_aux_dsc("precip_rate", precipitation_rate);
-  } 
+    parent_t::tend = parent_t::clock::now();
+    parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+  }
 
+  bool get_rain() { return opts.acnv; }
+  void set_rain(bool val) {
+    opts.acnv = val;
+    opts.RH_max = val ? 44 : 1.01;
+  };
 
-  bool get_rain() { return opts.conv; }
-  void set_rain(bool val) { opts.conv = val; };
-
-  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) final
+  void record_all()
   {
-    return this->state(ix::rc);
+    // plain (no xdmf) hdf5 output
+    parent_t::output_t::parent_t::record_all();
+    // UWLCM output
+    diag();
+    // xmf markup
+    this->write_xmfs();
   }
 
   void hook_mixed_rhs_ante_loop()
   {}
   void hook_mixed_rhs_ante_step()
   {
+    const auto nc     = this->state(ix::nc)(this->ijk);
     update_rhs(this->rhs, this->dt, 0);
+    negcheck(nc, "nc before apply rhs ante step");
     this->apply_rhs(this->dt);
   }
   void hook_mixed_rhs_post_step()
   {
+    const auto nc     = this->state(ix::nc)(this->ijk);
     update_rhs(this->rhs, this->dt, 1);
     this->apply_rhs(this->dt);
   }
 
-  // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
     // fill with zeros
     this->state(ix::rc)(this->ijk) = 0;
     this->state(ix::rr)(this->ijk) = 0;
+    this->state(ix::nc)(this->ijk) = 0;
+    this->state(ix::nr)(this->ijk) = 0;
 
     // init the p_e array
     p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
-
-    // deal with initial supersaturation, TODO: don't do it here (vide slvr_lgrngn)
-    condevap();
 
     parent_t::hook_ante_loop(nt); // forcings after adjustments
 
@@ -117,43 +90,41 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     if(this->rank==0)
     {
       this->record_aux_const("double-moment bulk microphysics", -44);
+      this->record_aux_const("acti", opts.acti);
       this->record_aux_const("cond", opts.cond);
-      this->record_aux_const("cevp", opts.cevp);
-      this->record_aux_const("revp", opts.revp);
-      this->record_aux_const("conv", opts.conv);
       this->record_aux_const("accr", opts.accr);
+      this->record_aux_const("acnv", opts.acnv);
       this->record_aux_const("sedi", opts.sedi);
-      this->record_aux_const("r_c0", opts.r_c0);
-      this->record_aux_const("k_acnv", opts.k_acnv);
-      this->record_aux_const("r_eps", opts.r_eps);
+      this->record_aux_const("acnv_A", opts.acnv_A);
+      this->record_aux_const("acnv_b", opts.acnv_b);
+      this->record_aux_const("acnv_c", opts.acnv_c);
       this->record_aux_const("user_params rc_src", params.user_params.rc_src);
       this->record_aux_const("user_params rr_src", params.user_params.rr_src);
+      this->record_aux_const("user_params nc_src", params.user_params.nc_src);
+      this->record_aux_const("user_params nr_src", params.user_params.nr_src);
       this->record_aux_const("rt_params rc_src", params.rc_src);
       this->record_aux_const("rt_params rr_src", params.rr_src);
+      this->record_aux_const("rt_params nc_src", params.nc_src);
+      this->record_aux_const("rt_params nr_src", params.nr_src);
+      //TODO - how to output those?
+      //this->record_aux_const("blk2m_mean_rd", &opts.dry_distros.mean_rd);
+      //this->record_aux_const("blk2m_sdev_rd", &opts.dry_distros.sdev_rd);
+      //this->record_aux_const("blk2m_N_stp", &opts.dry_distros.N_stp);
+      //this->record_aux_const("blk2m_chem_b", &opts.dry_distros.chem_b);
     }
   }
 
 
   void hook_ante_step()
   {
-
     parent_t::hook_ante_step();
 
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after first half of rhs");
     negtozero(this->mem->advectee(ix::rc)(this->ijk), "rc after first half of rhs");
     negtozero(this->mem->advectee(ix::rr)(this->ijk), "rr after first half of rhs");
-
-    condevap(); 
-    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condevap");
-    nancheck(this->mem->advectee(ix::rc)(this->ijk), "rc after condevap");
-    nancheck(this->mem->advectee(ix::rr)(this->ijk), "rr after condevap");
-    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condevap");
-    negcheck(this->mem->advectee(ix::rc)(this->ijk), "rc after condevap");
-    negcheck(this->mem->advectee(ix::rr)(this->ijk), "rr after condevap");
+    negtozero(this->mem->advectee(ix::nc)(this->ijk), "nc after first half of rhs");
+    negtozero(this->mem->advectee(ix::nr)(this->ijk), "nr after first half of rhs");
     this->mem->barrier();
-
-    // store rl for buoyancy
-    //this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
   }
 
   void update_rhs(
@@ -166,10 +137,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
-    // zero-out precipitation rate, will be set in columnwise
-    if(at ==0)
-      precipitation_rate(this->ijk) = 0;
-
     this->mem->barrier();
     if(this->rank == 0)
       this->tbeg = clock::now();
@@ -179,23 +146,30 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     if(at == 0)
     {
       auto
-	dot_th = rhs.at(ix::th)(this->ijk),
-	dot_rv = rhs.at(ix::rv)(this->ijk),
-	dot_rc = rhs.at(ix::rc)(this->ijk),
-	dot_rr = rhs.at(ix::rr)(this->ijk);
-      const auto
-	th   = this->state(ix::th)(this->ijk),
-	rv   = this->state(ix::rv)(this->ijk),
-	rc   = this->state(ix::rc)(this->ijk),
-	rr   = this->state(ix::rr)(this->ijk),
-        rhod = (*this->mem->G)(this->ijk),
-        &p_e_arg = p_e(this->ijk);
-      libcloudphxx::blk_2m::rhs_cellwise_nwtrph<real_t>(
-          opts,
-          dot_th, dot_rv, dot_rc, dot_rr,
-          rhod, p_e_arg, th, rv, rc, rr,
-          dt
+        dot_th = rhs.at(ix::th)(this->ijk),
+        dot_rv = rhs.at(ix::rv)(this->ijk),
+        dot_rc = rhs.at(ix::rc)(this->ijk),
+        dot_rr = rhs.at(ix::rr)(this->ijk),
+        dot_nc = rhs.at(ix::nc)(this->ijk),
+        dot_nr = rhs.at(ix::nr)(this->ijk);
+       const auto
+        rc     = this->state(ix::rc)(this->ijk),
+        rr     = this->state(ix::rr)(this->ijk),
+        nc     = this->state(ix::nc)(this->ijk),
+        nr     = this->state(ix::nr)(this->ijk),
+        rhod   = (*this->mem->G)(this->ijk),
+        th     = this->state(ix::th)(this->ijk),
+        rv     = this->state(ix::rv)(this->ijk),
+        &p_e_arg = p_e(this->ijk); //TODO: use const pressure in blk_2m
+        nancheck(nc, "nc before blk_2m rhs_cellwise call");
+        negcheck(nc, "nc before blk_2m rhs_cellwise call");
+       libcloudphxx::blk_2m::rhs_cellwise<real_t>(
+        opts, dot_th, dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
+        rhod,     th,     rv,     rc,     nc,     rr,     nr,
+        this->dt
       );
+        nancheck(nc, "nc after blk_2m rhs_cellwise call");
+        negcheck(nc, "nc after blk_2m rhs_cellwise call");
     }
 
     // forcing
@@ -205,59 +179,36 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       case (0):
       {
         // ---- cloud water sources ----
-        rc_src();
-        rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
-        nancheck(rhs.at(ix::rc)(this->ijk), "RHS of rc after rc_src");
+        this->common_water_src(ix::rc, params.rc_src);
+        rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
+        this->common_water_src(ix::nc, params.nc_src);
+        rhs.at(ix::nc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::nc)(this->ijk);
 
         // ---- rain water sources ----
-        rr_src();
-        rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
-        nancheck(rhs.at(ix::rr)(this->ijk), "RHS of rr after rr_src");
+        this->common_water_src(ix::rr, params.rr_src);
+        rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
+        this->common_water_src(ix::nr, params.nr_src);
+        rhs.at(ix::nr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::nr)(this->ijk);
 
-    
-        // when using explicit turbulence model add subgrid forces to rc and rr
-        // (th and rv were already applied in slvr_sgs)
-        if (ct_params_t::sgs_scheme != libmpdataxx::solvers::iles)
-        {
-          this->sgs_scalar_forces({ix::rc, ix::rr});
-          nancheck(rhs.at(ix::rc)(this->ijk), "RHS of rc after sgs_scalar_forces");
-          nancheck(rhs.at(ix::rr)(this->ijk), "RHS of rr after sgs_scalar_forces");
-        }
-        
         break;
       }
 
       case (1):
       // trapezoidal rhs^n+1
       {
-/*
-        // ---- cloud water sources ----
-        common_water_src(ix::rc, params.rc_src);
-        rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
-
-        // ---- rain water sources ----
-        common_water_src(ix::rr, params.rr_src);
-        rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
-
-*/
         break;
       }
     }
     this->mem->barrier();
     if(this->rank == 0)
     {
+      nancheck(rhs.at(ix::rc)(this->domain), "RHS of rc after rhs_update");
+      nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
+      nancheck(rhs.at(ix::nc)(this->domain), "RHS of nc after rhs_update");
+      nancheck(rhs.at(ix::nr)(this->domain), "RHS of nr after rhs_update");
       this->tend = clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
-    
-  }
-
-  //
-  void hook_post_step()
-  {
-    //condevap(); // treat saturation adjustment as post-advection, pre-rhs adjustment
-    parent_t::hook_post_step(); // includes the above forcings
-
   }
 
   libcloudphxx::blk_2m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
@@ -280,7 +231,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // p_e, precipitation_rate
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 1); // p_e
   }
 
   // ctor
@@ -292,9 +243,8 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     params(p),
     opts(p.cloudph_opts),
     puddle(0),
-    p_e(args.mem->tmp[__FILE__][0][0]),
-    precipitation_rate(args.mem->tmp[__FILE__][0][1])
-  {}  
+    p_e(args.mem->tmp[__FILE__][0][0])
+  {}
 };
 
 template <class ct_params_t, class enableif = void>
@@ -330,7 +280,7 @@ class slvr_blk_2m<
     const typename parent_t::real_t &dt,
     const int &at
   ) {
-    parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
+    parent_t::update_rhs(rhs, dt, at);
 
     this->mem->barrier();
     if(at == 0)
@@ -341,20 +291,23 @@ class slvr_blk_2m<
       // column-wise
       for (int i = this->i.first(); i <= this->i.last(); ++i)
       {
-        auto 
-          precipitation_rate_arg = this->precipitation_rate(i, this->j);
-        const auto 
+        auto
+          dot_rr = rhs.at(parent_t::ix::rr)(i, this->j),
+          dot_nr = rhs.at(parent_t::ix::nr)(i, this->j);
+        const auto
           rhod   = (*this->mem->G)(i, this->j),
-          rr     = this->state(parent_t::ix::rr)(i, this->j);
-        this->puddle += - libcloudphxx::blk_2m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+          rr     = this->state(parent_t::ix::rr)(i, this->j),
+          nr     = this->state(parent_t::ix::nr)(i, this->j);
+        this->puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
+          this->opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
+        );
       }
-      rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
-
-      nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
       this->mem->barrier();
       if(this->rank == 0)
       {
+        nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
+        nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
         this->tend = clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
       }
@@ -388,7 +341,7 @@ class slvr_blk_2m<
     const typename parent_t::real_t &dt,
     const int &at
   ) {
-    parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
+    parent_t::update_rhs(rhs, dt, at);
 
     this->mem->barrier();
     if(at == 0)
@@ -400,19 +353,23 @@ class slvr_blk_2m<
       for (int i = this->i.first(); i <= this->i.last(); ++i)
         for (int j = this->j.first(); j <= this->j.last(); ++j)
         {
-          auto 
-          precipitation_rate_arg = this->precipitation_rate(i, j, this->k);
-          const auto 
+          auto
+          dot_rr = rhs.at(parent_t::ix::rr)(i, j, this->k),
+          dot_nr = rhs.at(parent_t::ix::nr)(i, j, this->k);
+          const auto
           rhod   = (*this->mem->G)(i, j, this->k),
-          rr     = this->state(parent_t::ix::rr)(i, j, this->k);
-          this->puddle += - libcloudphxx::blk_2m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+          rr     = this->state(parent_t::ix::rr)(i, j, this->k),
+          nr     = this->state(parent_t::ix::nr)(i, j, this->k);
+          this->puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
+            this->opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
+          );
         }
-      rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
-      nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
       this->mem->barrier();
       if(this->rank == 0)
       {
+        nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
+        nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
         this->tend = clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
       }
