@@ -193,7 +193,7 @@ namespace setup
         solver.advectee(ix::w) = 0;  
        
         // absorbers
-        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 1020 * (index * dz - z_abs) / (Z / si::metres - z_abs), 0);
         solver.vab_relaxed_state(0) = solver.advectee(ix::u);
         solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
   
