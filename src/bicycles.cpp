@@ -1,4 +1,4 @@
-/** 
+/**
  * @file
  * @copyright University of Warsaw
  * @section LICENSE
@@ -20,12 +20,15 @@
 
 #include "solvers/slvr_lgrngn.hpp"
 #include "solvers/slvr_blk_1m.hpp"
+#include "solvers/slvr_blk_2m.hpp"
+
 #include "forcings/calc_forces_blk_1m.hpp"
+#include "forcings/calc_forces_blk_2m.hpp"
 #include "forcings/calc_forces_common.hpp"
 
 #include <map>
 
-// all starts here with handling general options 
+// all starts here with handling general options
 int main(int argc, char** argv)
 {
   omp_set_nested(1); // to allow openmp calls from libcloudphxx multi_CUDA backend
@@ -50,8 +53,10 @@ int main(int argc, char** argv)
       ("serial", po::value<bool>()->default_value(false), "force advection and microphysics to be computed on single thread")
       ("th_src", po::value<bool>()->default_value(true) , "temp src")
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
-      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1m)")
-      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1m)")
+      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1/2m)")
+      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1/2m)")
+      ("nc_src", po::value<bool>()->default_value(true) , "cloud water concentration source (in blk_2m)")
+      ("nr_src", po::value<bool>()->default_value(true) , "rain water concentration source (in blk_2m)")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
@@ -63,18 +68,18 @@ int main(int argc, char** argv)
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
 
     // hendling the "help" option
-    if (ac == 1 || (vm.count("help") && !vm.count("micro"))) 
+    if (ac == 1 || (vm.count("help") && !vm.count("micro")))
     {
       std::cout << opts_main;
       exit(EXIT_SUCCESS);
     }
 
     // checking if all required options present
-    po::notify(vm); 
+    po::notify(vm);
 
     // instantiating user params container
     user_params_t user_params;
-    
+
     if (!vm.count("help"))
     {
       if (!vm.count("outdir")) throw po::required_option("outdir");
@@ -83,23 +88,23 @@ int main(int argc, char** argv)
       user_params.outfreq = vm["outfreq"].as<int>();
     }
 
-    int 
+    int
       nx = vm["nx"].as<int>(),
       ny = vm["ny"].as<int>(),
       nz = vm["nz"].as<int>();
 
     user_params.nt = vm["nt"].as<int>(),
     user_params.spinup = vm["spinup"].as<int>();
- 
+
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();
     while(user_params.rng_seed == 0) //if = 0, get random seed
     {
-      std::random_device rd; 
+      std::random_device rd;
       user_params.rng_seed = rd();
     }
     std::cout << "rng seed: " << user_params.rng_seed << std::endl;
-   
+
     //handling timestep length
     user_params.dt = vm["dt"].as<setup::real_t>();
 
@@ -168,10 +173,16 @@ int main(int argc, char** argv)
       throw std::runtime_error("3D Bulk 1-moment option was disabled at compile time");
 #endif
 
-  // TODO: not only micro can be wrong
-    else throw 
+    else if (micro == "blk_2m" && ny == 0) // 2D two-moment
+      run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, user_params.model_case, nx, nz, user_params);
+
+    else if (micro == "blk_2m" && ny > 0) // 3D two-moment
+      run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+
+    // TODO: not only micro can be wrong
+    else throw
       po::validation_error(
-        po::validation_error::invalid_option_value, micro, "micro" 
+        po::validation_error::invalid_option_value, micro, "micro"
       );
   }
 }

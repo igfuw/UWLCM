@@ -24,6 +24,7 @@ int main(int ac, char** av)
   });
   vector<string> opts_micro({
     "--micro=blk_1m"  ,
+    "--mirco=blk_2m"  ,
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8" 
   });
   vector<string> opts_case({
@@ -54,7 +55,7 @@ int main(int ac, char** av)
           if((opts_c == opts_case[1]) && opts_d == opts_dim[1])
           {
             std::cout << "skipping 3d dry thermal tests" << std::endl;
-            continue; 
+            continue;
           }
 
           ostringstream cmd, opts;
@@ -68,7 +69,7 @@ int main(int ac, char** av)
  
           cerr << endl << "=========" << endl;
           notice_macro("about to call: " << cmd.str())
-  
+
           if (EXIT_SUCCESS != system(cmd.str().c_str()))
             error_macro("model run failed: " << cmd.str())
 

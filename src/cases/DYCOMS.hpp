@@ -145,6 +145,7 @@ namespace setup
         params.friction = true;
         params.coriolis = true;
         params.radiation = true;
+        params.n_iters = 2;        
 
         this->setopts_sgs(params);
       }

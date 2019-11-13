@@ -503,7 +503,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
       this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
       // microphysics could have led to rv < 0 ?
-      negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
+      negtosmall(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
       nancheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
       nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
       negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
@@ -575,7 +575,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   void hook_mixed_rhs_ante_step()
   {
-    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of mixed_rhs_ante_step");
+    negtosmall(this->mem->advectee(ix::rv)(this->ijk), "rv at start of mixed_rhs_ante_step");
 
     rv_pre_cond(this->ijk) = this->state(ix::rv)(this->ijk); 
     th_pre_cond(this->ijk) = this->state(ix::th)(this->ijk); 
@@ -673,7 +673,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
     // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
     // turn all negative rv into rv = 0... CHEATING
-    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    negtosmall(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
     negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
