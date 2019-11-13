@@ -22,7 +22,7 @@ Follow the libmpdata and libcloud readme on how to compile them and run tests.
 
 Install both libraries in a local_folder:
 ```bash
-$ cmake -DCMAKE_INSTALL_PREFIX=/local_folder/
+$ cmake .. -DCMAKE_INSTALL_PREFIX=/local_folder/
 $ make install
 ```
 
