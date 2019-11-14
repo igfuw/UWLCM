@@ -129,7 +129,7 @@ namespace setup
       params.c_m = 0.0856;
       params.smg_c = 0.165;
       params.prandtl_num = 0.42;
-      params.cdrag = 0.; // turn off sgs momentum surface fluxes, they are done explicitly via surf_flux_uv
+      params.cdrag = 0.001229; // turn off sgs momentum surface fluxes, they are done explicitly via surf_flux_uv
     }
 
 
