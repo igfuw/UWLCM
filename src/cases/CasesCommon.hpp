@@ -14,6 +14,7 @@
 #include "../detail/user_params.hpp"
 #include "../detail/concurr_types.hpp"
 
+namespace setup
 {
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
   namespace theta_std = libcloudphxx::common::theta_std;
