@@ -1,5 +1,5 @@
 #pragma once
-#include "slvr_common.hpp"
+#include "slvr_sgs.hpp"
 
 #include <libcloudph++/blk_2m/options.hpp>
 #include <libcloudph++/blk_2m/rhs_cellwise.hpp>
@@ -7,9 +7,15 @@
 
 
 template <class ct_params_t>
-class slvr_blk_2m_common : public slvr_common<ct_params_t>
+class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                                     slvr_common<ct_params_t>,
+                                                     slvr_sgs<ct_params_t>
+                                                    >
 {
-  using parent_t = slvr_common<ct_params_t>;
+  using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
+                                      slvr_common<ct_params_t>,
+                                      slvr_sgs<ct_params_t>
+                                     >;
 
   public:
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
