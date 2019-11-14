@@ -155,6 +155,21 @@ namespace setup
         BZ_DECLARE_FUNCTOR(rhod_fctr);
       };
   */
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<!enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+      }
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+        params.cdrag = 0.001229; // NOTE: in SMG simulations, we do not apply the height correction to drag coefficient (i.e. it is assumed that U ground is at 20 m)
+      }
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -173,7 +188,7 @@ namespace setup
         params.buoyancy_wet = true;
         params.subsidence = true;
         params.vel_subsidence = false;
-        params.friction = false;
+        params.friction = true;
         params.coriolis = true;
         params.radiation = false;
 
