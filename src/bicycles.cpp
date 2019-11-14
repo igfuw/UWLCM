@@ -175,14 +175,14 @@ int main(int argc, char** argv)
 
     else if (micro == "blk_2m" && ny == 0) // 2D two-moment
 #if !defined(UWLCM_DISABLE_2D_BLK_2M)
-      run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, user_params.model_case, nx, nz, user_params);
+      run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
       throw std::runtime_error("2D Bulk 2-moment option was disabled at compile time");
 #endif
 
     else if (micro == "blk_2m" && ny > 0) // 3D two-moment
 #if !defined(UWLCM_DISABLE_3D_BLK_2M)      
-      run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, user_params.model_case, nx, ny, nz, user_params);
+      run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
       throw std::runtime_error("3D Bulk 2-moment option was disabled at compile time");
 #endif
