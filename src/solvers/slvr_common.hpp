@@ -154,13 +154,13 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     params.update_surf_flux_sens(
       surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
-      this->state(ix::th)(this->hrzntl_slice(1)).reindex(this->origin),
+      this->state(ix::th)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin),
       params.dz, 0, this->dt, this->di, this->dj
     );
     params.update_surf_flux_lat(
       surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
-      this->state(ix::rv)(this->hrzntl_slice(1)).reindex(this->origin), // TODO: this should be rv + r_l
+      this->state(ix::rv)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
       params.dz, 0, this->dt, this->di, this->dj
     );
