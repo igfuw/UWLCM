@@ -41,9 +41,11 @@ void slvr_common<ct_params_t>::surf_sens()
 template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
 {
+  this->tmp1(this->hrzntl_slice(0)) = this->state(ix::rv)(this->hrzntl_slice(0)) + this->r_l(this->hrzntl_slice(0));
+
   params.update_surf_flux_lat(
     surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
-    this->state(ix::rv)(this->hrzntl_slice(0)).reindex(this->origin), // TODO: this should be rv + r_l
+    this->tmp1(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
     params.dz / 2, this->timestep, this->dt, this->di, this->dj
   );  // [lg / (m^2 s)]
@@ -57,9 +59,11 @@ void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
 template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_latent_impl(smg_tag)
 {
+  this->tmp1(this->hrzntl_slice(0)) = this->state(ix::rv)(this->hrzntl_slice(0)) + this->r_l(this->hrzntl_slice(0));
+
   params.update_surf_flux_lat(
     surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
-    this->state(ix::rv)(this->hrzntl_slice(0)).reindex(this->origin), // TODO: this should be rv + r_l
+    this->tmp1(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
     params.dz / 2, this->timestep, this->dt, this->di, this->dj
   );  // [kg / (m^2 s)]
