@@ -77,7 +77,8 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->record_aux_dsc("precip_rate", precipitation_rate);
   } 
 
-
+  void rc_src();
+  void rr_src();
   bool get_rain() { return opts.conv; }
   void set_rain(bool val) { opts.conv = val; };
 
