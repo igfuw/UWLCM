@@ -41,6 +41,8 @@ class slvr_blk_2m_common : public slvr_common<ct_params_t>
     parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
   }
 
+  void rc_src();
+  void rr_src();
   bool get_rain() { return opts.acnv; }
   void set_rain(bool val) {
     opts.acnv = val;
