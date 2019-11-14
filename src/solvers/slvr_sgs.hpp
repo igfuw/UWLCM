@@ -1,6 +1,7 @@
 #pragma once
 #include "slvr_common.hpp"
 #include "../detail/blitz_hlpr_fctrs.hpp"
+#include "../formulae/stress_formulae.hpp"
 
 template <class ct_params_t>
 class slvr_sgs : public slvr_common<ct_params_t>
@@ -190,6 +191,19 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                                   / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
     calc_sgs_momenta_fluxes();
   }
+
+  void calc_drag_cmpct() override
+  {
+    if(params.cdrag > 0)           // kinematic momentum flux = - cdrag |U| u
+      parent_t::calc_drag_cmpct();
+    else if(params.fricvelsq > 0)  // kinematic momentum flux = - fricvelsq u / |U|
+      formulae::stress::calc_drag_cmpct_fricvel<ct_params_t::n_dims, ct_params_t::opts>(this->tau_srfc,
+                                                                                this->vips(),
+                                                                                *this->mem->G,
+                                                                                params.fricvelsq,
+                                                                                this->ijk,
+                                                                                this->ijkm);
+  }
   
   void sgs_scalar_forces(const std::vector<int> &sclr_indices) override
   {
@@ -304,11 +318,22 @@ class slvr_sgs : public slvr_common<ct_params_t>
     this->record_aux_dsc("sgs_rv_flux", sgs_rv_flux);
   } 
 
+  void hook_ante_loop(int nt) 
+  {
+    parent_t::hook_ante_loop(nt); 
+
+    if(this->rank==0)
+    {
+      this->record_aux_const("fricvelsq", "sgs", params.fricvelsq);  
+    }
+  }
+
   public:
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
     real_t prandtl_num;
+    real_t fricvelsq = 0; // square of friction velocity [m^2 / s^2]
   };
 
   // per-thread copy of params
@@ -329,7 +354,10 @@ class slvr_sgs : public slvr_common<ct_params_t>
     sgs_momenta_fluxes(args.mem->tmp[__FILE__][2]),
     sgs_th_flux(args.mem->tmp[__FILE__][3][0]),
     sgs_rv_flux(args.mem->tmp[__FILE__][3][1])
-  {}
+  {
+    if(params.fricvelsq > 0 && params.cdrag > 0)
+      throw std::runtime_error("in SGS simulation either cdrag or fricvelsq need to be positive, not both");
+  }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {

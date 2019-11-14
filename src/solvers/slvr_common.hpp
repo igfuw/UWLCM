@@ -283,8 +283,8 @@ class slvr_common : public slvr_dim<ct_params_t>
               rhs.at(type)(ijk) -= F(ijk);
           }
 
-          // surface flux
-          if(params.friction)
+          // surface flux with exp folding in vertical (only in ILES)
+          if(params.friction && ct_params_t::sgs_scheme == libmpdataxx::solvers::iles)
           {
             for(auto type : this->hori_vel)
             {

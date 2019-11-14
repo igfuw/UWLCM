@@ -45,6 +45,21 @@ namespace setup
       arr_1D_t th_std_env;
       arr_1D_t p_env;
       arr_1D_t rv_env;
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<!enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+      }
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+        params.fricvelsq = 0.0784;
+      }
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)

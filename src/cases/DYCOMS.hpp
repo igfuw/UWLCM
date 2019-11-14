@@ -125,6 +125,22 @@ namespace setup
       //  // to make the rhod() functor accept Blitz arrays as arguments
       //  BZ_DECLARE_FUNCTOR(rhod_fctr);
       //};
+      //
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<!enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+      }
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+        params.fricvelsq = 0.0625;
+      }
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
