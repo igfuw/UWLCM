@@ -156,19 +156,19 @@ class slvr_common : public slvr_dim<ct_params_t>
       surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::th)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-      params.dz, 0, this->dt, this->di, this->dj
+      params.dz / 2, 0, this->dt, this->di, this->dj
     );
     params.update_surf_flux_lat(
       surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::rv)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
-      params.dz, 0, this->dt, this->di, this->dj
+      params.dz / 2, 0, this->dt, this->di, this->dj
     );
     params.update_surf_flux_uv(
       surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
-      params.dz, 0, this->dt, this->di, this->dj
+      params.dz / 2, 0, this->dt, this->di, this->dj
     );
     if(parent_t::n_dims==3)
     {
@@ -176,7 +176,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
         this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
         U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-        params.dz, 0, this->dt, this->di, this->dj
+        params.dz / 2, 0, this->dt, this->di, this->dj
       );
     }
   }
