@@ -68,7 +68,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   virtual void sgs_scalar_forces(const std::vector<int>&) {}
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) = 0;
 
-  void common_water_src(int, int);
+  //void common_water_src(int, int);
 
   void hook_ante_loop(int nt)
   {
