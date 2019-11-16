@@ -48,7 +48,9 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   }
 
   void rc_src();
+  void nc_src();
   void rr_src();
+  void nr_src();
   bool get_rain() { return opts.acnv; }
   void set_rain(bool val) {
     opts.acnv = val;
@@ -187,15 +189,21 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       case (0):
       {
         // ---- cloud water sources ----
-        this->common_water_src(ix::rc, params.rc_src);
+        rc_src();
+        //this->common_water_src(ix::rc, params.rc_src);
         rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
-        this->common_water_src(ix::nc, params.nc_src);
+        
+        nc_src();
+        //this->common_water_src(ix::nc, params.nc_src);
         rhs.at(ix::nc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::nc)(this->ijk);
 
         // ---- rain water sources ----
-        this->common_water_src(ix::rr, params.rr_src);
+        rr_src();
+        //this->common_water_src(ix::rr, params.rr_src);
         rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
-        this->common_water_src(ix::nr, params.nr_src);
+        
+        nr_src();
+        //this->common_water_src(ix::nr, params.nr_src);
         rhs.at(ix::nr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::nr)(this->ijk);
 
         break;
