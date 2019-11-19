@@ -77,7 +77,7 @@ class slvr_piggy<
         ("save_vel", po::value<bool>()->default_value(false), "should velocity field be stored for piggybacking")
       ;
       opts.add_options()
-        ("prs_tol", po::value<setup::real_t>()->default_value(1e-7) , "pressure solver tolerance");
+        ("prs_tol", po::value<setup::real_t>()->default_value(1e-6) , "pressure solver tolerance");
       po::variables_map vm;
       handle_opts(opts, vm);
           
