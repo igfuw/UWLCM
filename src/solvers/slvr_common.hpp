@@ -4,10 +4,13 @@
 #include <chrono>
 #include <libmpdata++/git_revision.hpp>
 #include <libcloudph++/git_revision.h>
+#include <libcloudph++/common/output.hpp>
 #include "../detail/get_uwlcm_git_revision.hpp"
 
 struct smg_tag  {};
 struct iles_tag {};
+
+namespace cmn = libcloudphxx::common;
 
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
@@ -59,9 +62,11 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &radiative_flux,
                            &diss_rate; // TODO: move to slvr_sgs to save memory in iles simulations !;
 
-  // surface precip stuff
-  std::ofstream f_puddle; // output precipitation file
-  
+  // precip output
+  std::map<cmn::output_t, real_t> puddle;
+  const int n_puddle_scalars = cmn::output_names.size();
+  virtual void get_puddle() = 0;
+
   // spinup stuff
   virtual bool get_rain() = 0;
   virtual void set_rain(bool) = 0;
@@ -79,10 +84,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       set_rain(true);
 
     parent_t::hook_ante_loop(nt); 
-
-    // open file for output of precitpitation volume
-    if(this->rank==0)
-      f_puddle.open(this->outdir+"/prec_vol.dat");
 
     // record user_params and profiles
     if(this->rank==0)
@@ -431,13 +432,17 @@ class slvr_common : public slvr_dim<ct_params_t>
     assert(this->rank == 0);
     this->record_aux_dsc("radiative_flux", radiative_flux); 
 
-    auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+    auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
     surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
     this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
 
-    auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
     surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
     this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
+
+    get_puddle();
+    for(int i=0; i < n_puddle_scalars; ++i)
+      this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", puddle.at(static_cast<cmn::output_t>(i)));
   } 
 
   void record_all()
