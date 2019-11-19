@@ -27,9 +27,9 @@ namespace setup
       Z    = 4000 * si::metres, 
       X    = 12800 * si::metres, 
       Y    = 12800 * si::metres; 
-    const real_t z_abs = 3500;
+    const real_t z_abs = 3000;
 //    const real_t z_i = 795; //initial inversion height
-    const quantity<si::length, real_t> z_rlx = 25 * si::metres;
+    const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
     inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
@@ -155,6 +155,21 @@ namespace setup
         BZ_DECLARE_FUNCTOR(rhod_fctr);
       };
   */
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<!enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+      }
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+        params.cdrag = 0.001229; // NOTE: in SMG simulations, we do not apply the height correction to drag coefficient (i.e. it is assumed that U ground is at 20 m)
+      }
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -193,7 +208,7 @@ namespace setup
         solver.advectee(ix::w) = 0;  
        
         // absorbers
-        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 1020 * (index * dz - z_abs) / (Z / si::metres - z_abs), 0);
         solver.vab_relaxed_state(0) = solver.advectee(ix::u);
         solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
   
@@ -250,30 +265,26 @@ namespace setup
         // large-scale horizontal advection
         profs.th_LS = th_LS_fctr()(k * dz);
         profs.rv_LS = rv_LS_fctr()(k * dz);
-  
-        // calc surf flux divergence directly
-        real_t z_0 = z_rlx / si::metres;
-        profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
                                  blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
                                  blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
                                  const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
-        surf_flux_sens = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0);
+        surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                 blitz::Array<real_t, n_dims> rt_ground,    // value of r_t on the ground
-                                 blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
-                                 const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+                                       blitz::Array<real_t, n_dims> rt_ground,   
+                                       blitz::Array<real_t, n_dims> U_ground,   
+                                       const real_t &U_ground_z,
+                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
-        surf_flux_lat = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0);
+        surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * (this->rhod_0 / si::kilograms * si::cubic_meters); // [kg / (m^2 s)]
       }
 
       // one function for updating u or v
@@ -282,9 +293,9 @@ namespace setup
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
-        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * uv_ground;
+        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * uv_ground * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
       }
 
       // ctor
@@ -297,11 +308,10 @@ namespace setup
         this->sdev_rd2 = real_t(1.75);
         this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
-        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
-        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
         this->X = X;
         this->Z = Z;
+        this->z_rlx = z_rlx;
       }
     };
     
