@@ -57,6 +57,11 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     opts.RH_max = val ? 44 : 1.01;
   };
 
+  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) final
+    {
+  return this->state(ix::rc);
+    }
+
   void record_all()
   {
     // plain (no xdmf) hdf5 output
