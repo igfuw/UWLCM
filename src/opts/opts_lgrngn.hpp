@@ -69,7 +69,7 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value(""),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
-    ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
+    ("gccn", po::value<setup::real_t>()->default_value(0) , "concentration of giant aerosols = gccn * VOCALS observations")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
     ("turb_cond", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_cond), "turbulence effects in SD condensation (1=on, 0=off)")
@@ -91,7 +91,7 @@ void setopts_micro(
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
 
   rt_params.async = vm["async"].as<bool>();
-  rt_params.gccn = vm["gccn"].as<bool>();
+  rt_params.gccn = vm["gccn"].as<setup::real_t>();
   rt_params.out_wet_spec = vm["out_wet_spec"].as<bool>();
   rt_params.out_dry_spec = vm["out_dry_spec"].as<bool>();
 //  bool unit_test = vm["unit_test"].as<bool>();
@@ -143,49 +143,49 @@ void setopts_micro(
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
 
     // GCCNs following Jensen and Nugent, JAS 2016
-    if(rt_params.gccn)
+    if(rt_params.gccn > setup::real_t(0))
     {
       rt_params.cloudph_opts_init.dry_sizes.emplace(
         1.28, // kappa
         std::map<setup::real_t, std::pair<setup::real_t, int> > {
-          {0.8e-6, {111800, 1}},
-          {1.0e-6, {68490,  1}},
-          {1.2e-6, {38400,  1}},
-          {1.4e-6, {21820,  1}},
-          {1.6e-6, {13300,  1}},
-          {1.8e-6, {8496,  1}},
-          {2.0e-6, {5486,  1}},
-          {2.2e-6, {3805,  1}},
-          {2.4e-6, {2593,  1}},
-          {2.6e-6, {1919,  1}},
-          {2.8e-6, {1278,  1}},
-          {3.0e-6, {988.4,  1}},
-          {3.2e-6, {777.9,  1}},
-          {3.4e-6, {519.5,  1}},
-          {3.6e-6, {400.5,  1}},
-          {3.8e-6, {376.9,  1}},
-          {4.0e-6, {265.3,  1}},
-          {4.2e-6, {212.4,  1}},
-          {4.4e-6, {137.8,  1}},
-          {4.6e-6, {121.4,  1}},
-          {4.8e-6, {100.9,  1}},
-          {5.0e-6, {122.2,  1}},
-          {5.2e-6, {50.64,  1}},
-          {5.4e-6, {38.30,  1}},
-          {5.6e-6, {55.47,  1}},
-          {5.8e-6, {21.45,  1}},
-          {6.0e-6, {12.95,  1}},
-          {6.2e-6, {43.23,  1}},
-          {6.4e-6, {26.26,  1}},
-          {6.6e-6, {30.50,  1}},
-          {6.8e-6, {4.385,  1}},
-          {7.0e-6, {4.372,  1}},
-          {7.2e-6, {4.465,  1}},
-          {7.4e-6, {4.395,  1}},
-          {7.6e-6, {4.427,  1}},
-          {7.8e-6, {4.411,  1}},
-          {8.6e-6, {4.522,  1}},
-          {9.0e-6, {4.542,  1}}
+          {0.8e-6, {rt_params.gccn * 111800, 1}},
+          {1.0e-6, {rt_params.gccn * 68490,  1}},
+          {1.2e-6, {rt_params.gccn * 38400,  1}},
+          {1.4e-6, {rt_params.gccn * 21820,  1}},
+          {1.6e-6, {rt_params.gccn * 13300,  1}},
+          {1.8e-6, {rt_params.gccn * 8496,  1}},
+          {2.0e-6, {rt_params.gccn * 5486,  1}},
+          {2.2e-6, {rt_params.gccn * 3805,  1}},
+          {2.4e-6, {rt_params.gccn * 2593,  1}},
+          {2.6e-6, {rt_params.gccn * 1919,  1}},
+          {2.8e-6, {rt_params.gccn * 1278,  1}},
+          {3.0e-6, {rt_params.gccn * 988.4,  1}},
+          {3.2e-6, {rt_params.gccn * 777.9,  1}},
+          {3.4e-6, {rt_params.gccn * 519.5,  1}},
+          {3.6e-6, {rt_params.gccn * 400.5,  1}},
+          {3.8e-6, {rt_params.gccn * 376.9,  1}},
+          {4.0e-6, {rt_params.gccn * 265.3,  1}},
+          {4.2e-6, {rt_params.gccn * 212.4,  1}},
+          {4.4e-6, {rt_params.gccn * 137.8,  1}},
+          {4.6e-6, {rt_params.gccn * 121.4,  1}},
+          {4.8e-6, {rt_params.gccn * 100.9,  1}},
+          {5.0e-6, {rt_params.gccn * 122.2,  1}},
+          {5.2e-6, {rt_params.gccn * 50.64,  1}},
+          {5.4e-6, {rt_params.gccn * 38.30,  1}},
+          {5.6e-6, {rt_params.gccn * 55.47,  1}},
+          {5.8e-6, {rt_params.gccn * 21.45,  1}},
+          {6.0e-6, {rt_params.gccn * 12.95,  1}},
+          {6.2e-6, {rt_params.gccn * 43.23,  1}},
+          {6.4e-6, {rt_params.gccn * 26.26,  1}},
+          {6.6e-6, {rt_params.gccn * 30.50,  1}},
+          {6.8e-6, {rt_params.gccn * 4.385,  1}},
+          {7.0e-6, {rt_params.gccn * 4.372,  1}},
+          {7.2e-6, {rt_params.gccn * 4.465,  1}},
+          {7.4e-6, {rt_params.gccn * 4.395,  1}},
+          {7.6e-6, {rt_params.gccn * 4.427,  1}},
+          {7.8e-6, {rt_params.gccn * 4.411,  1}},
+          {8.6e-6, {rt_params.gccn * 4.522,  1}},
+          {9.0e-6, {rt_params.gccn * 4.542,  1}}
         }
       );
     }

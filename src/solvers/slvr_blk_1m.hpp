@@ -59,19 +59,21 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   protected:
   
   // accumulated water falling out of domain
-  real_t puddle;
+  real_t liquid_puddle;
+
+  void get_puddle() override
+  {
+    std::cerr << "blk1m liquid puddle = " << liquid_puddle << std::endl;
+    // storing puddle
+    for(int i=0; i < this->n_puddle_scalars; ++i)
+    {   
+      this->puddle[static_cast<cmn::output_t>(i)] = (i == 8 ? liquid_puddle : 0);
+    }
+  }
 
   void diag()
   {
     parent_t::diag();
-
-    // recording puddle
-    for(int i=0; i < 10; ++i)
-    {   
-       this->f_puddle << i << " " << (i == 8 ? this->puddle : 0) << "\n";
-    }   
-    this->f_puddle << "\n";
-    this->f_puddle.flush();
 
     // recording precipitation flux
     this->record_aux_dsc("precip_rate", precipitation_rate);
@@ -295,7 +297,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t(args, p),
     params(p),
     opts(p.cloudph_opts),
-    puddle(0),
+    liquid_puddle(0),
     p_e(args.mem->tmp[__FILE__][0][0]),
     precipitation_rate(args.mem->tmp[__FILE__][0][1])
   {}  
@@ -350,7 +352,7 @@ class slvr_blk_1m<
         const auto 
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j);
-        this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+        this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
       }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
@@ -409,7 +411,7 @@ class slvr_blk_1m<
           const auto 
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k);
-          this->puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+          this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
         }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 

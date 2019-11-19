@@ -20,9 +20,13 @@ class PlotterCommon
 
   void h5load(
     const string &file,
-    const string &dataset
+    const string &dataset,
+    bool srfc = false
   )
   {
+    notice_macro("about to close current file")
+    h5f.close();
+
     notice_macro("about to open file: " << file)
     h5f.openFile(file, H5F_ACC_RDONLY);
 
