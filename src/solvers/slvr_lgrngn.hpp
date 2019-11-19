@@ -47,6 +47,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
   }
 
+  void get_puddle() override
+  {
+    this->puddle = prtcls->diag_puddle();
+  }
+
   // helper methods
   void diag()
   {
@@ -179,15 +184,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
 */
-
-    // recording puddle
-    auto puddle = prtcls->diag_puddle();
-    for(auto elem : puddle)
-    {   
-       this->f_puddle << elem.first << " " << elem.second << "\n";
-    }   
-    this->f_puddle << "\n";
-    this->f_puddle.flush();
    
     // recording requested statistical moments
     {
