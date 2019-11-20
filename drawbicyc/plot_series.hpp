@@ -518,6 +518,19 @@ void plot_series(Plotter_t plotter, Plots plots)
         }
         catch(...) {;}
       }   
+      else if (plt == "rwp")
+      {   
+        // rain water path
+        try
+        {
+          {
+            typename Plotter_t::arr_t snap(plotter.h5load_rr_timestep(at * n["outfreq"]));
+            snap *= rhod * 1e3; // water per cubic metre (should be wet density...) & g/kg
+            res_prof(at) = blitz::mean(snap); 
+          }
+        }
+        catch(...) {;}
+      }   
       else if (plt == "surf_flux_latent")
       {   
         try
