@@ -111,8 +111,23 @@ void setopts_micro(
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
  
+ {
+   rt_params.cloudph_opts_init.dry_distros.emplace(
+     user_params.kappa1,
+     std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+       user_params.mean_rd1,
+       user_params.mean_rd2,
+       user_params.sdev_rd1,
+       user_params.sdev_rd2,
+       user_params.n1_stp,
+       user_params.n2_stp
+     )
+   );
+ }
+
  // if(!unit_test)
   {
+    /*
     rt_params.cloudph_opts_init.dry_distros.emplace(
       case_ptr->kappa, // key
       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
@@ -124,6 +139,7 @@ void setopts_micro(
         case_ptr->n2_stp
       )
     );
+    */
 
     // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
     /*
