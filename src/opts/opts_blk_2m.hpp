@@ -55,12 +55,22 @@ void setopts_micro(
   rt_params.cloudph_opts.acnv_A = vm["acnv_A"].as<typename solver_t::real_t>();
   rt_params.cloudph_opts.acnv_b = vm["acnv_b"].as<typename solver_t::real_t>();
   rt_params.cloudph_opts.acnv_c = vm["acnv_c"].as<typename solver_t::real_t>();
+
+  rt_params.cloudph_opts.dry_distros.push_back({
+    .mean_rd = user_params.mean_rd1 / si::metres,
+    .sdev_rd = user_params.sdev_rd1,
+    .N_stp   = user_params.n1_stp * si::cubic_metres,
+    .chem_b  = user_params.kappa1
+  });
+
+/*
   rt_params.cloudph_opts.dry_distros.push_back({
     .mean_rd = vm["blk2m_mean_rd"].as<typename solver_t::real_t>(),
     .sdev_rd = vm["blk2m_sdev_rd"].as<typename solver_t::real_t>(),
     .N_stp   = vm["blk2m_N_stp"].as<typename solver_t::real_t>(),
     .chem_b  = vm["blk2m_chem_b"].as<typename solver_t::real_t>()
   });
+*/
 
   // output variables
   rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
