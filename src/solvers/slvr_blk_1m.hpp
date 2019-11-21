@@ -63,7 +63,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void get_puddle() override
   {
-    std::cerr << "blk1m liquid puddle = " << liquid_puddle << std::endl;
     // storing puddle
     for(int i=0; i < this->n_puddle_scalars; ++i)
     {   
