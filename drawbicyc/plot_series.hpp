@@ -938,6 +938,13 @@ void plot_series(Plotter_t plotter, Plots plots)
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
     }
+    else if (plt == "rwp")
+    {
+      gp << "set title 'rain water path [g / m^2]'\n";
+      res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
     else if (plt == "cloud_base")
     {
       gp << "set title 'cloud base [m]'\n";
