@@ -63,6 +63,15 @@ int main(int argc, char** argv)
       ("sgs", po::value<bool>()->default_value(false) , "is subgrid-scale turbulence model on")
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model delta")
       ("help", "produce a help message (see also --micro X --help)")
+      // aerosol distribution params
+      ("mean_rd1", po::value<setup::real_t>()->default_value(0.1e-6) , "mean_rd1")
+      ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd1")
+      ("n1_stp", po::value<setup::real_t>()->default_value(100e6) , "n1_stp")
+      ("kappa1", po::value<setup::real_t>()->default_value(0.6) , "kappa1")
+      ("mean_rd2", po::value<setup::real_t>()->default_value(0.1e-6) , "mean_rd2")
+      ("sdev_rd2", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd2")
+      ("n2_stp", po::value<setup::real_t>()->default_value(0.0) , "n2_stp")
+      ("kappa2", po::value<setup::real_t>()->default_value(0.6) , "kappa2")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
@@ -116,6 +125,8 @@ int main(int argc, char** argv)
     user_params.rv_src = vm["rv_src"].as<bool>();
     user_params.rc_src = vm["rc_src"].as<bool>();
     user_params.rr_src = vm["rr_src"].as<bool>();
+    user_params.nc_src = vm["nc_src"].as<bool>();
+    user_params.nr_src = vm["nr_src"].as<bool>();
     user_params.uv_src = vm["uv_src"].as<bool>();
     user_params.w_src = vm["w_src"].as<bool>();
 
@@ -137,6 +148,23 @@ int main(int argc, char** argv)
 #endif
 
     user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
+    user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
+    user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
+    user_params.n1_stp = vm["n1_stp"].as<setup::real_t>() / si::cubic_metres;
+    user_params.kappa1 = vm["kappa1"].as<setup::real_t>();
+    user_params.mean_rd2 = vm["mean_rd2"].as<setup::real_t>() * si::metres;
+    user_params.sdev_rd2 = vm["sdev_rd2"].as<setup::real_t>();
+    user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
+    user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
+
+    std::cout << "mean_rd1: " << user_params.mean_rd1 << std::endl;
+    std::cout << "sdev_rd1: " << user_params.sdev_rd1 << std::endl;
+    std::cout << "n1_stp: " << user_params.n1_stp << std::endl;
+    std::cout << "kappa1: " << user_params.kappa1 << std::endl;
+    std::cout << "mean_rd2: " << user_params.mean_rd2 << std::endl;
+    std::cout << "sdev_rd2: " << user_params.sdev_rd2 << std::endl;
+    std::cout << "n2_stp: " << user_params.n2_stp << std::endl;
+    std::cout << "kappa2: " << user_params.kappa2 << std::endl;
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
