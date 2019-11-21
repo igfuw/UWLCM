@@ -15,16 +15,20 @@ const std::vector<std::string> series_dycoms({
 
 const std::vector<std::string> series_rico({
  "clfrac", "lwp",
+ "rwp",
  "surf_precip", 
  "acc_precip",
  "cl_nc",
  "cloud_base",
  "surf_flux_latent",
  "surf_flux_sensible"
+ ,"sd_conc_avg"
 //"mass_dry", 
-// "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
+ ,"cl_gccn_conc", "gccn_conc"
+ ,"cl_non_gccn_conc", "non_gccn_conc"
+//, "cl_gccn_meanr"
 //,"cl_avg_cloud_rad"
-// "sd_conc_avg", "sd_conc_std_dev",
+// "sd_conc_std_dev",
 // "tot_water"
 });
 
@@ -71,9 +75,13 @@ std::vector<std::string> profs_rico({
 "00rtot", "rliq", "thl", "wvar", 
  "prflux"
 ,"clfrac"
+,"sd_conc"
 //, "N_c", 
 ,"cl_nc"
-,"u", "v",
+,"cl_nc_up"
+,"w"
+,"u", "v"
+,"vel_div"
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
