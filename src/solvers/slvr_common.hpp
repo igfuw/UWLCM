@@ -449,7 +449,10 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     get_puddle();
     for(int i=0; i < n_puddle_scalars; ++i)
-      this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", puddle.at(static_cast<cmn::output_t>(i)));
+    {
+      real_t sum = this->mem->distmem.sum(puddle.at(static_cast<cmn::output_t>(i)));
+      this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", sum);
+    }
   } 
 
   void record_all()
