@@ -157,15 +157,6 @@ int main(int argc, char** argv)
     user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
 
-    std::cout << "mean_rd1: " << user_params.mean_rd1 << std::endl;
-    std::cout << "sdev_rd1: " << user_params.sdev_rd1 << std::endl;
-    std::cout << "n1_stp: " << user_params.n1_stp << std::endl;
-    std::cout << "kappa1: " << user_params.kappa1 << std::endl;
-    std::cout << "mean_rd2: " << user_params.mean_rd2 << std::endl;
-    std::cout << "sdev_rd2: " << user_params.sdev_rd2 << std::endl;
-    std::cout << "n2_stp: " << user_params.n2_stp << std::endl;
-    std::cout << "kappa2: " << user_params.kappa2 << std::endl;
-
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
 

@@ -38,10 +38,12 @@ void setopts_micro(
     ("acnv_A", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_A), "parameter in autoconversion rate formulae")
     ("acnv_b", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_b), "parameter in autoconversion rate formulae")
     ("acnv_c", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_c), "parameter in autoconversion rate formulae")
+/*
     ("blk2m_mean_rd", po::value<typename solver_t::real_t>()->default_value(0.02e-6), "mean aerosol dry radius [m]")
     ("blk2m_sdev_rd", po::value<typename solver_t::real_t>()->default_value(1.4),     "aerosol standard deviation")
     ("blk2m_N_stp",   po::value<typename solver_t::real_t>()->default_value(60e6),    "aerosol concentration [1/m3]")
     ("blk2m_chem_b",  po::value<typename solver_t::real_t>()->default_value(.55),     "kappa - chemical composition parameter")
+*/  
   ;
   po::variables_map vm;
   handle_opts(opts, vm);
