@@ -234,11 +234,11 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       {
 /*
         // ---- cloud water sources ----
-        common_water_src(ix::rc, params.rc_src);
+        rc_src();
         rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
 
         // ---- rain water sources ----
-        common_water_src(ix::rr, params.rr_src);
+        rr_src();
         rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
 
 */
