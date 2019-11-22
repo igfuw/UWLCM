@@ -109,7 +109,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
 
     // recording 0th mom of rw of activated drops
-    /*
     prtcls->diag_rw_ge_rc();
     prtcls->diag_wet_mom(0);
     this->record_aux("actrw_rw_mom0", prtcls->outbuf());
@@ -128,7 +127,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_rw_ge_rc();
     prtcls->diag_wet_mom(3);
     this->record_aux("actrw_rw_mom3", prtcls->outbuf());
-*/
 /*
     // recording 1st mom of rd of activated drops
     prtcls->diag_rw_ge_rc();
