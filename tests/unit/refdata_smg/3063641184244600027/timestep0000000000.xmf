@@ -12,6 +12,18 @@
 			<Attribute Name="RH" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/RH</DataItem>
 			</Attribute>
+			<Attribute Name="actrw_rw_mom0" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom0</DataItem>
+			</Attribute>
+			<Attribute Name="actrw_rw_mom1" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom1</DataItem>
+			</Attribute>
+			<Attribute Name="actrw_rw_mom2" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom2</DataItem>
+			</Attribute>
+			<Attribute Name="actrw_rw_mom3" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom3</DataItem>
+			</Attribute>
 			<Attribute Name="aerosol_rw_mom0" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/aerosol_rw_mom0</DataItem>
 			</Attribute>
