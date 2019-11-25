@@ -20,9 +20,13 @@ class PlotterCommon
 
   void h5load(
     const string &file,
-    const string &dataset
+    const string &dataset,
+    bool srfc = false
   )
   {
+    notice_macro("about to close current file")
+    h5f.close();
+
     notice_macro("about to open file: " << file)
     h5f.openFile(file, H5F_ACC_RDONLY);
 
@@ -40,6 +44,24 @@ class PlotterCommon
   }
 
   public:
+
+  float load_liq_vol(int at)
+  {
+    notice_macro("about to close current file")
+    h5f.close();
+  
+    string timestep_file = file + "/timestep" + zeropad(at, 10) + ".h5";
+    notice_macro("about to open file: " << timestep_file)
+    h5f.openFile(timestep_file, H5F_ACC_RDONLY);
+  
+    notice_macro("about to read group: puddle")
+    h5g = h5f.openGroup("puddle");
+
+    float ret;
+    auto attr = h5g.openAttribute("liquid_volume");
+    attr.read(attr.getDataType(), &ret);
+    return ret;
+  }
 
   //ctor
   PlotterCommon(const string &file):
