@@ -12,6 +12,7 @@ namespace setup
     using parent_t = CasesCommon<case_ct_params_t, n_dims>;
 
     quantity<si::pressure, real_t> p_0 = -10 * si::pascals; 
+    quantity<si::mass_density, real_t> rhod_0 = 0 * si::kilograms / si::cubic_meters; 
 
     // liquid water potential temperature at height z
     virtual quantity<si::temperature, real_t> th_l(const real_t &z) {throw std::runtime_error("base Anelastic class th_l called");}
@@ -109,6 +110,7 @@ namespace setup
 
       real_t T_virt_surf = T_surf * (1. + 0.608 * profs.rv_e(0));
       real_t rho_surf = (p_0 / si::pascals) / T_virt_surf / 287. ; // TODO: R_d instead of 287, its the total, not dry density!
+      rhod_0 = rho_surf * si::kilograms / si::cubic_meters;
 //      rho_surf /= (1 + rv_e(0)); // turn it into dry air density! TODO: is this correct? TODO2: approp change in the paper
 
    //   real_t rho_surf = (p_0 / si::pascals) / T_surf / (1. + 29. / 18. * rv_e(0)) / 287. ; // dry air density at the surface TODO: R_d instead of 287

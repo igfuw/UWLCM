@@ -276,6 +276,33 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
       }
+      if (plt == "cl_nc_up")
+      {
+        // updraft only
+        {
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = isupdraught(snap);
+        }
+
+        {
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          res_tmp = snap;
+          snap = iscloudy(snap); // cloudiness mask
+          res_tmp2 *= snap; // cloudy updrafts only
+        }
+
+        // mean only over cloudy updraught cells
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+
+        // updraft only
+        res_tmp *= res_tmp2;
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+        gp << "set title 'cloud droplets concentation [1/cm^3] (cloudy updrafts)'\n";
+      }
       if (plt == "nc_down")
       {
         // updraft only
@@ -397,6 +424,24 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         res = plotter.h5load_timestep("v", at * n["outfreq"]);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
         gp << "set title 'v [m/s]'\n";
+      }
+      else if (plt == "w")
+      {
+        res = plotter.h5load_timestep("w", at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        gp << "set title 'w [m/s]'\n";
+      }
+      else if (plt == "sd_conc")
+      {
+        res = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        gp << "set title '# of SD'\n";
+      }
+      else if (plt == "vel_div")
+      {
+        res = plotter.h5load_timestep("vel_div", at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        gp << "set title 'vel_div [1/s]'\n";
       }
       else if (plt == "sat_RH")
       {

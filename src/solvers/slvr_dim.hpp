@@ -63,7 +63,7 @@ class slvr_dim<
       return blitz::safeToReturn(a(idx_t<2>({this->i, rng_t(k, k)})) + 0);
   }
 
-  void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  void vert_grad_fwd(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
     // extrapolate upward, top cell is two times lower
     in(this->i, this->j.last() + 1) = 1.5*in(this->i, this->j.last()) - .5 * in(this->i, this->j.last()-1); 
@@ -73,7 +73,7 @@ class slvr_dim<
     out(this->i, 0) *= 2; 
   }
 
-  void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  void vert_grad_cnt(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
     in(this->i, this->j.last() + 1) = in(this->i, this->j.last()); 
     in(this->i, this->j.first() - 1) = in(this->i, this->j.first()); 
@@ -84,21 +84,21 @@ class slvr_dim<
     out(this->i, this->j.last()) = 0; 
   }
   
-  void vert_grad_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  void vert_grad_cmpct(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
     in(this->i, this->j.last() + 1) = in(this->i, this->j.last());
     in(this->i, this->j.first() - 1) = in(this->i, this->j.first());
     out(this->i, this->j + h) = libmpdataxx::formulae::nabla::grad_cmpct<1>(in, this->j, this->i, dz);
   }
   
-  void vert_aver_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t coeff = 1)
+  void vert_aver_cmpct(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t coeff = 1)
   {
     // assumes filled halos
     using libmpdataxx::arakawa_c::h;
     out(this->i, this->j) = coeff * (in(this->i, this->j - h) + in(this->i, this->j + h)) / 2;
   }
 
-  void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
+  void smooth(typename parent_t::arr_t in, typename parent_t::arr_t out)
   {
     this->xchng_sclr(in, this->ijk);
 
@@ -111,7 +111,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    abs(this->state(ix::vip_i)(hrzntl_slice(1))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
+    abs(this->state(ix::vip_i)(hrzntl_slice(0))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
   )
 
   // ctor
@@ -160,7 +160,7 @@ class slvr_dim<
       return blitz::safeToReturn(a(idx_t<3>({this->i, this->j, rng_t(k, k)})) + 0);
   }
 
-  void vert_grad_fwd(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  void vert_grad_fwd(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
     // extrapolate upward
     in(this->i, this->j, this->k.last() + 1) = 1.5*in(this->i, this->j, this->k.last()) - 0.5*in(this->i, this->j, this->k.last()-1); 
@@ -170,7 +170,7 @@ class slvr_dim<
     out(this->i, this->j, 0) *= 2; 
   }
 
-  void vert_grad_cnt(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  void vert_grad_cnt(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
     in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last()); 
     in(this->i, this->j, this->k.first() - 1) = in(this->i, this->j, this->k.first()); 
@@ -181,21 +181,21 @@ class slvr_dim<
     out(this->i, this->j, this->k.last()) = 0; 
   }
   
-  void vert_grad_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t dz)
+  void vert_grad_cmpct(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
     in(this->i, this->j, this->k.last() + 1) = in(this->i, this->j, this->k.last());
     in(this->i, this->j, this->k.first() - 1) = in(this->i, this->j, this->k.first());
     out(this->i, this->j, this->k + h) = libmpdataxx::formulae::nabla::grad_cmpct<2>(in, this->k, this->i, this->j, dz);
   }
 
-  void vert_aver_cmpct(typename parent_t::arr_t &in, typename parent_t::arr_t &out, setup::real_t coeff = 1)
+  void vert_aver_cmpct(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t coeff = 1)
   {
     // assumes filled halos
     using libmpdataxx::arakawa_c::h;
     out(this->i, this->j, this->k) = coeff * (in(this->i, this->j, this->k - h) + in(this->i, this->j, this->k + h)) / 2;
   }
 
-  void smooth(typename parent_t::arr_t &in, typename parent_t::arr_t &out)
+  void smooth(typename parent_t::arr_t in, typename parent_t::arr_t out)
   {
     this->xchng_sclr(in, this->ijk); 
     out(this->i, this->j, this->k) = (6 * in(this->i, this->j, this->k) + 
@@ -208,7 +208,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    sqrt(pow2(this->state(ix::vip_i)(hrzntl_slice(1))) + pow2(this->state(ix::vip_j)(hrzntl_slice(1))))
+    sqrt(pow2(this->state(ix::vip_i)(hrzntl_slice(0))) + pow2(this->state(ix::vip_j)(hrzntl_slice(0))))
   )
 
   // ctor
