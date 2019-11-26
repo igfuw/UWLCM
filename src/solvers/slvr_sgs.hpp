@@ -326,6 +326,11 @@ class slvr_sgs : public slvr_common<ct_params_t>
     {
       this->record_aux_const("fricvelsq", "sgs", params.fricvelsq);  
     }
+
+    if(!params.cdrag && !params.fricvelsq) // no drag - fill tau with 0's
+      formulae::stress::zero_drag_cmpct<ct_params_t::n_dims>(this->tau_srfc,
+                                                             this->ijk,
+                                                             this->ijkm);
   }
 
   public:
