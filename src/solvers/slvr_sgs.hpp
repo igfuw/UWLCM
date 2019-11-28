@@ -220,11 +220,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
       // document why
       this->mem->barrier();
 
+      // ijk_vec is used, because MPI requires that thread rank 0 calculates next vector to the left of the process' domain
       formulae::stress::multiply_vctr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(tmp_grad,
                                                                                     1.0 / prandtl_num,
                                                                                     this->k_m,
                                                                                     *this->mem->G,
-                                                                                    this->ijk);
+                                                                                    this->ijk_vec);
       for(int d = 0; d < parent_t::n_dims; ++d)
         nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after multiply_vctr_cmpct");
 
