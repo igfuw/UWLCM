@@ -29,7 +29,7 @@ namespace setup
       X    = 10000 * si::metres, // DYCOMS: 6400
       Y    = 10000 * si::metres; // DYCOMS: 6400
     const real_t z_abs = 7000;
-    const quantity<si::length, real_t> z_rlx = 25 * si::metres;
+    const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
     template<class case_ct_params_t, int n_dims>
     class LasherTrapp2001Common : public Anelastic<case_ct_params_t, n_dims>
@@ -282,8 +282,8 @@ namespace setup
         this->mean_rd2 = real_t(.06e-6) * si::metres;
         this->sdev_rd1 = real_t(1.2),
         this->sdev_rd2 = real_t(1.7);
-        this->n1_stp = real_t(5*125e6) / si::cubic_metres, // 125 || 31
-        this->n2_stp = real_t(5*65e6) / si::cubic_metres;  // 65 || 16
+        this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
+        this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->Z = Z;
         this->z_rlx = z_rlx;
       }
