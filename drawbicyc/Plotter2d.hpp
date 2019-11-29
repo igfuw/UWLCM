@@ -12,7 +12,8 @@ class Plotter_t<2> : public PlotterCommon
   public:
   static const int n_dims = 2;
   using arr_t = blitz::Array<float,2>;
-  blitz::Array<int, 1> k_i;
+  blitz::Array<int, 1> k_i, tmp_int_hrzntl_slice;
+  blitz::Array<float, 1> tmp_float_hrzntl_slice;
   blitz::secondIndex LastIndex;
 
   protected:
@@ -87,6 +88,18 @@ class Plotter_t<2> : public PlotterCommon
     return blitz::RectDomain<2>( blitz::TinyVector<blitz::Range, 2>(blitz::Range(0, this->map["x"]-1), blitz::Range(z,z)));
   }
 
+  auto get_value_at_hgt(
+    const arr_t &data,
+    const blitz::Array<int, 1> hgt_idx
+  ) -> decltype(blitz::safeToReturn(blitz::Array<float, 1>() + 0))
+  {
+    blitz::Array<float, 1> ret(hgt_idx.shape());
+    for(int i = 0; i < this->map["x"]; ++i)
+      if(hgt_idx(i) >= 0 && hgt_idx(i) < this->map["z"]) 
+        ret(i) = data(i, hgt_idx(i));
+    return blitz::safeToReturn(ret + 0);
+  }
+
   template <class gp_t, class data_t>
   void plot(gp_t &gp, const data_t &data)
   {
@@ -118,6 +131,8 @@ class Plotter_t<2> : public PlotterCommon
     this->map["z"] = n[1]-1;
     tmp.resize(n[0], n[1]);
     k_i.resize(n[0]-1);
+    tmp_int_hrzntl_slice.resize(n[0]-1);
+    tmp_float_hrzntl_slice.resize(n[0]-1);
  
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");

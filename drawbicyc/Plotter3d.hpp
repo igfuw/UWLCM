@@ -9,7 +9,8 @@ class Plotter_t<3> : public PlotterCommon
   public:
   static const int n_dims = 3;
   using arr_t = blitz::Array<float, 3>;
-  blitz::Array<int, 2> k_i;
+  blitz::Array<int, 2> k_i, tmp_int_hrzntl_slice;
+  blitz::Array<float, 2> tmp_float_hrzntl_slice;
   blitz::thirdIndex LastIndex;
 
   protected:
@@ -92,6 +93,19 @@ class Plotter_t<3> : public PlotterCommon
     return blitz::RectDomain<3>(blitz::TinyVector<int, 3>(0,0,z), (blitz::TinyVector<int, 3>(this->map["x"]-1,this->map["y"]-1,z)));
   }
 
+  auto get_value_at_hgt(
+    const arr_t &data,
+    const blitz::Array<int, 2> hgt_idx
+  ) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
+  {
+    blitz::Array<float, 2> ret(hgt_idx.shape());
+    for(int i = 0; i < this->map["x"]; ++i)
+      for(int j = 0; j < this->map["y"]; ++j)
+        if(hgt_idx(i,j) >= 0 && hgt_idx(i,j) < this->map["z"]) 
+          ret(i,j) = data(i,j, hgt_idx(i,j));
+    return blitz::safeToReturn(ret + 0);
+  }
+
   template <class gp_t, class data_t>
   void plot(gp_t &gp, const data_t &data, const blitz::Range &yrange_override)
   {
@@ -142,6 +156,8 @@ class Plotter_t<3> : public PlotterCommon
     this->map["z"] = n[2]-1;
     tmp.resize(n[0], n[1], n[2]);
     k_i.resize(n[0]-1, n[1]-1);
+    tmp_int_hrzntl_slice.resize(n[0]-1, n[1]-1);
+    tmp_float_hrzntl_slice.resize(n[0]-1, n[1]-1);
 
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");
