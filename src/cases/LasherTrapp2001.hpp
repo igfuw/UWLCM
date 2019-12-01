@@ -68,7 +68,7 @@ namespace setup
         params.outfreq = user_params.outfreq;
         params.spinup = user_params.spinup;
         params.w_src = user_params.w_src;
-        params.uv_src = false; // ?
+        params.uv_src = user_params.uv_src;
         params.th_src = user_params.th_src;
         params.rv_src = user_params.rv_src;
         params.rc_src = user_params.rc_src;
@@ -77,6 +77,7 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
+        params.vel_subsidence = false;
         params.friction = true;
         params.coriolis = false;
         params.radiation = false;
@@ -87,7 +88,7 @@ namespace setup
       // RH T and p to rv
       quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
       {
-        return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
+        return RH * const_cp::r_vs<real_t>(T, p);
       }
   
       template <class index_t>
@@ -98,7 +99,7 @@ namespace setup
         real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
         solver.advectee(ix::rv) = rv_env(index); 
-        solver.advectee(ix::th) = th_dry_env(index); 
+        solver.advectee(ix::th) = th_std_env(index); 
   
         solver.advectee(ix::u) = 0;
         solver.advectee(ix::w) = 0;  
@@ -215,8 +216,6 @@ namespace setup
   
         // calc reference profiles
         this->ref_prof(profs, nz);
-
-        profs.th_e = th_dry_env; // actual env profsile of theta_dry
 
         profs.w_LS = 0.; // no subsidence
         profs.th_LS = 0.; // no large-scale horizontal advection
