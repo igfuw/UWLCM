@@ -47,6 +47,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
   }
 
+  void get_puddle() override
+  {
+    this->puddle = prtcls->diag_puddle();
+  }
+
   // helper methods
   void diag()
   {
@@ -93,7 +98,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_mom(0);
     this->record_aux("gccn_rw_mom0", prtcls->outbuf());
 
-    /*
     // recording 1st mom of rw of non-gccns
     prtcls->diag_dry_rng(0., 2e-6);
     prtcls->diag_wet_mom(1);
@@ -103,7 +107,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_dry_rng(0., 2e-6);
     prtcls->diag_wet_mom(0);
     this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
-    */
+
     // recording 0th mom of rw of activated drops
     prtcls->diag_rw_ge_rc();
     prtcls->diag_wet_mom(0);
@@ -169,26 +173,22 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
+    // recording 0th wet mom of radius of aerosols (r < .5um)
+    prtcls->diag_wet_rng(0., .5e-6);
+    prtcls->diag_wet_mom(0);
+    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
+
     // recording 3rd wet mom of radius of aerosols (r < .5um)
     prtcls->diag_wet_rng(0., .5e-6);
     prtcls->diag_wet_mom(3);
     this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
    
+/*
     // recording divergence of the velocity field
-    /*
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
 */
 
-    // recording puddle
-    auto puddle = prtcls->diag_puddle();
-    for(auto elem : puddle)
-    {   
-       this->f_puddle << elem.first << " " << elem.second << "\n";
-    }   
-    this->f_puddle << "\n";
-    this->f_puddle.flush();
-   
     // recording requested statistical moments
     {
       // dry
@@ -638,7 +638,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
             params.cloudph_opts,
             make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
             make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
-            std::map<enum libcloudphxx::lgrngn::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
+            std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
           );
         else if(params.backend == multi_CUDA)
           ftr = std::async(
@@ -648,7 +648,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
             params.cloudph_opts,
             make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
             make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
-            std::map<enum libcloudphxx::lgrngn::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
+            std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
           );
         assert(ftr.valid());
       } else 
@@ -716,7 +716,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
     outmom_t<real_t> out_dry, out_wet;
     bool flag_coal; // do we want coal after spinup
-    bool gccn;
+    real_t gccn; // multiplicity of gccn
     bool out_wet_spec, out_dry_spec;
   };
 

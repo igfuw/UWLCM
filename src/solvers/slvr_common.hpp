@@ -4,10 +4,13 @@
 #include <chrono>
 #include <libmpdata++/git_revision.hpp>
 #include <libcloudph++/git_revision.h>
+#include <libcloudph++/common/output.hpp>
 #include "../detail/get_uwlcm_git_revision.hpp"
 
 struct smg_tag  {};
 struct iles_tag {};
+
+namespace cmn = libcloudphxx::common;
 
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
@@ -46,6 +49,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                                          surf_flux_lat,
                                          surf_flux_u,
                                          surf_flux_v,
+                                         surf_flux_tmp,
                                          surf_flux_zero, // zero-filled array, find a way to avoid this
                                          U_ground; 
 
@@ -58,8 +62,10 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &radiative_flux,
                            &diss_rate; // TODO: move to slvr_sgs to save memory in iles simulations !;
 
-  // surface precip stuff
-  std::ofstream f_puddle; // output precipitation file
+  // precip output
+  std::map<cmn::output_t, real_t> puddle;
+  const int n_puddle_scalars = cmn::output_names.size();
+  virtual void get_puddle() = 0;
 
   // spinup stuff
   virtual bool get_rain() = 0;
@@ -80,10 +86,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       set_rain(true);
 
     parent_t::hook_ante_loop(nt);
-
-    // open file for output of precitpitation volume
-    if(this->rank==0)
-      f_puddle.open(this->outdir+"/prec_vol.dat");
 
     // record user_params and profiles
     if(this->rank==0)
@@ -130,8 +132,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);  
       this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
       this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
-      this->record_aux_const("ForceParameters surf_latent_flux_in_watts_per_square_meter", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
-      this->record_aux_const("ForceParameters surf_sensible_flux_in_watts_per_square_meter", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
 
       this->record_aux_const("mean_rd1", "aerosol_dist_params", params.user_params.mean_rd1 / si::metres);  
       this->record_aux_const("sdev_rd1", "aerosol_dist_params", params.user_params.sdev_rd1);
@@ -153,6 +153,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("th_LS", params.th_LS->data()); 
       this->record_prof_const("rv_LS", params.rv_LS->data()); 
       this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
+      this->record_prof_const("mix_len", params.mix_len->data());
       if(parent_t::n_dims==3)
       {
         this->record_prof_const("u_geostr", params.geostr[0]->data()); 
@@ -165,29 +166,29 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     params.update_surf_flux_sens(
       surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
-      this->state(ix::th)(this->hrzntl_slice(1)).reindex(this->origin),
-      U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
-      0, this->dt, this->di, this->dj
+      this->state(ix::th)(this->hrzntl_slice(0)).reindex(this->origin),
+      U_ground(this->hrzntl_slice(0)).reindex(this->origin),
+      params.dz / 2, 0, this->dt, this->di, this->dj
     );
     params.update_surf_flux_lat(
       surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
-      this->state(ix::rv)(this->hrzntl_slice(1)).reindex(this->origin), // TODO: this should be rv + r_l
-      U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
-      0, this->dt, this->di, this->dj
+      this->state(ix::rv)(this->hrzntl_slice(0)).reindex(this->origin),
+      U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
+      params.dz / 2, 0, this->dt, this->di, this->dj
     );
     params.update_surf_flux_uv(
       surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
-      U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
-      0, this->dt, this->di, this->dj
+      U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
+      params.dz / 2, 0, this->dt, this->di, this->dj
     );
     if(parent_t::n_dims==3)
     {
       params.update_surf_flux_uv(
         surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
         this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
-        U_ground(this->hrzntl_slice(0)).reindex(this->origin), params.dz,
-        0, this->dt, this->di, this->dj
+        U_ground(this->hrzntl_slice(0)).reindex(this->origin),
+        params.dz / 2, 0, this->dt, this->di, this->dj
       );
     }
   }
@@ -294,8 +295,8 @@ class slvr_common : public slvr_dim<ct_params_t>
               rhs.at(type)(ijk) -= F(ijk);
           }
 
-          // surface flux
-          if(params.friction)
+          // surface flux with exp folding in vertical (only in ILES)
+          if(params.friction && ct_params_t::sgs_scheme == libmpdataxx::solvers::iles)
           {
             for(auto type : this->hori_vel)
             {
@@ -441,6 +442,18 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     assert(this->rank == 0);
     this->record_aux_dsc("radiative_flux", radiative_flux); 
+
+    auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+    surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
+    this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
+
+    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
+    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
+
+    get_puddle();
+    for(int i=0; i < n_puddle_scalars; ++i)
+      this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", puddle.at(static_cast<cmn::output_t>(i)));
   } 
 
   void record_all()
@@ -497,8 +510,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
     surf_flux_zero(args.mem->tmp[__FILE__][1][2]),
     U_ground(args.mem->tmp[__FILE__][1][3]),
-    surf_flux_u(args.mem->tmp[__FILE__][1][4]),
-    surf_flux_v(args.mem->tmp[__FILE__][1][5]) // flux_v needs to be last
+    surf_flux_tmp(args.mem->tmp[__FILE__][1][4]),
+    surf_flux_u(args.mem->tmp[__FILE__][1][5]),
+    surf_flux_v(args.mem->tmp[__FILE__][1][6]) // flux_v needs to be last
   {
     k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
     r_l = 0.;
@@ -509,6 +523,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 7); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux
-    parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+2, "", true); // surf_flux sens/lat/hori_vel/zero, U_ground
+    parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+3, "", true); // surf_flux sens/lat/hori_vel/zero/tmp, U_ground
   }
 };

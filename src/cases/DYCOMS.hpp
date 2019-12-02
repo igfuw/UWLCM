@@ -125,6 +125,22 @@ namespace setup
       //  // to make the rhod() functor accept Blitz arrays as arguments
       //  BZ_DECLARE_FUNCTOR(rhod_fctr);
       //};
+      //
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<!enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+      }
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+        params.fricvelsq = 0.0625;
+      }
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -202,10 +218,6 @@ namespace setup
         profs.w_LS = w_LS_fctr()(k * dz);
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
-  
-        // calc surf flux divergence directly
-        real_t z_0 = z_rlx / si::metres;
-        profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -217,20 +229,13 @@ namespace setup
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
           auto flux_value = RF == 1 ? 15. : 16.; // [W/m^2]
-          if (!case_ct_params_t::enable_sgs)
-          {
-            surf_flux_sens = flux_value;
-          }
-          else // for simulations with sgs scheme convert surface flux to required sign convention and units
-          {
-            auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-            surf_flux_sens = -flux_value / conv_fctr_sens; // [K * kg / (m^2 * s)]
-          }
+          auto conv_fctr_sens = (libcloudphxx::common::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+          surf_flux_sens = -flux_value / conv_fctr_sens; // [K * kg / (m^2 * s)]
         }
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                       blitz::Array<real_t, n_dims> qt_ground,   
+                                       blitz::Array<real_t, n_dims> rt_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
@@ -238,15 +243,8 @@ namespace setup
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
           auto flux_value = RF == 1 ? 115. : 93.; // [W/m^2]
-          if (!case_ct_params_t::enable_sgs)
-          {
-            surf_flux_lat = flux_value;
-          }
-          else // for simulations with sgs scheme convert surface flux to required sign convention and units
-          {
-            auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-            surf_flux_lat = -flux_value / conv_fctr_lat; // [kg / (m^2 * s)]
-          }
+          auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+          surf_flux_lat = -flux_value / conv_fctr_lat; // [kg / (m^2 * s)]
         }
       }
 
@@ -259,7 +257,7 @@ namespace setup
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
         surf_flux_uv = where(U_ground == 0., 0.,
-            - 0.0625 * uv_ground / U_ground // 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s
+            - 0.0625 * uv_ground / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)// 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s; * -1 because negative gradient of upward flux means inflow
           );
       }
 
@@ -277,6 +275,7 @@ namespace setup
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
         this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
         this->Z = Z;
+        this->z_rlx = z_rlx;
       }
     };
     
