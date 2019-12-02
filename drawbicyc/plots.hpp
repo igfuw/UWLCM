@@ -15,14 +15,20 @@ const std::vector<std::string> series_dycoms({
 
 const std::vector<std::string> series_rico({
  "clfrac", "lwp",
+ "rwp",
  "surf_precip", 
-//"mass_dry", 
  "acc_precip",
  "cl_nc",
  "cloud_base",
-// "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
+ "surf_flux_latent",
+ "surf_flux_sensible"
+ ,"sd_conc_avg"
+//"mass_dry", 
+ ,"cl_gccn_conc", "gccn_conc"
+ ,"cl_non_gccn_conc", "non_gccn_conc"
+//, "cl_gccn_meanr"
 //,"cl_avg_cloud_rad"
-// "sd_conc_avg", "sd_conc_std_dev",
+// "sd_conc_std_dev",
 // "tot_water"
 });
 
@@ -69,14 +75,22 @@ std::vector<std::string> profs_rico({
 "00rtot", "rliq", "thl", "wvar", 
  "prflux"
 ,"clfrac"
+,"sd_conc"
 //, "N_c", 
 ,"cl_nc"
-,"u", "v",
+,"cl_nc_up"
+,"w"
+,"u", "v"
+,"vel_div"
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
 //, "nc_down" 
 }); // rtot has to be first
+
+std::vector<std::string> profs_base_prflux_vs_clhght({
+"base_prflux_vs_clhght"
+}); 
 
 std::vector<std::string> profs_sgs({
  "sgs_tke"
@@ -151,10 +165,13 @@ class Plots
       series.insert(series.end(), series_moist_thermal.begin(), series_moist_thermal.end());
       fields.insert(fields.end(), fields_moist_thermal.begin(), fields_moist_thermal.end());
     }
+    else if(type == "base_prflux_vs_clhght") { 
+      profs.insert(profs.end(), profs_base_prflux_vs_clhght.begin(), profs_base_prflux_vs_clhght.end());
+    }
     else
       throw std::runtime_error("drawbicyc Plots.hpp: unknown 'type'.");
     
-    if (sgs)
+    if (sgs && type != "base_prflux_vs_clhght")
     {
       profs.insert(profs.end(), profs_sgs.begin(), profs_sgs.end());
       series.insert(series.end(), series_sgs.begin(), series_sgs.end());
