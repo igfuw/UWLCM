@@ -70,14 +70,17 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
     blitz::Array<float, 1> res_prof(n["z"]);      // profile interpolate to the uniform grid
     blitz::Array<float, 1> res_prof_hlpr(n["z"]); // actual profile
     blitz::Array<float, 1> prof_tmp(n["z"]);
+    blitz::Array<int, 1>   occur_no(n["z"]);      // number of occurances - for unusual profiles like base_prflux_vs_clhght
     blitz::Range all = blitz::Range::all();
 
     res_prof_sum = 0;
+    occur_no = 0;
 
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
-      res = 0;
       std::cout << at * n["outfreq"] << std::endl;
+      res = 0;
+
       if (plt == "rliq")
       {
 	// liquid water content
@@ -276,6 +279,33 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
         gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
       }
+      if (plt == "cl_nc_up")
+      {
+        // updraft only
+        {
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = isupdraught(snap);
+        }
+
+        {
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          res_tmp = snap;
+          snap = iscloudy(snap); // cloudiness mask
+          res_tmp2 *= snap; // cloudy updrafts only
+        }
+
+        // mean only over cloudy updraught cells
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+
+        // updraft only
+        res_tmp *= res_tmp2;
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+        gp << "set title 'cloud droplets concentation [1/cm^3] (cloudy updrafts)'\n";
+      }
       if (plt == "nc_down")
       {
         // updraft only
@@ -397,6 +427,24 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         res = plotter.h5load_timestep("v", at * n["outfreq"]);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
         gp << "set title 'v [m/s]'\n";
+      }
+      else if (plt == "w")
+      {
+        res = plotter.h5load_timestep("w", at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        gp << "set title 'w [m/s]'\n";
+      }
+      else if (plt == "sd_conc")
+      {
+        res = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        gp << "set title '# of SD'\n";
+      }
+      else if (plt == "vel_div")
+      {
+        res = plotter.h5load_timestep("vel_div", at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        gp << "set title 'vel_div [1/s]'\n";
       }
       else if (plt == "sat_RH")
       {
@@ -524,6 +572,34 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         }
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
         gp << "set title 'cloud fraction'\n";
+      }
+      else if (plt == "base_prflux_vs_clhght")
+      // TODO: 'normalize' messes with this plot
+      {
+        res_prof_hlpr = 0;
+        // cloudy cells (cloudy if q_c > 0.01 g/kg as in RICO paper. NOTE: also add q_r ?)
+        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        snap = iscloudy_rc_rico(snap); // cloudiness mask
+        plotter.k_i = blitz::sum(snap, plotter.LastIndex); // sum in the vertical, assumes that all cloudy cells in a column belong to the same cloud
+
+        plotter.tmp_int_hrzntl_slice = blitz::first(snap > 0, plotter.LastIndex); // cloud base hgt over dz
+
+        // precipitation flux(doesnt include vertical velocity w!)
+        res = plotter.h5load_prflux_timestep(at * n["outfreq"]);
+        plotter.tmp_float_hrzntl_slice = 0; // just to get zero in columns without clouds
+        plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(res, plotter.tmp_int_hrzntl_slice); // precip flux at cloud base
+
+        // NOTE: we assume that k_i and tmp_float_hr... is contiguous in memory
+        for(int i=0; i<plotter.k_i.size(); ++i)
+        {
+          const int cl_hgt_over_dz = *(plotter.k_i.data() + i);
+          if(cl_hgt_over_dz > 0)
+          {
+            occur_no(cl_hgt_over_dz)+=1;
+            res_prof_hlpr(cl_hgt_over_dz) += *(plotter.tmp_float_hrzntl_slice.data() + i);
+          }
+        }
+        gp << "set title 'cl base pr flux vs cl hgt'\n";
       }
       else if (plt == "prflux")
       {
@@ -698,15 +774,18 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
       res_pos_out_done = true;
     }
 
-    // do the plotting
-//    if (plt == "ugccn_rw_down" || plt == "act_rd_up" || plt == "act_conc_up" || plt == "sat_RH_up" | plt=="gccn_rw_down" || plt=="non_gccn_rw_down" || plt=="gccn_rw_up" || plt=="non_gccn_rw_up" || plt == "cl_nc" || plt == "nc_up" || plt == "nc_down") // these are plots that are done only in up/downdrafts/cloudy cells (sat_RH now calculated over all cells)
-    res_prof_sum /= last_timestep - first_timestep + 1;
-//    else
-  //    res_prof = plotter.horizontal_mean(res); // average in x
+    if (plt != "base_prflux_vs_clhght")
+      res_prof_sum /= last_timestep - first_timestep + 1;
+    else
+      res_prof_sum = where(occur_no > 0, res_prof_sum/occur_no, 0);
+ 
 
+    // do the plotting
     gp << "plot '-' with line\n";
     gp.send1d(boost::make_tuple(res_prof_sum, res_pos));
 
+    if (plt == "base_prflux_vs_clhght")
+      oprof_file << occur_no;
     oprof_file << res_prof_sum ;
 
     if(normalize && (plt == "rv" || plt == "sat" || plt == "sat_RH"))

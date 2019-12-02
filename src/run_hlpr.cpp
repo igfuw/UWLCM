@@ -195,8 +195,8 @@ void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_
     else
     {
   #if !defined(UWLCM_DISABLE_ILES)
-      struct ct_params_sgs : ct_params_piggy {};
-      run<slvr<ct_params_sgs>>(nps, user_params);
+      struct ct_params_iles : ct_params_piggy {};
+      run<slvr<ct_params_iles>>(nps, user_params);
   #endif
     }
 #endif
