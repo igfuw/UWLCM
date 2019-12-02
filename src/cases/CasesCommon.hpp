@@ -25,8 +25,6 @@ namespace setup
   struct ForceParameters_t
   {
     real_t q_i, heating_kappa, F_0, F_1, rho_i, D, coriolis_parameter;
-    bool surf_latent_flux_in_watts_per_square_meter;
-    bool surf_sensible_flux_in_watts_per_square_meter;
   };
  
   // CAUTION: new profiles have to be added to both structs and in copy_profiles below
@@ -86,7 +84,7 @@ namespace setup
   template<class case_ct_params_t, int n_dims>
   class CasesCommon
   {
-    public:
+    public: 
 
     using ix = typename case_ct_params_t::ix;
     using rt_params_t = typename case_ct_params_t::rt_params_t;
@@ -95,9 +93,6 @@ namespace setup
       real_t, 
       n_dims
     >;
-
-    //th, rv and surface fluxes relaxation time and height
-    const quantity<si::time, real_t> tau_rlx = 300 * si::seconds;
 
     // domain size
     quantity<si::length, real_t> X,Y,Z;
@@ -113,12 +108,14 @@ namespace setup
       n1_stp = real_t(70.47e6) / si::cubic_metres, // gives 60e6 at surface of moist thermal
       n2_stp = real_t(46.98e6) / si::cubic_metres;  // gives 40e6 at surface of moist thermal
 
+    // e-folding height for surface fluxes
+    quantity<si::length, real_t> z_rlx = 0 * si::metres; // 0 indicates that there are no surf fluxes
+
     // hygroscopicity kappa of the aerosol 
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
 
     real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
-    ForceParameters_t ForceParameters;
 
     template<bool enable_sgs = case_ct_params_t::enable_sgs>
     void setopts_sgs(rt_params_t &params,
@@ -132,17 +129,21 @@ namespace setup
       params.c_m = 0.0856;
       params.smg_c = 0.165;
       params.prandtl_num = 0.42;
-      params.cdrag = 0.; // turn off sgs momentum surface fluxes, they are done explicitly via surf_flux_uv
+      params.cdrag = 0;
+      params.fricvelsq = 0;
     }
+
+
+    ForceParameters_t ForceParameters;
 
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
     virtual void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
     {
+      real_t dz = (Z / si::metres) / (nz-1);
       // set SGS mixing length
       {
         blitz::firstIndex k;
-        real_t dz = (Z / si::metres) / (nz-1);
 
         real_t sgs_delta;
         if (user_params.sgs_delta > 0)
@@ -154,6 +155,31 @@ namespace setup
           sgs_delta = dz;
         }
         profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
+      }
+
+      // set profile of vertical distribution of surface fluxes
+      const real_t z_0 = z_rlx / si::metres;
+      if(z_0 > 0.)
+      {
+        blitz::firstIndex k;
+        // ------ version with flux added starting from 0th cell -----
+        // (fraction of surface flux going out through upper cell boundary - fraction of surface flux going in through lower cell boundary) / cell height
+        profs.hgt_fctr = (exp(- (k + 1 - 0.5) * dz / z_0) - exp(- (k - 0.5) * dz / z_0)) / dz;
+
+        // uppermost and lowermost cells are lower
+        profs.hgt_fctr(0) = (exp(- 0.5 * dz / z_0) - 1.) / (0.5 * dz);
+        profs.hgt_fctr(nz-1) = (exp(- (nz - 1.) * dz / z_0) - exp(- (nz - 1.5) * dz / z_0) ) / (0.5 * dz);
+
+
+        // ------ version with flux added starting from 1st cell -----
+        /*
+        // (fraction of surface flux going out through upper cell boundary - fraction of surface flux going in through lower cell boundary) / cell height
+        profs.hgt_fctr = (exp(- (k + 1 - 1.0) * dz / z_0) - exp(- (k - 1.0) * dz / z_0)) / dz;
+
+        // uppermost and lowermost cells are lower
+        profs.hgt_fctr(0) = 0;
+        profs.hgt_fctr(nz-1) = (exp(- (nz - 1.5) * dz / z_0) - exp(- (nz - 2.0) * dz / z_0) ) / (0.5 * dz);
+*/
       }
     }
 
@@ -187,8 +213,6 @@ namespace setup
       ForceParameters.F_1 = 22; // w/m^2
       ForceParameters.q_i = 8e-3; // kg/kg
       ForceParameters.rho_i = 1.12; // kg/m^3
-      ForceParameters.surf_latent_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [m/s]
-      ForceParameters.surf_sensible_flux_in_watts_per_square_meter = true; // otherwise it's considered to be in [K m/s]
       ForceParameters.coriolis_parameter = 0.;
       ForceParameters.D = 0.; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
       X = 0 * si::metres;
