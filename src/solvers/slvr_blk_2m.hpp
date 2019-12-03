@@ -31,8 +31,23 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   // accumulated water falling out of domain
   real_t puddle;
 
+  void get_puddle() override
+  {
+    //storing puddle
+    for(int i=0; i < this->n_puddle_scalars; ++i)
+    {
+      this->puddle[static_cast<cmn::output_t>(i)] = (i==8 ? puddle : 0);
+    }
+  }
+
   void diag()
   {
+    parent_t::diag();
+    
+    // recording precipitation flux
+    // this->record_aux_dsc("precip_rate",precipitation_rate);    
+
+    /*
     assert(this->rank == 0);
     parent_t::tbeg = parent_t::clock::now();
 
@@ -45,6 +60,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
     parent_t::tend = parent_t::clock::now();
     parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+    */
   }
 
   void rc_src();
