@@ -110,7 +110,9 @@ void setopts_micro(
   neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
- 
+
+  rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
+
  // if(!unit_test)
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
