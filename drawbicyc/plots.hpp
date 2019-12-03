@@ -6,9 +6,11 @@ const std::vector<std::string> series_dycoms({
 //"mass_dry", 
  "acc_precip",
  "cl_nc",
- "cloud_base",
- "cl_gccn_conc", "gccn_conc", "cl_gccn_meanr"
-,"cl_avg_cloud_rad"
+ "cloud_base"
+ ,"cl_gccn_meanr"
+ ,"cl_avg_cloud_rad"
+ ,"cl_gccn_conc", "gccn_conc"
+ ,"cl_non_gccn_conc", "non_gccn_conc", "cl_gccn_to_non_gccn_conc_ratio"
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
 });
@@ -25,7 +27,7 @@ const std::vector<std::string> series_rico({
  ,"sd_conc_avg"
 //"mass_dry", 
  ,"cl_gccn_conc", "gccn_conc"
- ,"cl_non_gccn_conc", "non_gccn_conc"
+ ,"cl_non_gccn_conc", "non_gccn_conc", "cl_gccn_to_non_gccn_conc_ratio"
 //, "cl_gccn_meanr"
 //,"cl_avg_cloud_rad"
 // "sd_conc_std_dev",
