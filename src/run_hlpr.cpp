@@ -144,7 +144,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
   }
-  else if(user_params.model_case == "lasher_trapp")
+  else if(user_params.model_case == "lasher_trapp" || user_params.model_case == "lasher_trapp_api_test")
   {
     concurr.reset(new concurr_openmp_rigid_t(p));
   }

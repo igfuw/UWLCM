@@ -22,7 +22,7 @@ struct concurr_openmp_rigid<solver_t, 2>
   using type = libmpdataxx::concurr::openmp<
     solver_t, 
     libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid,
-    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid 
+    libmpdataxx::bcond::gndsky,  libmpdataxx::bcond::gndsky
   >;
 };
 
@@ -34,7 +34,7 @@ struct concurr_openmp_rigid<solver_t, 3>
     solver_t, 
     libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid,
     libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid,
-    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid 
+    libmpdataxx::bcond::gndsky,  libmpdataxx::bcond::gndsky
   >;
 };
 
