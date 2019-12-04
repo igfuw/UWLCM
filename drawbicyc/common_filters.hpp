@@ -8,6 +8,12 @@ double iscloudy_rc(double x)
 }
 BZ_DECLARE_FUNCTION(iscloudy_rc)
 
+double iscloudy_rc_rico(double x)
+{
+  return x > 1.e-5 ? 1. : 0.; 
+}
+BZ_DECLARE_FUNCTION(iscloudy_rc_rico)
+
 double iscloudy_rc_high(double x)
 {
   return x > 5.e-4 ? 1. : 0.; 
