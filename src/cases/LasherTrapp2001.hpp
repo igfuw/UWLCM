@@ -29,7 +29,7 @@ namespace setup
       X    = 10000 * si::metres, // DYCOMS: 6400
       Y    = 10000 * si::metres; // DYCOMS: 6400
     const real_t z_abs = 7000;
-    const quantity<si::length, real_t> z_rlx = 25 * si::metres;
+    const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
     template<class case_ct_params_t, int n_dims>
     class LasherTrapp2001Common : public Anelastic<case_ct_params_t, n_dims>
@@ -68,7 +68,7 @@ namespace setup
         params.outfreq = user_params.outfreq;
         params.spinup = user_params.spinup;
         params.w_src = user_params.w_src;
-        params.uv_src = false; // ?
+        params.uv_src = user_params.uv_src;
         params.th_src = user_params.th_src;
         params.rv_src = user_params.rv_src;
         params.rc_src = user_params.rc_src;
@@ -77,6 +77,7 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
+        params.vel_subsidence = false;
         params.friction = true;
         params.coriolis = false;
         params.radiation = false;
@@ -87,7 +88,7 @@ namespace setup
       // RH T and p to rv
       quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
       {
-        return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
+        return RH * const_cp::r_vs<real_t>(T, p);
       }
   
       template <class index_t>
@@ -98,7 +99,7 @@ namespace setup
         real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
         solver.advectee(ix::rv) = rv_env(index); 
-        solver.advectee(ix::th) = th_dry_env(index); 
+        solver.advectee(ix::th) = th_std_env(index); 
   
         solver.advectee(ix::u) = 0;
         solver.advectee(ix::w) = 0;  
@@ -216,8 +217,6 @@ namespace setup
         // calc reference profiles
         this->ref_prof(profs, nz);
 
-        profs.th_e = th_dry_env; // actual env profsile of theta_dry
-
         profs.w_LS = 0.; // no subsidence
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
@@ -282,8 +281,8 @@ namespace setup
         this->mean_rd2 = real_t(.06e-6) * si::metres;
         this->sdev_rd1 = real_t(1.2),
         this->sdev_rd2 = real_t(1.7);
-        this->n1_stp = real_t(5*125e6) / si::cubic_metres, // 125 || 31
-        this->n2_stp = real_t(5*65e6) / si::cubic_metres;  // 65 || 16
+        this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
+        this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->Z = Z;
         this->z_rlx = z_rlx;
       }

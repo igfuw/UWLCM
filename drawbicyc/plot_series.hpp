@@ -642,7 +642,7 @@ void plot_series(Plotter_t plotter, Plots plots)
       }
       else if (plt == "cl_non_gccn_conc")
       {
-	// gccn (r_d > 2 um) concentration in cloudy grid cells
+	// gccn (r_d < 2 um) concentration in cloudy grid cells
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
@@ -654,6 +654,28 @@ void plot_series(Plotter_t plotter, Plots plots)
           snap2 *= rhod; // b4 it was specific moment
           snap2 /= 1e6; // per cm^3
           snap2 *= snap;
+          if(blitz::sum(snap) > 0)
+            res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      else if (plt == "cl_gccn_to_non_gccn_conc_ratio")
+      {
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap = iscloudy(snap); // cloudiness mask
+          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+          typename Plotter_t::arr_t snap3(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
+
+          snap2 = where(snap3 > 0, snap2 / snap3, 0); // even if snap3=0, they are noncloudy anyway
+          snap2 *= snap;
+
           if(blitz::sum(snap) > 0)
             res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
           else
@@ -954,6 +976,12 @@ void plot_series(Plotter_t plotter, Plots plots)
     else if (plt == "cl_gccn_conc")
     {
       gp << "set title 'average gccn conc [1/cm^3] in cloudy cells'\n";
+      gp << "set xlabel ''\n";
+      gp << "set ylabel ''\n";
+    }
+    else if (plt == "cl_gccn_to_non_gccn_conc_ratio")
+    {
+      gp << "set title 'average ratio of gccn to non-gccn conc in cloudy cells'\n";
       gp << "set xlabel ''\n";
       gp << "set ylabel ''\n";
     }
