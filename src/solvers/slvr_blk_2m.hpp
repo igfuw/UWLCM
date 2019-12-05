@@ -29,14 +29,14 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   protected:
 
   // accumulated water falling out of domain
-  real_t puddle;
+  real_t liquid_puddle;
 
   void get_puddle() override
   {
     //storing puddle
     for(int i=0; i < this->n_puddle_scalars; ++i)
     {
-      this->puddle[static_cast<cmn::output_t>(i)] = (i==8 ? puddle : 0);
+      this->puddle[static_cast<cmn::output_t>(i)] = (i==8 ? liquid_puddle : 0);
     }
   }
 
@@ -280,7 +280,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t(args, p),
     params(p),
     opts(p.cloudph_opts),
-    puddle(0),
+    liquid_puddle(0),
     p_e(args.mem->tmp[__FILE__][0][0])
   {}
 };
@@ -336,7 +336,7 @@ class slvr_blk_2m<
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j),
           nr     = this->state(parent_t::ix::nr)(i, this->j);
-        this->puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
+        this->liquid_puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
           this->opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
         );
       }
@@ -398,7 +398,7 @@ class slvr_blk_2m<
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k),
           nr     = this->state(parent_t::ix::nr)(i, j, this->k);
-          this->puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
+          this->liquid_puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
             this->opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
           );
         }
