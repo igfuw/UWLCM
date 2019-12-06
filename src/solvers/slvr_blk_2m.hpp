@@ -44,7 +44,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   {
     parent_t::diag();
     
-    // recording precipitation flux
+    // TODO: recording precipitation flux
     // this->record_aux_dsc("precip_rate",precipitation_rate);    
 
     /*
@@ -77,16 +77,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     {
   return this->state(ix::rc);
     }
-
-  void record_all()
-  {
-    // plain (no xdmf) hdf5 output
-    parent_t::output_t::parent_t::record_all();
-    // UWLCM output
-    diag();
-    // xmf markup
-    this->write_xmfs();
-  }
 
   void hook_mixed_rhs_ante_loop()
   {}
@@ -213,20 +203,31 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
         // ---- cloud water sources ----
         rc_src();
         //this->common_water_src(ix::rc, params.rc_src);
-        rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
+        rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
         
         nc_src();
         //this->common_water_src(ix::nc, params.nc_src);
-        rhs.at(ix::nc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::nc)(this->ijk);
+        rhs.at(ix::nc)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::nc)(this->ijk);
 
         // ---- rain water sources ----
         rr_src();
         //this->common_water_src(ix::rr, params.rr_src);
-        rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
+        rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
         
         nr_src();
         //this->common_water_src(ix::nr, params.nr_src);
-        rhs.at(ix::nr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::nr)(this->ijk);
+        rhs.at(ix::nr)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::nr)(this->ijk);
+
+        // when using explicit turbulence model add subgrid forces to rc and rr
+        // (th and rv were already applied in slvr_sgs)
+        if (ct_params_t::sgs_scheme != libmpdataxx::solvers::iles)
+        {
+          this->sgs_scalar_forces({ix::rc, ix::rr, ix::nc, ix::nr});
+          nancheck(rhs.at(ix::rc)(this->ijk), "RHS of rc after sgs_scalar_forces");
+          nancheck(rhs.at(ix::rr)(this->ijk), "RHS of rr after sgs_scalar_forces");
+          nancheck(rhs.at(ix::nc)(this->ijk), "RHS of nc after sgs_scalar_forces");
+          nancheck(rhs.at(ix::nr)(this->ijk), "RHS of nr after sgs_scalar_forces");
+        }
 
         break;
       }
