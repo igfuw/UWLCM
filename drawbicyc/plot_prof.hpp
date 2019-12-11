@@ -5,7 +5,7 @@
 #include "plots.hpp"
 
 template<class Plotter_t>
-void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
+void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool normalize)
 {
 
   // read opts
@@ -25,10 +25,10 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
      std::cout << elem.first << " " << elem.second << std::endl;
   }
   Gnuplot gp; 
-  string file = plotter.file + "_profiles_" + prof_start_s + "_" + prof_end_s+".svg";
+  string file = plotter.file + "_" + type + "_profiles_" + prof_start_s + "_" + prof_end_s+".svg";
   init_prof(gp, file, 3, 5); 
 
-  string prof_file = plotter.file + "_profiles_" + prof_start_s + "_" + prof_end_s+".dat";
+  string prof_file = plotter.file + "_" + type + "_profiles_" + prof_start_s + "_" + prof_end_s+".dat";
   std::ofstream oprof_file(prof_file);
 
   // read in density
