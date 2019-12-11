@@ -6,7 +6,7 @@
 const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
 
 template<class Plotter_t>
-void plot_series(Plotter_t plotter, Plots plots)
+void plot_series(Plotter_t plotter, Plots plots, std::string type)
 {
 
   auto& n = plotter.map;
@@ -15,12 +15,12 @@ void plot_series(Plotter_t plotter, Plots plots)
      std::cout << elem.first << " " << elem.second << std::endl;
   }
   Gnuplot gp;
-  string file = plotter.file + "_series.svg";
+  string file = plotter.file + "_" + type + "_series.svg";
   int hor = min<int>(plots.series.size(), 4);
   int ver = double(plots.series.size()) / 4. + 0.99999;
   init_prof(gp, file, ver, hor); 
 
-  string prof_file = plotter.file + "_series.dat";
+  string prof_file = plotter.file + "_" + type + "_series.dat";
   std::ofstream oprof_file(prof_file);
 
   // read in density
