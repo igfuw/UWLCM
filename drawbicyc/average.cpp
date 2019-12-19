@@ -7,11 +7,33 @@
 
 using namespace blitz;
 
+// taken from https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
+bool hasEnding (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
+
+bool open_file(string filename, ifstream &stream)
+{
+  std::cout << "reading in " << filename << std::endl;
+  stream.open(filename);
+  if (stream.bad())
+  {
+    cerr << "Unable to open file: " << filename << endl;
+    throw std::runtime_error("error opening file");
+  }
+}
+
 void average(int argc, char* argv[], std::vector<std::string> types, std::string suffix)
 {
-  Array<double, 1> snap;
+  Array<double, 1> snap, snap2;
   Array<double, 1> avg;
+  Array<double, 1> weight;
   blitz::firstIndex fi;
+  ifstream iprof_file;
 
   std::string ofile(argv[1]);
   ofile.append(suffix);//"_series.dat");
@@ -20,41 +42,78 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
   types.insert(types.begin(), "position");
 
   int prof_ctr = 0;
+
+  // init sizes of profiles/series assuming that they have same size in all files
+  open_file(string(argv[4]).append(suffix), iprof_file);
+  iprof_file >> snap;
+  iprof_file.close();
+  avg.resize(snap.shape());
+  weight.resize(snap.shape());
+  snap2.resize(snap.shape());
+
+  // actual averaging
   for (auto &plt : types)
   {
     avg = 0;
-    int opened_files = 0;
-    for(int i=2; i<argc; i+=1)
+    weight = 0;
+
+    for(int i=4; i<argc; i+=1) // add value of the array from each file
     {
-      std::string file(argv[i]);
-      file.append(suffix);//"_series.dat");
-      std::cout << "reading in " << i << ": " << file << std::endl;
-      ifstream iprof_file(file);
-      if (iprof_file.bad())
-      {
-        cerr << "Unable to open file: " << file << endl;
-        continue;
-      }
+   //   try{
+        open_file(string(argv[i]).append(suffix), iprof_file);
+     // } catch (...) {continue;}
+
       for(int k=0; k<=prof_ctr; ++k)
         iprof_file >> snap;
 
-      if(i==2)
+      if (plt == "base_prflux_vs_clhght") // we need weighted average for this plot - array of weights before array of values
       {
-        avg.resize(snap.shape());
-        avg = 0.;
+        weight += snap; // add to sum of weights
+        snap2 = snap; // store weight of this one
+        iprof_file >> snap; // read actual values
+        avg += snap * snap2; // add weight*value
       }
-      avg += snap;
-      opened_files++;
+      else // all values have same weight
+      {
+        avg += snap;
+        weight += 1;
+      }
+      iprof_file.close();
     }
-    avg /= opened_files;
+    avg = where(weight > 0, avg / weight, 0);
     std::cout << plt << " avg: " << avg;
     oprof_file << avg;
-    prof_ctr++;
+    prof_ctr += 
+      plt == "base_prflux_vs_clhght" ||  // this plot outputs two arrays: weights and averages
+      plt == "ract_avg" ||               // following plots also output two arrays: averages and standard deviations
+      plt == "cloud_avg_act_conc" ||
+      plt == "cloud_avg_supersat" ||
+      plt == "sd_conc_avg" ||
+      plt == "sd_conc_act_avg"
+      ? 2 : 1;
   }
 }
 
 int main(int argc, char* argv[])
 {
-  average(argc, argv, series_dycoms, "_series.dat");
-  average(argc, argv, profs_dycoms, "_profiles_7200_21600.dat");
+ const string profiles_suffix = string("_profiles_")+argv[2]+string("_")+argv[3]+string(".dat");
+ string plot_type;
+ // determine type of plots based on the name of the first file
+ const string types[] = {"rico", "dycoms", "moist_thermal"};
+ for(auto type : types)
+ {
+   if(hasEnding(string(argv[4]), type))
+   {
+     plot_type = type;
+     break;
+   }
+ }
+
+ cout << "Detected plot type: " << plot_type << endl;
+
+ Plots plots(plot_type, true); // assume sgs is on
+
+ try{ average(argc, argv, plots.series, "_series.dat"); } catch(...){;}
+ try{ average(argc, argv, plots.profs, profiles_suffix);} catch(...){;}
+// try{ average(argc, argv, {"base_prflux_vs_clhght"}, profiles_suffix); } catch(...){;} // TODO: add this profile to rico profiles, or give some other suffix here to distinguish outputted average from regular profiles
 }
