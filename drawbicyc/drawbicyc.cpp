@@ -19,7 +19,7 @@ int main(int argc, char** argv)
     ("qv_qc_2_6_10_min", po::value<bool>()->default_value(false) , "plot comparison of qv and qc fields at 2, 6 and 10 min?")
     ("dir", po::value<std::string>()->required() , "directory containing out_lgrngn")
     ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
-    ("type", po::value<std::string>()->required(), "one of: dycoms, moist_thermal, rico, base_prflux_vs_clhght")
+    ("type", po::value<std::string>()->required(), "one of: dycoms, moist_thermal, rico")//, base_prflux_vs_clhght")
   ;
 
   po::variables_map vm;
@@ -33,8 +33,8 @@ int main(int argc, char** argv)
 
   // handling the "type" option
   std::string type = vm["type"].as<std::string>();
-  if(type != "dycoms" && type != "moist_thermal" && type != "rico" && type != "base_prflux_vs_clhght")
-    throw std::runtime_error("Unrecognized 'type' option, only dycoms, rico, moist_thermal, base_prflux_vs_clhght available now");
+  if(type != "dycoms" && type != "moist_thermal" && type != "rico")// && type != "base_prflux_vs_clhght")
+    throw std::runtime_error("Unrecognized 'type' option, only dycoms, rico, moist_thermal available now");//, base_prflux_vs_clhght available now");
 
   // should profiles be normalized by inversion height
   const bool normalize_prof = type == "dycoms";
