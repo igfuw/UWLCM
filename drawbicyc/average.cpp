@@ -4,6 +4,7 @@
 //#include "PlotterMicro.hpp"
 #include <boost/tuple/tuple.hpp>
 #include "plots.hpp"
+#include "gnuplot_series_set_labels.hpp"
 
 using namespace blitz;
 
@@ -30,37 +31,45 @@ bool open_file(string filename, ifstream &stream)
 void average(int argc, char* argv[], std::vector<std::string> types, std::string suffix)
 {
   Array<double, 1> snap, snap2;
-  Array<double, 1> avg;
-  Array<double, 1> weight;
+  Array<double, 1> avg, pos, weight;
   blitz::firstIndex fi;
   ifstream iprof_file;
 
   std::string ofile(argv[1]);
-  ofile.append(suffix);//"_series.dat");
-  ofstream oprof_file(ofile);
+  ofile.append(suffix);
+  ofstream oprof_file(ofile + string(".dat"));
+
+  // init the plotter
+  Gnuplot gp;
+  int hor = min<int>(types.size(), 4);
+  int ver = double(types.size()) / 4. + 0.99999;
+  init_prof(gp, ofile + string(".svg"), ver, hor); 
 
   types.insert(types.begin(), "position");
 
   int prof_ctr = 0;
 
   // init sizes of profiles/series assuming that they have same size in all files
-  open_file(string(argv[4]).append(suffix), iprof_file);
+  open_file(string(argv[4]).append(suffix).append(".dat"), iprof_file);
   iprof_file >> snap;
   iprof_file.close();
   avg.resize(snap.shape());
+  pos.resize(snap.shape());
   weight.resize(snap.shape());
   snap2.resize(snap.shape());
 
   // actual averaging
   for (auto &plt : types)
   {
+    gnuplot_series_set_labels(gp, plt);
+
     avg = 0;
     weight = 0;
 
     for(int i=4; i<argc; i+=1) // add value of the array from each file
     {
    //   try{
-        open_file(string(argv[i]).append(suffix), iprof_file);
+        open_file(string(argv[i]).append(suffix).append(".dat"), iprof_file);
      // } catch (...) {continue;}
 
       for(int k=0; k<=prof_ctr; ++k)
@@ -81,8 +90,17 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
       iprof_file.close();
     }
     avg = where(weight > 0, avg / weight, 0);
+    if(plt == "position")
+      pos = avg;
+    else
+    {
+      gp << "plot '-' with l \n";
+      gp.send1d(boost::make_tuple(pos, avg));
+    }
+
     std::cout << plt << " avg: " << avg;
     oprof_file << avg;
+
     prof_ctr += 
       plt == "base_prflux_vs_clhght" ||  // this plot outputs two arrays: weights and averages
       plt == "ract_avg" ||               // following plots also output two arrays: averages and standard deviations
@@ -96,7 +114,7 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
 
 int main(int argc, char* argv[])
 {
- const string profiles_suffix = string("_profiles_")+argv[2]+string("_")+argv[3]+string(".dat");
+ const string profiles_suffix = string("_profiles_")+argv[2]+string("_")+argv[3];
  string plot_type;
  // determine type of plots based on the name of the first file
  const string types[] = {"rico", "dycoms", "moist_thermal"};
@@ -113,7 +131,7 @@ int main(int argc, char* argv[])
 
  Plots plots(plot_type, true); // assume sgs is on
 
- try{ average(argc, argv, plots.series, "_series.dat"); } catch(...){;}
+ try{ average(argc, argv, plots.series, "_series"); } catch(...){;}
  try{ average(argc, argv, plots.profs, profiles_suffix);} catch(...){;}
 // try{ average(argc, argv, {"base_prflux_vs_clhght"}, profiles_suffix); } catch(...){;} // TODO: add this profile to rico profiles, or give some other suffix here to distinguish outputted average from regular profiles
 }
