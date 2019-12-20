@@ -121,6 +121,11 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
     }
 
     std::cout << plt << " avg: " << avg;
+    if (plt == "base_prflux_vs_clhght") 
+    {
+      oprof_file << plt << " number of occurances" << endl;
+      oprof_file << weight;
+    }
     oprof_file << plt << endl;
     oprof_file << avg;
 
