@@ -54,6 +54,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
   // save time steps to the series file
+  oprof_file << "timesteps" << endl;
   oprof_file << plotter.timesteps;
 
 
@@ -754,8 +755,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       else assert(false);
     } // time loop
 
-    gnuplot_series_set_labels(gp, plt);
-
+    // processing done after reading whole time series
     if (plt == "ract_com")
     {
       res_prof /= 1000.;
@@ -872,6 +872,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       res_prof(last_timestep) = (res_prof_tmp(last_timestep) - res_prof_tmp(last_timestep-1)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"])  + D * (res_prof_tmp(last_timestep) - 0.5) * n["dz"] * 1e2;
     }
 
+    // set labels for the gnuplot plot
+    gnuplot_series_set_labels(gp, plt);
+
     gp << "plot '-' with l";
     if(plot_std_dev)
       gp << ", '-' w l, '-' w l";
@@ -879,6 +882,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 
     std::cout << plt << " " << res_pos << res_prof << res_prof_std_dev << std::endl;
     gp.send1d(boost::make_tuple(res_pos, res_prof));
+    oprof_file << plt << endl ;
     oprof_file << res_prof ;
     if(plot_std_dev)
     {
