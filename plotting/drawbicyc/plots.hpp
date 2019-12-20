@@ -75,14 +75,14 @@ std::vector<std::string> profs_dycoms({
 
 std::vector<std::string> profs_rico({
 "00rtot"
-, "rliq", "thl", "wvar", 
- "prflux"
-,"clfrac"
-,"sd_conc"
-,"cl_nc"
-,"cl_nc_up"
-,"w"
-,"u", "v"
+//, "rliq", "thl", "wvar", 
+// "prflux"
+//,"clfrac"
+//,"sd_conc"
+//,"cl_nc"
+//,"cl_nc_up"
+//,"w"
+//,"u", "v"
 ,"base_prflux_vs_clhght"
 //, "N_c", 
 //,"vel_div"
