@@ -74,17 +74,18 @@ std::vector<std::string> profs_dycoms({
 }); // rtot has to be first
 
 std::vector<std::string> profs_rico({
-"00rtot", "rliq", "thl", "wvar", 
- "prflux"
-,"clfrac"
-,"sd_conc"
-//, "N_c", 
-,"cl_nc"
-,"cl_nc_up"
-,"w"
-,"u", "v"
-,"vel_div"
+"00rtot"
+//, "rliq", "thl", "wvar", 
+// "prflux"
+//,"clfrac"
+//,"sd_conc"
+//,"cl_nc"
+//,"cl_nc_up"
+//,"w"
+//,"u", "v"
 ,"base_prflux_vs_clhght"
+//, "N_c", 
+//,"vel_div"
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 

@@ -5,6 +5,7 @@
 #include <boost/tuple/tuple.hpp>
 #include "plots.hpp"
 #include "gnuplot_series_set_labels.hpp"
+#include "gnuplot_profs_set_labels.hpp"
 
 using namespace blitz;
 
@@ -34,6 +35,7 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
   Array<double, 1> avg, pos, weight;
   blitz::firstIndex fi;
   ifstream iprof_file;
+  std::string line;
 
   std::string ofile(argv[1]);
   ofile.append(suffix);
@@ -51,6 +53,7 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
 
   // init sizes of profiles/series assuming that they have same size in all files
   open_file(string(argv[4]).append(suffix).append(".dat"), iprof_file);
+  std::getline(iprof_file, line); // discard array description
   iprof_file >> snap;
   iprof_file.close();
   avg.resize(snap.shape());
@@ -61,7 +64,9 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
   // actual averaging
   for (auto &plt : types)
   {
+    // set gnuplot plot labels, FIXME: will be in trouble if there is same plt in series and profs
     gnuplot_series_set_labels(gp, plt);
+    gnuplot_profs_set_labels(gp, plt, false); // FIXME: we assume here that normalization is not done
 
     avg = 0;
     weight = 0;
@@ -73,7 +78,10 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
      // } catch (...) {continue;}
 
       for(int k=0; k<=prof_ctr; ++k)
+      {
+        std::getline(iprof_file, line); // discard array description
         iprof_file >> snap;
+      }
 
       if (plt == "base_prflux_vs_clhght") // we need weighted average for this plot - array of weights before array of values
       {
@@ -99,6 +107,7 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
     }
 
     std::cout << plt << " avg: " << avg;
+    oprof_file << plt << endl;
     oprof_file << avg;
 
     prof_ctr += 
