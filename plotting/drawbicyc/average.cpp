@@ -9,6 +9,8 @@
 
 using namespace blitz;
 
+enum whattoplot {series, profs};
+
 // taken from https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
 bool hasEnding (std::string const &fullString, std::string const &ending) {
     if (fullString.length() >= ending.length()) {
@@ -29,7 +31,7 @@ bool open_file(string filename, ifstream &stream)
   }
 }
 
-void average(int argc, char* argv[], std::vector<std::string> types, std::string suffix)
+void average(int argc, char* argv[], int wtp, std::vector<std::string> types, std::string suffix)
 {
   Array<double, 1> snap, snap2;
   Array<double, 1> avg, pos, weight;
@@ -55,6 +57,8 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
   open_file(string(argv[4]).append(suffix).append(".dat"), iprof_file);
   std::getline(iprof_file, line); // discard array description
   iprof_file >> snap;
+        cerr << "size init: " << line << endl;
+        cerr << "size init: " << snap;
   iprof_file.close();
   avg.resize(snap.shape());
   pos.resize(snap.shape());
@@ -64,9 +68,11 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
   // actual averaging
   for (auto &plt : types)
   {
-    // set gnuplot plot labels, FIXME: will be in trouble if there is same plt in series and profs
-    gnuplot_series_set_labels(gp, plt);
-    gnuplot_profs_set_labels(gp, plt, false); // FIXME: we assume here that normalization is not done
+    // set gnuplot plot labels
+    if(wtp == series)
+      gnuplot_series_set_labels(gp, plt);
+    else if (wtp == profs)
+      gnuplot_profs_set_labels(gp, plt, false); // FIXME: we assume here that normalization is not done
 
     avg = 0;
     weight = 0;
@@ -77,16 +83,21 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
         open_file(string(argv[i]).append(suffix).append(".dat"), iprof_file);
      // } catch (...) {continue;}
 
+      // discard arrays tored before the desired one
       for(int k=0; k<=prof_ctr; ++k)
       {
         std::getline(iprof_file, line); // discard array description
-        iprof_file >> snap;
+        cerr << "plt: " << plt << " " << line << endl;
+        iprof_file >> snap; // read in the array
+        cerr << "plt: " << plt  << " " << snap;
+        std::getline(iprof_file, line); // blitz reading arrays doesnt move to the next line, need to do it manually here
       }
 
       if (plt == "base_prflux_vs_clhght") // we need weighted average for this plot - array of weights before array of values
       {
         weight += snap; // add to sum of weights
         snap2 = snap; // store weight of this one
+        std::getline(iprof_file, line); // discard array description
         iprof_file >> snap; // read actual values
         avg += snap * snap2; // add weight*value
       }
@@ -103,7 +114,10 @@ void average(int argc, char* argv[], std::vector<std::string> types, std::string
     else
     {
       gp << "plot '-' with l \n";
-      gp.send1d(boost::make_tuple(pos, avg));
+      if(wtp == series)
+        gp.send1d(boost::make_tuple(pos, avg));
+      else if (wtp == profs)
+        gp.send1d(boost::make_tuple(avg, pos));
     }
 
     std::cout << plt << " avg: " << avg;
@@ -140,7 +154,7 @@ int main(int argc, char* argv[])
 
  Plots plots(plot_type, true); // assume sgs is on
 
- try{ average(argc, argv, plots.series, "_series"); } catch(...){;}
- try{ average(argc, argv, plots.profs, profiles_suffix);} catch(...){;}
+ try{ average(argc, argv, series, plots.series, "_series"); } catch(...){;}
+ try{ average(argc, argv, profs, plots.profs, profiles_suffix);} catch(...){;}
 // try{ average(argc, argv, {"base_prflux_vs_clhght"}, profiles_suffix); } catch(...){;} // TODO: add this profile to rico profiles, or give some other suffix here to distinguish outputted average from regular profiles
 }
