@@ -22,6 +22,7 @@ labeldict = {
 }
 
 def read_my_array(file_obj):
+  file_obj.readline() # discarded line with name of the array
   file_obj.readline() # discarded line with size of the array
   line = file_obj.readline()
   line = line.split(" ")
