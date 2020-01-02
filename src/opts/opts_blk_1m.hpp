@@ -33,7 +33,7 @@ void setopts_micro(
     ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "rain water sedimentation (1=on, 0=off)")
     ("r_c0", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts.r_c0) , "rain autoconversion threshold [kg/kg]")
     ("k_acnv", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts.k_acnv) , "rain autoconversion parameter")
-    ("r_eps", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts.r_eps) , "absolute tolerance")
+    ("r_eps", po::value<setup::real_t>()->default_value(1e-6) , "absolute tolerance")
   ;
   po::variables_map vm;
   handle_opts(opts, vm);
