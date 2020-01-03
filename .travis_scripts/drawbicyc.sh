@@ -2,7 +2,7 @@
 set -ex
 
 # drawbicyc in RelWithDebInfo mode
-cd drawbicyc
+cd plotting/drawbicyc
 mkdir build
 cd build
 cmake ..
