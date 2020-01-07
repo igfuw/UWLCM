@@ -106,6 +106,45 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res = where(res > 0 , res / res_tmp, res);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
+      if (plt == "gccn_rw_cl")
+      {
+	// gccn (rd>2um) droplets dry radius in cloudy cells
+        {
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap; 
+        }
+        {
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
+        }
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp *= res_tmp2;
+        }
+        // mean only over downdraught cells
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
+      if (plt == "non_gccn_rw_cl")
+      {
+	// non-gccn (rd<2um) droplets dry radius in cloudy cells
+        res_tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
+          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp); // mean radius
+        }
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp *= res_tmp2;
+        }
+        // mean only over downdraught cells
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
       if (plt == "non_gccn_rw_down")
       {
 	// non-gccn (rd<2um) droplets dry radius in downdraughts
