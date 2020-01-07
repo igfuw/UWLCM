@@ -28,6 +28,14 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
   {
     gp << "set title 'gccn-based droplets mean wet radius (downdraughts only)'\n";
   }
+  if (plt == "non_gccn_rw_cl")
+  {
+    gp << "set title 'non-gccn-based droplets mean wet radius (cloudy cells only)'\n";
+  }
+  if (plt == "gccn_rw_cl")
+  {
+    gp << "set title 'gccn-based droplets mean wet radius (cloudy cells only)'\n";
+  }
   if (plt == "non_gccn_rw_up")
   {
     gp << "set title 'non-gccn-based droplets mean wet radius (updraughts only)'\n";
