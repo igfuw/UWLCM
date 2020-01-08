@@ -1,4 +1,4 @@
-from Dycoms_comparison_common import *
+from ../../Dycoms_RF02/Dycoms_comparison_common import *
 
 # activate latex text rendering
 rc('text', usetex=True)
