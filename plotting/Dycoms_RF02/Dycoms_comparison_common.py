@@ -8,6 +8,39 @@ from bisect import bisect_left
 from matplotlib import rc
 import os
 
+var_labels = {
+  "lwp" : 'LWP [g m$^{-2}$]',
+  "rwp" : 'RWP [g m$^{-2}$]',
+  "surf_precip" : 'Surface precip. [mm d$^{-1}$]',
+  "acc_precip" : 'Accumulated precip. [mm]',
+  "cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
+  "thl" : r'$\theta_l$ [K]',
+  "00rtot" : '$q_{t}$ [g/kg]',
+  "rliq" : '$q_{l}$ [g/kg]',
+  "clfrac" : 'Cloud fraction',
+  "prflux" : 'Precip. flux [W m$^{-2}$]',
+  "wvar" : r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]',
+  "w3rd" : 'Third mom. of $w$ [m$^3$ s$^{-3}$]',
+  "sat_RH" : 'Supersaturation [\%]',
+  "rad_flx" : 'radiative flux [W m$^{-2}$]',
+  "cl_nc_zoom" : '$N_c$ [cm$^{-3}$]',
+  "base_prflux_vs_clhght" : 'precip flux at cloud base [W m$^{-2}$]',
+}
+
+# labels used in the Dycoms intercomparison reslts
+dycoms_labels = {
+  "thl" : "thetal",
+  "00rtot" : "qt",
+  "rliq" : "ql",
+  "prflux" : "precip",
+  "cl_nc" : "ndrop_cld",
+  "clfrac" : "cfrac",
+  "wvar" : "w_var",
+  "w3rd" : "w_skw",
+  "sat_RH" : "ss",
+  "rad_flx" : "rad_flx"
+}
+
 labeldict = {
  0 : "(a)",
  1 : "(b)",
@@ -22,14 +55,21 @@ labeldict = {
 }
 
 def read_my_array(file_obj):
-  file_obj.readline() # discarded line with name of the array
+  arr_name = file_obj.readline()
   file_obj.readline() # discarded line with size of the array
   line = file_obj.readline()
   line = line.split(" ")
   del line[0]
   del line[len(line)-1]
   arr = map(float,line)
-  return np.array(arr)
+  return np.array(arr), arr_name
+
+def read_my_var(file_obj, var_name):
+  while True:
+    arr, name = read_my_array(file_obj)
+    if(str(name).strip() == str(var_name).strip()):
+      break
+  return arr
 
 def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2)):
   x = int(plot_iter / nploty)
@@ -43,8 +83,8 @@ def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None,
   if ylabel:
     axarr[x, y].set_ylabel(ylabel)
 
-def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True, ylabel=''):
-  # read dycoms results
+def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True, ylabel=''):
+  # files with Dycoms intercomparison results
   dir_path = os.path.dirname(os.path.realpath(__file__))
   dycoms_file = netcdf.netcdf_file(dir_path+"/DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.profiles.nc", "r")
   dycoms_series_file = netcdf.netcdf_file(dir_path+"/DYCOMS_RF02_results/BLCWG_DYCOMS-II_RF02.scalars.nc", "r")
@@ -61,115 +101,8 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
   RAMS_it = 7
   
   ntime = 13
-  
-  # at each time, zt needs to be rescaled by inversion height, this rescaled value will be stored here
-  rzt = np.zeros((301)) # group idx/ height idx
-  
-  groups = np.arange(14)
-  ihght = np.arange(0, 1.6, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
-  
-  ivar_arr = np.ndarray(shape=(14, len(ihght))) # to store interpolated average over time, group idx / height idx
-  
-  # mean val
-  mvar_arr = np.ndarray(shape=(len(ihght)))
-  # extrema
-  minvar_arr = np.ndarray(shape=(len(ihght)))
-  maxvar_arr = np.ndarray(shape=(len(ihght)))
-  # middle two quartiles
-  q1var_arr = np.ndarray(shape=(len(ihght)))
-  q3var_arr = np.ndarray(shape=(len(ihght)))
-  
-  x = int(plot_iter / nploty)
-  y = plot_iter % nploty
-  
-  #if var == "thetal":
-  #  axarr[x, y].set_xlim([288.2,289.2])
-  #if var == "qt":
-  #  axarr[x, y].set_xlim([9,10.4])
-  if var == "ql":
-    axarr[x, y].set_xlim([0,.7])
-  if var == "w_var":
-    axarr[x, y].set_xlim([-0.1,.8])
-  if var == "w_skw":
-    axarr[x, y].set_xlim([-0.15,.15])
-  if var == "ss":
-    axarr[x, y].set_xlim([-5,1])
-  if var=="ndrop_cld_zoom":
-    axarr[x, y].set_xlim([50,80])
-  
-  if var=="ndrop_cld_zoom":
-    var="ndrop_cld"
-  var_arr = dycoms_file.variables[var][:,1,1,:,:].copy() 
-  
-  for g in groups:
-    ivar_arr[g,:] = 0.
-    time_index = 0
-    for t in time:
-      # we start averaging after 2h
-      if t <= 7200.:
-        time_index += 1
-        continue
-      # -- rescale height by inversion height at fiven time --
-      # initial iinversion height is 795m
-      if t==0:
-        rzt[:] = zt[g, :] / 795
-      else:
-        # find nearest zi from time series, TODO: we should interpolate here
-        series_time_index = bisect_left(series_time[g, 0:series_ntime[g]], t)
-        #series_time_index = np.where(series_time[g,0:series_ntime[g]]==t) 
-        rzt[:] = zt[g, :] / series_zi[g, series_time_index]
-  
-      # interpolate to same height positions and add to the mean over time fir this group
-      i_hght_index = 0
-      for it in ihght:
-        # find index with height less than it
-        rzt_hght_idx = bisect_left(rzt[:], it)
-        # same hght
-        if rzt[rzt_hght_idx] == it:
-          ivar_arr[g, i_hght_index] += var_arr[g, time_index, rzt_hght_idx]
-        # time[g, i] > it
-        else:
-          if rzt_hght_idx == 0:
-            ivar_arr[g, i_hght_index] += var_arr[g, time_index, rzt_hght_idx]
-          else:
-            prev_hght = rzt[rzt_hght_idx-1]
-            prev_var_arr = var_arr[g, time_index, rzt_hght_idx-1]
-            ivar_arr[g, i_hght_index] +=  prev_var_arr + (it - prev_hght) / (rzt[rzt_hght_idx] - prev_hght) * (var_arr[g, time_index, rzt_hght_idx]- prev_var_arr)
-        i_hght_index += 1
-      time_index += 1
 
-    ivar_arr[g,:] /= (13-5) 
-
-    # plot precip and NC of bin models
-    if show_bin and g == DHARMA_it:
-      DHARMA_prof = ivar_arr[g,:]
-      DHARMA_pos = ihght[:]
-      axarr[x, y].plot(DHARMA_prof[DHARMA_prof < 1e35], DHARMA_pos[DHARMA_pos < 1e35], linewidth=1, label="DHARMA", color='red')
-    if show_bin and g == RAMS_it:
-      RAMS_prof = ivar_arr[g,:]
-      RAMS_pos = ihght[:]
-      axarr[x, y].plot(RAMS_prof[RAMS_prof < 1e35], RAMS_pos[RAMS_pos < 1e35], linewidth=1, label="RAMS", color='green')
-  
-  # calc statistics from groups
-  
-  for zi in np.arange(len(ihght)):
-    ivar_arr_1d = ivar_arr[:,zi]
-    mvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
-    minvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].min()
-    maxvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].max()
-    q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
-    q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
-  
-  axarr[x, y].set_ylim([0,1.2])
-  if reference:
-    axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
-    axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
-    axarr[x, y].plot(mvar_arr, ihght, color='black')
-  
-  
-  dycoms_file.close()
-
-  #read my results
+  # create a list of files with UWLCM results
   profiles_files_names = []
   profiles_labels = []
   file_no = np.arange(1, len(sys.argv)-2 , 2)
@@ -178,82 +111,220 @@ def plot_profiles(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix=
     profiles_files_names.append(argv[no]+suffix)
     profiles_labels.append(argv[no+1])
   
+  for var in var_list:
+    # read dycoms results
+    print "plotting var: ", var
   
-  label_counter = 0
-  for file_name in profiles_files_names:
+    # at each time, zt needs to be rescaled by inversion height, this rescaled value will be stored here
+    rzt = np.zeros((301)) # group idx/ height idx
     
-    try:
+    groups = np.arange(14)
+    ihght = np.arange(0, 1.6, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
+    
+    ivar_arr = np.ndarray(shape=(14, len(ihght))) # to store interpolated average over time, group idx / height idx
+    
+    # mean val
+    mvar_arr = np.ndarray(shape=(len(ihght)))
+    # extrema
+    minvar_arr = np.ndarray(shape=(len(ihght)))
+    maxvar_arr = np.ndarray(shape=(len(ihght)))
+    # middle two quartiles
+    q1var_arr = np.ndarray(shape=(len(ihght)))
+    q3var_arr = np.ndarray(shape=(len(ihght)))
+    
+    x = int(plot_iter / nploty)
+    y = plot_iter % nploty
+    
+    #if var == "thetal":
+    #  axarr[x, y].set_xlim([288.2,289.2])
+    #if var == "qt":
+    #  axarr[x, y].set_xlim([9,10.4])
+    if var == "rliq":
+      axarr[x, y].set_xlim([0,.7])
+    if var == "wvar":
+      axarr[x, y].set_xlim([-0.1,.8])
+    if var == "w3rd":
+      axarr[x, y].set_xlim([-0.15,.15])
+    if var == "sat_RH":
+      axarr[x, y].set_xlim([-5,1])
+    if var=="cl_nc_zoom":
+      axarr[x, y].set_xlim([50,80])
+    
+    if var=="cl_nc_zoom":
+      var="cl_nc"
+    var_arr = dycoms_file.variables[dycoms_labels[var]][:,1,1,:,:].copy() 
+    
+    for g in groups:
+      ivar_arr[g,:] = 0.
+      time_index = 0
+      for t in time:
+        # we start averaging after 2h
+        if t <= 7200.:
+          time_index += 1
+          continue
+        # -- rescale height by inversion height at fiven time --
+        # initial iinversion height is 795m
+        if t==0:
+          rzt[:] = zt[g, :] / 795
+        else:
+          # find nearest zi from time series, TODO: we should interpolate here
+          series_time_index = bisect_left(series_time[g, 0:series_ntime[g]], t)
+          #series_time_index = np.where(series_time[g,0:series_ntime[g]]==t) 
+          rzt[:] = zt[g, :] / series_zi[g, series_time_index]
+    
+        # interpolate to same height positions and add to the mean over time fir this group
+        i_hght_index = 0
+        for it in ihght:
+          # find index with height less than it
+          rzt_hght_idx = bisect_left(rzt[:], it)
+          # same hght
+          if rzt[rzt_hght_idx] == it:
+            ivar_arr[g, i_hght_index] += var_arr[g, time_index, rzt_hght_idx]
+          # time[g, i] > it
+          else:
+            if rzt_hght_idx == 0:
+              ivar_arr[g, i_hght_index] += var_arr[g, time_index, rzt_hght_idx]
+            else:
+              prev_hght = rzt[rzt_hght_idx-1]
+              prev_var_arr = var_arr[g, time_index, rzt_hght_idx-1]
+              ivar_arr[g, i_hght_index] +=  prev_var_arr + (it - prev_hght) / (rzt[rzt_hght_idx] - prev_hght) * (var_arr[g, time_index, rzt_hght_idx]- prev_var_arr)
+          i_hght_index += 1
+        time_index += 1
+
+      ivar_arr[g,:] /= (13-5) 
+
+      # plot precip and NC of bin models
+      if show_bin and g == DHARMA_it:
+        DHARMA_prof = ivar_arr[g,:]
+        DHARMA_pos = ihght[:]
+        axarr[x, y].plot(DHARMA_prof[DHARMA_prof < 1e35], DHARMA_pos[DHARMA_pos < 1e35], linewidth=1, label="DHARMA", color='red')
+      if show_bin and g == RAMS_it:
+        RAMS_prof = ivar_arr[g,:]
+        RAMS_pos = ihght[:]
+        axarr[x, y].plot(RAMS_prof[RAMS_prof < 1e35], RAMS_pos[RAMS_pos < 1e35], linewidth=1, label="RAMS", color='green')
+    
+    # calc statistics from groups
+    
+    for zi in np.arange(len(ihght)):
+      ivar_arr_1d = ivar_arr[:,zi]
+      mvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
+      minvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].min()
+      maxvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].max()
+      q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
+      q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
+    
+    axarr[x, y].set_ylim([0,1.2])
+    if reference:
+      axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
+      axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
+      axarr[x, y].plot(mvar_arr, ihght, color='black')
+    
+    
+
+    #read my results
+    label_counter = 0
+    for file_name in profiles_files_names:
+    #  try:
+      print file_name
       profiles_file = open(file_name, "r")
-      my_pos = read_my_array(profiles_file)
-      my_rtot = read_my_array(profiles_file)
-      my_rliq = read_my_array(profiles_file)
-      my_thl = read_my_array(profiles_file)
-      my_wvar = read_my_array(profiles_file)
-      my_w3rd = read_my_array(profiles_file)
-      my_prflux = read_my_array(profiles_file)
-      my_clfrac = read_my_array(profiles_file)
-      my_nc = read_my_array(profiles_file)
-      my_ss = read_my_array(profiles_file)
-      my_rad_flx = read_my_array(profiles_file)
-  #    my_nc_up = read_my_array(profiles_file)
-  #    my_ss_up = read_my_array(profiles_file)
-  
-      print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
-    
+      my_pos = read_my_var(profiles_file, "position")
+      my_res = read_my_var(profiles_file, var)
+
+   #     print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
+
       profiles_file.close()
-      
-    
+
       linestyles = ['--', '-.', ':']
-      dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
-      if var == "thetal":
-        plot_my_array(axarr, plot_iter, my_thl, my_pos, nploty, xlabel=r'$\theta_l$ [K]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "qt":
-        plot_my_array(axarr, plot_iter, my_rtot, my_pos, nploty, xlabel='$q_{t}$ [g/kg]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "ql":
-        plot_my_array(axarr, plot_iter, my_rliq, my_pos, nploty, xlabel='$q_{l}$ [g/kg]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "cfrac":
-        plot_my_array(axarr, plot_iter, my_clfrac, my_pos, nploty, xlabel='Cloud fraction', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "precip":
-        plot_my_array(axarr, plot_iter, my_prflux, my_pos, nploty, xlabel='Precip. flux [W m$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "w_var":
-        plot_my_array(axarr, plot_iter, my_wvar, my_pos, nploty, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "w_skw":
-        plot_my_array(axarr, plot_iter, my_w3rd, my_pos, nploty, xlabel='Third mom. of $w$ [m$^3$ s$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "ss":
-        plot_my_array(axarr, plot_iter, my_ss, my_pos, nploty, xlabel='Supersaturation [\%]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "ndrop_cld":
-        plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "rad_flx":
-        plot_my_array(axarr, plot_iter, my_rad_flx, my_pos, nploty, xlabel='radiative flux [W m$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-      if var == "ndrop_cod_zoom":
-        plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  #    # xrange of the nc_up plot
-  #    x = int(plot_iter / nploty)
-  #    y = plot_iter % nploty
-  #    axarr[x, y].set_ylim([0,1.2])
-  #    plot_iter = plot_my_array(axarr, plot_iter, my_nc_up, my_pos, xlabel='updraft nc', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
-  #    # xrange of the ss_up plot
-  #    x = int(plot_iter / nploty)
-  #    y = plot_iter % nploty
-  #    axarr[x, y].set_xlim([-5,1])
-  #    axarr[x, y].set_ylim([0,1.2])
-  #    plot_iter = plot_my_array(axarr, plot_iter, my_ss_up, my_pos, xlabel='updraft S', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+      dashList = [(3,1),(1,1),(4,1,1,1),(4,2)]
+      if(var == "base_prflux_vs_clhght"):
+        plot_my_array(axarr, plot_iter, my_res, my_pos, nploty, xlabel=var_labels[var], ylabel="cloudy column height [m]", varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xlim = (0,600))
+      else:
+        plot_my_array(axarr, plot_iter, my_res, my_pos, nploty, xlabel=var_labels[var], ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+   #   except:
+   #     print 'error opening file: ', file_name
+   #     my_pos = 0
+   #     my_res = 0
+      label_counter = label_counter+1
+
+    plot_iter += 1
+
   
-    except:
-      print 'error opening file: ', file_name
-      my_pos = 0
-      my_rtot = 0
-      my_rliq = 0
-      my_thl = 0
-      my_wvar = 0
-      my_w3rd = 0
-      my_prflux = 0
-      my_clfrac = 0
-      my_nc = 0
-      my_ss = 0
-      my_rad_flx = 0
-    label_counter = label_counter+1
-  plot_iter += 1
+#  label_counter = 0
+#  for file_name in profiles_files_names:
+#    
+#    try:
+#      profiles_file = open(file_name, "r")
+#      my_pos = read_my_array(profiles_file)
+#      my_rtot = read_my_array(profiles_file)
+#      my_rliq = read_my_array(profiles_file)
+#      my_thl = read_my_array(profiles_file)
+#      my_wvar = read_my_array(profiles_file)
+#      my_w3rd = read_my_array(profiles_file)
+#      my_prflux = read_my_array(profiles_file)
+#      my_clfrac = read_my_array(profiles_file)
+#      my_nc = read_my_array(profiles_file)
+#      my_ss = read_my_array(profiles_file)
+#      my_rad_flx = read_my_array(profiles_file)
+#  #    my_nc_up = read_my_array(profiles_file)
+#  #    my_ss_up = read_my_array(profiles_file)
+#  
+#      print 'mean nc in cloud cells: ' , np.mean(my_nc[my_nc>20])
+#    
+#      profiles_file.close()
+#      
+#    
+#      linestyles = ['--', '-.', ':']
+#      dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
+#      if var == "thetal":
+#        plot_my_array(axarr, plot_iter, my_thl, my_pos, nploty, xlabel=r'$\theta_l$ [K]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "qt":
+#        plot_my_array(axarr, plot_iter, my_rtot, my_pos, nploty, xlabel='$q_{t}$ [g/kg]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "ql":
+#        plot_my_array(axarr, plot_iter, my_rliq, my_pos, nploty, xlabel='$q_{l}$ [g/kg]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "cfrac":
+#        plot_my_array(axarr, plot_iter, my_clfrac, my_pos, nploty, xlabel='Cloud fraction', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "precip":
+#        plot_my_array(axarr, plot_iter, my_prflux, my_pos, nploty, xlabel='Precip. flux [W m$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "w_var":
+#        plot_my_array(axarr, plot_iter, my_wvar, my_pos, nploty, xlabel=r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "w_skw":
+#        plot_my_array(axarr, plot_iter, my_w3rd, my_pos, nploty, xlabel='Third mom. of $w$ [m$^3$ s$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "ss":
+#        plot_my_array(axarr, plot_iter, my_ss, my_pos, nploty, xlabel='Supersaturation [\%]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "cl_nc":
+#        plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "rad_flx":
+#        plot_my_array(axarr, plot_iter, my_rad_flx, my_pos, nploty, xlabel='radiative flux [W m$^{-2}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#      if var == "ndrop_cod_zoom":
+#        plot_my_array(axarr, plot_iter, my_nc, my_pos, nploty, xlabel='$N_c$ [cm$^{-3}$]', ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#  #    # xrange of the nc_up plot
+#  #    x = int(plot_iter / nploty)
+#  #    y = plot_iter % nploty
+#  #    axarr[x, y].set_ylim([0,1.2])
+#  #    plot_iter = plot_my_array(axarr, plot_iter, my_nc_up, my_pos, xlabel='updraft nc', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#  #    # xrange of the ss_up plot
+#  #    x = int(plot_iter / nploty)
+#  #    y = plot_iter % nploty
+#  #    axarr[x, y].set_xlim([-5,1])
+#  #    axarr[x, y].set_ylim([0,1.2])
+#  #    plot_iter = plot_my_array(axarr, plot_iter, my_ss_up, my_pos, xlabel='updraft S', varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+#  
+#    except:
+#      print 'error opening file: ', file_name
+#      my_pos = 0
+#      my_rtot = 0
+#      my_rliq = 0
+#      my_thl = 0
+#      my_wvar = 0
+#      my_w3rd = 0
+#      my_prflux = 0
+#      my_clfrac = 0
+#      my_nc = 0
+#      my_ss = 0
+#      my_rad_flx = 0
+#    label_counter = label_counter+1
+#  plot_iter += 1
+  dycoms_file.close()
   return plot_iter
 
 def plot_series(var, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', xlabel=''):
