@@ -17,5 +17,7 @@ var_labels = {
   "base_prflux_vs_clhght" : 'precip flux at cloud base [W m$^{-2}$]',
   "er" : 'Entrainment rate [cm s$^{-1}$]',
   "wvarmax" : 'Max. $w$ variance [m$^{2}$ s$^{-2}$]',
-  "cloud_base" : 'Cloud base height [m]'
+  "cloud_base" : 'Cloud base height [m]',
+  "gccn_rw_cl" : '$<r>$ of GCCN droplets (cloudy cells) [um]',
+  "non_gccn_rw_cl" : '$<r>$ of CCN droplets (cloudy cells) [um]'
 }
