@@ -50,6 +50,9 @@ const std::vector<std::string> series_moist_thermal({
 "com_vel",
 "com_supersat",
 "com_sd_conc"
+, "rwp"
+, "nc"
+, "cl_nc"
 
 // "mass_dry",
 //"th_com"

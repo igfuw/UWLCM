@@ -364,7 +364,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 	// cloud droplet (0.5um < r < 25 um) concentration
         try
         {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap /= 1e6; // per cm^3
           snap *= rhod; // b4 it was per milligram
@@ -378,7 +378,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3

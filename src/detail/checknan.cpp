@@ -25,17 +25,10 @@
 #endif
 
 #ifdef NDEBUG
-// actually not to zero, but to 1e-10 (we need rv>0 in libcloud and cond substepping numerical errors colud lead to rv<0 if we would set it here to 0)
-#define negtozero(arr, name) {arr = where(arr <= 0., 1e-10, arr);}
+// actually not to zero, but to 1e-20 (we need rv>0 in libcloud and cond substepping numerical errors colud lead to rv<0 if we would set it here to 0)
+#define negtozero(arr, name) {arr = where(arr <= 0., 1e-20, arr);}
 #else
 #define negtozero(arr, name) {nancheck_hlprs::negtozero_hlpr(arr, name);}
-#endif
-
-#ifdef NDEBUG
-// to 1e-20 (we need rv>0 in libcloud and cond substepping numerical errors colud lead to rv<0 if we would set it here to 0)
-#define negtosmall(arr, name) {arr = where(arr <= 0., 1e-20, arr);}
-#else
-#define negtosmall(arr, name) {nancheck_hlprs::negtosmall_hlpr(arr, name);}
 #endif
 
 #ifndef NDEBUG
