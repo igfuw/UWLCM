@@ -266,12 +266,12 @@ namespace setup
       {
         //aerosol bimodal lognormal dist. - DYCOMS
         this->p_0 = p_0;
-        this->mean_rd1 = real_t(.011e-6) * si::metres,
+        this->mean_rd1 = real_t(.050e-6) * si::metres,
         this->mean_rd2 = real_t(.06e-6) * si::metres;
         this->sdev_rd1 = real_t(1.2),
         this->sdev_rd2 = real_t(1.7);
-        this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
-        this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
+        this->n1_stp = real_t(100e6) / si::cubic_metres, // 125 || 31
+        this->n2_stp = real_t(0e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
         this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
         this->Z = Z;
