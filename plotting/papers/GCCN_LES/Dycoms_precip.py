@@ -6,8 +6,8 @@ from Dycoms_comparison_common import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-dycoms_profs = ["precip", "ndrop_cld"]
-dycoms_series = ["precip"]
+dycoms_profs = ["prflux", "cl_nc"]
+dycoms_series = ["surf_precip"]
 nplots = len(dycoms_profs + dycoms_series)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
@@ -16,11 +16,12 @@ nploty = 2 # int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
 plot_iter=0
-for var in dycoms_series:
-  print var, plot_iter
-  plot_iter = plot_series(var, plot_iter, nplotx, nploty, axarr, False, suffix="series.dat", xlabel='Time [h]')
+#for var in dycoms_series:
+#  print var, plot_iter
+#  plot_iter = plot_series(var, plot_iter, nplotx, nploty, axarr, False, suffix="series.dat", xlabel='Time [h]')
 #for var in dycoms_profs:
 #  print var, plot_iter
+plot_iter = plot_series(dycoms_series, plot_iter, nplotx, nploty, axarr, False, suffix="series.dat", xlabel='Time [h]')
 plot_iter = plot_profiles(dycoms_profs, plot_iter, nplotx, nploty, axarr, False, suffix="profiles_7200_18000.dat", ylabel = '$z/z_i$')
 
 

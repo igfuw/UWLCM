@@ -57,7 +57,6 @@ def read_my_array(file_obj):
 def read_my_var(file_obj, var_name):
   while True:
     arr, name = read_my_array(file_obj)
-    print var_name, name, arr
     if(str(name).strip() == str(var_name).strip()):
       break
   return arr
@@ -369,7 +368,7 @@ def plot_series(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suff
     # surf precip - change from W/m2 to mm/d
     rhow = 1e3 # kg/m3
     Lc = 2264.7e3 # J/kg
-    if var == "precip":
+    if var == "surf_precip":
       var_arr = var_arr / (rhow * Lc) * 1e3 * 24 * 3600
     
     # interpolate to same time positions
