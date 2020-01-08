@@ -1,5 +1,7 @@
-#import h5py
-from ../../Dycoms_RF02/Dycoms_comparison_common import *
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Dycoms_RF02/")
+from Dycoms_comparison_common import *
 
 # activate latex text rendering
 rc('text', usetex=True)

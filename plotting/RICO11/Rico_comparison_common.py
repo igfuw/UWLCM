@@ -17,14 +17,14 @@ var_labels = {
   "thl" : r'$\theta_l$ [K]',
   "00rtot" : '$q_{t}$ [g/kg]',
   "rliq" : '$q_{l}$ [g/kg]',
-  "cfrac" : 'Cloud fraction',
+  "clfrac" : 'Cloud fraction',
   "prflux" : 'Precip. flux [W m$^{-2}$]',
-  "w_var" : r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]',
-  "w_skw" : 'Third mom. of $w$ [m$^3$ s$^{-3}$]',
-  "ss" : 'Supersaturation [\%]',
+  "wvar" : r'Var$\left(w\right)$ [m$^2$ s$^{-2}$]',
+  "w3rd" : 'Third mom. of $w$ [m$^3$ s$^{-3}$]',
+  "sat_RH" : 'Supersaturation [\%]',
   "rad_flx" : 'radiative flux [W m$^{-2}$]',
-  "ndrop_cod_zoom" : '$N_c$ [cm$^{-3}$]',
-  "base_prflux_vs_clhght" : 'precip flux at cloud base [W m$^{-2}$]'
+  "cl_nc_zoom" : '$N_c$ [cm$^{-3}$]',
+  "base_prflux_vs_clhght" : 'precip flux at cloud base [W m$^{-2}$]',
 }
 
 labeldict = {

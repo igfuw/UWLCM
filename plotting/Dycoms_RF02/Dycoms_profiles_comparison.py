@@ -5,9 +5,9 @@ from Dycoms_comparison_common import *
 rc('text', usetex=True)
 
 if sys.argv[len(sys.argv)-1] == "True":
-  dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld", "rad_flx", "ndrop_cld_zoom"]
+  dycoms_vars = ["thl", "00rtot", "rliq", "clfrac", "prflux", "wvar", "w3rd", "sat_RH", "cl_nc", "rad_flx", "cl_nc_zoom"]
 else:
-  dycoms_vars = ["thetal", "qt", "ql", "cfrac", "precip", "w_var", "w_skw", "ss", "ndrop_cld"]#, "rad_flx"]
+  dycoms_vars = ["thl", "00rtot", "rliq", "clfrac", "prflux", "wvar", "w3rd", "sat_RH", "cl_nc"]#, "rad_flx"]
 nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
@@ -16,11 +16,7 @@ nploty = int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
 plot_iter=0
-for var in dycoms_vars:
-  if var == "thetal" or var == "w_var":
-    plot_iter = plot_profiles(var, plot_iter, nplotx, nploty, axarr, ylabel='$z/z_i$')
-  else:
-    plot_iter = plot_profiles(var, plot_iter, nplotx, nploty, axarr)
+plot_profiles(dycoms_vars, plot_iter, nplotx, nploty, axarr, ylabel='$z/z_i$')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
