@@ -6,13 +6,13 @@ from Dycoms_comparison_common import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-dycoms_profs = ["prflux", "cl_nc"]
+dycoms_profs = ["prflux", "cl_nc", "gccn_rw_cl", "non_gccn_rw_cl"]
 dycoms_series = ["surf_precip"]
 nplots = len(dycoms_profs + dycoms_series)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
-nplotx = 3 #int(nplots/6 + 0.5)
-nploty = 2 # int(float(nplots)/float(nplotx) + 0.5)
+nplotx = 2 #int(nplots/6 + 0.5)
+nploty = 3 # int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
 plot_iter=0

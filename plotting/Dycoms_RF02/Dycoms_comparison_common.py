@@ -28,7 +28,9 @@ dycoms_labels = {
   "er" : "zi",
   "wvarmax" : "w2_max",
   "surf_precip" : "precip",
-  "cloud_base" : "zb"
+  "cloud_base" : "zb",
+  "gccn_rw_cl" : "",
+  "non_gccn_rw_cl" : ""
 }
 
 labeldict = {
@@ -102,113 +104,113 @@ def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, su
     profiles_labels.append(argv[no+1])
   
   for var in var_list:
-    # read dycoms results
-  
-    # at each time, zt needs to be rescaled by inversion height, this rescaled value will be stored here
-    rzt = np.zeros((301)) # group idx/ height idx
-    
-    groups = np.arange(14)
-    ihght = np.arange(0, 1.6, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
-    
-    ivar_arr = np.ndarray(shape=(14, len(ihght))) # to store interpolated average over time, group idx / height idx
-    
-    # mean val
-    mvar_arr = np.ndarray(shape=(len(ihght)))
-    # extrema
-    minvar_arr = np.ndarray(shape=(len(ihght)))
-    maxvar_arr = np.ndarray(shape=(len(ihght)))
-    # middle two quartiles
-    q1var_arr = np.ndarray(shape=(len(ihght)))
-    q3var_arr = np.ndarray(shape=(len(ihght)))
-    
     x = int(plot_iter / nploty)
     y = plot_iter % nploty
-    
-    #if var == "thetal":
-    #  axarr[x, y].set_xlim([288.2,289.2])
-    #if var == "qt":
-    #  axarr[x, y].set_xlim([9,10.4])
-    if var == "rliq":
-      axarr[x, y].set_xlim([0,.7])
-    if var == "wvar":
-      axarr[x, y].set_xlim([-0.1,.8])
-    if var == "w3rd":
-      axarr[x, y].set_xlim([-0.15,.15])
-    if var == "sat_RH":
-      axarr[x, y].set_xlim([-5,1])
-    if var=="cl_nc_zoom":
-      axarr[x, y].set_xlim([50,80])
-    
-    if var=="cl_nc_zoom":
-      var="cl_nc"
-    var_arr = dycoms_file.variables[dycoms_labels[var]][:,1,1,:,:].copy() 
-    
-    for g in groups:
-      ivar_arr[g,:] = 0.
-      time_index = 0
-      for t in time:
-        # we start averaging after 2h
-        if t <= 7200.:
-          time_index += 1
-          continue
-        # -- rescale height by inversion height at fiven time --
-        # initial iinversion height is 795m
-        if t==0:
-          rzt[:] = zt[g, :] / 795
-        else:
-          # find nearest zi from time series, TODO: we should interpolate here
-          series_time_index = bisect_left(series_time[g, 0:series_ntime[g]], t)
-          #series_time_index = np.where(series_time[g,0:series_ntime[g]]==t) 
-          rzt[:] = zt[g, :] / series_zi[g, series_time_index]
-    
-        # interpolate to same height positions and add to the mean over time fir this group
-        i_hght_index = 0
-        for it in ihght:
-          # find index with height less than it
-          rzt_hght_idx = bisect_left(rzt[:], it)
-          # same hght
-          if rzt[rzt_hght_idx] == it:
-            ivar_arr[g, i_hght_index] += var_arr[g, time_index, rzt_hght_idx]
-          # time[g, i] > it
+
+    # read dycoms results
+    if dycoms_labels[var] != '': # empty dycoms_label indicates that this plot is not available from the dycoms intercomparison
+      # at each time, zt needs to be rescaled by inversion height, this rescaled value will be stored here
+      rzt = np.zeros((301)) # group idx/ height idx
+      
+      groups = np.arange(14)
+      ihght = np.arange(0, 1.6, 0.01) # height levels scaled by inversionb height to which we will inteprolate results
+      
+      ivar_arr = np.ndarray(shape=(14, len(ihght))) # to store interpolated average over time, group idx / height idx
+      
+      # mean val
+      mvar_arr = np.ndarray(shape=(len(ihght)))
+      # extrema
+      minvar_arr = np.ndarray(shape=(len(ihght)))
+      maxvar_arr = np.ndarray(shape=(len(ihght)))
+      # middle two quartiles
+      q1var_arr = np.ndarray(shape=(len(ihght)))
+      q3var_arr = np.ndarray(shape=(len(ihght)))
+      
+      #if var == "thetal":
+      #  axarr[x, y].set_xlim([288.2,289.2])
+      #if var == "qt":
+      #  axarr[x, y].set_xlim([9,10.4])
+      if var == "rliq":
+        axarr[x, y].set_xlim([0,.7])
+      if var == "wvar":
+        axarr[x, y].set_xlim([-0.1,.8])
+      if var == "w3rd":
+        axarr[x, y].set_xlim([-0.15,.15])
+      if var == "sat_RH":
+        axarr[x, y].set_xlim([-5,1])
+      if var=="cl_nc_zoom":
+        axarr[x, y].set_xlim([50,80])
+      
+      if var=="cl_nc_zoom":
+        var="cl_nc"
+      var_arr = dycoms_file.variables[dycoms_labels[var]][:,1,1,:,:].copy() 
+      
+      for g in groups:
+        ivar_arr[g,:] = 0.
+        time_index = 0
+        for t in time:
+          # we start averaging after 2h
+          if t <= 7200.:
+            time_index += 1
+            continue
+          # -- rescale height by inversion height at fiven time --
+          # initial iinversion height is 795m
+          if t==0:
+            rzt[:] = zt[g, :] / 795
           else:
-            if rzt_hght_idx == 0:
+            # find nearest zi from time series, TODO: we should interpolate here
+            series_time_index = bisect_left(series_time[g, 0:series_ntime[g]], t)
+            #series_time_index = np.where(series_time[g,0:series_ntime[g]]==t) 
+            rzt[:] = zt[g, :] / series_zi[g, series_time_index]
+      
+          # interpolate to same height positions and add to the mean over time fir this group
+          i_hght_index = 0
+          for it in ihght:
+            # find index with height less than it
+            rzt_hght_idx = bisect_left(rzt[:], it)
+            # same hght
+            if rzt[rzt_hght_idx] == it:
               ivar_arr[g, i_hght_index] += var_arr[g, time_index, rzt_hght_idx]
+            # time[g, i] > it
             else:
-              prev_hght = rzt[rzt_hght_idx-1]
-              prev_var_arr = var_arr[g, time_index, rzt_hght_idx-1]
-              ivar_arr[g, i_hght_index] +=  prev_var_arr + (it - prev_hght) / (rzt[rzt_hght_idx] - prev_hght) * (var_arr[g, time_index, rzt_hght_idx]- prev_var_arr)
-          i_hght_index += 1
-        time_index += 1
+              if rzt_hght_idx == 0:
+                ivar_arr[g, i_hght_index] += var_arr[g, time_index, rzt_hght_idx]
+              else:
+                prev_hght = rzt[rzt_hght_idx-1]
+                prev_var_arr = var_arr[g, time_index, rzt_hght_idx-1]
+                ivar_arr[g, i_hght_index] +=  prev_var_arr + (it - prev_hght) / (rzt[rzt_hght_idx] - prev_hght) * (var_arr[g, time_index, rzt_hght_idx]- prev_var_arr)
+            i_hght_index += 1
+          time_index += 1
 
-      ivar_arr[g,:] /= (13-5) 
+        ivar_arr[g,:] /= (13-5) 
 
-      # plot precip and NC of bin models
-      if show_bin and g == DHARMA_it:
-        DHARMA_prof = ivar_arr[g,:]
-        DHARMA_pos = ihght[:]
-        axarr[x, y].plot(DHARMA_prof[DHARMA_prof < 1e35], DHARMA_pos[DHARMA_pos < 1e35], linewidth=1, label="DHARMA", color='red')
-      if show_bin and g == RAMS_it:
-        RAMS_prof = ivar_arr[g,:]
-        RAMS_pos = ihght[:]
-        axarr[x, y].plot(RAMS_prof[RAMS_prof < 1e35], RAMS_pos[RAMS_pos < 1e35], linewidth=1, label="RAMS", color='green')
+        # plot precip and NC of bin models
+        if show_bin and g == DHARMA_it:
+          DHARMA_prof = ivar_arr[g,:]
+          DHARMA_pos = ihght[:]
+          axarr[x, y].plot(DHARMA_prof[DHARMA_prof < 1e35], DHARMA_pos[DHARMA_pos < 1e35], linewidth=1, label="DHARMA", color='red')
+        if show_bin and g == RAMS_it:
+          RAMS_prof = ivar_arr[g,:]
+          RAMS_pos = ihght[:]
+          axarr[x, y].plot(RAMS_prof[RAMS_prof < 1e35], RAMS_pos[RAMS_pos < 1e35], linewidth=1, label="RAMS", color='green')
+      
+      # calc statistics from groups
+      
+      for zi in np.arange(len(ihght)):
+        ivar_arr_1d = ivar_arr[:,zi]
+        mvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
+        minvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].min()
+        maxvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].max()
+        q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
+        q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
+      
+      if reference:
+        axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
+        axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
+        axarr[x, y].plot(mvar_arr, ihght, color='black')
     
-    # calc statistics from groups
-    
-    for zi in np.arange(len(ihght)):
-      ivar_arr_1d = ivar_arr[:,zi]
-      mvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
-      minvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].min()
-      maxvar_arr[zi] = ivar_arr_1d[ivar_arr_1d < 1e35].max()
-      q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
-      q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
     
     axarr[x, y].set_ylim([0,1.2])
-    if reference:
-      axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
-      axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
-      axarr[x, y].plot(mvar_arr, ihght, color='black')
-    
-    
 
     #read my results
     label_counter = 0
@@ -225,6 +227,11 @@ def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, su
 
       linestyles = ['--', '-.', ':']
       dashList = [(3,1),(1,1),(4,1,1,1),(4,2)]
+
+      # get rid of false signal due to cloudiness mask used based on ql instead of nc
+      if var == "gccn_rw_cl" or var == "non_gccn_rw_cl":
+        my_res[0:3] = 0  
+
       if(var == "base_prflux_vs_clhght"):
         plot_my_array(axarr, plot_iter, my_res, my_pos, nploty, xlabel=var_labels[var], ylabel="cloudy column height [m]", varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xlim = (0,600))
       else:
@@ -316,7 +323,7 @@ def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, su
   dycoms_file.close()
   return plot_iter
 
-def plot_series(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', xlabel=''):
+def plot_series(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', xlabel='', xlim=(1,6)):
 
   # files with Dycoms intercomparison results
   dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -409,7 +416,7 @@ def plot_series(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suff
     axarr[x, y].fill_between(itime_h, minvar_arr, maxvar_arr, color='0.9')
     axarr[x, y].fill_between(itime_h, q1var_arr, q3var_arr, color='0.7')
     axarr[x, y].plot(itime_h, mvar_arr, color='black')
-    axarr[x, y].set_xlim([0,6])
+    axarr[x, y].set_xlim(xlim)
     # plot precip and NC of bin models
     if show_bin:
       DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
