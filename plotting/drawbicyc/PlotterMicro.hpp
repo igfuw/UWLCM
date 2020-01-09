@@ -76,6 +76,20 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return blitz::safeToReturn(res + 0);
   }
 
+  // rain drops concentration [1/kg]
+  auto h5load_nr_timestep(
+    int at
+  ) -> decltype(blitz::safeToReturn(arr_t() + 0))
+  {
+    if(this->micro == "lgrngn")
+      res = this->h5load_timestep("rain_rw_mom0", at);
+    else if(this->micro == "blk_1m")
+      res = 0;
+    else if(this->micro == "blk_2m")
+      res = this->h5load_timestep("nr", at);
+    return blitz::safeToReturn(res + 0);
+  }
+
   // cloud droplets concentration [1/kg]
   auto h5load_nc_timestep(
     int at

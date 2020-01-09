@@ -1,11 +1,12 @@
 #pragma once
 
 const std::vector<std::string> series_dycoms({
-"wvarmax", "clfrac", "lwp", "er",
+"wvarmax", "clfrac", "lwp", "rwp", "er",
  "surf_precip", 
 //"mass_dry", 
  "acc_precip",
  "cl_nc",
+ "cl_nr",
  "cloud_base"
  ,"cl_gccn_meanr"
  ,"cl_avg_cloud_rad"

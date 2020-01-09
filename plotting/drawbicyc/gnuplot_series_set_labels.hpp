@@ -143,6 +143,12 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
+  else if (plt == "cl_nr")
+  {
+    gp << "set title 'average rain drop conc [1/cm^3] in cloudy cells'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
   else if (plt == "wvarmax")
   {
     gp << "set title 'max variance of w [m^2 / s^2]'\n";
