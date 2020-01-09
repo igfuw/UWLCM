@@ -1,14 +1,14 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Dycoms_RF02/")
-from Dycoms_comparison_common import *
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../RICO11/")
+from Rico_comparison_common import *
 
 # activate latex text rendering
 rc('text', usetex=True)
 
-dycoms_profs = ["prflux", "cl_nc", "non_gccn_rw_cl", "gccn_rw_cl"]
-dycoms_series = ["surf_precip"]
-nplots = len(dycoms_profs + dycoms_series)# + 2 # 2 updraft profiles without dycoms results
+rico_profs = ["prflux", "cl_nc", "non_gccn_rw_cl", "gccn_rw_cl", "base_prflux_vs_clhght"]
+rico_series = ["acc_precip"]
+nplots = len(rico_profs + rico_series)# + 2 # 2 updraft profiles without rico results
 
 # init the plot
 nplotx = 2 #int(nplots/6 + 0.5)
@@ -16,13 +16,13 @@ nploty = 3 # int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
 plot_iter=0
-#for var in dycoms_series:
+#for var in rico_series:
 #  print var, plot_iter
 #  plot_iter = plot_series(var, plot_iter, nplotx, nploty, axarr, False, suffix="series.dat", xlabel='Time [h]')
-#for var in dycoms_profs:
+#for var in rico_profs:
 #  print var, plot_iter
-plot_iter = plot_series(dycoms_series, plot_iter, nplotx, nploty, axarr, False, suffix="series.dat", xlabel='Time [h]', xlim=(1,5))
-plot_iter = plot_profiles(dycoms_profs, plot_iter, nplotx, nploty, axarr, False, suffix="profiles_7200_18000.dat", ylabel = '$z/z_i$')
+plot_iter = plot_series(rico_series, plot_iter, nplotx, nploty, axarr, suffix="series.dat", xlabel='Time [h]')
+plot_iter = plot_profiles(rico_profs, plot_iter, nplotx, nploty, axarr, suffix="profiles_18000_36000.dat", ylabel = '$z[m]$')
 
 
 # legend font size
