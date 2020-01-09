@@ -42,7 +42,7 @@ def read_my_var(file_obj, var_name):
       break
   return arr
 
-def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2), xlim=None):
+def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2), xlim=None, ylim=None, xscale="linear"):
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
   if varlabel != None:
@@ -55,8 +55,12 @@ def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None,
     axarr[x, y].set_ylabel(ylabel)
   if xlim:
     axarr[x, y].set_xlim(xlim)
+  if ylim:
+    axarr[x, y].set_ylim(ylim)
+  axarr[x, y].set_xscale(xscale)
 
-def plot_profiles(var_list, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True, ylabel=''):
+
+def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True, ylabel=''):
   #read my results
   profiles_files_names = []
   profiles_labels = []
@@ -66,7 +70,6 @@ def plot_profiles(var_list, nplotx, nploty, axarr, show_bin=False, suffix='', re
     profiles_files_names.append(argv[no]+suffix)
     profiles_labels.append(argv[no+1])
   
-  plot_iter = 0
   for var in var_list:
     label_counter = 0
     for file_name in profiles_files_names:
@@ -82,17 +85,18 @@ def plot_profiles(var_list, nplotx, nploty, axarr, show_bin=False, suffix='', re
       linestyles = ['--', '-.', ':']
       dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
       if(var == "base_prflux_vs_clhght"):
-        plot_my_array(axarr, plot_iter, my_res, my_pos, nploty, xlabel=var_labels[var], ylabel="cloudy column height [m]", varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xlim = (0,600))
+        plot_my_array(axarr, plot_iter, my_res, my_pos, nploty, xlabel=var_labels[var], ylabel="cloudy column height [m]", varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xscale="log", xlim=(1,10000), ylim=(0,2500))
       else:
-        plot_my_array(axarr, plot_iter, my_res, my_pos, nploty, xlabel=var_labels[var], ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
+        plot_my_array(axarr, plot_iter, my_res, my_pos, nploty, xlabel=var_labels[var], ylabel=ylabel, varlabel=profiles_labels[label_counter], dashes = dashList[label_counter % len(dashList)], ylim=(0,3000))
    #   except:
    #     print 'error opening file: ', file_name
    #     my_pos = 0
    #     my_res = 0
       label_counter = label_counter+1
     plot_iter += 1
+  return plot_iter
 
-def plot_series(var_list, nplotx, nploty, axarr, show_bin=False, suffix='', xlabel=''):
+def plot_series(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', xlabel=''):
   #read my results
   series_files_names = []
   series_labels = []
@@ -101,7 +105,6 @@ def plot_series(var_list, nplotx, nploty, axarr, show_bin=False, suffix='', xlab
     series_files_names.append(argv[no] + suffix)
     series_labels.append(argv[no+1])
 
-  plot_iter = 0
   for var in var_list:
     label_counter=0
     for file_name in series_files_names:
@@ -120,3 +123,4 @@ def plot_series(var_list, nplotx, nploty, axarr, show_bin=False, suffix='', xlab
       plot_my_array(axarr, plot_iter, my_times, my_res, nploty, xlabel=xlabel, ylabel=var_labels[var], varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)])
       label_counter+=1
     plot_iter = plot_iter + 1
+  return plot_iter
