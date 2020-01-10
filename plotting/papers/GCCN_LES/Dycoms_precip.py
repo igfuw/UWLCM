@@ -7,7 +7,7 @@ from Dycoms_comparison_common import *
 rc('text', usetex=True)
 
 dycoms_profs = ["prflux", "cl_nc", "non_gccn_rw_cl", "gccn_rw_cl"]
-dycoms_series = ["surf_precip"]
+dycoms_series = ["surf_precip", "cl_gccn_conc"]
 nplots = len(dycoms_profs + dycoms_series)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
