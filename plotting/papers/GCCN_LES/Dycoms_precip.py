@@ -27,9 +27,6 @@ plot_iter=0
 plot_iter = plot_series(dycoms_series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, False, suffix="series.dat", xlabel='Time [h]')
 plot_profiles(dycoms_profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, suffix="profiles_7200_18000.dat", ylabel='$z/z_i$')
 
-#plot_iter = plot_profiles(dycoms_profs, plot_iter, nplotx, nploty, axarr, False, suffix="profiles_7200_18000.dat", ylabel = '$z/z_i$')
-
-
 # legend font size
 plt.rcParams.update({'font.size': 8})
 

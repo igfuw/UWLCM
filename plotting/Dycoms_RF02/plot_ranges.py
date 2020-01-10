@@ -97,7 +97,7 @@ ylimdict_series = {
   "surf_precip" : (-0.01,0.5),
   "acc_precip" : (0,0.07),
   "cloud_base" : None,
-  "cl_gccn_conc" : None
+  "cl_gccn_conc" : (1e-10,1e-0)
 }
 
 

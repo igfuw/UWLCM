@@ -18,7 +18,8 @@ xscaledict = {
   "cloud_base" : "linear",
   "gccn_rw_cl" : "linear",
   "non_gccn_rw_cl" : "linear",
-  "base_prflux_vs_clhght" : "log"
+  "base_prflux_vs_clhght" : "log",
+  "cl_gccn_conc" : "linear"
 }
 
 yscaledict = {
@@ -41,7 +42,8 @@ yscaledict = {
   "cloud_base" : "linear",
   "gccn_rw_cl" : "linear",
   "non_gccn_rw_cl" : "linear",
-  "base_prflux_vs_clhght" : "linear"
+  "base_prflux_vs_clhght" : "linear",
+  "cl_gccn_conc" : "log"
 }
 
 xlimdict_profs = {
@@ -85,6 +87,7 @@ xlimdict_series = {
   "wvarmax" : (0,10),
   "surf_precip" : (0,10),
   "acc_precip" : (0,10),
+  "cl_gccn_conc" : (0,10),
   "cloud_base" : (0,10)
 }
 
@@ -97,5 +100,6 @@ ylimdict_series = {
   "wvarmax" : None,
   "surf_precip" : None,
   "acc_precip" : (0,0.07),
+  "cl_gccn_conc" : None,
   "cloud_base" : None
 }
