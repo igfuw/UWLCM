@@ -100,6 +100,6 @@ ylimdict_series = {
   "wvarmax" : None,
   "surf_precip" : None,
   "acc_precip" : (0,0.07),
-  "cl_gccn_conc" : None,
+  "cl_gccn_conc" : (1e-6, 1),
   "cloud_base" : None
 }
