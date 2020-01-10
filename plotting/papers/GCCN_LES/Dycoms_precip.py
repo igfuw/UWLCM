@@ -1,7 +1,15 @@
-import sys
+from matplotlib import rc
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Matplotlib_common/")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Dycoms_RF02/")
-from Dycoms_comparison_common import *
+
+from plot_ranges import * 
+from plot_series import *
+from plot_profs import *
 
 # activate latex text rendering
 rc('text', usetex=True)
@@ -16,13 +24,10 @@ nploty = 3 # int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
 plot_iter=0
-#for var in dycoms_series:
-#  print var, plot_iter
-#  plot_iter = plot_series(var, plot_iter, nplotx, nploty, axarr, False, suffix="series.dat", xlabel='Time [h]')
-#for var in dycoms_profs:
-#  print var, plot_iter
-plot_iter = plot_series(dycoms_series, plot_iter, nplotx, nploty, axarr, False, suffix="series.dat", xlabel='Time [h]', xlim=(1,5))
-plot_iter = plot_profiles(dycoms_profs, plot_iter, nplotx, nploty, axarr, False, suffix="profiles_7200_18000.dat", ylabel = '$z/z_i$')
+plot_iter = plot_series(dycoms_series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, False, suffix="series.dat", xlabel='Time [h]')
+plot_profiles(dycoms_profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, suffix="profiles_7200_18000.dat", ylabel='$z/z_i$')
+
+#plot_iter = plot_profiles(dycoms_profs, plot_iter, nplotx, nploty, axarr, False, suffix="profiles_7200_18000.dat", ylabel = '$z/z_i$')
 
 
 # legend font size

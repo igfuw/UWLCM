@@ -6,7 +6,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../Matplotlib_common/")
 
-from Rico_comparison_ranges import xscaledict, xlimdict_profs, ylimdict_profs
+from plot_ranges import xscaledict, yscaledict, xlimdict_profs, ylimdict_profs
 from plot_profs import *
 
 # activate latex text rendering
@@ -20,7 +20,7 @@ nplotx = 2 #int(nplots/6 + 0.5)
 nploty = int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
-plot_profiles(rico_vars, 0, nplotx, nploty, axarr, xscaledict, xlimdict_profs, ylimdict_profs, ylabel = '$z[m]$')
+plot_profiles(rico_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel = '$z[m]$')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})

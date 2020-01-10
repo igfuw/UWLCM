@@ -4,7 +4,7 @@ from sys import argv
 from latex_labels import *
 from read_UWLCM_arrays import *
 
-def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, xlimdict, ylimdict, show_bin=False, suffix='', xlabel=''):
+def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict, ylimdict, show_bin=False, suffix='', xlabel=''):
   #read my results
   series_files_names = []
   series_labels = []
@@ -28,7 +28,7 @@ def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, xlimdict
   
       linestyles = ['--', '-.', ':']
       dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
-      plot_my_array(axarr, plot_iter, my_times, my_res, nploty, xlabel=xlabel, ylabel=var_labels[var], varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xscale=xscaledict[var], xlim=xlimdict[var], ylim=ylimdict[var])
+      plot_my_array(axarr, plot_iter, my_times, my_res, nploty, xlabel=xlabel, ylabel=var_labels[var], varlabel=series_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xscale=xscaledict[var], yscale=yscaledict[var], xlim=xlimdict[var], ylim=ylimdict[var])
       label_counter+=1
     plot_iter = plot_iter + 1
   return plot_iter
