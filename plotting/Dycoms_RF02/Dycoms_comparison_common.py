@@ -29,6 +29,7 @@ dycoms_labels = {
   "wvarmax" : "w2_max",
   "surf_precip" : "precip",
   "cloud_base" : "zb",
+  "cl_gccn_conc" : "",
   "gccn_rw_cl" : "",
   "non_gccn_rw_cl" : ""
 }
@@ -44,6 +45,83 @@ labeldict = {
  7 : "(h)",
  8 : "(i)",
  9 : "(j)"
+}
+
+yscaledict = {
+  "thl" : "linear",
+  "00rtot" : "linear",
+  "rliq" : "linear",
+  "prflux" : "linear",
+  "cl_nc" : "linear",
+  "clfrac" : "linear",
+  "wvar" : "linear",
+  "w3rd" : "linear",
+  "sat_RH" : "linear",
+  "rad_flx" : "linear",
+  "lwp" : "linear",
+  "er" : "linear",
+  "wvarmax" : "linear",
+  "surf_precip" : "linear",
+  "acc_precip" : "linear",
+  "cloud_base" : "linear",
+  "gccn_rw_cl" : "linear",
+  "non_gccn_rw_cl" : "linear",
+  "base_prflux_vs_clhght" : "log",
+  "cl_gccn_conc" : "log"
+}
+
+xlimdict_profs = {
+  "thl" : None,
+  "00rtot" : None,
+  "rliq" : None,
+  "prflux" : (0,20),
+  "cl_nc" : (0,90),
+  "clfrac" : None,
+  "wvar" : None,
+  "w3rd" : None,
+  "sat_RH" : None,
+  "rad_flx" : None,
+  "gccn_rw_cl" : (0,90),
+  "non_gccn_rw_cl" : (0,12),
+  "base_prflux_vs_clhght" : (1,10000)
+}
+
+ylimdict_profs = {
+  "thl" : (0,3000),
+  "00rtot" : (0,3000),
+  "rliq" : (0,3000),
+  "prflux" : (0,3000),
+  "cl_nc" : (0,3000),
+  "clfrac" : (0,3000),
+  "wvar" : (0,3000),
+  "w3rd" : (0,3000),
+  "sat_RH" : (0,3000),
+  "rad_flx" : (0,3000),
+  "gccn_rw_cl" : (0,3000),
+  "non_gccn_rw_cl" : (0,3000),
+  "base_prflux_vs_clhght" : (0,2500)
+}
+
+xlimdict_series = {
+  "clfrac" : (1,5),
+  "lwp" : (1,5),
+  "er" : (1,5),
+  "wvarmax" : (1,5),
+  "surf_precip" : (1,5),
+  "acc_precip" : (1,5),
+  "cloud_base" : (1,5),
+  "cl_gccn_conc" : (1,5)
+}
+
+ylimdict_series = {
+  "clfrac" : None,
+  "lwp" : None,
+  "er" : None,
+  "wvarmax" : None,
+  "surf_precip" : None,
+  "acc_precip" : (0,0.07),
+  "cloud_base" : None,
+  "cl_gccn_conc" : None
 }
 
 def read_my_array(file_obj):
@@ -63,7 +141,7 @@ def read_my_var(file_obj, var_name):
       break
   return arr
 
-def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2)):
+def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2), xlim=None, ylim=None, xscale="linear"):
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
   if varlabel != None:
@@ -74,6 +152,11 @@ def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None,
     axarr[x, y].set_xlabel(xlabel)
   if ylabel:
     axarr[x, y].set_ylabel(ylabel)
+  if xlim:
+    axarr[x, y].set_xlim(xlim)
+  if ylim:
+    axarr[x, y].set_ylim(ylim)
+  axarr[x, y].set_xscale(xscale)
 
 def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suffix='', reference=True, ylabel=''):
   # files with Dycoms intercomparison results
@@ -107,6 +190,30 @@ def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, su
     x = int(plot_iter / nploty)
     y = plot_iter % nploty
 
+    # set axis ranges
+    #if var == "thetal":
+    #  axarr[x, y].set_xlim([288.2,289.2])
+    #if var == "qt":
+    #  axarr[x, y].set_xlim([9,10.4])
+    if var == "rliq":
+      axarr[x, y].set_xlim([0,.7])
+    if var == "wvar":
+      axarr[x, y].set_xlim([-0.1,.8])
+    if var == "w3rd":
+      axarr[x, y].set_xlim([-0.15,.15])
+    if var == "sat_RH":
+      axarr[x, y].set_xlim([-5,1])
+    if var=="cl_nc_zoom":
+      axarr[x, y].set_xlim([50,80])
+    if var=="cl_nc":
+      axarr[x, y].set_xlim([0,120])
+    if var=="prflux":
+      axarr[x, y].set_xlim([0,70])
+    if var=="non_gccn_rw_cl":
+      axarr[x, y].set_xlim([0,7])
+    if var=="gccn_rw_cl":
+      axarr[x, y].set_xlim([0,40])
+
     # read dycoms results
     if dycoms_labels[var] != '': # empty dycoms_label indicates that this plot is not available from the dycoms intercomparison
       # at each time, zt needs to be rescaled by inversion height, this rescaled value will be stored here
@@ -126,20 +233,6 @@ def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, su
       q1var_arr = np.ndarray(shape=(len(ihght)))
       q3var_arr = np.ndarray(shape=(len(ihght)))
       
-      #if var == "thetal":
-      #  axarr[x, y].set_xlim([288.2,289.2])
-      #if var == "qt":
-      #  axarr[x, y].set_xlim([9,10.4])
-      if var == "rliq":
-        axarr[x, y].set_xlim([0,.7])
-      if var == "wvar":
-        axarr[x, y].set_xlim([-0.1,.8])
-      if var == "w3rd":
-        axarr[x, y].set_xlim([-0.15,.15])
-      if var == "sat_RH":
-        axarr[x, y].set_xlim([-5,1])
-      if var=="cl_nc_zoom":
-        axarr[x, y].set_xlim([50,80])
       
       if var=="cl_nc_zoom":
         var="cl_nc"
@@ -204,10 +297,10 @@ def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, su
         q1var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 25)
         q3var_arr[zi] = np.percentile(ivar_arr_1d[ivar_arr_1d < 1e35], 75)
       
-      if reference:
-        axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
-        axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
-        axarr[x, y].plot(mvar_arr, ihght, color='black')
+    #  if reference:
+    #    axarr[x, y].fill_betweenx(ihght, minvar_arr, maxvar_arr, color='0.9')
+    #    axarr[x, y].fill_betweenx(ihght, q1var_arr, q3var_arr, color='0.7')
+    #    axarr[x, y].plot(mvar_arr, ihght, color='black')
     
     
     axarr[x, y].set_ylim([0,1.2])
@@ -358,75 +451,80 @@ def plot_series(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False, suff
     series_labels.append(argv[no+1])
 
   for var in var_list:
-    # read dycoms results
-    var_arr = dycoms_file.variables[dycoms_labels[var]][:,1,1,:].copy()
-
-    # calc entrainment rate
-    if var == "er":
-      er = var_arr.copy()
-      for g in groups:
-        if var_arr[g, 0] > 1e35:
-          continue
-        er[g, 1:ntime[g]-1] = (var_arr[g, 2:ntime[g]] - var_arr[g, 0:ntime[g]-2]) / (time[g, 2:ntime[g]] - time[g, 0:ntime[g]-2])
-        er[g, 0] = (var_arr[g, 1] - var_arr[g, 0]) / (time[g, 1] - time[g, 0])
-        er[g, ntime[g]-1] = (var_arr[g, ntime[g]-1] - var_arr[g, ntime[g]-2]) / (time[g, ntime[g]-1] - time[g, ntime[g]-2])
-        var_arr[g, 0:ntime[g]] = (er[g,0:ntime[g]] + 3.75e-6 * var_arr[g,0:ntime[g]]) * 100# add LS subsidence and change to cm
-  
-    # surf precip - change from W/m2 to mm/d
-    rhow = 1e3 # kg/m3
-    Lc = 2264.7e3 # J/kg
-    if var == "surf_precip":
-      var_arr = var_arr / (rhow * Lc) * 1e3 * 24 * 3600
-    
-    # interpolate to same time positions
-    mean_iter = 0
-    for it in itime:
-      for g in groups:
-  #      if var_arr[g, 0] > 1e35:  #netcdf fill values are read as ca. 9e36
-  #        continue
-        # find index with time less than it
-        i = bisect_left(time[g, 0:ntime[g]], it)
-        # same time
-        if time[g, i] == it:
-          ivar_arr[g] = var_arr[g, i]
-        # time[g, i] > it
-        else:
-          if i == 0:
-            ivar_arr[g] = var_arr[g,i]
-          else:
-            prev_time = time[g, i-1]
-            prev_var_arr = var_arr[g, i-1]
-            ivar_arr[g] = prev_var_arr + (it - prev_time) / (time[g, i] - prev_time) * (var_arr[g, i] - prev_var_arr)
-      mvar_arr[mean_iter] = ivar_arr[ivar_arr < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
-      minvar_arr[mean_iter] = ivar_arr[ivar_arr < 1e35].min()
-      maxvar_arr[mean_iter] = ivar_arr[ivar_arr < 1e35].max()
-      q1var_arr[mean_iter] = np.percentile(ivar_arr[ivar_arr < 1e35], 25)
-      q3var_arr[mean_iter] = np.percentile(ivar_arr[ivar_arr < 1e35], 75)
-      mean_iter+=1
-  
     x = int(plot_iter / nploty)
     y = plot_iter % nploty
+
+    # set plot limits
+    if var == "surf_precip":
+      axarr[x, y].set_ylim([-0.01,.5])
+
+    # read dycoms results
+    if dycoms_labels[var] != '': # empty dycoms_label indicates that this plot is not available from the dycoms intercomparison
+      var_arr = dycoms_file.variables[dycoms_labels[var]][:,1,1,:].copy()
+  
+      # calc entrainment rate
+      if var == "er":
+        er = var_arr.copy()
+        for g in groups:
+          if var_arr[g, 0] > 1e35:
+            continue
+          er[g, 1:ntime[g]-1] = (var_arr[g, 2:ntime[g]] - var_arr[g, 0:ntime[g]-2]) / (time[g, 2:ntime[g]] - time[g, 0:ntime[g]-2])
+          er[g, 0] = (var_arr[g, 1] - var_arr[g, 0]) / (time[g, 1] - time[g, 0])
+          er[g, ntime[g]-1] = (var_arr[g, ntime[g]-1] - var_arr[g, ntime[g]-2]) / (time[g, ntime[g]-1] - time[g, ntime[g]-2])
+          var_arr[g, 0:ntime[g]] = (er[g,0:ntime[g]] + 3.75e-6 * var_arr[g,0:ntime[g]]) * 100# add LS subsidence and change to cm
     
-    #  for g in groups:
-    #    print var
-    #    print var_arr[g, 0:ntime[g]]
-    #    if var_arr[g,0] < 1e35: # netcdf fill values are erad as ca. 9e36
-    #      axarr[x, y].plot(time[g,0:ntime[g]] / 3600., var_arr[g,0:ntime[g]])
+      # surf precip - change from W/m2 to mm/d
+      rhow = 1e3 # kg/m3
+      Lc = 2264.7e3 # J/kg
+      if var == "surf_precip":
+        var_arr = var_arr / (rhow * Lc) * 1e3 * 24 * 3600
       
-    axarr[x, y].fill_between(itime_h, minvar_arr, maxvar_arr, color='0.9')
-    axarr[x, y].fill_between(itime_h, q1var_arr, q3var_arr, color='0.7')
-    axarr[x, y].plot(itime_h, mvar_arr, color='black')
-    axarr[x, y].set_xlim(xlim)
-    # plot precip and NC of bin models
-    if show_bin:
-      DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
-      DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
-    #  print DHARMA_time, DHARMA_precip
-      axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1, label="DHARMA")
-      RAMS_time = time[RAMS_it,0:ntime[RAMS_it]].copy() / 3600.
-      RAMS_precip = var_arr[RAMS_it,0:ntime[RAMS_it]].copy()
-     # print RAMS_time, RAMS_precip
-      axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1, label="RAMS")
+      # interpolate to same time positions
+      mean_iter = 0
+      for it in itime:
+        for g in groups:
+    #      if var_arr[g, 0] > 1e35:  #netcdf fill values are read as ca. 9e36
+    #        continue
+          # find index with time less than it
+          i = bisect_left(time[g, 0:ntime[g]], it)
+          # same time
+          if time[g, i] == it:
+            ivar_arr[g] = var_arr[g, i]
+          # time[g, i] > it
+          else:
+            if i == 0:
+              ivar_arr[g] = var_arr[g,i]
+            else:
+              prev_time = time[g, i-1]
+              prev_var_arr = var_arr[g, i-1]
+              ivar_arr[g] = prev_var_arr + (it - prev_time) / (time[g, i] - prev_time) * (var_arr[g, i] - prev_var_arr)
+        mvar_arr[mean_iter] = ivar_arr[ivar_arr < 1e35].mean() # < 1e35 to avoid the netcdf fill values from models that didn't calculate this vat
+        minvar_arr[mean_iter] = ivar_arr[ivar_arr < 1e35].min()
+        maxvar_arr[mean_iter] = ivar_arr[ivar_arr < 1e35].max()
+        q1var_arr[mean_iter] = np.percentile(ivar_arr[ivar_arr < 1e35], 25)
+        q3var_arr[mean_iter] = np.percentile(ivar_arr[ivar_arr < 1e35], 75)
+        mean_iter+=1
+      
+      #  for g in groups:
+      #    print var
+      #    print var_arr[g, 0:ntime[g]]
+      #    if var_arr[g,0] < 1e35: # netcdf fill values are erad as ca. 9e36
+      #      axarr[x, y].plot(time[g,0:ntime[g]] / 3600., var_arr[g,0:ntime[g]])
+        
+  #    axarr[x, y].fill_between(itime_h, minvar_arr, maxvar_arr, color='0.9')
+  #    axarr[x, y].fill_between(itime_h, q1var_arr, q3var_arr, color='0.7')
+  #    axarr[x, y].plot(itime_h, mvar_arr, color='black')
+      axarr[x, y].set_xlim(xlim)
+      # plot precip and NC of bin models
+      if show_bin:
+        DHARMA_time = time[DHARMA_it,0:ntime[DHARMA_it]].copy() / 3600.
+        DHARMA_precip = var_arr[DHARMA_it,0:ntime[DHARMA_it]].copy()
+      #  print DHARMA_time, DHARMA_precip
+        axarr[x, y].plot(DHARMA_time[:], DHARMA_precip[:], color='red', linewidth=1, label="DHARMA")
+        RAMS_time = time[RAMS_it,0:ntime[RAMS_it]].copy() / 3600.
+        RAMS_precip = var_arr[RAMS_it,0:ntime[RAMS_it]].copy()
+       # print RAMS_time, RAMS_precip
+        axarr[x, y].plot(RAMS_time[:], RAMS_precip[:], color='green', linewidth=1, label="RAMS")
   
     
     
