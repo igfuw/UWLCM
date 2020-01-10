@@ -25,7 +25,7 @@ fig, axarr = plt.subplots(nplotx, nploty )
 
 plot_iter=0
 plot_iter = plot_series(rico_series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, False, suffix="series.dat", xlabel='Time [h]')
-plot_profiles(rico_profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, suffix="profiles_18000_36000.dat", ylabel='$z/z_i$')
+plot_profiles(rico_profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, suffix="profiles_18000_36000.dat", ylabel='$z$[m]')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
