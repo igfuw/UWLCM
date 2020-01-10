@@ -17,7 +17,7 @@ def read_my_var(file_obj, var_name):
       break
   return arr
 
-def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2), xlim=None, ylim=None, xscale="linear"):
+def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2), xlim=None, ylim=None, xscale="linear", yscale="linear"):
   x = int(plot_iter / nploty)
   y = plot_iter % nploty
   if varlabel != None:
@@ -33,3 +33,4 @@ def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None,
   if ylim:
     axarr[x, y].set_ylim(ylim)
   axarr[x, y].set_xscale(xscale)
+  axarr[x, y].set_yscale(yscale)

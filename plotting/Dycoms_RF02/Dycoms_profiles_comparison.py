@@ -1,13 +1,18 @@
-#import h5py
-from Dycoms_comparison_common import *
+from matplotlib import rc
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../Matplotlib_common/")
+from plot_profs import *
+from Dycoms_reference_plots import plot_reference_profiles
+from plot_ranges import xscaledict, yscaledict, xlimdict_profs, ylimdict_profs
 
 # activate latex text rendering
 rc('text', usetex=True)
 
-if sys.argv[len(sys.argv)-1] == "True":
-  dycoms_vars = ["thl", "00rtot", "rliq", "clfrac", "prflux", "wvar", "w3rd", "sat_RH", "cl_nc", "rad_flx", "cl_nc_zoom"]
-else:
-  dycoms_vars = ["thl", "00rtot", "rliq", "clfrac", "prflux", "wvar", "w3rd", "sat_RH", "cl_nc"]#, "rad_flx"]
+dycoms_vars = ["thl", "00rtot", "rliq", "clfrac", "prflux", "wvar", "w3rd", "sat_RH", "cl_nc"]#, "rad_flx", "cl_nc_zoom"]
 nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
@@ -15,8 +20,8 @@ nplotx = 2 #int(nplots/6 + 0.5)
 nploty = int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
-plot_iter=0
-plot_profiles(dycoms_vars, plot_iter, nplotx, nploty, axarr, ylabel='$z/z_i$')
+plot_reference_profiles(dycoms_vars, 0, nplotx, nploty, axarr)
+plot_profiles(dycoms_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='$z/z_i$')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
@@ -74,5 +79,5 @@ fig.subplots_adjust(bottom=0.18 + (len(labels) - 2) * 0.02, hspace=0.25)
 
 
 #plt.show()
-fig.savefig(argv[len(sys.argv)-2], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
+fig.savefig(argv[len(sys.argv)-1], bbox_inches='tight', dpi=300)#, bbox_extra_artists=(lgd,))
 

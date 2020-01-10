@@ -21,6 +21,29 @@ xscaledict = {
   "base_prflux_vs_clhght" : "log"
 }
 
+yscaledict = {
+  "thl" : "linear",
+  "00rtot" : "linear",
+  "rliq" : "linear",
+  "prflux" : "linear",
+  "cl_nc" : "linear",
+  "clfrac" : "linear",
+  "wvar" : "linear",
+  "w3rd" : "linear",
+  "sat_RH" : "linear",
+  "rad_flx" : "linear",
+  "lwp" : "linear",
+  "rwp" : "linear",
+  "er" : "linear",
+  "wvarmax" : "linear",
+  "surf_precip" : "linear",
+  "acc_precip" : "linear",
+  "cloud_base" : "linear",
+  "gccn_rw_cl" : "linear",
+  "non_gccn_rw_cl" : "linear",
+  "base_prflux_vs_clhght" : "linear"
+}
+
 xlimdict_profs = {
   "thl" : None,
   "00rtot" : None,
