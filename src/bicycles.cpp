@@ -1,4 +1,4 @@
-/** 
+/**
  * @file
  * @copyright University of Warsaw
  * @section LICENSE
@@ -25,7 +25,7 @@
 
 #include <map>
 
-// all starts here with handling general options 
+// all starts here with handling general options
 int main(int argc, char** argv)
 {
   omp_set_nested(1); // to allow openmp calls from libcloudphxx multi_CUDA backend
@@ -63,18 +63,18 @@ int main(int argc, char** argv)
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
 
     // hendling the "help" option
-    if (ac == 1 || (vm.count("help") && !vm.count("micro"))) 
+    if (ac == 1 || (vm.count("help") && !vm.count("micro")))
     {
       std::cout << opts_main;
       exit(EXIT_SUCCESS);
     }
 
     // checking if all required options present
-    po::notify(vm); 
+    po::notify(vm);
 
     // instantiating user params container
     user_params_t user_params;
-    
+
     if (!vm.count("help"))
     {
       if (!vm.count("outdir")) throw po::required_option("outdir");
@@ -83,23 +83,23 @@ int main(int argc, char** argv)
       user_params.outfreq = vm["outfreq"].as<int>();
     }
 
-    int 
+    int
       nx = vm["nx"].as<int>(),
       ny = vm["ny"].as<int>(),
       nz = vm["nz"].as<int>();
 
     user_params.nt = vm["nt"].as<int>(),
     user_params.spinup = vm["spinup"].as<int>();
- 
+
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();
     while(user_params.rng_seed == 0) //if = 0, get random seed
     {
-      std::random_device rd; 
+      std::random_device rd;
       user_params.rng_seed = rd();
     }
     std::cout << "rng seed: " << user_params.rng_seed << std::endl;
-   
+
     //handling timestep length
     user_params.dt = vm["dt"].as<setup::real_t>();
 
@@ -169,9 +169,9 @@ int main(int argc, char** argv)
 #endif
 
   // TODO: not only micro can be wrong
-    else throw 
+    else throw
       po::validation_error(
-        po::validation_error::invalid_option_value, micro, "micro" 
+        po::validation_error::invalid_option_value, micro, "micro"
       );
   }
 }
