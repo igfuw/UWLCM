@@ -1,25 +1,27 @@
-from Dycoms_comparison_common import *
+from matplotlib import rc
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../Matplotlib_common/")
+from plot_profs import *
+from Dycoms_reference_plots import plot_reference_profiles
+from plot_ranges import xscaledict, yscaledict, xlimdict_profs, ylimdict_profs
 
 # activate latex text rendering
 rc('text', usetex=True)
 
-dycoms_profs = ["ql", "precip", "ndrop_cld"]
-dycoms_series = ["lwp", "precip", "ndrop_cld"]
-nplots = len(dycoms_profs + dycoms_series)# + 2 # 2 updraft profiles without dycoms results
+dycoms_vars = ["thl", "00rtot", "rliq", "clfrac", "prflux", "wvar", "w3rd", "sat_RH", "cl_nc"]#, "rad_flx", "cl_nc_zoom"]
+nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
 nplotx = 2 #int(nplots/6 + 0.5)
-nploty = 3 # int(float(nplots)/float(nplotx) + 0.5)
+nploty = int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
-plot_iter=0
-for var in dycoms_series:
-  print var, plot_iter
-  plot_iter = plot_series(var, plot_iter, nplotx, nploty, axarr, True, suffix="series.dat", xlabel='Time [h]')
-for var in dycoms_profs:
-  print var, plot_iter
-  plot_iter = plot_profiles(var, plot_iter, nplotx, nploty, axarr, True, suffix="profiles_7200_21600.dat", ylabel = '$z/z_i$')
-
+plot_reference_profiles(dycoms_vars, 0, nplotx, nploty, axarr)
+plot_profiles(dycoms_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='$z/z_i$')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
@@ -32,6 +34,13 @@ else:
 emptyplots = np.arange(nploty - nemptyplots, nploty)
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')
+
+# hide vertical tic labels
+x_empty_label = np.arange(nplotx)
+y_empty_label = np.arange(1, nploty)
+for x in x_empty_label:
+  for y in y_empty_label:
+    axarr[x,y].set_yticklabels([])
 
 #axes = plt.gca()
 #axes.tick_params(direction='in')
@@ -62,16 +71,11 @@ lgd = fig.legend(handles, labels, handlelength=4, loc='lower center', bbox_to_an
 
 
 #figure size
-fig.set_size_inches(7.874, 5. + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
+fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
-fig.subplots_adjust(bottom=0.14 + (len(labels) - 2) * 0.03, hspace=0.25, wspace=0.4)
+fig.subplots_adjust(bottom=0.18 + (len(labels) - 2) * 0.02, hspace=0.25)
 
 #fig.tight_layout(pad=0, w_pad=0, h_pad=0)
-
-#figure size
-#fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
-#distances between subplots and from bottom of the plot
-#fig.subplots_adjust(bottom=0.15 + (len(labels) - 2) * 0.02, hspace=0.25)
 
 
 #plt.show()

@@ -67,6 +67,8 @@ std::vector<std::string> profs_dycoms({
 ,"cl_nc"
 ,"sat_RH"
 ,"rad_flx"
+, "non_gccn_rw_cl"
+, "gccn_rw_cl"
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
@@ -74,25 +76,31 @@ std::vector<std::string> profs_dycoms({
 }); // rtot has to be first
 
 std::vector<std::string> profs_rico({
-"00rtot", "rliq", "thl", "wvar", 
+"00rtot"
+, "rliq", "thl", "wvar", 
  "prflux"
 ,"clfrac"
 ,"sd_conc"
-//, "N_c", 
 ,"cl_nc"
 ,"cl_nc_up"
 ,"w"
 ,"u", "v"
-,"vel_div"
+,"base_prflux_vs_clhght"
+, "non_gccn_rw_cl"
+, "gccn_rw_cl"
+//, "N_c", 
+//,"vel_div"
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
 //, "nc_down" 
 }); // rtot has to be first
 
+/*
 std::vector<std::string> profs_base_prflux_vs_clhght({
 "base_prflux_vs_clhght"
-}); 
+});
+*/
 
 std::vector<std::string> profs_sgs({
  "sgs_tke"
@@ -167,13 +175,14 @@ class Plots
       series.insert(series.end(), series_moist_thermal.begin(), series_moist_thermal.end());
       fields.insert(fields.end(), fields_moist_thermal.begin(), fields_moist_thermal.end());
     }
+    /*
     else if(type == "base_prflux_vs_clhght") { 
       profs.insert(profs.end(), profs_base_prflux_vs_clhght.begin(), profs_base_prflux_vs_clhght.end());
-    }
+    }*/
     else
       throw std::runtime_error("drawbicyc Plots.hpp: unknown 'type'.");
     
-    if (sgs && type != "base_prflux_vs_clhght")
+    if (sgs)// && type != "base_prflux_vs_clhght")
     {
       profs.insert(profs.end(), profs_sgs.begin(), profs_sgs.end());
       series.insert(series.end(), series_sgs.begin(), series_sgs.end());

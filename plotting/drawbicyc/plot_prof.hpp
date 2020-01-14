@@ -3,9 +3,10 @@
 #include <boost/tuple/tuple.hpp>
 #include <libcloudph++/common/const_cp.hpp>
 #include "plots.hpp"
+#include "gnuplot_profs_set_labels.hpp"
 
 template<class Plotter_t>
-void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
+void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool normalize)
 {
 
   // read opts
@@ -25,10 +26,10 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
      std::cout << elem.first << " " << elem.second << std::endl;
   }
   Gnuplot gp; 
-  string file = plotter.file + "_profiles_" + prof_start_s + "_" + prof_end_s+".svg";
+  string file = plotter.file + "_" + type + "_profiles_" + prof_start_s + "_" + prof_end_s+".svg";
   init_prof(gp, file, 3, 5); 
 
-  string prof_file = plotter.file + "_profiles_" + prof_start_s + "_" + prof_end_s+".dat";
+  string prof_file = plotter.file + "_" + type + "_profiles_" + prof_start_s + "_" + prof_end_s+".dat";
   std::ofstream oprof_file(prof_file);
 
   // read in density
@@ -88,7 +89,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         res += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
         res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'liquid water [g/kg]'\n";
       }
       if (plt == "gccn_rw")
       {
@@ -97,7 +97,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         res_tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
         res = where(res > 0 , res / res_tmp, res);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'gccn-based droplets mean wet radius'\n";
       }
       if (plt == "non_gccn_rw")
       {
@@ -106,7 +105,45 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         res_tmp = plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]);
         res = where(res > 0 , res / res_tmp, res);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'non-gccn-based droplets mean wet radius'\n";
+      }
+      if (plt == "gccn_rw_cl")
+      {
+	// gccn (rd>2um) droplets dry radius in cloudy cells
+        {
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap; 
+        }
+        {
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
+        }
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp *= res_tmp2;
+        }
+        // mean only over downdraught cells
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
+      if (plt == "non_gccn_rw_cl")
+      {
+	// non-gccn (rd<2um) droplets dry radius in cloudy cells
+        res_tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
+          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp); // mean radius
+        }
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp *= res_tmp2;
+        }
+        // mean only over downdraught cells
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
       }
       if (plt == "non_gccn_rw_down")
       {
@@ -124,7 +161,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // mean only over downdraught cells
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'non-gccn-based droplets mean wet radius (downdraughts only)'\n";
       }
       if (plt == "gccn_rw_down")
       {
@@ -148,7 +184,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // mean only over downdraught cells
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'gccn-based droplets mean wet radius (downdraughts only)'\n";
       }
       if (plt == "non_gccn_rw_up")
       {
@@ -172,7 +207,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // mean only over updraught cells
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'non-gccn-based droplets mean wet radius (updraughts only)'\n";
       }
       if (plt == "gccn_rw_up")
       {
@@ -196,7 +230,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // mean only over updraught cells
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'gccn-based droplets mean wet radius (updraughts only)'\n";
       }
       if (plt == "ugccn_rw_down")
       {
@@ -220,7 +253,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // mean only over downdraught cells
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'ultra-gccn-based droplets mean wet radius (downdraughts only)'\n";
       }
       if (plt == "act_conc_up")
       {
@@ -255,7 +287,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // updraft only
         res_tmp *= res_tmp2;
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'activated droplets concentation [1/cm^3] (updrafts)'\n";
       }
       if (plt == "nc_up")
       {
@@ -277,7 +308,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // updraft only
         res_tmp *= res_tmp2;
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
       }
       if (plt == "cl_nc_up")
       {
@@ -304,7 +334,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // updraft only
         res_tmp *= res_tmp2;
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'cloud droplets concentation [1/cm^3] (cloudy updrafts)'\n";
       }
       if (plt == "nc_down")
       {
@@ -326,7 +355,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // updraft only
         res_tmp *= res_tmp2;
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'clloud droplets concentation [1/cm^3] (updrafts)'\n";
       }
       if (plt == "act_rd_up")
       {
@@ -370,7 +398,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         // updraft only
         res_tmp *= res_tmp2;
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-        gp << "set title 'activated droplets mean dry radius (updrafts)'\n";
       }
       if (plt == "actRH_rd")
       {
@@ -386,7 +413,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
           res = where(snap > 0 , res / snap, res);
         }
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'activated (RH>Sc) droplets mean dry radius'\n";
       }
       if (plt == "actrw_rd")
       {
@@ -403,55 +429,42 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
           res = snap;
         }
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'activated (rw>rc) droplets mean dry radius'\n";
       }
       else if (plt == "rv")
       {
         res = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'rv [g/kg] averaged over 2h-6h, w/o rw<0.5um'\n";
-        if(normalize)
-        {
-          gp << "set yrange [0.:0.6]\n";
-          gp << "set xrange [9.2:9.5]\n";
-        }
       }
       else if (plt == "u")
       {
         res = plotter.h5load_timestep("u", at * n["outfreq"]);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'u [m/s]'\n";
       }
       else if (plt == "v")
       {
         res = plotter.h5load_timestep("v", at * n["outfreq"]);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'v [m/s]'\n";
       }
       else if (plt == "w")
       {
         res = plotter.h5load_timestep("w", at * n["outfreq"]);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'w [m/s]'\n";
       }
       else if (plt == "sd_conc")
       {
         res = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title '# of SD'\n";
       }
       else if (plt == "vel_div")
       {
         res = plotter.h5load_timestep("vel_div", at * n["outfreq"]);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'vel_div [1/s]'\n";
       }
       else if (plt == "sat_RH")
       {
         res = plotter.h5load_RH_timestep(at * n["outfreq"]);
         res = (res -1) * 100;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'supersaturation RH-based'\n";
       }
       else if (plt == "sat_RH_up")
       {
@@ -473,10 +486,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
 
 //        mean over all cells
 //        res_prof += plotter.horizontal_sum(res_tmp);
-
-        gp << "set title 'supersaturation RH-based in updrafts only'\n";
-//        gp << "set yrange [0.45:1.]\n";
-  //      gp << "set xrange [0.000:*]\n";
       }
       else if (plt == "00rtot")
       {
@@ -498,14 +507,12 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
 
 //    z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
 //    std::cout << "average inversion height " << z_i;
-        gp << "set title 'total water [g/kg]'\n";
       }
       else if (plt == "N_c")
       {
 	// cloud drops concentration [1/cm^3]
         res = plotter.h5load_nc_timestep(at * n["outfreq"]) * rhod / 1e6; // from sepcific to normal moment + per cm^3
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'cloud droplets ( 0.5um < r < 25um) concentration [1/cm^3]'\n";
       }
       else if (plt == "cl_nc")
       {
@@ -528,7 +535,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
           res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(snap2) / prof_tmp, 0);
         }
         catch(...){;}
-        gp << "set title 'cloud droplets concentration in cloudy cells [1/cm^3]'\n";
       }
       else if (plt == "thl")
       {
@@ -557,7 +563,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
 //          res += ql;
         }
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'liquid potential temp [K]'\n";
       }
       else if (plt == "clfrac")
       {
@@ -571,7 +576,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
           res += snap; 
         }
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'cloud fraction'\n";
       }
       else if (plt == "base_prflux_vs_clhght")
       // TODO: 'normalize' messes with this plot
@@ -599,7 +603,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
             res_prof_hlpr(cl_hgt_over_dz) += *(plotter.tmp_float_hrzntl_slice.data() + i);
           }
         }
-        gp << "set title 'cl base pr flux vs cl hgt'\n";
       }
       else if (plt == "prflux")
       {
@@ -633,7 +636,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         }
 */
         // turn 3rd mom * velocity into flux in [W/m^2]
-        gp << "set title 'precipitation flux [W/m^2]'\n";
       }
       else if (plt == "rad_flx")
       {
@@ -641,7 +643,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         typename Plotter_t::arr_t snap(tmp);
         res = snap; 
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'radiative flux [W/m2]'\n";
       }
       else if (plt == "wvar")
       {
@@ -651,7 +652,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         snap = snap * snap; // 2nd power
         res = snap;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'variance of w [m^2 / s^2]'\n";
       }
       else if (plt == "w3rd")
       {
@@ -661,7 +661,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         snap = snap * snap * snap; // 3rd power
         res = snap;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title '3rd mom of w [m^3 / s^3]'\n";
       }
       else if (plt == "sgs_tke")
       {
@@ -672,7 +671,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         }
         res = res_tmp;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'sgs tke [TODO]'\n";
       }
       else if (plt == "k_m")
       {
@@ -683,7 +681,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         }
         res = res_tmp;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'k_m [TODO]'\n";
       }
       else if (plt == "sgs_tht_flux")
       {
@@ -694,7 +691,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         }
         res = res_tmp;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'sgs tht flux [TODO]'\n";
       }
       else if (plt == "sgs_rv_flux")
       {
@@ -705,7 +701,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         }
         res = res_tmp;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'sgs rv flux [TODO]'\n";
       }
       else if (plt == "sgs_rc_flux")
       {
@@ -716,7 +711,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         }
         res = res_tmp;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'sgs rc flux [TODO]'\n";
       }
       else if (plt == "sgs_u_flux")
       {
@@ -727,7 +721,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
         }
         res = res_tmp;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        gp << "set title 'sgs u flux [TODO]'\n";
       }
 
 
@@ -763,6 +756,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
 
 //      else assert(false);
     } // time loop
+
 //    res /= last_timestep - first_timestep + 1;
     
 //    z_i = (double(k_i)-0.5) / (last_timestep - first_timestep + 1) * n["dz"];
@@ -770,6 +764,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
 //    res_pos = i * n["dz"] / z_i; 
     if(!res_pos_out_done)
     {
+      oprof_file << "height" << endl;
       oprof_file << res_pos;
       res_pos_out_done = true;
     }
@@ -779,20 +774,20 @@ void plot_profiles(Plotter_t plotter, Plots plots, const bool normalize)
     else
       res_prof_sum = where(occur_no > 0, res_prof_sum/occur_no, 0);
  
+    // set labels for the gnuplot plot
+    gnuplot_profs_set_labels(gp, plt, normalize);
 
     // do the plotting
     gp << "plot '-' with line\n";
     gp.send1d(boost::make_tuple(res_prof_sum, res_pos));
 
     if (plt == "base_prflux_vs_clhght")
-      oprof_file << occur_no;
-    oprof_file << res_prof_sum ;
-
-    if(normalize && (plt == "rv" || plt == "sat" || plt == "sat_RH"))
     {
-      gp << "set yrange [0.:1.2]\n";
-      gp << "set xrange [*:*]\n";
+      oprof_file << plt << " number of occurances" << endl;
+      oprof_file << occur_no;
     }
+    oprof_file << plt << endl;
+    oprof_file << res_prof_sum ;
 
     // plotting two lines, eg. to compare different activation conditions (RH- vs rw- based)
 /*

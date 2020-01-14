@@ -7,7 +7,7 @@
 #include "plots.hpp"
 
 template<class Plotter_t>
-void plot_fields(Plotter_t plotter, Plots plots)
+void plot_fields(Plotter_t plotter, Plots plots, std::string type)
 {
   // read opts
   po::options_description opts("fields plotting options");
@@ -31,7 +31,7 @@ void plot_fields(Plotter_t plotter, Plots plots)
     {
       std::cout << at * n["outfreq"] << " : " << plt << std::endl;
       Gnuplot gp;
-      init(gp, plotter.file + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n, 1, 0.666666); 
+      init(gp, plotter.file + "_" + type + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n, 1, 0.666666); 
 
       if (plt == "rl")
       {
