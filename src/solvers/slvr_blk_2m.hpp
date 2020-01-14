@@ -67,9 +67,10 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   void nc_src();
   void rr_src();
   void nr_src();
+
   bool get_rain() { return opts.acnv; }
   void set_rain(bool val) {
-    opts.acnv = val;
+    opts.acnv = val ? params.flag_acnv : false;
     opts.RH_max = val ? 44 : 1.01;
   };
 
@@ -96,6 +97,8 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void hook_ante_loop(int nt)
   {
+    params.flag_acnv = opts.acnv;
+
     // fill with zeros
     this->state(ix::rc)(this->ijk) = 0;
     this->state(ix::rr)(this->ijk) = 0;
@@ -114,7 +117,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       this->record_aux_const("acti", opts.acti);
       this->record_aux_const("cond", opts.cond);
       this->record_aux_const("accr", opts.accr);
-      this->record_aux_const("acnv", opts.acnv);
+      this->record_aux_const("acnv", params.flag_acnv);
       this->record_aux_const("sedi", opts.sedi);
       this->record_aux_const("acnv_A", opts.acnv_A);
       this->record_aux_const("acnv_b", opts.acnv_b);
@@ -184,14 +187,20 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
         rv     = this->state(ix::rv)(this->ijk),
         &p_e_arg = p_e(this->ijk); //TODO: use const pressure in blk_2m
         nancheck(nc, "nc before blk_2m rhs_cellwise call");
+        negtozero(nc, "nc before blk_2m rhs_cellwise call");
         negcheck(nc, "nc before blk_2m rhs_cellwise call");
+        nancheck(nr, "nr before blk_2m rhs_cellwise call");
+        negtozero(nr, "nr before blk_2m rhs_cellwise call");
+        negcheck(nr, "nr before blk_2m rhs_cellwise call");
        libcloudphxx::blk_2m::rhs_cellwise<real_t>(
-        opts, dot_th, dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
-        rhod,     th,     rv,     rc,     nc,     rr,     nr,
-        this->dt
+        opts, dot_th,  dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
+        rhod, th,     rv,     rc,     nc,     rr,     nr,
+        this->dt, true, p_e_arg
       );
         nancheck(nc, "nc after blk_2m rhs_cellwise call");
         negcheck(nc, "nc after blk_2m rhs_cellwise call");
+        nancheck(nc, "nr after blk_2m rhs_cellwise call");
+        negcheck(nc, "nr after blk_2m rhs_cellwise call");
     }
 
     // forcing
@@ -257,6 +266,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   struct rt_params_t : parent_t::rt_params_t
   {
     libcloudphxx::blk_2m::opts_t<real_t> cloudph_opts;
+    bool flag_acnv; // do we want autoconversion after spinup
   };
 
   protected:

@@ -11,6 +11,7 @@ class PlotterCommon
   std::map<std::string, double> map;
   blitz::Array<float, 1> timesteps, p_e;
   double CellVol, DomainSurf;
+  int SurfCellCount;
 
   protected:
   H5::H5File h5f;

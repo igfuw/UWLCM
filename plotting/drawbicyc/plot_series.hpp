@@ -2,11 +2,12 @@
 #include "PlotterMicro.hpp"
 #include <boost/tuple/tuple.hpp>
 #include "plots.hpp"
+#include "gnuplot_series_set_labels.hpp"
 
 const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence TODO: read from model output
 
 template<class Plotter_t>
-void plot_series(Plotter_t plotter, Plots plots)
+void plot_series(Plotter_t plotter, Plots plots, std::string type)
 {
 
   auto& n = plotter.map;
@@ -15,12 +16,12 @@ void plot_series(Plotter_t plotter, Plots plots)
      std::cout << elem.first << " " << elem.second << std::endl;
   }
   Gnuplot gp;
-  string file = plotter.file + "_series.svg";
+  string file = plotter.file + "_" + type + "_series.svg";
   int hor = min<int>(plots.series.size(), 4);
   int ver = double(plots.series.size()) / 4. + 0.99999;
   init_prof(gp, file, ver, hor); 
 
-  string prof_file = plotter.file + "_series.dat";
+  string prof_file = plotter.file + "_" + type + "_series.dat";
   std::ofstream oprof_file(prof_file);
 
   // read in density
@@ -53,6 +54,7 @@ void plot_series(Plotter_t plotter, Plots plots)
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
   // save time steps to the series file
+  oprof_file << "timesteps" << endl;
   oprof_file << plotter.timesteps;
 
 
@@ -362,7 +364,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 	// cloud droplet (0.5um < r < 25 um) concentration
         try
         {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap /= 1e6; // per cm^3
           snap *= rhod; // b4 it was per milligram
@@ -376,7 +378,7 @@ void plot_series(Plotter_t plotter, Plots plots)
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
@@ -385,6 +387,31 @@ void plot_series(Plotter_t plotter, Plots plots)
           snap2=snap;
           snap = iscloudy(snap); // cloudiness mask
           snap2 *= snap;
+          if(blitz::sum(snap) > 0)
+            res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      else if (plt == "cl_nr")
+      {
+	// rain drop (25um < r) concentration in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap = iscloudy(snap); // cloudiness mask
+
+          tmp = plotter.h5load_nr_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap2(tmp);
+          snap2 *= rhod; // b4 it was specific moment
+          snap2 /= 1e6; // per cm^3
+          snap2 *= snap;
+
           if(blitz::sum(snap) > 0)
             res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
           else
@@ -753,281 +780,106 @@ void plot_series(Plotter_t plotter, Plots plots)
       else assert(false);
     } // time loop
 
-    gp << "set yrange[*:*]\n";
-    gp << "set xrange[*:*]\n";
-
-    if (plt == "clfrac")
-    {
-    //  res_pos *= 60.;
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-      gp << "set title 'cloud fraction'\n";
-    }
-    else if (plt == "ract_com")
+    // processing done after reading whole time series
+    if (plt == "ract_com")
     {
       res_prof /= 1000.;
       res_pos *= 60.;
-      gp << "set ylabel 'q_c center of mass [km]'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'center of mass of cloud water'\n";
     }
     else if (plt == "th_com")
     {
       res_prof /= 1000.;
       res_pos *= 60.;
-      gp << "set ylabel 'th prtrb center of mass [km]'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'center of mass height'\n";
     }
     else if (plt == "ract_avg")
     {
       plot_std_dev = true;
       res_pos *= 60.;
-      gp << "set ylabel '<q_c>  [g/kg]'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'avg cloud water mixing ratio'\n";
     }
     else if (plt == "ract_std_dev")
     {
       res_pos *= 60.;
-      gp << "set ylabel 'sigma(q_c) / <q_c>'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'relative std dev of q_c'\n";
     }
     else if (plt == "cloud_avg_act_conc")
     {
       plot_std_dev = true;
       res_pos *= 60.;
-      gp << "set ylabel '<N_c>  [1/cm^3]'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'avg concentration of activated droplets'\n";
     }
     else if (plt == "cloud_std_dev_act_conc")
     {
       res_pos *= 60.;
-      gp << "set ylabel 'sigma(N_c) / <N_c>'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'relative std dev N_c'\n";
     }
     else if (plt == "cloud_avg_supersat")
     {
       plot_std_dev = true;
       res_pos *= 60.;
-      gp << "set ylabel '<S> [%]'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'avg supersaturation'\n";
     }
     else if (plt == "cloud_std_dev_supersat")
     {
       res_pos *= 60.;
-      gp << "set ylabel 'sigma(S) / <S>'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'relative std dev S'\n";
     }
     else if (plt == "cloud_avg_act_rad")
     {
       res_pos *= 60.;
-      gp << "set ylabel '<r_{mean}> [um]'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'average mean radius of activated droplets'\n";
     }
     else if (plt == "cloud_avg_std_dev_act_rad")
     {
       res_pos *= 60.;
- ///     res_prof *= 1e6;
-      gp << "set ylabel '<sigma(r)> [um]'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'average std dev of radius of activated droplets'\n";
     }
     else if (plt == "sd_conc_avg")
     {
       plot_std_dev = true;
       res_pos *= 60.;
-      gp << "set ylabel '<N_{SD}>'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'average SD number'\n";
     }
-/*
-    else if (plt == "sd_conc_std_dev")
-    {
-      res_pos *= 60.;
-      gp << "set ylabel 'sigma(N_{SD}) / <N_{SD}>'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'relative std dev of N_{SD}'\n";
-    }
-*/
     else if (plt == "sd_conc_act_avg")
     {
       plot_std_dev = true;
       res_pos *= 60.;
-      gp << "set ylabel '<N_{SD}^{act}>'\n";
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set title 'average activated SD number'\n";
     }
     else if (plt == "tot_water")
     {
-      gp << "set title 'mean water mass density'\n";
       res_pos *= 60.;
       res_prof *= 1e3;
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel 'mean (hydrometeors+vapor) water mass density [g/m^3]'\n";
     }
     else if (plt == "com_vel")
     {
-      gp << "set title 'vertical velocity of the COM\n";
       res_pos *= 60.;
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel 'w [m/s]'\n";
     }
     else if (plt == "com_supersat")
     {
-      gp << "set title 'supersaturation at the COM\n";
       res_pos *= 60.;
       res_prof *= 100.; // to get %
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel 'S [%]'\n";
     }
     else if (plt == "com_mom0")
     {
-      gp << "set title 'cloud drops concentration at the center of mass\n";
       res_pos *= 60.;
       res_prof /= 1e6;
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel 'N_c [cm^{-3}]'\n";
     }
     else if (plt == "com_mom1")
     {
-      gp << "set title 'mean wet radius at the center of mass\n";
       res_pos *= 60.;
       res_prof *= 1e6;
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel '<r> [micron]'\n";
     }
     else if (plt == "com_mom2")
     {
-      gp << "set title 'std dev of r at the center of mass\n";
       res_pos *= 60.;
       res_prof *= 1e6;
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel 'std dev [micron]'\n";
     }
     else if (plt == "com_sd_conc")
     {
-      gp << "set title 'number of SDs at the center of mass\n";
       res_pos *= 60.;
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel 'SD no'\n";
     }
-    else if (plt == "nc")
-      gp << "set title 'average cloud drop conc [1/cm^3]'\n";
-    else if (plt == "cl_nc")
-    {
-      gp << "set title 'average cloud drop conc [1/cm^3] in cloudy cells'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "wvarmax")
-    {
-      gp << "set title 'max variance of w [m^2 / s^2]'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "surf_precip")
-    {
-      gp << "set title 'surface precipitation [mm/d]'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "acc_precip")
-    {
-      gp << "set title 'accumulated surface precipitation [mm]'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "mass_dry")
-      gp << "set title 'total dry mass [g]'\n";
     else if (plt == "RH_max")
     {
-      gp << "set title 'max RH in the domain'\n";
       res_pos *= 60.;
-      gp << "set xlabel 'time [min]'\n";
-      gp << "set ylabel 'RH'\n";
     }
     else if (plt == "lwp")
     {
-      gp << "set title 'liquid water path [g / m^2]'\n";
       res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
     }
     else if (plt == "rwp")
     {
-      gp << "set title 'rain water path [g / m^2]'\n";
       res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "cloud_base")
-    {
-      gp << "set title 'cloud base [m]'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "cl_gccn_conc")
-    {
-      gp << "set title 'average gccn conc [1/cm^3] in cloudy cells'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "cl_gccn_to_non_gccn_conc_ratio")
-    {
-      gp << "set title 'average ratio of gccn to non-gccn conc in cloudy cells'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "cl_non_gccn_conc")
-    {
-      gp << "set title 'average non gccn conc [1/cm^3] in cloudy cells'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "cl_gccn_meanr")
-    {
-      gp << "set title 'average wet radius [um] of GCCNs in cloudy cells'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "cl_meanr")
-    {
-      gp << "set title 'average wet radius [um] of cloud droplets in cloudy cells'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "cl_avg_cloud_rad")
-    {
-      gp << "set title 'average wet radius [um] of cloud droplets in cloudy cells'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "gccn_conc")
-    {
-      gp << "set title 'average gccn conc [1/cm^3]'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "non_gccn_conc")
-    {
-      gp << "set title 'average non gccn conc [1/cm^3]'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-    }
-    else if (plt == "surf_flux_sensible")
-    {
-      gp << "set title 'sensible surf flux [W/m^2]'\n";
-    }
-    else if (plt == "surf_flux_latent")
-    {
-      gp << "set title 'latent surf flux [W/m^2]'\n";
     }
     else if (plt == "er")
     {
@@ -1043,16 +895,10 @@ void plot_series(Plotter_t plotter, Plots plots)
       //res_prof(0) = 0.;
       res_prof(0) = (res_prof_tmp(1) - res_prof_tmp(0)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"])  + D * (res_prof_tmp(0) - 0.5) * n["dz"] * 1e2;
       res_prof(last_timestep) = (res_prof_tmp(last_timestep) - res_prof_tmp(last_timestep-1)) * n["dz"] * 1e2 / (n["dt"] * n["outfreq"])  + D * (res_prof_tmp(last_timestep) - 0.5) * n["dz"] * 1e2;
-      gp << "set title 'entrainment rate [cm / s]'\n";
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
     }
-    else if (plt == "tot_tke")
-    {
-      gp << "set xlabel ''\n";
-      gp << "set ylabel ''\n";
-      gp << "set title 'turbulent kinetic energy (resolved + sgs) [m^3 / s^2]'\n";
-    }
+
+    // set labels for the gnuplot plot
+    gnuplot_series_set_labels(gp, plt);
 
     gp << "plot '-' with l";
     if(plot_std_dev)
@@ -1061,6 +907,7 @@ void plot_series(Plotter_t plotter, Plots plots)
 
     std::cout << plt << " " << res_pos << res_prof << res_prof_std_dev << std::endl;
     gp.send1d(boost::make_tuple(res_pos, res_prof));
+    oprof_file << plt << endl ;
     oprof_file << res_prof ;
     if(plot_std_dev)
     {

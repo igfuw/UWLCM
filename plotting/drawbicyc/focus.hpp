@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/detail/bins.hpp"
+#include "../../src/detail/bins.hpp"
 
 // focus plot locations
 const int yslice_idx=75;

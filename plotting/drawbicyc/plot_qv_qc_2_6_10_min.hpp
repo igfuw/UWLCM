@@ -7,7 +7,7 @@
 #include "plots.hpp"
 
 template<class Plotter_t>
-void plot_qv_qc_2_6_10_min(Plotter_t plotter, Plots plots)
+void plot_qv_qc_2_6_10_min(Plotter_t plotter)
 {
   using std::string;
   auto& n = plotter.map;
