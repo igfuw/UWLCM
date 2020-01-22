@@ -1,30 +1,25 @@
-#import h5py
-from Rico_comparison_common import *
+from matplotlib import rc
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../Matplotlib_common/")
+
+from plot_ranges import xscaledict, yscaledict, xlimdict_series, ylimdict_series
+from plot_series import *
 
 # activate latex text rendering
 rc('text', usetex=True)
+
+rico_vars = ["lwp", "rwp", "surf_precip", "acc_precip", "cl_nc"]
 
 # init the plot
 nplotx = 2
 nploty= 3
 fig, axarr = plt.subplots(nplotx,nploty)
 
-rico_vars = ["lwp", "rwp", "surf_precip", "acc_precip", "cl_nc"]
-
-
-#for var in rico_vars:
-#  plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr, xlabel = 'Time [h]')
-plot_series(rico_vars, nplotx, nploty, axarr, xlabel = 'Time [h]')
-#  if var == "precip" or var == "ndrop_cld" or var == "zb":
-#    plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr, xlabel = 'Time [h]')
-#  else:
-#    plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr)
-
-
-# show legends on each subplot
-#for x in np.arange(nplotx):
-#  for y in np.arange(nploty):
-#    axarr[x,y].legend()
+plot_series(rico_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})

@@ -1,26 +1,27 @@
-#import h5py
-from Dycoms_comparison_common import *
+from matplotlib import rc
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../Matplotlib_common/")
+
+from Dycoms_reference_plots import plot_reference_series
+from plot_ranges import xscaledict, yscaledict, xlimdict_series, ylimdict_series
+from plot_series import *
 
 # activate latex text rendering
 rc('text', usetex=True)
+
+dycoms_vars = ["lwp", "er", "wvarmax", "surf_precip", "cl_nc", "cloud_base"]# "cfrac"]
 
 # init the plot
 nplotx = 2
 nploty= 3
 fig, axarr = plt.subplots(nplotx,nploty)
 
-dycoms_vars = ["lwp", "er", "wvarmax", "surf_precip", "cl_nc", "cloud_base"]# "cfrac"]
-
-plot_iter = 0
-
-#for var in dycoms_vars:
-#  if var == "precip" or var == "ndrop_cld" or var == "zb":
-#    plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr, xlabel = 'Time [h]')
-#  else:
-#    plot_iter = plot_series(var, plot_iter,nplotx, nploty, axarr)
-
-plot_iter = plot_series(dycoms_vars, plot_iter,nplotx, nploty, axarr, xlabel = 'Time [h]')
-
+plot_reference_series(dycoms_vars, 0, nplotx, nploty, axarr)
+plot_series(dycoms_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]')
 
 # show legends on each subplot
 #for x in np.arange(nplotx):
