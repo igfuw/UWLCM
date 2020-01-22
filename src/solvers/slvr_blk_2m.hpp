@@ -187,10 +187,10 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
         rv     = this->state(ix::rv)(this->ijk),
         &p_e_arg = p_e(this->ijk); //TODO: use const pressure in blk_2m
         nancheck(nc, "nc before blk_2m rhs_cellwise call");
-        negtozero(nc, "nc before blk_2m rhs_cellwise call");
+        negtozero(this->state(ix::nc)(this->ijk), "nc before blk_2m rhs_cellwise call");
         negcheck(nc, "nc before blk_2m rhs_cellwise call");
         nancheck(nr, "nr before blk_2m rhs_cellwise call");
-        negtozero(nr, "nr before blk_2m rhs_cellwise call");
+        negtozero(this->state(ix::nr)(this->ijk), "nr before blk_2m rhs_cellwise call");
         negcheck(nr, "nr before blk_2m rhs_cellwise call");
        libcloudphxx::blk_2m::rhs_cellwise<real_t>(
         opts, dot_th,  dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
