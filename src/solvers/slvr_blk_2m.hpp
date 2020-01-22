@@ -68,10 +68,10 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   void rr_src();
   void nr_src();
 
-  bool get_rain() { return opts.acnv; }
+  bool get_rain() { return params.cloudph_opts.acnv; }
   void set_rain(bool val) {
-    opts.acnv = val ? params.flag_acnv : false;
-    opts.RH_max = val ? 44 : 1.01;
+    params.cloudph_opts.acnv = val ? params.flag_acnv : false;
+    params.cloudph_opts.RH_max = val ? 44 : 1.01;
   };
 
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) final
@@ -97,7 +97,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void hook_ante_loop(int nt)
   {
-    params.flag_acnv = opts.acnv;
+    params.flag_acnv = params.cloudph_opts.acnv;
 
     // fill with zeros
     this->state(ix::rc)(this->ijk) = 0;
@@ -114,14 +114,14 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     if(this->rank==0)
     {
       this->record_aux_const("double-moment bulk microphysics", -44);
-      this->record_aux_const("acti", opts.acti);
-      this->record_aux_const("cond", opts.cond);
-      this->record_aux_const("accr", opts.accr);
+      this->record_aux_const("acti", params.cloudph_opts.acti);
+      this->record_aux_const("cond", params.cloudph_opts.cond);
+      this->record_aux_const("accr", params.cloudph_opts.accr);
       this->record_aux_const("acnv", params.flag_acnv);
-      this->record_aux_const("sedi", opts.sedi);
-      this->record_aux_const("acnv_A", opts.acnv_A);
-      this->record_aux_const("acnv_b", opts.acnv_b);
-      this->record_aux_const("acnv_c", opts.acnv_c);
+      this->record_aux_const("sedi", params.cloudph_opts.sedi);
+      this->record_aux_const("acnv_A", params.cloudph_opts.acnv_A);
+      this->record_aux_const("acnv_b", params.cloudph_opts.acnv_b);
+      this->record_aux_const("acnv_c", params.cloudph_opts.acnv_c);
       this->record_aux_const("user_params rc_src", params.user_params.rc_src);
       this->record_aux_const("user_params rr_src", params.user_params.rr_src);
       this->record_aux_const("user_params nc_src", params.user_params.nc_src);
@@ -131,10 +131,10 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       this->record_aux_const("rt_params nc_src", params.nc_src);
       this->record_aux_const("rt_params nr_src", params.nr_src);
       /*
-      this->record_aux_const("blk2m_mean_rd", &opts.dry_distros.mean_rd);
-      this->record_aux_const("blk2m_sdev_rd", &opts.dry_distros.sdev_rd);
-      this->record_aux_const("blk2m_N_stp", &opts.dry_distros.N_stp);
-      this->record_aux_const("blk2m_chem_b", &opts.dry_distros.chem_b);
+      this->record_aux_const("blk2m_mean_rd", &params.cloudph_opts.dry_distros.mean_rd);
+      this->record_aux_const("blk2m_sdev_rd", &params.cloudph_opts.dry_distros.sdev_rd);
+      this->record_aux_const("blk2m_N_stp", &params.cloudph_opts.dry_distros.N_stp);
+      this->record_aux_const("blk2m_chem_b", &params.cloudph_opts.dry_distros.chem_b);
       */
     }
   }
@@ -193,7 +193,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
         negtozero(this->state(ix::nr)(this->ijk), "nr before blk_2m rhs_cellwise call");
         negcheck(nr, "nr before blk_2m rhs_cellwise call");
        libcloudphxx::blk_2m::rhs_cellwise<real_t>(
-        opts, dot_th,  dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
+        params.cloudph_opts, dot_th,  dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
         rhod, th,     rv,     rc,     nc,     rr,     nr,
         this->dt, true, p_e_arg
       );
@@ -259,8 +259,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     }
   }
 
-  libcloudphxx::blk_2m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
-
   public:
 
   struct rt_params_t : parent_t::rt_params_t
@@ -290,7 +288,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   ) :
     parent_t(args, p),
     params(p),
-    opts(p.cloudph_opts),
     liquid_puddle(0),
     p_e(args.mem->tmp[__FILE__][0][0])
   {}
@@ -348,7 +345,7 @@ class slvr_blk_2m<
           rr     = this->state(parent_t::ix::rr)(i, this->j),
           nr     = this->state(parent_t::ix::nr)(i, this->j);
         this->liquid_puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
-          this->opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
+          this->params.cloudph_opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
         );
       }
 
@@ -410,7 +407,7 @@ class slvr_blk_2m<
           rr     = this->state(parent_t::ix::rr)(i, j, this->k),
           nr     = this->state(parent_t::ix::nr)(i, j, this->k);
           this->liquid_puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
-            this->opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
+            this->params.cloudph_opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
           );
         }
 
