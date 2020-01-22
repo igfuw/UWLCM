@@ -34,7 +34,7 @@ bool open_file(string filename, ifstream &stream)
 void average(int argc, char* argv[], int wtp, std::vector<std::string> types, std::string suffix)
 {
   Array<double, 1> snap, snap2;
-  Array<double, 1> avg, pos, weight;
+  Array<double, 1> avg, pos, weight, std_dev;
   blitz::firstIndex fi;
   ifstream iprof_file;
   std::string line;
@@ -61,6 +61,7 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
         cerr << "size init: " << snap;
   iprof_file.close();
   avg.resize(snap.shape());
+  std_dev.resize(snap.shape());
   pos.resize(snap.shape());
   weight.resize(snap.shape());
   snap2.resize(snap.shape());
@@ -75,6 +76,7 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
       gnuplot_profs_set_labels(gp, plt, false); // FIXME: we assume here that normalization is not done
 
     avg = 0;
+    std_dev = 0;
     weight = 0;
 
     for(int i=4; i<argc; i+=1) // add value of the array from each file
@@ -100,15 +102,18 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
         std::getline(iprof_file, line); // discard array description
         iprof_file >> snap; // read actual values
         avg += snap * snap2; // add weight*value
+        std_dev += snap * snap * snap2; // weight * value^2
       }
       else // all values have same weight
       {
         avg += snap;
+        std_dev += snap * snap;
         weight += 1;
       }
       iprof_file.close();
     }
     avg = where(weight > 0, avg / weight, 0);
+    std_dev = where(weight > 0, sqrt(std_dev / weight - avg * avg), 0); // without the Bessel correction
     if(plt == "position")
       pos = avg;
     else
@@ -121,6 +126,7 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
     }
 
     std::cout << plt << " avg: " << avg;
+    std::cout << plt << " std_dev: " << std_dev;
     if (plt == "base_prflux_vs_clhght") 
     {
       oprof_file << plt << " number of occurances" << endl;
@@ -128,6 +134,8 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
     }
     oprof_file << plt << endl;
     oprof_file << avg;
+    oprof_file << plt << "_std_dev" << endl;
+    oprof_file << std_dev;
 
     prof_ctr += 
       plt == "base_prflux_vs_clhght" ||  // this plot outputs two arrays: weights and averages

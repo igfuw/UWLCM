@@ -1,29 +1,31 @@
-import sys
+from matplotlib import rc
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Matplotlib_common/")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../RICO11/")
-from Rico_comparison_common import *
+
+from plot_ranges import *
+from plot_series import *
+from plot_profs import *
 
 # activate latex text rendering
 rc('text', usetex=True)
 
 rico_profs = ["prflux", "cl_nc", "non_gccn_rw_cl", "gccn_rw_cl", "base_prflux_vs_clhght"]
-rico_series = ["acc_precip"]
+rico_series = ["acc_precip", "cl_gccn_conc"]
 nplots = len(rico_profs + rico_series)# + 2 # 2 updraft profiles without rico results
 
 # init the plot
-nplotx = 2 #int(nplots/6 + 0.5)
+nplotx = 3 #int(nplots/6 + 0.5)
 nploty = 3 # int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
 plot_iter=0
-#for var in rico_series:
-#  print var, plot_iter
-#  plot_iter = plot_series(var, plot_iter, nplotx, nploty, axarr, False, suffix="series.dat", xlabel='Time [h]')
-#for var in rico_profs:
-#  print var, plot_iter
-plot_iter = plot_series(rico_series, plot_iter, nplotx, nploty, axarr, suffix="series.dat", xlabel='Time [h]')
-plot_iter = plot_profiles(rico_profs, plot_iter, nplotx, nploty, axarr, suffix="profiles_18000_36000.dat", ylabel = '$z[m]$')
-
+plot_iter = plot_series(rico_series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, False, suffix="series.dat", xlabel='Time [h]')
+plot_profiles(rico_profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, suffix="profiles_18000_36000.dat", ylabel='$z$[m]')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
@@ -66,7 +68,7 @@ lgd = fig.legend(handles, labels, handlelength=4, loc='lower center', bbox_to_an
 
 
 #figure size
-fig.set_size_inches(7.874, 5. + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
+fig.set_size_inches(7.874, 0.5 * nplotx * 5. + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
 fig.subplots_adjust(bottom=0.14 + (len(labels) - 2) * 0.03, hspace=0.25, wspace=0.4)
 
