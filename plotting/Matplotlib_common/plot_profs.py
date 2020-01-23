@@ -26,7 +26,7 @@ def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscale
 
       # remove artificial values of cloudy-cell variables near the surface due to incorrect cloudiness mask (e.g. RICO mask used in DYCOMS)
       if(var == "gccn_rw_cl" or var == "non_gccn_rw_cl" or var == "cl_nc"):
-        my_res[0:3] = 0
+        my_res[0:10] = 0
     
       linestyles = ['--', '-.', ':']
       dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
