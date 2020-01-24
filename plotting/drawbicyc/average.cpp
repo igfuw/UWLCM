@@ -113,7 +113,8 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
       iprof_file.close();
     }
     avg = where(weight > 0, avg / weight, 0);
-    std_dev = where(weight > 0, sqrt(std_dev / weight - avg * avg), 0); // without the Bessel correction
+    //std_dev = where(weight > 0, sqrt(std_dev / weight - avg * avg), 0); // without the Bessel correction
+    std_dev = where(weight > 0, sqrt(weight / (weight - 1) * (std_dev / weight - avg * avg)), 0); // with the Bessel correction
     if(plt == "position")
       pos = avg;
     else

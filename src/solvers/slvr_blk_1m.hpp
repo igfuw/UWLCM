@@ -44,14 +44,14 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
 /*
     libcloudphxx::blk_1m::adj_cellwise<real_t>( 
-      opts, rhod, th, rv, rc, rr, this->dt
+      params.cloudph_opts, rhod, th, rv, rc, rr, this->dt
     );
     libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
-      opts, rhod, p_e_arg, th, rv, rc, rr, this->dt
+      params.cloudph_opts, rhod, p_e_arg, th, rv, rc, rr, this->dt
     );
 */
     libcloudphxx::blk_1m::adj_cellwise_nwtrph<real_t>( 
-      opts, p_e_arg, th, rv, rc, this->dt
+      params.cloudph_opts, p_e_arg, th, rv, rc, this->dt
     );
     this->mem->barrier(); 
   }
@@ -81,8 +81,11 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void rc_src();
   void rr_src();
-  bool get_rain() { return opts.conv; }
-  void set_rain(bool val) { opts.conv = val; };
+  bool get_rain() { return params.cloudph_opts.conv; }
+  void set_rain(bool val) 
+  { 
+    params.cloudph_opts.conv = val ? params.flag_conv : false;
+  };
 
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) final
   {
@@ -105,6 +108,8 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
+    params.flag_conv = params.cloudph_opts.conv;
+
     // fill with zeros
     this->state(ix::rc)(this->ijk) = 0;
     this->state(ix::rr)(this->ijk) = 0;
@@ -121,15 +126,15 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     if(this->rank==0)
     {
       this->record_aux_const("single-moment bulk microphysics", -44);  
-      this->record_aux_const("cond", opts.cond);  
-      this->record_aux_const("cevp", opts.cevp);  
-      this->record_aux_const("revp", opts.revp);  
-      this->record_aux_const("conv", opts.conv);  
-      this->record_aux_const("accr", opts.accr);  
-      this->record_aux_const("sedi", opts.sedi);  
-      this->record_aux_const("r_c0", opts.r_c0);  
-      this->record_aux_const("k_acnv", opts.k_acnv);  
-      this->record_aux_const("r_eps", opts.r_eps);  
+      this->record_aux_const("cond", params.cloudph_opts.cond);  
+      this->record_aux_const("cevp", params.cloudph_opts.cevp);  
+      this->record_aux_const("revp", params.cloudph_opts.revp);  
+      this->record_aux_const("conv", params.flag_conv);  
+      this->record_aux_const("accr", params.cloudph_opts.accr);  
+      this->record_aux_const("sedi", params.cloudph_opts.sedi);  
+      this->record_aux_const("r_c0", params.cloudph_opts.r_c0);  
+      this->record_aux_const("k_acnv", params.cloudph_opts.k_acnv);  
+      this->record_aux_const("r_eps", params.cloudph_opts.r_eps);  
       this->record_aux_const("user_params rc_src", params.user_params.rc_src);  
       this->record_aux_const("user_params rr_src", params.user_params.rr_src);  
       this->record_aux_const("rt_params rc_src", params.rc_src);  
@@ -195,7 +200,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
         rhod = (*this->mem->G)(this->ijk),
         &p_e_arg = p_e(this->ijk);
       libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(
-          opts,
+          params.cloudph_opts,
           dot_th, dot_rv, dot_rc, dot_rr,
           rhod, p_e_arg, th, rv, rc, rr,
           dt
@@ -264,13 +269,12 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   }
 
-  libcloudphxx::blk_1m::opts_t<real_t> opts; // local copy of opts from rt_params, why is it needed? use rt_params::cloudph_opts instead?
-
   public:
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
     libcloudphxx::blk_1m::opts_t<real_t> cloudph_opts;
+    bool flag_conv; // do we want coal after spinup
   };
 
   protected:
@@ -294,7 +298,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   ) : 
     parent_t(args, p),
     params(p),
-    opts(p.cloudph_opts),
     liquid_puddle(0),
     p_e(args.mem->tmp[__FILE__][0][0]),
     precipitation_rate(args.mem->tmp[__FILE__][0][1])
@@ -350,7 +353,7 @@ class slvr_blk_1m<
         const auto 
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j);
-        this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+        this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->params.cloudph_opts, precipitation_rate_arg, rhod, rr, this->params.dz);
       }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
@@ -409,7 +412,7 @@ class slvr_blk_1m<
           const auto 
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k);
-          this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+          this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->params.cloudph_opts, precipitation_rate_arg, rhod, rr, this->params.dz);
         }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
