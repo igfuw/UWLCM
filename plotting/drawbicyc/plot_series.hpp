@@ -54,7 +54,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
   // save time steps to the series file
-  oprof_file << "timesteps" << endl;
+  oprof_file << "position" << endl;
   oprof_file << plotter.timesteps;
 
 
