@@ -764,7 +764,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
 //    res_pos = i * n["dz"] / z_i; 
     if(!res_pos_out_done)
     {
-      oprof_file << "height" << endl;
+      oprof_file << "position" << endl;
       oprof_file << res_pos;
       res_pos_out_done = true;
     }

@@ -48,16 +48,16 @@ xlimdict_profs = {
   "thl" : None,#(288.2,289.2),
   "00rtot" : None,#(9,10.4),
   "rliq" : (0,0.7),
-  "prflux" : (0,70),
-  "cl_nc" : (0,120),
+  "prflux" : None,#(0,70),
+  "cl_nc" : None,#(0,120),
   "clfrac" : None,
   "wvar" : (-0.1,0.8),
   "w3rd" : (-0.15,.15),
   "sat_RH" : (-5,1),
   "rad_flx" : None,
-  "gccn_rw_cl" : (0,40),
-  "non_gccn_rw_cl" : (0,7),
-  "base_prflux_vs_clhght" : (1,10000)
+  "gccn_rw_cl" : None,#(0,40),
+  "non_gccn_rw_cl" :None,# (0,7),
+  "base_prflux_vs_clhght" : None,#(1,10000)
 }
 
 ylimdict_profs = {
@@ -94,10 +94,10 @@ ylimdict_series = {
   "lwp" : None,
   "er" : None,
   "wvarmax" : None,
-  "surf_precip" : (-0.01,0.5),
-  "acc_precip" : (0,0.07),
+  "surf_precip" : None,#(-0.01,0.5),
+  "acc_precip" : None,#(0,0.07),
   "cloud_base" : None,
-  "cl_gccn_conc" : (1e-10,1e-0)
+  "cl_gccn_conc" : None,#(1e-10,1e-0)
 }
 
 
