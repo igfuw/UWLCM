@@ -11,6 +11,7 @@ def read_my_array(file_obj):
   return np.array(arr), arr_name
 
 def read_my_var(file_obj, var_name):
+  file_obj.seek(0)
   while True:
     arr, name = read_my_array(file_obj)
     if(str(name).strip() == str(var_name).strip()):
