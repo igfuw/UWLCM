@@ -69,12 +69,20 @@ for it in np.arange(12):
 #  clfrac_at_cbase = read_my_var(profs_infile, "clfrac")[clbase]
 #  print clfrac_at_cbase
 #  prflux_at_cbase = read_my_var(profs_infile, "prflux")[clbase]
-#  print prflux_at_cbase
+##  print prflux_at_cbase
 #  prflux.append(read_my_var(profs_infile, "prflux")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
 #  prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
 # --- get prflux at cloud base height ---
   prflux.append(read_my_var(profs_infile, "prflux")[clbase])
   prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase])
+# --- get prflux at cloud base from the prflux vs cloud height profile ---
+#  clb_prflux = read_my_var(profs_infile, "base_prflux_vs_clhght")
+#  clb_prflux_std_dev = np.nan_to_num(read_my_var(profs_infile, "base_prflux_vs_clhght_std_dev"))
+#  clb_prflux_occur = read_my_var(profs_infile, "base_prflux_vs_clhght number of occurances")
+#
+#  prflux.append(np.sum(clb_prflux * clb_prflux_occur) / np.sum(clb_prflux_occur))
+#  prflux_std_dev.append(np.sum(clb_prflux_std_dev * clb_prflux_occur) / np.sum(clb_prflux_occur))
+
 
   if((it+1) % 4 == 0):
    # tot_acc_surf_precip_std_dev = [3 * x for x in tot_acc_surf_precip_std_dev] # we show errors bars with 3 std dev
