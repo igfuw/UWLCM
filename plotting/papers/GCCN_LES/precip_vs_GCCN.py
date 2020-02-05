@@ -18,7 +18,7 @@ profs_from_it = int(sys.argv[3])
 profs_to_it = int(sys.argv[4])
 qlimit = float(sys.argv[5])
 
-varlabels = ["clean", "standard", "polluted"]
+varlabels = ["{\it clean}", "{\it standard}", "{\it polluted}"]
 
 # assumed initial GCCN concentrations
 GCCN_conc = [0,0.2817,5*0.2817,10*0.2817]
@@ -90,6 +90,7 @@ for it in np.arange(12):
    # tot_acc_surf_precip_std_dev = [3 * x for x in tot_acc_surf_precip_std_dev] # we show errors bars with 3 std dev
     tot_acc_surf_precip = [(24. / 4.) * x for x in tot_acc_surf_precip] # turn into mm / day
     tot_acc_surf_precip_std_dev = [(24. / 4.) * x for x in tot_acc_surf_precip_std_dev] # turn into mm / day
+    print tot_acc_surf_precip
     #axarr[0].plot(GCCN_conc, mean_surf_precip, 'o')
     axarr[0].errorbar(GCCN_conc, tot_acc_surf_precip, yerr = tot_acc_surf_precip_std_dev, marker='o', fmt='.', label = varlabels[(it)/4])
     axarr[1].errorbar(GCCN_conc, prflux, yerr = prflux_std_dev, marker='o', fmt='.')
@@ -139,9 +140,9 @@ lgd = fig.legend(handles, labels, handlelength=4, loc='lower center', bbox_to_an
 
 
 #figure size
-fig.set_size_inches(7.2, 5)# 5.214)#20.75,13.74)
+fig.set_size_inches(7.2, 4)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
-fig.subplots_adjust(bottom=0.14 + (len(labels) - 2) * 0.03, hspace=0.25, wspace=0.4)
+fig.subplots_adjust(bottom=0.14 + (len(labels) - 2) * 0.10, hspace=0.25, wspace=0.4)
 
 #fig.tight_layout(pad=0, w_pad=0, h_pad=0)
 

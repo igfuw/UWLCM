@@ -1,7 +1,7 @@
 var_labels = {
   "lwp" : 'LWP [g m$^{-2}$]',
   "rwp" : 'RWP [g m$^{-2}$]',
-  "surf_precip" : 'Surface precip. [mm d$^{-1}$]',
+  "surf_precip" : 'Surface precip. [mm/day]',
   "acc_precip" : 'Accumulated precip. [mm]',
   "cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
   "cl_gccn_conc" : '$N_{GCCN}$ [cm$^{-3}$] (cloudy cells)',
