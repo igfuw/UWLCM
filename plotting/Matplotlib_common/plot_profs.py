@@ -1,7 +1,7 @@
 import numpy as np
 from sys import argv
 
-from latex_labels import *
+from latex_labels import var_labels
 from read_UWLCM_arrays import *
 
 def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict, ylimdict, suffix='', ylabel=''):
