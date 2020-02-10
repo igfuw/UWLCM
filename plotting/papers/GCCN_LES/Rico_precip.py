@@ -15,7 +15,7 @@ from plot_profs import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-rico_profs = ["prflux", "cl_nc", "non_gccn_rw_cl", "gccn_rw_cl", "base_prflux_vs_clhght"]
+rico_profs = ["prflux", "cl_nc", "non_gccn_rw_cl", "gccn_rw_cl", "base_prflux_vs_clhght", "base_prflux_vs_clhght number of occurances"]
 rico_series = ["acc_precip", "cl_gccn_conc"]
 nplots = len(rico_profs + rico_series)# + 2 # 2 updraft profiles without rico results
 
