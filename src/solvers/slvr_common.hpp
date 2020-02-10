@@ -182,7 +182,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
 
     // save current time for execution time diagnostic
-    tbeg_loop = parent_t::clock::now();
+    tbeg_loop = clock::now();
   }
 
   void hook_ante_step()
