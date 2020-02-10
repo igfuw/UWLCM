@@ -19,6 +19,7 @@ xscaledict = {
   "gccn_rw_cl" : "linear",
   "non_gccn_rw_cl" : "linear",
   "base_prflux_vs_clhght" : "log",
+  "base_prflux_vs_clhght number of occurances" : "log",
   "cl_gccn_conc" : "linear"
 }
 
@@ -43,6 +44,7 @@ yscaledict = {
   "gccn_rw_cl" : "linear",
   "non_gccn_rw_cl" : "linear",
   "base_prflux_vs_clhght" : "linear",
+  "base_prflux_vs_clhght number of occurances" : "linear",
   "cl_gccn_conc" : "log"
 }
 
@@ -59,7 +61,8 @@ xlimdict_profs = {
   "rad_flx" : None,
   "gccn_rw_cl" : None,#(0,90),
   "non_gccn_rw_cl" : None,#(0,12),
-  "base_prflux_vs_clhght" : None#(1,10000)
+  "base_prflux_vs_clhght" : None,#(1,10000)
+  "base_prflux_vs_clhght number of occurances" : None#(1,10000)
 }
 
 ylimdict_profs = {
@@ -75,7 +78,8 @@ ylimdict_profs = {
   "rad_flx" : (0,3000),
   "gccn_rw_cl" : (0,3000),
   "non_gccn_rw_cl" : (0,3000),
-  "base_prflux_vs_clhght" : (0,2500)
+  "base_prflux_vs_clhght" : (0,2500),
+  "base_prflux_vs_clhght number of occurances" : (0,2500)
 }
 
 xlimdict_series = {

@@ -180,6 +180,9 @@ class slvr_common : public slvr_dim<ct_params_t>
         params.dz / 2, 0, this->dt, this->di, this->dj
       );
     }
+
+    // save current time for execution time diagnostic
+    tbeg_loop = clock::now();
   }
 
   void hook_ante_step()
