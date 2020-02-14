@@ -19,6 +19,7 @@ profs_to_it = int(sys.argv[4])
 qlimit = float(sys.argv[5])
 
 varlabels = ["{\it clean}", "{\it standard}", "{\it polluted}"]
+averaging_period = float(profs_to_it - profs_from_it) / 3600. # period over which series are averaged [h]; NOTE: we assume that series_from(to)_it = profs_from(to)_it / outfreq!
 
 # assumed initial GCCN concentrations
 GCCN_conc = [0,0.2817,5*0.2817,10*0.2817]
@@ -88,8 +89,8 @@ for it in np.arange(12):
 
   if((it+1) % 4 == 0):
    # tot_acc_surf_precip_std_dev = [3 * x for x in tot_acc_surf_precip_std_dev] # we show errors bars with 3 std dev
-    tot_acc_surf_precip = [(24. / 4.) * x for x in tot_acc_surf_precip] # turn into mm / day
-    tot_acc_surf_precip_std_dev = [(24. / 4.) * x for x in tot_acc_surf_precip_std_dev] # turn into mm / day
+    tot_acc_surf_precip = [(24. / averaging_period) * x for x in tot_acc_surf_precip] # turn into mm / day
+    tot_acc_surf_precip_std_dev = [(24. / averaging_period) * x for x in tot_acc_surf_precip_std_dev] # turn into mm / day
     print tot_acc_surf_precip
     #axarr[0].plot(GCCN_conc, mean_surf_precip, 'o')
     axarr[0].errorbar(GCCN_conc, tot_acc_surf_precip, yerr = tot_acc_surf_precip_std_dev, marker='o', fmt='.', label = varlabels[(it)/4])
