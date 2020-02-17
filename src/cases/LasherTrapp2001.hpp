@@ -23,11 +23,11 @@ namespace setup
 
     const quantity<si::pressure, real_t> 
       p_0 = 101800 * si::pascals;
+    const quantity<si::length, real_t> X[] = {/*2D*/12000 * si::metres, /*3D*/10000 * si::metres};
     const quantity<si::length, real_t> 
       z_0  = 0    * si::metres,
-      Z    = 8000 * si::metres, // DYCOMS: 1500
-      X    = 10000 * si::metres, // DYCOMS: 6400
-      Y    = 10000 * si::metres; // DYCOMS: 6400
+      Y    = 10000 * si:metres,
+      Z    = 8000 * si::metres; 
     const real_t z_abs = 7000;
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
@@ -301,7 +301,7 @@ namespace setup
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
+        params.di = (X[0] / si::metres) / (nps[0]-1); 
         params.dj = (Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
@@ -317,7 +317,7 @@ namespace setup
       public:
       LasherTrapp2001()
       {
-        this->X = X;
+        this->X = X[0];
       }
     };
 
@@ -331,7 +331,7 @@ namespace setup
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
+        params.di = (X[1] / si::metres) / (nps[0]-1); 
         params.dj = (Y / si::metres) / (nps[1]-1);
         params.dk = (Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
@@ -354,7 +354,7 @@ namespace setup
       public:
       LasherTrapp2001()
       {
-        this->X = X;
+        this->X = X[1];
         this->Y = Y;
       }
     };
