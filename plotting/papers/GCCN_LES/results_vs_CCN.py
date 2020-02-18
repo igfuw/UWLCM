@@ -40,7 +40,10 @@ for ccn_iter in [0,1,2]: # clean, standard, polluted
   
   print file_names
 #  plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', file_names=file_names, file_labels=file_labels)
-  plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='$z/z_i$', file_names=file_names, file_labels=file_labels)
+  if ccn_iter == 0:
+    plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='cloudy column height [m]', file_names=file_names, file_labels=file_labels)
+  else:
+    plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='', file_names=file_names, file_labels=file_labels)
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
@@ -76,14 +79,19 @@ lgd = fig.legend(handles, labels, handlelength=4, loc='lower center', bbox_to_an
 #figure size
 fig.set_size_inches(7.874, 2. + (len(labels) ) * 0.34)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
-fig.subplots_adjust(bottom=0.14 + (len(labels) ) * 0.044, hspace=0.25, wspace=0.4)
+fig.subplots_adjust(bottom=0.14 + (len(labels) ) * 0.044, hspace=0, wspace=0.4)
 
-#fig.tight_layout(pad=0, w_pad=0, h_pad=0)
+fig.tight_layout(pad=0, w_pad=0, h_pad=0, rect=(0,0.25,1,1))
 
 #figure size
 #fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
 #fig.subplots_adjust(bottom=0.15 + (len(labels) - 2) * 0.02, hspace=0.25)
+
+#hide vertical tick labels
+#axarr[1].set_yticklabels([])
+#axarr[2].set_yticklabels([])
+
 
 
 #plt.show()
