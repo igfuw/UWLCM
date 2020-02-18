@@ -5,7 +5,8 @@ from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Matplotlib_common/")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Dycoms_RF02/")
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Dycoms_RF02/")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../RICO11/")
 
 from plot_ranges import * 
 from plot_series import *
@@ -14,7 +15,8 @@ from plot_profs import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-series = ["surf_precip"]
+#series = ["surf_precip"]
+profs = ["base_prflux_vs_clhght"]
 nplotx = 1
 nploty = 3
 
@@ -33,12 +35,12 @@ for ccn_iter in [0,1,2]: # clean, standard, polluted
   for no in file_no:
     print no
     print argv[no]
-    file_names.append(argv[no] + "series.dat")
+    file_names.append(argv[no] + "profiles_18000_36000.dat")
     file_labels.append(argv[no+1])
   
   print file_names
-  plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', file_names=file_names, file_labels=file_labels)
-#plot_profiles(dycoms_profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, suffix="profiles_7200_18000.dat", ylabel='$z/z_i$')
+#  plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', file_names=file_names, file_labels=file_labels)
+  plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='$z/z_i$', file_names=file_names, file_labels=file_labels)
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
