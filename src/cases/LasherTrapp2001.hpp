@@ -25,9 +25,15 @@ namespace setup
       p_0 = 101800 * si::pascals;
     const quantity<si::length, real_t> X[] = {/*2D*/12000 * si::metres, /*3D*/10000 * si::metres};
     const quantity<si::length, real_t> 
+<<<<<<< HEAD
+      z_0  = 0    * si::metres,
+      Y    = 10000 * si::metres,
+      Z    = 8000 * si::metres; 
+=======
       z_0  = 0     * si::metres,
       Y    = 10000 * si::metres,
       Z    = 8000  * si::metres; 
+>>>>>>> 8fb5d7893513acd17cc476378931cb617553f874
     const real_t z_abs = 7000;
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 

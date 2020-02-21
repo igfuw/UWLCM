@@ -1,0 +1,5 @@
+/home/pzmij/biblioteki/UWLCM/plotting/drawbicyc/build/CMakeFiles/edit_cache.dir
+/home/pzmij/biblioteki/UWLCM/plotting/drawbicyc/build/CMakeFiles/average.dir
+/home/pzmij/biblioteki/UWLCM/plotting/drawbicyc/build/CMakeFiles/rebuild_cache.dir
+/home/pzmij/biblioteki/UWLCM/plotting/drawbicyc/build/CMakeFiles/drawbicyc.dir
+/home/pzmij/biblioteki/UWLCM/plotting/drawbicyc/build/CMakeFiles/plot_series_compare.dir

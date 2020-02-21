@@ -92,6 +92,10 @@ std::vector<std::string> profs_dycoms({
 ,"sat_RH_up"
 //, "act_conc_up" 
 //, "nc_down" 
+//, "nc_up"
+//,"sat_RH_up"
+//, "act_conc_up"
+//, "nc_down"
 }); // rtot has to be first
 
 std::vector<std::string> profs_rico({
