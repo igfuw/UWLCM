@@ -3,12 +3,16 @@
 import h5py
 import numpy as np
 from sys import argv
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 
 #velocities = ["u", "v", "w"]
 #velocities = ["u", "v", "w", "cloud_rw_mom3", "rv", "th", "RH", "aerosol_rw_mom3"]
+velocities = ["u", "cloud_rw_mom3", "w"]
 #velocities = ["cloud_rw_mom3"]
-velocities = ["w"]
+#velocities = ["w"]
 
 time_start = int(argv[1])
 time_end = int(argv[2])
@@ -53,23 +57,26 @@ for directory, lab in zip(directories, labels):
         Exy_avg[vel] += Exy
   
       K = np.fft.rfftfreq(nx - 1)
+      print nx
+      print K
   #    plt.loglog(K, Exy)
-      lmbd = 50. / K # assume dx=50m
+#      lmbd = 50. / K # assume dx=50m
     
-    if (t == time_start and lab==labels[0]):
-      plt.loglog(lmbd, 2e-1* K**(-5./3.) )
-  
+#    if (t == time_start and lab==labels[0]):
+#      plt.loglog(lmbd, 2e-1* K**(-5./3.) )
+
+  f1=plt.figure(1)  
   for vel in velocities:
     Exy_avg[vel] /= (time_end - time_start) / outfreq + 1
     Exy_avg[vel] /= to_lvl+1 - from_lvl
   #crudely scale
   #  Exy_avg[vel] /= Exy_avg[vel][len(Exy_avg[vel])-1]
-    plt.loglog(lmbd, Exy_avg[vel] , linewidth=2, label=lab+"_"+vel)
- 
-plt.xlim(10**4,10**2)
+  #  plt.loglog(lmbd, Exy_avg[vel] , linewidth=2, label=lab+"_"+vel)
+    plt.loglog(K, Exy_avg[vel] , linewidth=2, label=lab+"_"+vel)
+#plt.xlim(10**4,10**2)
 plt.xlabel("l[m]")
 plt.ylabel("PSD")
 plt.legend()
 plt.grid(True, which='both', linestyle='--')
 plt.title("Mean PSD of w 322m<z<642m @3h")
-plt.show()
+f1.savefig('spectrum.png')
