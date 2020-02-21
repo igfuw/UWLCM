@@ -113,7 +113,8 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
       iprof_file.close();
     }
     avg = where(weight > 0, avg / weight, 0);
-    std_dev = where(weight > 0, sqrt(std_dev / weight - avg * avg), 0); // without the Bessel correction
+    //std_dev = where(weight > 0, sqrt(std_dev / weight - avg * avg), 0); // without the Bessel correction
+    std_dev = where(weight > 0, sqrt(weight / (weight - 1) * (std_dev / weight - avg * avg)), 0); // with the Bessel correction
     if(plt == "position")
       pos = avg;
     else
@@ -161,13 +162,14 @@ int main(int argc, char* argv[])
      plot_type = type;
      break;
    }
+   std::runtime_error("Could not detect any known plot type.");
  }
 
  cout << "Detected plot type: " << plot_type << endl;
 
  Plots plots(plot_type, true); // assume sgs is on
+ cout << "series types length: " << plots.series.size() << endl;
 
  try{ average(argc, argv, series, plots.series, "_series"); } catch(...){;}
  try{ average(argc, argv, profs, plots.profs, profiles_suffix);} catch(...){;}
-// try{ average(argc, argv, {"base_prflux_vs_clhght"}, profiles_suffix); } catch(...){;} // TODO: add this profile to rico profiles, or give some other suffix here to distinguish outputted average from regular profiles
 }

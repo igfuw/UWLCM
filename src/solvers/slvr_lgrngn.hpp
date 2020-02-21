@@ -360,9 +360,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         make_arrinfo(rhod)
         ,make_arrinfo(p_e)
       ); 
-
-      // writing diagnostic data for the initial condition
-      parent_t::tbeg_loop = parent_t::clock::now();
     }
     this->mem->barrier();
     parent_t::hook_ante_loop(nt); 

@@ -112,8 +112,8 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
   else if (plt == "sat_RH_up")
   {
     gp << "set title 'supersaturation RH-based in updrafts only'\n";
-    gp << "set yrange [0.45:1.]\n";
-      gp << "set xrange [0.000:*]\n";
+    gp << "set yranige [0.45:1.]\n";
+      gp << "set xrange [-10:*]\n";
   }
   else if (plt == "00rtot")
   {

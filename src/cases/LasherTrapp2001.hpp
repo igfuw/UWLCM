@@ -23,11 +23,11 @@ namespace setup
 
     const quantity<si::pressure, real_t> 
       p_0 = 101800 * si::pascals;
+    const quantity<si::length, real_t> X[] = {/*2D*/12000 * si::metres, /*3D*/10000 * si::metres};
     const quantity<si::length, real_t> 
-      z_0  = 0    * si::metres,
-      Z    = 8000 * si::metres, // DYCOMS: 1500
-      X    = 10000 * si::metres, // DYCOMS: 6400
-      Y    = 10000 * si::metres; // DYCOMS: 6400
+      z_0  = 0     * si::metres,
+      Y    = 10000 * si::metres,
+      Z    = 8000  * si::metres; 
     const real_t z_abs = 7000;
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
@@ -276,13 +276,13 @@ namespace setup
       LasherTrapp2001Common()
       {
         this->p_0 = p_0;
-        //aerosol bimodal lognormal dist. - DYCOMS
-        this->mean_rd1 = real_t(.011e-6) * si::metres,
-        this->mean_rd2 = real_t(.06e-6) * si::metres;
-        this->sdev_rd1 = real_t(1.2),
-        this->sdev_rd2 = real_t(1.7);
-        this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
-        this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
+        //aerosol bimodal lognormal dist. - as in RICO with 11x conc following the ICMW2020 setup
+        this->mean_rd1 = real_t(.03e-6) * si::metres,
+        this->mean_rd2 = real_t(.14e-6) * si::metres;
+        this->sdev_rd1 = real_t(1.28),
+        this->sdev_rd2 = real_t(1.75);
+        this->n1_stp = real_t(11*90e6) / si::cubic_metres, 
+        this->n2_stp = real_t(11*15e6) / si::cubic_metres;
         this->Z = Z;
         this->z_rlx = z_rlx;
       }
@@ -301,7 +301,7 @@ namespace setup
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
+        params.di = (X[0] / si::metres) / (nps[0]-1); 
         params.dj = (Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
@@ -317,7 +317,7 @@ namespace setup
       public:
       LasherTrapp2001()
       {
-        this->X = X;
+        this->X = X[0];
       }
     };
 
@@ -331,7 +331,7 @@ namespace setup
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
+        params.di = (X[1] / si::metres) / (nps[0]-1); 
         params.dj = (Y / si::metres) / (nps[1]-1);
         params.dk = (Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
@@ -354,7 +354,7 @@ namespace setup
       public:
       LasherTrapp2001()
       {
-        this->X = X;
+        this->X = X[1];
         this->Y = Y;
       }
     };

@@ -7,6 +7,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Matplotlib_common/")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../RICO11/")
 
+from latex_labels import labeldict
 from plot_ranges import *
 from plot_series import *
 from plot_profs import *
@@ -14,7 +15,7 @@ from plot_profs import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-rico_profs = ["prflux", "cl_nc", "non_gccn_rw_cl", "gccn_rw_cl", "base_prflux_vs_clhght"]
+rico_profs = ["prflux", "cl_nc", "non_gccn_rw_cl", "gccn_rw_cl", "base_prflux_vs_clhght", "base_prflux_vs_clhght number of occurances"]
 rico_series = ["acc_precip", "cl_gccn_conc"]
 nplots = len(rico_profs + rico_series)# + 2 # 2 updraft profiles without rico results
 
