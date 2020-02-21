@@ -88,10 +88,10 @@ std::vector<std::string> profs_dycoms({
 ,"rad_flx"
 , "non_gccn_rw_cl"
 , "gccn_rw_cl"
-//, "nc_up"
-//,"sat_RH_up"
-//, "act_conc_up"
-//, "nc_down"
+//, "nc_up" 
+,"sat_RH_up"
+//, "act_conc_up" 
+//, "nc_down" 
 }); // rtot has to be first
 
 std::vector<std::string> profs_rico({
@@ -107,7 +107,8 @@ std::vector<std::string> profs_rico({
 ,"base_prflux_vs_clhght"
 , "non_gccn_rw_cl"
 , "gccn_rw_cl"
-//, "N_c",
+,"sat_RH_up"
+//, "N_c", 
 //,"vel_div"
 //, "nc_up"
 //,"sat_RH_up"

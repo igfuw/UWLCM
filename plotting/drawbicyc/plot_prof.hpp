@@ -288,6 +288,28 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res_tmp *= res_tmp2;
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
       }
+      if (plt == "actrw_reff_cl")
+      {
+        // effective radius of activated droplets (r > rc) in cloudy cells
+        {
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom3", at * n["outfreq"]) * 1e6;
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap; 
+        }
+        {
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
+        }
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp *= res_tmp2;
+        }
+        // mean only over downdraught cells
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
       if (plt == "nc_up")
       {
         // updraft only

@@ -1,7 +1,7 @@
 var_labels = {
   "lwp" : 'LWP [g m$^{-2}$]',
   "rwp" : 'RWP [g m$^{-2}$]',
-  "surf_precip" : 'Surface precip. [mm d$^{-1}$]',
+  "surf_precip" : 'Surface precip. [mm/day]',
   "acc_precip" : 'Accumulated precip. [mm]',
   "cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
   "cl_gccn_conc" : '$N_{GCCN}$ [cm$^{-3}$] (cloudy cells)',
@@ -16,6 +16,7 @@ var_labels = {
   "rad_flx" : 'radiative flux [W m$^{-2}$]',
   "cl_nc_zoom" : '$N_c$ [cm$^{-3}$]',
   "base_prflux_vs_clhght" : 'pr. flux at column base [W m$^{-2}$]',
+  "base_prflux_vs_clhght number of occurances" : 'number of occurances',
   "er" : 'Entrainment rate [cm s$^{-1}$]',
   "wvarmax" : 'Max. $w$ variance [m$^{2}$ s$^{-2}$]',
   "cloud_base" : 'Cloud base height [m]',
