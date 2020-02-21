@@ -92,6 +92,7 @@ for it in np.arange(12):
     tot_acc_surf_precip = [(24. / averaging_period) * x for x in tot_acc_surf_precip] # turn into mm / day
     tot_acc_surf_precip_std_dev = [(24. / averaging_period) * x for x in tot_acc_surf_precip_std_dev] # turn into mm / day
     print tot_acc_surf_precip
+    print prflux
     #axarr[0].plot(GCCN_conc, mean_surf_precip, 'o')
     axarr[0].errorbar(GCCN_conc, tot_acc_surf_precip, yerr = tot_acc_surf_precip_std_dev, marker='o', fmt='.', label = varlabels[(it)/4])
     axarr[1].errorbar(GCCN_conc, prflux, yerr = prflux_std_dev, marker='o', fmt='.')
