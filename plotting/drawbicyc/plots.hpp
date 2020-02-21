@@ -2,8 +2,8 @@
 
 const std::vector<std::string> series_dycoms({
 "wvarmax", "clfrac", "lwp", "er",
- "surf_precip", 
-//"mass_dry", 
+ "surf_precip",
+//"mass_dry",
  "acc_precip",
  "cl_nc",
  "cloud_base"
@@ -18,14 +18,33 @@ const std::vector<std::string> series_dycoms({
 const std::vector<std::string> series_rico({
  "clfrac", "lwp",
  "rwp",
- "surf_precip", 
+ "surf_precip",
  "acc_precip",
  "cl_nc",
  "cloud_base",
  "surf_flux_latent",
  "surf_flux_sensible"
  ,"sd_conc_avg"
-//"mass_dry", 
+//"mass_dry",
+ ,"cl_gccn_conc", "gccn_conc"
+ ,"cl_non_gccn_conc", "non_gccn_conc", "cl_gccn_to_non_gccn_conc_ratio"
+//, "cl_gccn_meanr"
+//,"cl_avg_cloud_rad"
+// "sd_conc_std_dev",
+// "tot_water"
+});
+
+const std::vector<std::string> series_Lasher_Trapp({
+ "clfrac", "lwp",
+ "rwp",
+ "surf_precip",
+ "acc_precip",
+ "cl_nc",
+ "cloud_base",
+ "surf_flux_latent",
+ "surf_flux_sensible"
+ ,"sd_conc_avg"
+//"mass_dry",
  ,"cl_gccn_conc", "gccn_conc"
  ,"cl_non_gccn_conc", "non_gccn_conc", "cl_gccn_to_non_gccn_conc_ratio"
 //, "cl_gccn_meanr"
@@ -60,24 +79,31 @@ const std::vector<std::string> series_sgs({
 });
 
 std::vector<std::string> profs_dycoms({
-"00rtot", "rliq", "thl", "wvar", 
+"00rtot", "rliq", "thl", "wvar",
 "w3rd", "prflux"
 ,"clfrac"
-//, "N_c", 
+//, "N_c",
 ,"cl_nc"
 ,"sat_RH"
 ,"rad_flx"
 , "non_gccn_rw_cl"
 , "gccn_rw_cl"
+<<<<<<< HEAD
 //, "nc_up" 
 ,"sat_RH_up"
 //, "act_conc_up" 
 //, "nc_down" 
+=======
+//, "nc_up"
+//,"sat_RH_up"
+//, "act_conc_up"
+//, "nc_down"
+>>>>>>> 76be77521ea779023d548fdc4f29b13f16bae2c6
 }); // rtot has to be first
 
 std::vector<std::string> profs_rico({
 "00rtot"
-, "rliq", "thl", "wvar", 
+, "rliq", "thl", "wvar",
  "prflux"
 ,"clfrac"
 ,"sd_conc"
@@ -88,15 +114,39 @@ std::vector<std::string> profs_rico({
 ,"base_prflux_vs_clhght"
 , "non_gccn_rw_cl"
 , "gccn_rw_cl"
+<<<<<<< HEAD
 ,"sat_RH_up"
 //, "N_c", 
+=======
+//, "N_c",
+>>>>>>> 76be77521ea779023d548fdc4f29b13f16bae2c6
 //,"vel_div"
-//, "nc_up" 
+//, "nc_up"
 //,"sat_RH_up"
-//, "act_conc_up" 
-//, "nc_down" 
+//, "act_conc_up"
+//, "nc_down"
 }); // rtot has to be first
 
+std::vector<std::string> profs_Lasher_Trapp({
+"00rtot"
+, "rliq", "thl", "wvar",
+ "prflux"
+,"clfrac"
+,"sd_conc"
+,"cl_nc"
+,"cl_nc_up"
+,"w"
+,"u", "v"
+,"base_prflux_vs_clhght"
+, "non_gccn_rw_cl"
+, "gccn_rw_cl"
+//, "N_c",
+//,"vel_div"
+//, "nc_up"
+//,"sat_RH_up"
+//, "act_conc_up"
+//, "nc_down"
+}); // rtot has to be first
 /*
 std::vector<std::string> profs_base_prflux_vs_clhght({
 "base_prflux_vs_clhght"
@@ -119,10 +169,10 @@ std::vector<std::string> profs_moist_thermal({
 std::vector<std::string> fields_dycoms({
 //"rl", "nc",
 // "rr", "nr",
-//"ef", "na", 
-//"th", "rv",     
-//"u", "w", 
-//"sd_conc",//, "r_dry", 
+//"ef", "na",
+//"th", "rv",
+//"u", "w",
+//"sd_conc",//, "r_dry",
 //"RH", "supersat",
 //"lib_pres", "lib_temp"
 "gccn_conc",
@@ -132,10 +182,21 @@ std::vector<std::string> fields_dycoms({
 std::vector<std::string> fields_rico({
 "rl", "nc",
  "rr", "nr",
-//"ef", "na", 
-"th", "rv",     
-"u", "w", 
-//"sd_conc",//, "r_dry", 
+//"ef", "na",
+"th", "rv",
+"u", "w",
+//"sd_conc",//, "r_dry",
+//"RH", "supersat",
+//"lib_pres", "lib_temp"
+});
+
+std::vector<std::string> fields_Lasher_Trapp({
+"rl", "nc",
+ "rr", "nr",
+//"ef", "na",
+"th", "rv",
+"u", "w",
+//"sd_conc",//, "r_dry",
 //"RH", "supersat",
 //"lib_pres", "lib_temp"
 });
@@ -145,10 +206,10 @@ std::vector<std::string> fields_moist_thermal({
 "vel_div",
 "rl", "nc",
 // "rr", "nr",
-//"ef", "na", 
-"th", "rv",     
-"u", "w", 
-"sd_conc",//, "r_dry", 
+//"ef", "na",
+"th", "rv",
+"u", "w",
+"sd_conc",//, "r_dry",
 "RH", "supersat"
 });
 
@@ -161,28 +222,33 @@ class Plots
 
   Plots(const std::string &type, bool sgs)
   {
-    if(type == "dycoms") { 
+    if(type == "dycoms") {
       profs.insert(profs.end(), profs_dycoms.begin(), profs_dycoms.end());
       series.insert(series.end(), series_dycoms.begin(), series_dycoms.end());
       fields.insert(fields.end(), fields_dycoms.begin(), fields_dycoms.end());
     }
-    else if(type == "rico") { 
+    else if(type == "rico") {
       profs.insert(profs.end(), profs_rico.begin(), profs_rico.end());
       series.insert(series.end(), series_rico.begin(), series_rico.end());
       fields.insert(fields.end(), fields_rico.begin(), fields_rico.end());
     }
-    else if(type == "moist_thermal") { 
+    else if(type == "Lasher_Trapp") {
+      profs.insert(profs.end(), profs_Lasher_Trapp.begin(), profs_Lasher_Trapp.end());
+      series.insert(series.end(), series_Lasher_Trapp.begin(), series_Lasher_Trapp.end());
+      fields.insert(fields.end(), fields_Lasher_Trapp.begin(), fields_Lasher_Trapp.end());
+    }
+    else if(type == "moist_thermal") {
       profs.insert(profs.end(), profs_moist_thermal.begin(), profs_moist_thermal.end());
       series.insert(series.end(), series_moist_thermal.begin(), series_moist_thermal.end());
       fields.insert(fields.end(), fields_moist_thermal.begin(), fields_moist_thermal.end());
     }
     /*
-    else if(type == "base_prflux_vs_clhght") { 
+    else if(type == "base_prflux_vs_clhght") {
       profs.insert(profs.end(), profs_base_prflux_vs_clhght.begin(), profs_base_prflux_vs_clhght.end());
     }*/
     else
       throw std::runtime_error("drawbicyc Plots.hpp: unknown 'type'.");
-    
+
     if (sgs)// && type != "base_prflux_vs_clhght")
     {
       profs.insert(profs.end(), profs_sgs.begin(), profs_sgs.end());
