@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pzmij/biblioteki/UWLCM/tests/common.hpp
+iostream
+-
+iomanip
+-
+set
+-
+string
+-
+sstream
+-
+vector
+-
+boost/units/systems/si.hpp
+-
+
+/home/pzmij/biblioteki/UWLCM/tests/unit/api_test.cpp
+cstdlib
+-
+vector
+-
+string
+-
+sstream
+-
+fstream
+-
+unordered_map
+-
+../common.hpp
+/home/pzmij/biblioteki/UWLCM/tests/common.hpp
+
