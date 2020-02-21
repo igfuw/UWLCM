@@ -5,8 +5,8 @@ from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Matplotlib_common/")
-#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Dycoms_RF02/")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../RICO11/")
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../cases/Dycoms_RF02/")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../cases/RICO11/")
 
 from plot_ranges import * 
 from plot_series import *
