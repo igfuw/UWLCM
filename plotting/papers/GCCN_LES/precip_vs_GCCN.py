@@ -76,8 +76,8 @@ for it in np.arange(12):
 #  prflux.append(read_my_var(profs_infile, "prflux")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
 #  prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
 # --- get prflux at cloud base height ---
-  prflux.append(read_my_var(profs_infile, "prflux")[clbase])
-  prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase])
+  prflux.append(read_my_var(profs_infile, "prflux")[clbase] / 2264.705 * 3.6 * 24 ) # convert from W/m2 to mm/day
+  prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase] / 2264.705 * 3.6 * 24 )
 # --- get prflux at cloud base from the prflux vs cloud height profile ---
 #  clb_prflux = read_my_var(profs_infile, "base_prflux_vs_clhght")
 #  clb_prflux_std_dev = np.nan_to_num(read_my_var(profs_infile, "base_prflux_vs_clhght_std_dev"))
@@ -101,7 +101,7 @@ axarr[0].set_xlabel('GCCN concentration [cm$^{-3}$]')
 axarr[0].set_ylabel('surface precipitation rate [mm/day]')
 
 axarr[1].set_xlabel('GCCN concentration [cm$^{-3}$]')
-axarr[1].set_ylabel('precipitation flux at cloud base [W/m$^{2}$]')
+axarr[1].set_ylabel('cloud base precipitation rate [mm/day]')
 
 
 # legend font size
