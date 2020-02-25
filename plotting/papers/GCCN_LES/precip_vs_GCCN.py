@@ -18,7 +18,7 @@ profs_from_it = int(sys.argv[3])
 profs_to_it = int(sys.argv[4])
 qlimit = float(sys.argv[5])
 
-varlabels = ["{\it clean}", "{\it standard}", "{\it polluted}"]
+varlabels = ["{\it CuNc35}", "{\it CuNc55}", "{\it CuNc75}"]
 averaging_period = float(profs_to_it - profs_from_it) / 3600. # period over which series are averaged [h]; NOTE: we assume that series_from(to)_it = profs_from(to)_it / outfreq!
 
 # assumed initial GCCN concentrations
