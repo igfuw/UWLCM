@@ -12,8 +12,10 @@ def read_my_array(file_obj):
 
 def read_my_var(file_obj, var_name):
   file_obj.seek(0)
+  print 'looking for: ', var_name
   while True:
     arr, name = read_my_array(file_obj)
+    print 'read: ', name
     if(str(name).strip() == str(var_name).strip()):
       break
   return arr
