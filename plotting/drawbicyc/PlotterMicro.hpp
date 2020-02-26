@@ -65,7 +65,6 @@ class PlotterMicro_t : public Plotter_t<NDims>
     if(this->micro == "lgrngn")
     {
       res = this->h5load_timestep("cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
-      res += arr_t(this->h5load_timestep("aerosol_rw_mom3", at) * 4./3. * 3.1416 * 1e3);
       res += arr_t(this->h5load_timestep("rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3);
     }
     else if(this->micro == "blk_1m")
