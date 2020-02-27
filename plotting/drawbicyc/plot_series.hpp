@@ -763,7 +763,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           //for(int i=0;i<10;++i)
           //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
-          std::cerr << "cloud base index: " << plotter.ki;
+          std::cerr << "cloud base index: " << plotter.k_i;
 
           // concentration of bigrain cloud drops
           typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
