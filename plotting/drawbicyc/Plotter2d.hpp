@@ -13,7 +13,7 @@ class Plotter_t<2> : public PlotterCommon
   static const int n_dims = 2;
   using arr_t = blitz::Array<float,2>;
   blitz::Array<int, 1> k_i, tmp_int_hrzntl_slice;
-  blitz::Array<float, 1> tmp_float_hrzntl_slice;
+  blitz::Array<float, 1> tmp_float_hrzntl_slice, tmp_float_hrzntl_slice2;
   blitz::secondIndex LastIndex;
 
   protected:
@@ -133,6 +133,7 @@ class Plotter_t<2> : public PlotterCommon
     k_i.resize(n[0]-1);
     tmp_int_hrzntl_slice.resize(n[0]-1);
     tmp_float_hrzntl_slice.resize(n[0]-1);
+    tmp_float_hrzntl_slice2.resize(n[0]-1);
  
     // read dx,dy,dz
     h5load(file + "/const.h5", "X");

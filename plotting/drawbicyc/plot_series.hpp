@@ -752,6 +752,49 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
+      // cloud base mean incloud time of bigrain (r>40um)
+      else if (plt == "clb_bigrain_mean_inclt")
+      {
+        try
+        {
+          // cloud fraction (cloudy if q_c > 0.01 g/kg as in the rico paper)
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          snap = iscloudy_rc_rico(snap); // cloudiness mask
+          //for(int i=0;i<10;++i)
+          //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+          std::cerr << "cloud base index: " << plotter.ki;
+
+          // concentration of bigrain cloud drops
+          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          // ditto at cloud base
+          plotter.tmp_float_hrzntl_slice = 0; // just to get zero in columns without clouds
+          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i); 
+          std::cerr << "bigrain conc at cloud base: " << plotter.tmp_float_hrzntl_slice;
+
+          // 1st mom of incloud time of bigrain drops
+          typename Plotter_t::arr_t bigrain_inclt_mom1(plotter.h5load_timestep("bigrain_incloud_time_mom1", at * n["outfreq"]));
+          // ditto at cloud base
+          plotter.tmp_float_hrzntl_slice2 = 0; // just to get zero in columns without clouds
+          plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_inclt_mom1, plotter.k_i); 
+          std::cerr << "bigrain incllt mom1 at cloud base: " << plotter.tmp_float_hrzntl_slice2;
+
+          // calculate mean incloud time of bigrain drops at cloud base
+          plotter.tmp_float_hrzntl_slice2 = where(plotter.tmp_float_hrzntl_slice > 0, plotter.tmp_float_hrzntl_slice2 / plotter.tmp_float_hrzntl_slice, 0);
+          std::cerr << "bigrain mean inclt at cloud base: " << plotter.tmp_float_hrzntl_slice2;
+
+          // average over all cloudy columns
+          auto cloudy_column = plotter.k_i.copy();
+          cloudy_column = blitz::sum(snap, plotter.LastIndex);
+          cloudy_column = where(cloudy_column > 0, 1, 0);
+//          plotter.k_i = where(cloudy_column == 0, 0, plotter.k_i);
+          if(blitz::sum(cloudy_column) > 0)
+            res_prof(at) = double(blitz::sum(plotter.tmp_float_hrzntl_slice2)) / blitz::sum(cloudy_column);
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
       else assert(false);
     } // time loop
 
