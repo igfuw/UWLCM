@@ -16,6 +16,8 @@ const std::vector<std::string> series_dycoms({
 });
 
 const std::vector<std::string> series_rico({
+ "clb_bigrain_mean_inclt"
+ /*
  "clfrac", "lwp",
  "rwp",
  "surf_precip", 
@@ -32,6 +34,7 @@ const std::vector<std::string> series_rico({
 //,"cl_avg_cloud_rad"
 // "sd_conc_std_dev",
 // "tot_water"
+*/
 });
 
 const std::vector<std::string> series_moist_thermal({
