@@ -439,7 +439,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
-      // average radius of activated droplets in cloudy cells
+      // spatial average of mean radius of activated droplets in cloudy cells
       else if (plt == "cl_avg_cloud_rad")
       {
         try
@@ -450,7 +450,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         catch(...){;}
       }
 
-      // average standard deviation of the acttivated droplets radius distribution in cloudy cells
+      // spatial average of standard deviation of the acttivated droplets radius distribution in cloudy cells
       else if (plt == "cloud_avg_std_dev_act_rad")
       {
         try
@@ -696,12 +696,12 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           snap /= 1e6; // per cm^3
           snap = iscloudy(snap); // cloudiness mask
           typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
-          snap *= ispositive(snap_m0); // is cloudy and has gccn
-          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]));
-          snap_m1 = where(snap > 0, 1e6 * snap_m1 / snap_m0, 0); // in microns
-          //snap_m1 *= snap;
-          if(blitz::sum(snap) > 0)
-            res_prof(at) = blitz::sum(snap_m1) / blitz::sum(snap); 
+          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6); // in microns
+          snap_m0 *= snap;
+          snap_m1 *= snap;
+          auto tot_gccn_m0 = blitz::sum(snap_m0);
+          if(tot_gccn_m0 > 0)
+            res_prof(at) = blitz::sum(snap_m1) / tot_gccn_m0; 
           else
             res_prof(at) = 0;
         }
@@ -742,11 +742,12 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           snap /= 1e6; // per cm^3
           snap = iscloudy(snap); // cloudiness mask
           typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"]));
-          snap_m1 = where(snap > 0, 1e6 * snap_m1 / snap_m0, 0); // in microns
-          //snap_m1 *= snap;
-          if(blitz::sum(snap) > 0)
-            res_prof(at) = blitz::sum(snap_m1) / blitz::sum(snap); 
+          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"])*1e6); // in microns
+          snap_m0 *= snap;
+          snap_m1 *= snap;
+          auto tot_m0 = blitz::sum(snap_m0);
+          if(tot_m0 > 0)
+            res_prof(at) = blitz::sum(snap_m1) / tot_m0; 
           else
             res_prof(at) = 0;
         }
