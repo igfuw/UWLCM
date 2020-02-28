@@ -103,6 +103,8 @@ class Plotter_t<3> : public PlotterCommon
       for(int j = 0; j < this->map["y"]; ++j)
         if(hgt_idx(i,j) >= 0 && hgt_idx(i,j) < this->map["z"]) 
           ret(i,j) = data(i,j, hgt_idx(i,j));
+        else
+          ret(i,j) = 0; // 0 for not found may be a bad choice ;)
     return blitz::safeToReturn(ret + 0);
   }
 
