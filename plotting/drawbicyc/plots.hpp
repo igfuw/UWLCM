@@ -16,9 +16,11 @@ const std::vector<std::string> series_dycoms({
 });
 
 const std::vector<std::string> series_rico({
- "clb_bigrain_mean_inclt"
+ "clb_bigrain_mean_rd",
+ "clb_bigrain_mean_kappa",
+ "clb_bigrain_mean_conc"
  /*
- "clfrac", "lwp",
+ ,"clfrac", "lwp",
  "rwp",
  "surf_precip", 
  "acc_precip",

@@ -612,7 +612,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
 
         // precipitation flux(doesnt include vertical velocity w!)
         res = plotter.h5load_prflux_timestep(at * n["outfreq"]);
-        plotter.tmp_float_hrzntl_slice = 0; // just to get zero in columns without clouds
         plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(res, plotter.tmp_int_hrzntl_slice); // precip flux at cloud base
 
         // NOTE: we assume that k_i and tmp_float_hr... is contiguous in memory
