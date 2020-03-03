@@ -195,9 +195,12 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->record_aux("bigrain_rw_mom0", prtcls->outbuf());
 
     // recording 1st mom of incloud_time of big rain drops (r>40um)
-    prtcls->diag_wet_rng(40.e-6, 1);
-    prtcls->diag_incloud_time_mom(1);
-    this->record_aux("bigrain_incloud_time_mom1", prtcls->outbuf());
+    if(params.cloudph_opts_init.diag_incloud_time)
+    {
+      prtcls->diag_wet_rng(40.e-6, 1);
+      prtcls->diag_incloud_time_mom(1);
+      this->record_aux("bigrain_incloud_time_mom1", prtcls->outbuf());
+    }
 
     // recording 1st mom of kappa of big rain drops (r>40um)
     prtcls->diag_wet_rng(40.e-6, 1);
@@ -422,6 +425,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("sstp_coal", params.cloudph_opts_init.sstp_coal);  
       this->record_aux_const("sstp_chem", params.cloudph_opts_init.sstp_chem);  
       this->record_aux_const("exact_sstp_cond", params.cloudph_opts_init.exact_sstp_cond);  
+      this->record_aux_const("diag_incloud_time", params.cloudph_opts_init.diag_incloud_time);  
       this->record_aux_const("rng_seed", params.cloudph_opts_init.rng_seed);  
       this->record_aux_const("kernel", params.cloudph_opts_init.kernel);  
       this->record_aux_const("terminal_velocity", params.cloudph_opts_init.terminal_velocity);  
