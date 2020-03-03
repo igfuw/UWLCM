@@ -214,7 +214,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
     // recording 0th mom of rw of big rain drops (r>40um) with kappa > 0.61
     prtcls->diag_wet_rng(40.e-6, 1);
-    prtcls->diag_kappa_rng(0.61000001, 10, true);
+    prtcls->diag_kappa_rng_cons(0.61000001, 10);
     prtcls->diag_wet_mom(0);
     this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
 
