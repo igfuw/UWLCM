@@ -1,6 +1,12 @@
 #pragma once
 
 const std::vector<std::string> series_dycoms({
+ "clb_bigrain_mean_rd",
+ "clb_bigrain_mean_kappa",
+ "clb_bigrain_mean_conc",
+ "clb_bigrain_mean_inclt"
+, "clb_bigrain_mean_gccn_fraction"
+/*
 "wvarmax", "clfrac", "lwp", "er",
  "surf_precip", 
 //"mass_dry", 
@@ -13,12 +19,15 @@ const std::vector<std::string> series_dycoms({
  ,"cl_non_gccn_conc", "non_gccn_conc", "cl_gccn_to_non_gccn_conc_ratio"
 // "sd_conc_avg", "sd_conc_std_dev",
 // "tot_water"
+*/
 });
 
 const std::vector<std::string> series_rico({
  "clb_bigrain_mean_rd",
  "clb_bigrain_mean_kappa",
- "clb_bigrain_mean_conc"
+ "clb_bigrain_mean_conc",
+ "clb_bigrain_mean_inclt"
+, "clb_bigrain_mean_gccn_fraction"
  /*
  ,"clfrac", "lwp",
  "rwp",

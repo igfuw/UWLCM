@@ -865,6 +865,35 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
+      // cloud base mean fraction of bigrain formed on gccn
+      else if (plt == "clb_bigrain_mean_gccn_fraction")
+      {
+        try
+        {
+          // find cloud base (cloudy if q_c > 0.1 g/kg)
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          snap = iscloudy_rc(snap); // cloudiness mask
+          //for(int i=0;i<10;++i)
+          //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+
+          // 0-th specific mom of bigrain cloud drops
+          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          // concentration of bigrain cloud drops at cloud base [1/m^3]
+          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
+
+          // 0-th specific mom of bigrain cloud drops formed on gccn
+          typename Plotter_t::arr_t bigrain_gccn_conc(plotter.h5load_timestep("bigrain_gccn_rw_mom0", at * n["outfreq"]));
+          // concentration of bigrain cloud drops at cloud base [1/m^3]
+          plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_gccn_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
+
+          if(blitz::sum(plotter.tmp_float_hrzntl_slice) > 0) // if any bigrain drops in the domain
+            res_prof(at) = double(blitz::sum(plotter.tmp_float_hrzntl_slice2)) / blitz::sum(plotter.tmp_float_hrzntl_slice);
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
       else assert(false);
     } // time loop
 
