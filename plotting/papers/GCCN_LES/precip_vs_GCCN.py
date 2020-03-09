@@ -48,6 +48,10 @@ for it in np.arange(12):
     tot_acc_surf_precip_std_dev = []
     prflux = []
     prflux_std_dev = []
+    prfluxDivByClFrac= []
+    prfluxDivByClFrac_std_dev = []
+    prfluxFromPrfluxVsClhght = []
+    prfluxFromPrfluxVsClhght_std_dev = []
 
   series_infile = open(series_file_names[it], "r")
   profs_infile = open(profs_file_names[it], "r")
@@ -69,22 +73,25 @@ for it in np.arange(12):
 #  print ql
   print clbase
 # --- get prflux at cloud base; divide by cloud fraction at this height to get an estimate of average over cloud cells only ---
+# TODO: no sense to divide by cloud fraction in a specific cell at a height! We should divide by cloud cover (fraction of cloudy columns), which is in the series file
 #  clfrac_at_cbase = read_my_var(profs_infile, "clfrac")[clbase]
-#  print clfrac_at_cbase
 #  prflux_at_cbase = read_my_var(profs_infile, "prflux")[clbase]
-##  print prflux_at_cbase
-#  prflux.append(read_my_var(profs_infile, "prflux")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
-#  prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
+#  print "cloud fraction at cloud base (calculated using the threshold of LWP in a column from Ackerman et al.): ", clfrac_at_cbase
+#  prfluxDivByClFrac.append(read_my_var(profs_infile, "prflux")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
+#  prfluxDivByClFrac_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
 # --- get prflux at cloud base height ---
   prflux.append(read_my_var(profs_infile, "prflux")[clbase])
   prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase])
 # --- get prflux at cloud base from the prflux vs cloud height profile ---
-#  clb_prflux = read_my_var(profs_infile, "base_prflux_vs_clhght")
-#  clb_prflux_std_dev = np.nan_to_num(read_my_var(profs_infile, "base_prflux_vs_clhght_std_dev"))
-#  clb_prflux_occur = read_my_var(profs_infile, "base_prflux_vs_clhght number of occurances")
-#
-#  prflux.append(np.sum(clb_prflux * clb_prflux_occur) / np.sum(clb_prflux_occur))
-#  prflux_std_dev.append(np.sum(clb_prflux_std_dev * clb_prflux_occur) / np.sum(clb_prflux_occur))
+  try:
+    clb_prflux = read_my_var(profs_infile, "base_prflux_vs_clhght")
+    clb_prflux_std_dev = np.nan_to_num(read_my_var(profs_infile, "base_prflux_vs_clhght_std_dev"))
+    clb_prflux_occur = read_my_var(profs_infile, "base_prflux_vs_clhght number of occurances")
+    prfluxFromPrfluxVsClhght.append(np.sum(clb_prflux * clb_prflux_occur) / np.sum(clb_prflux_occur))
+    prfluxFromPrfluxVsClhght_std_dev.append(np.sum(clb_prflux_std_dev * clb_prflux_occur) / np.sum(clb_prflux_occur))
+  except:
+    print "Could not find the base_prflux_vs_clhght data, setting prflux at cloud base from the prflux vs cloud height profile = 0"
+    prfluxFromPrfluxVsClhght.append(0)
 
 
   if((it+1) % 4 == 0):
@@ -92,7 +99,9 @@ for it in np.arange(12):
     tot_acc_surf_precip = [(24. / averaging_period) * x for x in tot_acc_surf_precip] # turn into mm / day
     tot_acc_surf_precip_std_dev = [(24. / averaging_period) * x for x in tot_acc_surf_precip_std_dev] # turn into mm / day
     print tot_acc_surf_precip
-    print prflux
+    print "prflux at cloud base altitude: ",prflux
+    #print "prflux at cloud base altitude divided by cloud fraction: ",prfluxDivByClFrac
+    print "prflux at cloud base from the prflux vs cloud height profile: ",prfluxFromPrfluxVsClhght
     #axarr[0].plot(GCCN_conc, mean_surf_precip, 'o')
     axarr[0].errorbar(GCCN_conc, tot_acc_surf_precip, yerr = tot_acc_surf_precip_std_dev, marker='o', fmt='.', label = varlabels[(it)/4])
     axarr[1].errorbar(GCCN_conc, prflux, yerr = prflux_std_dev, marker='o', fmt='.')
