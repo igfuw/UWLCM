@@ -394,6 +394,28 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
+      else if (plt == "cl_nr")
+      {
+	// rain drop (25um < r) concentration in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          auto tmp = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          typename Plotter_t::arr_t snap2;
+          snap2.resize(snap.shape());
+          snap2=snap;
+          snap = iscloudy(snap); // cloudiness mask
+          snap2 *= snap;
+          if(blitz::sum(snap) > 0)
+            res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
       else if (plt == "cloud_base")
       {
         try
