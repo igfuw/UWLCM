@@ -257,31 +257,31 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
   }
   else if (plt == "clb_bigrain_mean_inclt")
   {
-    gp << "set title 'big rain (r>40um) @cloud base: mean time since activation [s]'\n";
+    gp << "set title 'big rain (r>40um) at clbase: <time since activation> [s]'\n";
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
   else if (plt == "clb_bigrain_mean_rd")
   {
-    gp << "set title 'big rain (r>40um) @cloud base: mean dry radius [um]'\n";
+    gp << "set title 'big rain (r>40um) at clbase: <dry radius> [um]'\n";
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
   else if (plt == "clb_bigrain_mean_kappa")
   {
-    gp << "set title 'big rain (r>40um) @cloud base: mean kappa'\n";
+    gp << "set title 'big rain (r>40um) at clbase: <kappa>'\n";
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
   else if (plt == "clb_bigrain_mean_conc")
   {
-    gp << "set title 'big rain (r>40um) @cloud base: mean concentration [1/cc]'\n";
+    gp << "set title 'big rain (r>40um) at clbase: <conc.> [1/cc]'\n";
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
   else if (plt == "clb_bigrain_mean_gccn_fraction")
   {
-    gp << "set title 'big rain (r>40um) @cloud base: mean fraction with kappa>0.61'\n";
+    gp << "set title 'big rain (r>40um) at clbase: <fraction with kappa>0.61>'\n";
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
