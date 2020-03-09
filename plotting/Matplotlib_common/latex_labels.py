@@ -22,11 +22,11 @@ var_labels = {
   "cloud_base" : 'Cloud base height [m]',
   "gccn_rw_cl" : '$<r>$ of GCCN droplets (cloudy cells) [um]',
   "non_gccn_rw_cl" : '$<r>$ of CCN droplets (cloudy cells) [um]',
-  "clb_bigrain_mean_rd" : '$<r_d>$ of big drops (r>40$\mu$m) @ cloud base [um]',
-  "clb_bigrain_mean_kappa" : '$\kappa$ of big drops (r>40$\mu$m) @ cloud base',
-  "clb_bigrain_mean_conc" : 'concentration of big drops (r>40$\mu$m) @ cloud base [cm$^{-3}$]',
-  "clb_bigrain_mean_inclt" : 'time since activation of big drops (r>40$\mu$m) @ cloud base',
-  "clb_bigrain_mean_gccn_fraction" : 'fraction of big drops (r>40$\mu$m) formed on gccn @ cloud base'
+  "clb_bigrain_mean_rd" : '$<r_d>$ of (r$>$40um) @ clbase [m]',
+  "clb_bigrain_mean_kappa" : '$\kappa$ of (r$>$40um) @ clbase',
+  "clb_bigrain_mean_conc" : 'conc. of (r$>$40um) @ clbase [1/cc]',
+  "clb_bigrain_mean_inclt" : 'time since act. of (r$>$40um) @ clbase [s]',
+  "clb_bigrain_mean_gccn_fraction" : 'frac. of (r$>$40um) on gccn @ clbase'
 }
 
 
