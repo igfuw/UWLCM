@@ -21,7 +21,12 @@ var_labels = {
   "wvarmax" : 'Max. $w$ variance [m$^{2}$ s$^{-2}$]',
   "cloud_base" : 'Cloud base height [m]',
   "gccn_rw_cl" : '$<r>$ of GCCN droplets (cloudy cells) [um]',
-  "non_gccn_rw_cl" : '$<r>$ of CCN droplets (cloudy cells) [um]'
+  "non_gccn_rw_cl" : '$<r>$ of CCN droplets (cloudy cells) [um]',
+  "clb_bigrain_mean_rd" : '$<r_d>$ of big drops (r>40$\mu$m) @ cloud base [um]',
+  "clb_bigrain_mean_kappa" : '$\kappa$ of big drops (r>40$\mu$m) @ cloud base',
+  "clb_bigrain_mean_conc" : 'concentration of big drops (r>40$\mu$m) @ cloud base [cm$^{-3}$]',
+  "clb_bigrain_mean_inclt" : 'time since activation of big drops (r>40$\mu$m) @ cloud base',
+  "clb_bigrain_mean_gccn_fraction" : 'fraction of big drops (r>40$\mu$m) formed on gccn @ cloud base'
 }
 
 
