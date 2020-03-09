@@ -4,8 +4,9 @@ const std::vector<std::string> series_dycoms({
  "clb_bigrain_mean_rd",
  "clb_bigrain_mean_kappa",
  "clb_bigrain_mean_conc",
- "clb_bigrain_mean_inclt"
-, "clb_bigrain_mean_gccn_fraction"
+ "clb_bigrain_mean_inclt",
+ "cl_nr"
+//, "clb_bigrain_mean_gccn_fraction"
 /*
 "wvarmax", "clfrac", "lwp", "er",
  "surf_precip", 
@@ -26,8 +27,9 @@ const std::vector<std::string> series_rico({
  "clb_bigrain_mean_rd",
  "clb_bigrain_mean_kappa",
  "clb_bigrain_mean_conc",
- "clb_bigrain_mean_inclt"
-, "clb_bigrain_mean_gccn_fraction"
+ "clb_bigrain_mean_inclt",
+ "cl_nr"
+//, "clb_bigrain_mean_gccn_fraction"
  /*
  ,"clfrac", "lwp",
  "rwp",
