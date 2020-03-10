@@ -15,7 +15,7 @@ from latex_labels import labeldict
 rc('text', usetex=True)
 
 #dycoms_vars = ["lwp", "er", "wvarmax", "surf_precip", "cl_nc", "cloud_base"]# "cfrac"]
-dycoms_vars = ["clb_bigrain_mean_rd","clb_bigrain_mean_kappa","clb_bigrain_mean_conc","clb_bigrain_mean_inclt"]
+dycoms_vars = ["clb_bigrain_mean_rd","clb_bigrain_mean_kappa","clb_bigrain_mean_conc","clb_bigrain_mean_inclt", "cl_nr"]
 
 # init the plot
 nplotx = 2

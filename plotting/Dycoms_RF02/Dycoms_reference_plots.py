@@ -29,7 +29,8 @@ dycoms_labels = {
   "clb_bigrain_mean_kappa" :  "",
   "clb_bigrain_mean_conc" :  "",
   "clb_bigrain_mean_inclt" :  "",
-  "clb_bigrain_mean_gccn_fraction" :  ""
+  "clb_bigrain_mean_gccn_fraction" :  "",
+  "cl_nr" : "",
 
 }
 
