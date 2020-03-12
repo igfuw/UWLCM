@@ -4,7 +4,7 @@ var_labels = {
   "surf_precip" : 'Surface precip. [mm/day]',
   "acc_precip" : 'Accumulated precip. [mm]',
   "cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
-  "cl_nr" : 'conc. of (r$>$25um) in cloudy cells [cm$^{-3}$]',
+  "cl_nr" : '$N_{r>25\mu m}$ [cm$^{-3}$]',
   "cl_gccn_conc" : '$N_{GCCN}$ [cm$^{-3}$] (cloudy cells)',
   "thl" : r'$\theta_l$ [K]',
   "00rtot" : '$q_{t}$ [g/kg]',
