@@ -2,6 +2,7 @@ from matplotlib import rc
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import MaxNLocator
 
 import os
 import sys
@@ -30,7 +31,7 @@ assert len(argv) == 10
 
 xlimdict_series = {
   0 : {"cl_nr" : (0,10)},
-  1 : {"cl_nr" : (0,5)},
+  1 : {"cl_nr" : (1,5)},
 }
 
 
@@ -71,6 +72,7 @@ for y in y_arr:
 axarr[1].set_ylabel('')
 axarr[0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 axarr[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+axarr[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 
 ## show legends
 #for x in np.arange(nplotx):
