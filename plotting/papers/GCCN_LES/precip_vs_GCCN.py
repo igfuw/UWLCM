@@ -54,24 +54,38 @@ for it in np.arange(12):
     prfluxFromPrfluxVsClhght_std_dev = []
 
   series_infile = open(series_file_names[it], "r")
-  profs_infile = open(profs_file_names[it], "r")
+  try:
+    profs_infile = open(profs_file_names[it], "r")
+  except:
+    print "Could not open the profiles file"
+
 #  print series_file_names[it]
 #  print profs_file_names[it]
 
 # calc mean surf precip
   surf_precip = read_my_var(series_infile, "surf_precip")
   mean_surf_precip.append(np.mean(surf_precip[series_from_it:series_to_it]))
+
 # calc acc surf precip
   acc_surf_precip = read_my_var(series_infile, "acc_precip")
-  acc_surf_precip_std_dev = read_my_var(series_infile, "acc_precip_std_dev")
+  try:
+    acc_surf_precip_std_dev = read_my_var(series_infile, "acc_precip_std_dev")
+  except:
+    print "Could not find acc_precip_std_dev, setting to 0"
+    acc_surf_precip_std_dev = np.zeros(len(acc_surf_precip))
+
   tot_acc_surf_precip.append(acc_surf_precip[series_to_it] - acc_surf_precip[series_from_it])
   tot_acc_surf_precip_std_dev.append(acc_surf_precip_std_dev[series_to_it] + acc_surf_precip_std_dev[series_from_it])
 
 # find cloud base
-  ql = read_my_var(profs_infile, "rliq")
-  clbase = np.argmax(ql>qlimit)
-#  print ql
+  try:
+    ql = read_my_var(profs_infile, "rliq")
+    clbase = np.argmax(ql>qlimit)
+  except:
+    clbase=0
+    print "Could not find the rliq profile, setting clbase=0"
   print clbase
+
 # --- get prflux at cloud base; divide by cloud fraction at this height to get an estimate of average over cloud cells only ---
 # TODO: no sense to divide by cloud fraction in a specific cell at a height! We should divide by cloud cover (fraction of cloudy columns), which is in the series file
 #  clfrac_at_cbase = read_my_var(profs_infile, "clfrac")[clbase]
@@ -80,8 +94,13 @@ for it in np.arange(12):
 #  prfluxDivByClFrac.append(read_my_var(profs_infile, "prflux")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
 #  prfluxDivByClFrac_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
 # --- get prflux at cloud base height ---
-  prflux.append(read_my_var(profs_infile, "prflux")[clbase])
-  prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase])
+  try:
+    prflux.append(read_my_var(profs_infile, "prflux")[clbase])
+    prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase])
+  except:
+    print "Could not find the prflux profile, setting prflux at cloud base = 0"
+    prflux.append(0)
+    prflux_std_dev.append(0)
 # --- get prflux at cloud base from the prflux vs cloud height profile ---
   try:
     clb_prflux = read_my_var(profs_infile, "base_prflux_vs_clhght")
@@ -92,6 +111,7 @@ for it in np.arange(12):
   except:
     print "Could not find the base_prflux_vs_clhght data, setting prflux at cloud base from the prflux vs cloud height profile = 0"
     prfluxFromPrfluxVsClhght.append(0)
+    prfluxFromPrfluxVsClhght_std_dev.append(0)
 
 
   if((it+1) % 4 == 0):

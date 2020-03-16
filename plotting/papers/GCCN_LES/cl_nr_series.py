@@ -18,7 +18,7 @@ rc('text', usetex=True)
 
 series = ["cl_nr"]
 nplotx = 1
-nploty = 2
+nploty = 3
 
 # init the plot
 fig, axarr = plt.subplots(nplotx, nploty)
@@ -26,16 +26,17 @@ print 'axarr type: ', type(axarr)
 print 'axarr shape: ', axarr.shape
 plot_iter=0
 
-assert len(argv) == 10
+assert len(argv) == 14
 
 
 xlimdict_series = {
-  0 : {"cl_nr" : (0,10)},
-  1 : {"cl_nr" : (1,5)},
+  0 : {"cl_nr" : (1,5)},
+  1 : {"cl_nr" : (0,10)},
+  2 : {"cl_nr" : (0,10)},
 }
 
 
-for cusc_iter in [0,1]: # cumulus, stratocumulus
+for cusc_iter in [0,1,2]: # stratocumulus, cumulus, cumulus2,
   file_names = []
   file_labels = []
   file_no = np.arange(1 + 4 * cusc_iter, 1 + 4 * (cusc_iter+1) , 2)
@@ -53,7 +54,7 @@ plt.rcParams.update({'font.size': 8})
 
 #axes = plt.gca()
 #axes.tick_params(direction='in')
-labeldict=["{\it CuNc55}", "{\it ScNc45}"]
+labeldict=["{\it ScNc45}", "{\it CuNc75}", "{\it CuNc70NoMix}"]
 y_arr = np.arange(nploty)
 for y in y_arr:
   #tics inside
@@ -70,9 +71,11 @@ for y in y_arr:
   axarr[y].text(0.05, 0.85, labeldict[y], fontsize=8, transform=axarr[y].transAxes)
 
 axarr[1].set_ylabel('')
+axarr[2].set_ylabel('')
 axarr[0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 axarr[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-axarr[1].xaxis.set_major_locator(MaxNLocator(integer=True))
+axarr[2].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+axarr[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 
 ## show legends
 #for x in np.arange(nplotx):
@@ -89,7 +92,7 @@ fig.set_size_inches(7.874, 2. + (len(labels) ) * 0.34)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
 #fig.subplots_adjust(bottom=0. + (len(labels) ) * 0.044, hspace=0, wspace=0.4)
 
-fig.tight_layout(pad=0, w_pad=1, h_pad=0, rect=(0,0.15,1,1))
+fig.tight_layout(pad=0, w_pad=1, h_pad=0, rect=(0,0.16,1,1))
 
 #figure size
 #fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)
