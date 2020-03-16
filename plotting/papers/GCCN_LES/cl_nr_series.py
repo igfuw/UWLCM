@@ -1,7 +1,7 @@
 from matplotlib import rc
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import FormatStrFormatter, NullFormatter
 from matplotlib.ticker import MaxNLocator
 
 import os
@@ -34,6 +34,13 @@ xlimdict_series = {
   1 : {"cl_nr" : (0,10)},
   2 : {"cl_nr" : (0,10)},
 }
+
+ylimdict_series = {
+  "cl_nr" : (-0.005, 0.15),
+  "cl_nr" : (-0.005, 0.15),
+  "cl_nr" : (-0.005, 0.15),
+}
+
 
 
 for cusc_iter in [0,1,2]: # stratocumulus, cumulus, cumulus2,
@@ -73,8 +80,10 @@ for y in y_arr:
 axarr[1].set_ylabel('')
 axarr[2].set_ylabel('')
 axarr[0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-axarr[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-axarr[2].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+#axarr[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+#axarr[2].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+axarr[1].yaxis.set_major_formatter(NullFormatter())
+axarr[2].yaxis.set_major_formatter(NullFormatter())
 axarr[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 
 ## show legends
