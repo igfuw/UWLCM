@@ -5,8 +5,8 @@ from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Matplotlib_common/")
-#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Dycoms_RF02/")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../RICO11/")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../cases/Dycoms_RF02/")
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../cases/RICO11/")
 
 from plot_ranges import * 
 from plot_series import *
@@ -15,8 +15,8 @@ from plot_profs import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-#series = ["surf_precip"]
-profs = ["base_prflux_vs_clhght"]
+series = ["surf_precip"]
+#profs = ["base_prflux_vs_clhght"]
 nplotx = 1
 nploty = 3
 
@@ -35,22 +35,26 @@ for ccn_iter in [0,1,2]: # clean, standard, polluted
   for no in file_no:
     print no
     print argv[no]
-    file_names.append(argv[no] + "profiles_18000_36000.dat")
+    #file_names.append(argv[no] + "profiles_18000_36000.dat")
+    file_names.append(argv[no] + "series.dat")
     file_labels.append(argv[no+1])
   
   print file_names
-#  plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', file_names=file_names, file_labels=file_labels)
   if ccn_iter == 0:
-    plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='cloudy column height [m]', file_names=file_names, file_labels=file_labels)
+    my_ylabels = {  "surf_precip" : 'Surface precip. [mm/day]' }
+    plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', ylabeldict=my_ylabels, file_names=file_names, file_labels=file_labels)
+#    plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='cloudy column height [m]', file_names=file_names, file_labels=file_labels)
   else:
-    plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='', file_names=file_names, file_labels=file_labels)
+    my_ylabels = {  "surf_precip" : '' }
+    plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', ylabeldict=my_ylabels, file_names=file_names, file_labels=file_labels)
+#    plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='', file_names=file_names, file_labels=file_labels)
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
 
 #axes = plt.gca()
 #axes.tick_params(direction='in')
-labeldict=["{\it clean}", "{\it standard}", "{\it polluted}"]
+labeldict=["{\it ScNc30}", "{\it ScNc45}", "{\it ScNc105}"]
 y_arr = np.arange(nploty)
 for y in y_arr:
   #tics inside
@@ -79,9 +83,9 @@ lgd = fig.legend(handles, labels, handlelength=4, loc='lower center', bbox_to_an
 #figure size
 fig.set_size_inches(7.874, 2. + (len(labels) ) * 0.34)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
-fig.subplots_adjust(bottom=0.14 + (len(labels) ) * 0.044, hspace=0, wspace=0.4)
+#fig.subplots_adjust(bottom=0.14 + (len(labels) ) * 0.044, hspace=0, wspace=0.4)
 
-fig.tight_layout(pad=0, w_pad=0, h_pad=0, rect=(0,0.25,1,1))
+fig.tight_layout(pad=0, w_pad=1, h_pad=0, rect=(0,0.25,1,1))
 
 #figure size
 #fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)

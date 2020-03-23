@@ -18,7 +18,7 @@ profs_from_it = int(sys.argv[3])
 profs_to_it = int(sys.argv[4])
 qlimit = float(sys.argv[5])
 
-varlabels = ["{\it clean}", "{\it standard}", "{\it polluted}"]
+varlabels = ["{\it CuNc35}", "{\it CuNc55}", "{\it CuNc75}"]
 averaging_period = float(profs_to_it - profs_from_it) / 3600. # period over which series are averaged [h]; NOTE: we assume that series_from(to)_it = profs_from(to)_it / outfreq!
 
 # assumed initial GCCN concentrations
@@ -95,8 +95,8 @@ for it in np.arange(12):
 #  prfluxDivByClFrac_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase] / read_my_var(profs_infile, "clfrac")[clbase])
 # --- get prflux at cloud base height ---
   try:
-    prflux.append(read_my_var(profs_infile, "prflux")[clbase])
-    prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase])
+    prflux.append(read_my_var(profs_infile, "prflux")[clbase] / 2264.705 * 3.6 * 24 ) # convert from W/m2 to mm/day
+    prflux_std_dev.append(read_my_var(profs_infile, "prflux_std_dev")[clbase] / 2264.705 * 3.6 * 24 )
   except:
     print "Could not find the prflux profile, setting prflux at cloud base = 0"
     prflux.append(0)
@@ -106,8 +106,8 @@ for it in np.arange(12):
     clb_prflux = read_my_var(profs_infile, "base_prflux_vs_clhght")
     clb_prflux_std_dev = np.nan_to_num(read_my_var(profs_infile, "base_prflux_vs_clhght_std_dev"))
     clb_prflux_occur = read_my_var(profs_infile, "base_prflux_vs_clhght number of occurances")
-    prfluxFromPrfluxVsClhght.append(np.sum(clb_prflux * clb_prflux_occur) / np.sum(clb_prflux_occur))
-    prfluxFromPrfluxVsClhght_std_dev.append(np.sum(clb_prflux_std_dev * clb_prflux_occur) / np.sum(clb_prflux_occur))
+    prfluxFromPrfluxVsClhght.append(np.sum(clb_prflux * clb_prflux_occur) / np.sum(clb_prflux_occur) / 2264.705 * 3.6 * 24 )
+    prfluxFromPrfluxVsClhght_std_dev.append(np.sum(clb_prflux_std_dev * clb_prflux_occur) / np.sum(clb_prflux_occur) / 2264.705 * 3.6 * 24 )
   except:
     print "Could not find the base_prflux_vs_clhght data, setting prflux at cloud base from the prflux vs cloud height profile = 0"
     prfluxFromPrfluxVsClhght.append(0)
@@ -130,7 +130,7 @@ axarr[0].set_xlabel('GCCN concentration [cm$^{-3}$]')
 axarr[0].set_ylabel('surface precipitation rate [mm/day]')
 
 axarr[1].set_xlabel('GCCN concentration [cm$^{-3}$]')
-axarr[1].set_ylabel('precipitation flux at cloud base [W/m$^{2}$]')
+axarr[1].set_ylabel('cloud base precipitation rate [mm/day]')
 
 
 # legend font size
