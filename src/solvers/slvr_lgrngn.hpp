@@ -70,8 +70,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 */
 
     // recording relative humidity
-//    prtcls->diag_RH();
-//    this->record_aux("RH", prtcls->outbuf());
+    prtcls->diag_RH();
+    this->record_aux("RH", prtcls->outbuf());
 
     // recording pressure
     /*
@@ -109,24 +109,24 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 //    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
 
     // recording 0th mom of rw of activated drops
-//    prtcls->diag_rw_ge_rc();
-//    prtcls->diag_wet_mom(0);
-//    this->record_aux("actrw_rw_mom0", prtcls->outbuf());
-//
-//    // recording 1st mom of rw of activated drops
-//    prtcls->diag_rw_ge_rc();
-//    prtcls->diag_wet_mom(1);
-//    this->record_aux("actrw_rw_mom1", prtcls->outbuf());
-//
-//    // recording 2nd mom of rw of activated drops
-//    prtcls->diag_rw_ge_rc();
-//    prtcls->diag_wet_mom(2);
-//    this->record_aux("actrw_rw_mom2", prtcls->outbuf());
-//
-//    // recording 3rd mom of rw of activated drops
-//    prtcls->diag_rw_ge_rc();
-//    prtcls->diag_wet_mom(3);
-//    this->record_aux("actrw_rw_mom3", prtcls->outbuf());
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_wet_mom(0);
+    this->record_aux("actrw_rw_mom0", prtcls->outbuf());
+
+    // recording 1st mom of rw of activated drops
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_wet_mom(1);
+    this->record_aux("actrw_rw_mom1", prtcls->outbuf());
+
+    // recording 2nd mom of rw of activated drops
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_wet_mom(2);
+    this->record_aux("actrw_rw_mom2", prtcls->outbuf());
+
+    // recording 3rd mom of rw of activated drops
+    prtcls->diag_rw_ge_rc();
+    prtcls->diag_wet_mom(3);
+    this->record_aux("actrw_rw_mom3", prtcls->outbuf());
 /*
     // recording 1st mom of rd of activated drops
     prtcls->diag_rw_ge_rc();
@@ -177,7 +177,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 //    prtcls->diag_wet_rng(0., .5e-6);
 //    prtcls->diag_wet_mom(0);
 //    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
-//
+
 //    // recording 3rd wet mom of radius of aerosols (r < .5um)
 //    prtcls->diag_wet_rng(0., .5e-6);
 //    prtcls->diag_wet_mom(3);
