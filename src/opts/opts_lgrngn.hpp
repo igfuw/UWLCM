@@ -27,7 +27,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 #include "../detail/outmom.hpp"
-#include "../detail/bins.hpp"
+#include <UWLCM/output_bins.hpp>
 
 // simulation and output parameters for micro=lgrngn
 template <class solver_t, class user_params_t, class case_ptr_t>

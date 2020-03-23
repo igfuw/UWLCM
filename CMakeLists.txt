@@ -12,7 +12,7 @@ ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 # generate a header file with git revision id
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
   add_custom_target(git_revision.h ALL
-   git log -1 "--format=format:#define UWLCM_GIT_REVISION \"%H\"%n" HEAD > git_revision.h
+   git log -1 "--format=format:#define UWLCM_GIT_REVISION \"%H\"%n" HEAD > include/UWLCM/git_revision.h
    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} VERBATIM
   )
 endif()
@@ -25,3 +25,4 @@ message(STATUS "UWLCM will use the following libmpdata++ options: ${MPDATA_OPTS}
 
 add_subdirectory(src) 
 add_subdirectory(tests)
+add_subdirectory(include) 

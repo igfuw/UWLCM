@@ -17,6 +17,13 @@ SET(CMAKE_CXX_FLAGS_DEBUG  "${libmpdataxx_CXX_FLAGS_DEBUG}")
 
 add_executable(bicycles opts/opts_common.cpp detail/get_uwlcm_git_revision.cpp bicycles.cpp)
 
+# pointing to UWLCM headers
+target_include_directories(bicycles
+  PUBLIC
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+)
+
 # std::future test
 SET(CMAKE_REQUIRED_FLAGS "-std=c++11") # c++11 needed by the std_future test
 include(CheckCXXSourceCompiles)
