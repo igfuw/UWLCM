@@ -4,15 +4,17 @@ from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../Matplotlib_common/")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Matplotlib_common/")
 
 from plot_ranges import xscaledict, yscaledict, xlimdict_series, ylimdict_series
 from plot_series import *
+from latex_labels import labeldict
 
 # activate latex text rendering
 rc('text', usetex=True)
 
-rico_vars = ["lwp", "rwp", "surf_precip", "acc_precip", "cl_nc"]
+#rico_vars = ["lwp", "rwp", "surf_precip", "acc_precip", "cl_nc"]
+rico_vars = ["clb_bigrain_mean_rd","clb_bigrain_mean_kappa","clb_bigrain_mean_conc","clb_bigrain_mean_inclt", "cl_nr"]
 
 # init the plot
 nplotx = 2

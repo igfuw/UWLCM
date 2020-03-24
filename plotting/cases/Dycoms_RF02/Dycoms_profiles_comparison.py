@@ -4,23 +4,25 @@ from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../Matplotlib_common/")
-
-from plot_ranges import xscaledict, yscaledict, xlimdict_profs, ylimdict_profs
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../Matplotlib_common/")
 from plot_profs import *
+from Dycoms_reference_plots import plot_reference_profiles
+from plot_ranges import xscaledict, yscaledict, xlimdict_profs, ylimdict_profs
+from latex_labels import labeldict
 
 # activate latex text rendering
 rc('text', usetex=True)
 
-rico_vars = ["thl", "00rtot", "rliq", "prflux", "cl_nc", "base_prflux_vs_clhght"]
-nplots = len(rico_vars)# + 2 # 2 updraft profiles without rico results
+dycoms_vars = ["thl", "00rtot", "rliq", "clfrac", "prflux", "wvar", "w3rd", "sat_RH", "cl_nc"]#, "rad_flx", "cl_nc_zoom"]
+nplots = len(dycoms_vars)# + 2 # 2 updraft profiles without dycoms results
 
 # init the plot
 nplotx = 2 #int(nplots/6 + 0.5)
 nploty = int(float(nplots)/float(nplotx) + 0.5)
 fig, axarr = plt.subplots(nplotx, nploty )
 
-plot_profiles(rico_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel = '$z[m]$')
+plot_reference_profiles(dycoms_vars, 0, nplotx, nploty, axarr)
+plot_profiles(dycoms_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='$z/z_i$')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})

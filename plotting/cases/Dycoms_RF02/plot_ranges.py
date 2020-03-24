@@ -4,6 +4,7 @@ xscaledict = {
   "rliq" : "linear",
   "prflux" : "linear",
   "cl_nc" : "linear",
+  "cl_nr" : "linear",
   "clfrac" : "linear",
   "wvar" : "linear",
   "w3rd" : "linear",
@@ -18,7 +19,12 @@ xscaledict = {
   "gccn_rw_cl" : "linear",
   "non_gccn_rw_cl" : "linear",
   "base_prflux_vs_clhght" : "linear",
-  "cl_gccn_conc" : "linear"
+  "cl_gccn_conc" : "linear",
+  "clb_bigrain_mean_rd" : "linear",
+  "clb_bigrain_mean_kappa" :  "linear",
+  "clb_bigrain_mean_conc" :  "linear",
+  "clb_bigrain_mean_inclt" :  "linear",
+  "clb_bigrain_mean_gccn_fraction" :  "linear"
 }
 
 yscaledict = {
@@ -27,6 +33,7 @@ yscaledict = {
   "rliq" : "linear",
   "prflux" : "linear",
   "cl_nc" : "linear",
+  "cl_nr" : "linear",
   "clfrac" : "linear",
   "wvar" : "linear",
   "w3rd" : "linear",
@@ -41,7 +48,12 @@ yscaledict = {
   "gccn_rw_cl" : "linear",
   "non_gccn_rw_cl" : "linear",
   "base_prflux_vs_clhght" : "log",
-  "cl_gccn_conc" : "log"
+  "cl_gccn_conc" : "log",
+  "clb_bigrain_mean_rd" : "linear",
+  "clb_bigrain_mean_kappa" :  "linear",
+  "clb_bigrain_mean_conc" :  "linear",
+  "clb_bigrain_mean_inclt" :  "linear",
+  "clb_bigrain_mean_gccn_fraction" :  "linear"
 }
 
 xlimdict_profs = {
@@ -50,6 +62,7 @@ xlimdict_profs = {
   "rliq" : (0,0.7),
   "prflux" : None,#(0,70),
   "cl_nc" : None,#(0,120),
+  "cl_nr" : None,#(0,120),
   "clfrac" : None,
   "wvar" : (-0.1,0.8),
   "w3rd" : (-0.15,.15),
@@ -66,6 +79,7 @@ ylimdict_profs = {
   "rliq" : (0,1.2),
   "prflux" : (0,1.2),
   "cl_nc" : (0,1.2),
+  "cl_nr" : (0,1.2),
   "clfrac" : (0,1.2),
   "wvar" : (0,1.2),
   "w3rd" : (0,1.2),
@@ -79,18 +93,25 @@ ylimdict_profs = {
 xlimdict_series = {
   "clfrac" : (1,5),
   "cl_nc" : (1,5),
+  "cl_nr" : (1,5),
   "lwp" : (1,5),
   "er" : (1,5),
   "wvarmax" : (1,5),
   "surf_precip" : (1,5),
   "acc_precip" : (1,5),
   "cloud_base" : (1,5),
-  "cl_gccn_conc" : (1,5)
+  "cl_gccn_conc" : (1,5),
+  "clb_bigrain_mean_rd" : (1,5),
+  "clb_bigrain_mean_kappa" :  (1,5),
+  "clb_bigrain_mean_conc" :  (1,5),
+  "clb_bigrain_mean_inclt" :  (1,5),
+  "clb_bigrain_mean_gccn_fraction" :  (1,5)
 }
 
 ylimdict_series = {
   "clfrac" : None,
   "cl_nc" : None,
+  "cl_nr" : None,
   "lwp" : None,
   "er" : None,
   "wvarmax" : None,
@@ -98,6 +119,11 @@ ylimdict_series = {
   "acc_precip" : None,#(0,0.07),
   "cloud_base" : None,
   "cl_gccn_conc" : None,#(1e-10,1e-0)
+  "clb_bigrain_mean_rd" : None,
+  "clb_bigrain_mean_kappa" :  None,
+  "clb_bigrain_mean_conc" :  None,
+  "clb_bigrain_mean_inclt" :  None,
+  "clb_bigrain_mean_gccn_fraction" :  None
 }
 
 

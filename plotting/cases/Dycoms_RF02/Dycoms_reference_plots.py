@@ -24,7 +24,14 @@ dycoms_labels = {
   "cloud_base" : "zb",
   "cl_gccn_conc" : "",
   "gccn_rw_cl" : "",
-  "non_gccn_rw_cl" : ""
+  "non_gccn_rw_cl" : "",
+  "clb_bigrain_mean_rd" : "",
+  "clb_bigrain_mean_kappa" :  "",
+  "clb_bigrain_mean_conc" :  "",
+  "clb_bigrain_mean_inclt" :  "",
+  "clb_bigrain_mean_gccn_fraction" :  "",
+  "cl_nr" : "",
+
 }
 
 def plot_reference_profiles(var_list, plot_iter, nplotx, nploty, axarr, show_bin=False):
