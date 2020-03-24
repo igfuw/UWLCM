@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 cmake_policy(SET CMP0028 NEW)
 
+enable_testing()
+
 find_package(HDF5 COMPONENTS CXX HL REQUIRED)
 
 add_subdirectory(unit)

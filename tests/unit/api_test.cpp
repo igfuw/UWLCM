@@ -64,7 +64,7 @@ int main(int ac, char** av)
           auto outdir = std::hash<std::string>{}(opts.str());
           ofdict << outdir << " : " << opts.str() << std::endl;
 
-          cmd << av[1] << "/src/bicycles " << opts.str() << " --outdir=\"output/" << outdir << "\"";
+          cmd << "uwlcm " << opts.str() << " --outdir=\"output/" << outdir << "\"";
  
           cerr << endl << "=========" << endl;
           notice_macro("about to call: " << cmd.str())
