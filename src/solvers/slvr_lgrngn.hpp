@@ -88,25 +88,25 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_precip_rate();
     this->record_aux("precip_rate", prtcls->outbuf());
 
-    // recording 1st mom of rw of gccns
-    prtcls->diag_dry_rng(2e-6, 1);
-    prtcls->diag_wet_mom(1);
-    this->record_aux("gccn_rw_mom1", prtcls->outbuf());
-
-    // recording 0th mom of rw of gccns
-    prtcls->diag_dry_rng(2e-6, 1);
-    prtcls->diag_wet_mom(0);
-    this->record_aux("gccn_rw_mom0", prtcls->outbuf());
-
-    // recording 1st mom of rw of non-gccns
-    prtcls->diag_dry_rng(0., 2e-6);
-    prtcls->diag_wet_mom(1);
-    this->record_aux("non_gccn_rw_mom1", prtcls->outbuf());
-
-    // recording 0th mom of rw of gccns
-    prtcls->diag_dry_rng(0., 2e-6);
-    prtcls->diag_wet_mom(0);
-    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
+//    // recording 1st mom of rw of gccns
+//    prtcls->diag_dry_rng(2e-6, 1);
+//    prtcls->diag_wet_mom(1);
+//    this->record_aux("gccn_rw_mom1", prtcls->outbuf());
+//
+//    // recording 0th mom of rw of gccns
+//    prtcls->diag_dry_rng(2e-6, 1);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("gccn_rw_mom0", prtcls->outbuf());
+//
+//    // recording 1st mom of rw of non-gccns
+//    prtcls->diag_dry_rng(0., 2e-6);
+//    prtcls->diag_wet_mom(1);
+//    this->record_aux("non_gccn_rw_mom1", prtcls->outbuf());
+//
+//    // recording 0th mom of rw of gccns
+//    prtcls->diag_dry_rng(0., 2e-6);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
 
     // recording 0th mom of rw of activated drops
     prtcls->diag_rw_ge_rc();
@@ -173,21 +173,50 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
-    // recording 0th wet mom of radius of aerosols (r < .5um)
-    prtcls->diag_wet_rng(0., .5e-6);
-    prtcls->diag_wet_mom(0);
-    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
+//    // recording 0th wet mom of radius of aerosols (r < .5um)
+//    prtcls->diag_wet_rng(0., .5e-6);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
 
-    // recording 3rd wet mom of radius of aerosols (r < .5um)
-    prtcls->diag_wet_rng(0., .5e-6);
-    prtcls->diag_wet_mom(3);
-    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
+//    // recording 3rd wet mom of radius of aerosols (r < .5um)
+//    prtcls->diag_wet_rng(0., .5e-6);
+//    prtcls->diag_wet_mom(3);
+//    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
    
 /*
     // recording divergence of the velocity field
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
 */
+
+    // recording 0th wet mom of radius of big rain drops (r>40um)
+    prtcls->diag_wet_rng(40.e-6, 1);
+    prtcls->diag_wet_mom(0);
+    this->record_aux("bigrain_rw_mom0", prtcls->outbuf());
+
+    // recording 1st mom of incloud_time of big rain drops (r>40um)
+    if(params.cloudph_opts_init.diag_incloud_time)
+    {
+      prtcls->diag_wet_rng(40.e-6, 1);
+      prtcls->diag_incloud_time_mom(1);
+      this->record_aux("bigrain_incloud_time_mom1", prtcls->outbuf());
+    }
+
+    // recording 1st mom of kappa of big rain drops (r>40um)
+    prtcls->diag_wet_rng(40.e-6, 1);
+    prtcls->diag_kappa_mom(1);
+    this->record_aux("bigrain_kappa_mom1", prtcls->outbuf());
+
+    // recording 1st mom of rd of big rain drops (r>40um)
+    prtcls->diag_wet_rng(40.e-6, 1);
+    prtcls->diag_dry_mom(1);
+    this->record_aux("bigrain_rd_mom1", prtcls->outbuf());
+
+    // recording 0th mom of rw of big rain drops (r>40um) with kappa > 0.61
+    prtcls->diag_wet_rng(40.e-6, 1);
+    prtcls->diag_kappa_rng_cons(0.61000001, 10);
+    prtcls->diag_wet_mom(0);
+    this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
 
     // recording requested statistical moments
     {
@@ -396,6 +425,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("sstp_coal", params.cloudph_opts_init.sstp_coal);  
       this->record_aux_const("sstp_chem", params.cloudph_opts_init.sstp_chem);  
       this->record_aux_const("exact_sstp_cond", params.cloudph_opts_init.exact_sstp_cond);  
+      this->record_aux_const("diag_incloud_time", params.cloudph_opts_init.diag_incloud_time);  
       this->record_aux_const("rng_seed", params.cloudph_opts_init.rng_seed);  
       this->record_aux_const("kernel", params.cloudph_opts_init.kernel);  
       this->record_aux_const("terminal_velocity", params.cloudph_opts_init.terminal_velocity);  

@@ -4,7 +4,7 @@ from sys import argv
 from latex_labels import var_labels
 from read_UWLCM_arrays import *
 
-def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict, ylimdict, show_bin=False, suffix='', xlabel='', file_names=[], file_labels=[]):
+def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict, ylimdict, show_bin=False, suffix='', xlabel='', ylabeldict=var_labels, file_names=[], file_labels=[]):
   # if file names are not defined, read them and labels from command line
   if len(file_names)==0:
     file_no = np.arange(1, len(argv)-1 , 2)
@@ -27,7 +27,7 @@ def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledi
   
       linestyles = ['--', '-.', ':']
       dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
-      plot_my_array(axarr, plot_iter, my_times, my_res, nploty, xlabel=xlabel, ylabel=var_labels[var], varlabel=file_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xscale=xscaledict[var], yscale=yscaledict[var], xlim=xlimdict[var], ylim=ylimdict[var])
+      plot_my_array(axarr, plot_iter, my_times, my_res, nploty, xlabel=xlabel, ylabel=ylabeldict[var], varlabel=file_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xscale=xscaledict[var], yscale=yscaledict[var], xlim=xlimdict[var], ylim=ylimdict[var])
       label_counter+=1
     plot_iter = plot_iter + 1
   return plot_iter

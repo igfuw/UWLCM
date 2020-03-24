@@ -143,6 +143,12 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
+  else if (plt == "cl_nr")
+  {
+    gp << "set title 'average rain drop conc [1/cm^3] in cloudy cells'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
   else if (plt == "wvarmax")
   {
     gp << "set title 'max variance of w [m^2 / s^2]'\n";
@@ -254,5 +260,35 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
     gp << "set title 'turbulent kinetic energy (resolved + sgs) [m^3 / s^2]'\n";
+  }
+  else if (plt == "clb_bigrain_mean_inclt")
+  {
+    gp << "set title 'big rain (r>40um) at clbase: <time since activation> [s]'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "clb_bigrain_mean_rd")
+  {
+    gp << "set title 'big rain (r>40um) at clbase: <dry radius> [um]'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "clb_bigrain_mean_kappa")
+  {
+    gp << "set title 'big rain (r>40um) at clbase: <kappa>'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "clb_bigrain_mean_conc")
+  {
+    gp << "set title 'big rain (r>40um) at clbase: <conc.> [1/cc]'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "clb_bigrain_mean_gccn_fraction")
+  {
+    gp << "set title 'big rain (r>40um) at clbase: <fraction with kappa>0.61>'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
   }
 }

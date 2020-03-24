@@ -394,6 +394,29 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
+      else if (plt == "cl_nr")
+      {
+	// rain drop (25um < r) concentration in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap = iscloudy(snap); // cloudiness mask
+          auto tmp2 = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap2(tmp2);
+          snap2 *= rhod; // b4 it was specific moment
+          snap2 /= 1e6; // per cm^3
+          snap2 *= snap;
+          if(blitz::sum(snap) > 0)
+            res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
       else if (plt == "cloud_base")
       {
         try
@@ -439,7 +462,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
-      // average radius of activated droplets in cloudy cells
+      // spatial average of mean radius of activated droplets in cloudy cells
       else if (plt == "cl_avg_cloud_rad")
       {
         try
@@ -450,7 +473,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         catch(...){;}
       }
 
-      // average standard deviation of the acttivated droplets radius distribution in cloudy cells
+      // spatial average of standard deviation of the acttivated droplets radius distribution in cloudy cells
       else if (plt == "cloud_avg_std_dev_act_rad")
       {
         try
@@ -696,12 +719,12 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           snap /= 1e6; // per cm^3
           snap = iscloudy(snap); // cloudiness mask
           typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
-          snap *= ispositive(snap_m0); // is cloudy and has gccn
-          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]));
-          snap_m1 = where(snap > 0, 1e6 * snap_m1 / snap_m0, 0); // in microns
-          //snap_m1 *= snap;
-          if(blitz::sum(snap) > 0)
-            res_prof(at) = blitz::sum(snap_m1) / blitz::sum(snap); 
+          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6); // in microns
+          snap_m0 *= snap;
+          snap_m1 *= snap;
+          auto tot_gccn_m0 = blitz::sum(snap_m0);
+          if(tot_gccn_m0 > 0)
+            res_prof(at) = blitz::sum(snap_m1) / tot_gccn_m0; 
           else
             res_prof(at) = 0;
         }
@@ -742,11 +765,154 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           snap /= 1e6; // per cm^3
           snap = iscloudy(snap); // cloudiness mask
           typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"]));
-          snap_m1 = where(snap > 0, 1e6 * snap_m1 / snap_m0, 0); // in microns
-          //snap_m1 *= snap;
-          if(blitz::sum(snap) > 0)
-            res_prof(at) = blitz::sum(snap_m1) / blitz::sum(snap); 
+          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"])*1e6); // in microns
+          snap_m0 *= snap;
+          snap_m1 *= snap;
+          auto tot_m0 = blitz::sum(snap_m0);
+          if(tot_m0 > 0)
+            res_prof(at) = blitz::sum(snap_m1) / tot_m0; 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      // cloud base mean incloud time of bigrain (r>40um)
+      else if (plt == "clb_bigrain_mean_inclt")
+      {
+        try
+        {
+          // find cloud base (cloudy if q_c > 0.1 g/kg)
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          snap = iscloudy_rc(snap); // cloudiness mask
+          //for(int i=0;i<10;++i)
+          //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+
+          // 0-th specific mom of bigrain cloud drops
+          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          // concentration of bigrain cloud drops at cloud base
+          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
+
+          // 1st specific mom of incloud time of bigrain drops
+          typename Plotter_t::arr_t bigrain_inclt_mom1(plotter.h5load_timestep("bigrain_incloud_time_mom1", at * n["outfreq"]));
+          // 1st mom of incloud time at cloud base
+          plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_inclt_mom1, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i);  // same as above
+
+          if(blitz::sum(plotter.tmp_float_hrzntl_slice) > 0) // if any bigrain drops in the domain
+            res_prof(at) = double(blitz::sum(plotter.tmp_float_hrzntl_slice2)) / blitz::sum(plotter.tmp_float_hrzntl_slice);
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      // cloud base mean rd of bigrain (r>40um)
+      else if (plt == "clb_bigrain_mean_rd")
+      {
+        try
+        {
+          // find cloud base (cloudy if q_c > 0.1 g/kg)
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          snap = iscloudy_rc(snap); // cloudiness mask
+          //for(int i=0;i<10;++i)
+          //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+
+          // 0-th specific mom of bigrain cloud drops
+          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          // concentration of bigrain cloud drops at cloud base
+          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
+
+          // 1st specific mom of rd of bigrain drops
+          typename Plotter_t::arr_t bigrain_rd_mom1(plotter.h5load_timestep("bigrain_rd_mom1", at * n["outfreq"]));
+          // 1st mom of rd at cloud base
+          plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_rd_mom1, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i);  // same as above
+
+          if(blitz::sum(plotter.tmp_float_hrzntl_slice) > 0) // if any bigrain drops in the domain
+            res_prof(at) = double(blitz::sum(plotter.tmp_float_hrzntl_slice2)) / blitz::sum(plotter.tmp_float_hrzntl_slice);
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      // cloud base mean rkappa of bigrain (r>40um)
+      else if (plt == "clb_bigrain_mean_kappa")
+      {
+        try
+        {
+          // find cloud base (cloudy if q_c > 0.1 g/kg)
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          snap = iscloudy_rc(snap); // cloudiness mask
+          //for(int i=0;i<10;++i)
+          //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+
+          // 0-th specific mom of bigrain cloud drops
+          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          // concentration of bigrain cloud drops at cloud base
+          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
+
+          // 1st specific mom of rd of bigrain drops
+          typename Plotter_t::arr_t bigrain_kappa_mom1(plotter.h5load_timestep("bigrain_kappa_mom1", at * n["outfreq"]));
+          // 1st mom of rd at cloud base
+          plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_kappa_mom1, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i);  // same as above
+
+          if(blitz::sum(plotter.tmp_float_hrzntl_slice) > 0) // if any bigrain drops in the domain
+            res_prof(at) = double(blitz::sum(plotter.tmp_float_hrzntl_slice2)) / blitz::sum(plotter.tmp_float_hrzntl_slice);
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      // cloud base mean concentration of bigrain
+      else if (plt == "clb_bigrain_mean_conc")
+      {
+        try
+        {
+          // find cloud base (cloudy if q_c > 0.1 g/kg)
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          snap = iscloudy_rc(snap); // cloudiness mask
+          //for(int i=0;i<10;++i)
+          //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+
+          // 0-th specific mom of bigrain cloud drops
+          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          // concentration of bigrain cloud drops at cloud base [1/m^3]
+          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
+
+          // number of cloudy columns
+          plotter.k_i = where(plotter.k_i > 0, 1, 0);
+          if(blitz::sum(plotter.k_i) > 0)
+            res_prof(at) = double(blitz::sum(plotter.tmp_float_hrzntl_slice)) / blitz::sum(plotter.k_i) / 1e6; // [1/cm^3]
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      // cloud base mean fraction of bigrain formed on gccn
+      else if (plt == "clb_bigrain_mean_gccn_fraction")
+      {
+        try
+        {
+          // find cloud base (cloudy if q_c > 0.1 g/kg)
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          snap = iscloudy_rc(snap); // cloudiness mask
+          //for(int i=0;i<10;++i)
+          //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+
+          // 0-th specific mom of bigrain cloud drops
+          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          // concentration of bigrain cloud drops at cloud base [1/m^3]
+          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
+
+          // 0-th specific mom of bigrain cloud drops formed on gccn
+          typename Plotter_t::arr_t bigrain_gccn_conc(plotter.h5load_timestep("bigrain_gccn_rw_mom0", at * n["outfreq"]));
+          // concentration of bigrain cloud drops at cloud base [1/m^3]
+          plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_gccn_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
+
+          if(blitz::sum(plotter.tmp_float_hrzntl_slice) > 0) // if any bigrain drops in the domain
+            res_prof(at) = double(blitz::sum(plotter.tmp_float_hrzntl_slice2)) / blitz::sum(plotter.tmp_float_hrzntl_slice);
           else
             res_prof(at) = 0;
         }

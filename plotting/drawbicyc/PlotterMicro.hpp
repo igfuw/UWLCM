@@ -65,7 +65,6 @@ class PlotterMicro_t : public Plotter_t<NDims>
     if(this->micro == "lgrngn")
     {
       res = this->h5load_timestep("cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
-      res += arr_t(this->h5load_timestep("aerosol_rw_mom3", at) * 4./3. * 3.1416 * 1e3);
       res += arr_t(this->h5load_timestep("rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3);
     }
     else if(this->micro == "blk_1m")
@@ -169,7 +168,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
       return 0.; 
   }
 
-  // mean and std dev [g/kg] of the mixing ratio of activated dropelts in cloudy cells
+  // mean and std dev [g/kg] of the mixing ratio of activated dropelts in cloudy cells (characteristics of the spatial distribution at this timestep)
   std::pair<double, double> cloud_ract_stats_timestep(int at)
   {
     // read activated droplets mixing ratio 
@@ -178,7 +177,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(ract, at);
   }
 
-  // mean and std_dev of concentration of activated droplets in cloudy cells [1/cm^3]
+  // mean and std_dev of concentration of activated droplets in cloudy cells [1/cm^3] (characteristics of the spatial distribution at this timestep)
   std::pair<double, double> cloud_actconc_stats_timestep(int at)
   {   
     if(this->micro == "blk_1m") return {0,0};
@@ -189,7 +188,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(actconc, at);
   } 
 
-  // mean and std_dev of supersaturation in cells with positive supersaturation [%]
+  // mean and std_dev of supersaturation in cells with positive supersaturation [%] (characteristics of the spatial distribution at this timestep)
   std::pair<double, double> positive_supersat_stats_timestep(int at)
   {   
     if(this->micro == "blk_1m") return {0,0};
@@ -217,7 +216,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return res;
   }
 
-  // mean and std_dev of number of SDs in cloudy cells
+  // mean and std_dev of number of SDs in cloudy cells (characteristics of the spatial distribution at this timestep)
   std::pair<double, double> cloud_sdconc_stats_timestep(int at)
   {   
     if(this->micro == "blk_1m") return {0,0};
@@ -225,7 +224,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(sdconc, at);
   }
 
-  // mean and std_dev of number of activated SDs in cloudy cells
+  // mean and std_dev of number of activated SDs in cloudy cells (characteristics of the spatial distribution at this timestep)
   std::pair<double, double> cloud_sdconc_act_stats_timestep(int at)
   {   
     if(this->micro == "blk_1m") return {0,0};
@@ -233,7 +232,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(sdconc_act, at);
   }
 
-  // mean and std_dev of mean radius of activated droplets in cloudy cells [um]
+  // mean and std_dev of mean radius of activated droplets in cloudy cells [um] (characteristics of the spatial distribution at this timestep)
   std::pair<double, double> cloud_meanr_stats_timestep(int at)
   {   
     if(this->micro == "blk_1m") return {0,0};
@@ -246,7 +245,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(act1st, at);
   }
 
-  // mean and std_dev of std_dev of radius of activated droplets in cloudy cells [um]
+  // mean and std_dev of std_dev of radius of activated droplets in cloudy cells [um] (characteristics of the spatial distribution at this timestep)
   std::pair<double, double> cloud_stddevr_stats_timestep(int at)
   {   
     if(this->micro == "blk_1m") return {0,0};

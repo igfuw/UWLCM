@@ -1,156 +1,24 @@
 #pragma once
 
-const std::vector<std::string> series_dycoms({
-"wvarmax", "clfrac", "lwp", "er",
- "surf_precip", 
-//"mass_dry", 
- "acc_precip",
- "cl_nc",
- "cloud_base"
- ,"cl_gccn_meanr"
- ,"cl_avg_cloud_rad"
- ,"cl_gccn_conc", "gccn_conc"
- ,"cl_non_gccn_conc", "non_gccn_conc", "cl_gccn_to_non_gccn_conc_ratio"
-// "sd_conc_avg", "sd_conc_std_dev",
-// "tot_water"
-});
-
-const std::vector<std::string> series_rico({
- "clfrac", "lwp",
- "rwp",
- "surf_precip", 
- "acc_precip",
- "cl_nc",
- "cloud_base",
- "surf_flux_latent",
- "surf_flux_sensible"
- ,"sd_conc_avg"
-//"mass_dry", 
- ,"cl_gccn_conc", "gccn_conc"
- ,"cl_non_gccn_conc", "non_gccn_conc", "cl_gccn_to_non_gccn_conc_ratio"
-//, "cl_gccn_meanr"
-//,"cl_avg_cloud_rad"
-// "sd_conc_std_dev",
-// "tot_water"
-});
-
-const std::vector<std::string> series_moist_thermal({
-"cloud_avg_act_conc", //"cloud_std_dev_act_conc",
-"ract_avg", //"ract_std_dev",
-"sd_conc_avg", //"sd_conc_std_dev",
-"sd_conc_act_avg", //"sd_conc_std_dev",
-"cloud_avg_supersat",//"cloud_std_dev_supersat",
-"cloud_avg_act_rad",
-"cloud_avg_std_dev_act_rad",
-"RH_max",
-"ract_com",
-"clfrac",
- "tot_water",
-"com_mom0","com_mom1","com_mom2", // higher moments need lower ones enabled!!
-"com_vel",
-"com_supersat",
-"com_sd_conc"
-
-// "mass_dry",
-//"th_com"
-});
+#include "../cases/RICO11/plots.hpp"
+#include "../cases/Dycoms_RF02/plots.hpp"
+#include "../cases/moist_thermal/plots.hpp"
 
 const std::vector<std::string> series_sgs({
- "tot_tke"
+// "tot_tke"
 });
-
-std::vector<std::string> profs_dycoms({
-"00rtot", "rliq", "thl", "wvar", 
-"w3rd", "prflux"
-,"clfrac"
-//, "N_c", 
-,"cl_nc"
-,"sat_RH"
-,"rad_flx"
-, "non_gccn_rw_cl"
-, "gccn_rw_cl"
-//, "nc_up" 
-,"sat_RH_up"
-//, "act_conc_up" 
-//, "nc_down" 
-}); // rtot has to be first
-
-std::vector<std::string> profs_rico({
-"00rtot"
-, "rliq", "thl", "wvar", 
- "prflux"
-,"clfrac"
-,"sd_conc"
-,"cl_nc"
-,"cl_nc_up"
-,"w"
-,"u", "v"
-,"base_prflux_vs_clhght"
-, "non_gccn_rw_cl"
-, "gccn_rw_cl"
-,"sat_RH_up"
-//, "N_c", 
-//,"vel_div"
-//, "nc_up" 
-//,"sat_RH_up"
-//, "act_conc_up" 
-//, "nc_down" 
-}); // rtot has to be first
-
-/*
-std::vector<std::string> profs_base_prflux_vs_clhght({
-"base_prflux_vs_clhght"
-});
-*/
 
 std::vector<std::string> profs_sgs({
+/*
  "sgs_tke"
 ,"k_m"
 ,"sgs_tht_flux"
 ,"sgs_rv_flux"
 //,"sgs_rc_flux"
 ,"sgs_u_flux"
+*/
 });
 
-std::vector<std::string> profs_moist_thermal({
-}); // rtot has to be first
-
-
-std::vector<std::string> fields_dycoms({
-//"rl", "nc",
-// "rr", "nr",
-//"ef", "na", 
-//"th", "rv",     
-//"u", "w", 
-//"sd_conc",//, "r_dry", 
-//"RH", "supersat",
-//"lib_pres", "lib_temp"
-"gccn_conc",
-"gccn_mean_rw"
-});
-
-std::vector<std::string> fields_rico({
-"rl", "nc",
- "rr", "nr",
-//"ef", "na", 
-"th", "rv",     
-"u", "w", 
-//"sd_conc",//, "r_dry", 
-//"RH", "supersat",
-//"lib_pres", "lib_temp"
-});
-
-std::vector<std::string> fields_moist_thermal({
-//"mrk", "vel_div",
-"vel_div",
-"rl", "nc",
-// "rr", "nr",
-//"ef", "na", 
-"th", "rv",     
-"u", "w", 
-"sd_conc",//, "r_dry", 
-"RH", "supersat"
-});
 
 class Plots
 {
