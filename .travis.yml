@@ -8,7 +8,6 @@ env:
     - TEST_SUITE=unit_iles
     - TEST_SUITE=unit_smg
     - TEST_SUITE=moist_thermal
-    - TEST_SUITE=drawbicyc
 addons:
   apt:
     packages:
