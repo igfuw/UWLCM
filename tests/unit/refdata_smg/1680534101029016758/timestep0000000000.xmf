@@ -24,11 +24,17 @@
 			<Attribute Name="actrw_rw_mom3" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom3</DataItem>
 			</Attribute>
-			<Attribute Name="aerosol_rw_mom0" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/aerosol_rw_mom0</DataItem>
+			<Attribute Name="bigrain_gccn_rw_mom0" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/bigrain_gccn_rw_mom0</DataItem>
 			</Attribute>
-			<Attribute Name="aerosol_rw_mom3" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/aerosol_rw_mom3</DataItem>
+			<Attribute Name="bigrain_kappa_mom1" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/bigrain_kappa_mom1</DataItem>
+			</Attribute>
+			<Attribute Name="bigrain_rd_mom1" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/bigrain_rd_mom1</DataItem>
+			</Attribute>
+			<Attribute Name="bigrain_rw_mom0" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/bigrain_rw_mom0</DataItem>
 			</Attribute>
 			<Attribute Name="cloud_rw_mom0" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/cloud_rw_mom0</DataItem>
@@ -36,23 +42,11 @@
 			<Attribute Name="cloud_rw_mom3" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/cloud_rw_mom3</DataItem>
 			</Attribute>
-			<Attribute Name="gccn_rw_mom0" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/gccn_rw_mom0</DataItem>
-			</Attribute>
-			<Attribute Name="gccn_rw_mom1" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/gccn_rw_mom1</DataItem>
-			</Attribute>
 			<Attribute Name="k_m" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/k_m</DataItem>
 			</Attribute>
 			<Attribute Name="latent surface flux" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 0 " NumberType="Float" Format="HDF">timestep0000000000.h5:/latent surface flux</DataItem>
-			</Attribute>
-			<Attribute Name="non_gccn_rw_mom0" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/non_gccn_rw_mom0</DataItem>
-			</Attribute>
-			<Attribute Name="non_gccn_rw_mom1" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/non_gccn_rw_mom1</DataItem>
 			</Attribute>
 			<Attribute Name="p" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/p</DataItem>
