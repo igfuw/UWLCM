@@ -1,3 +1,4 @@
+
 if(NOT MPDATA_OPTS STREQUAL "ABS")
   message(WARNING "The moist_thermal test should be built with the ABS libmpdata++ option, test is most likely to fail") 
 endif()
