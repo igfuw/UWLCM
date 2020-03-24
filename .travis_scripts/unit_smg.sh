@@ -6,7 +6,16 @@ mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="ILES"
 VERBOSE=1 make -j1
-cd tests/unit
+
+# build tests
+cd ../tests
+mkdir build && cd build
+cmake .. 
+VERBOSE=1 make -j1
+
+# run unit iles tests
+cd unit
+h5diff --version
 OMP_NUM_THREADS=1 ctest -R api_test_smg || cat Testing/Temporary/LastTest.log / # "/" intentional! (just to make cat exit with an error code)
 cd ../../..
 
