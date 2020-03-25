@@ -8,7 +8,6 @@ env:
     - TEST_SUITE=unit_iles
     - TEST_SUITE=unit_smg
     - TEST_SUITE=moist_thermal
-    - TEST_SUITE=drawbicyc
 addons:
   apt:
     packages:
@@ -100,5 +99,3 @@ script:
   - if [[ $TEST_SUITE == 'unit_smg' ]]; then . ./.travis_scripts/unit_smg.sh; fi
   # run the moist thermal test
   - if [[ $TEST_SUITE == 'moist_thermal' ]]; then . ./.travis_scripts/moist_thermal.sh; fi
-  # test compilation of drawbicyc
-  - if [[ $TEST_SUITE == 'drawbicyc' ]]; then . ./.travis_scripts/drawbicyc.sh; fi
