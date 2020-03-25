@@ -6,6 +6,7 @@ mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="3D_LGRNGN;3D_BLK_1M;PIGGYBACKER;SGS" -DMPDATA_OPTS="ABS"
 VERBOSE=1 make -j2
+sudo make install
 cd ../..
 
 # install UWLCM_plotting
