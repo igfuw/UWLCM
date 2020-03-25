@@ -19,7 +19,7 @@ sudo make install
 cd ../../../
 
 # build UWLCM tests
-cd tests
+cd UWLCM/tests
 mkdir build && cd build
 cmake ..
 VERBOSE=1 make -j2
