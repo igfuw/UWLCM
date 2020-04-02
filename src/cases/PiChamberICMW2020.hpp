@@ -10,7 +10,6 @@ namespace setup
 {
   namespace PiChamber
   {
-
     const quantity<si::length, real_t> 
      Z    ( 1 * si::metres), 
      X    ( 2 * si::metres), 
@@ -64,7 +63,7 @@ namespace setup
         params.outdir = user_params.outdir;
         params.outfreq = user_params.outfreq;
         params.spinup = user_params.spinup;
-        params.w_src = true;
+        params.w_src = user_params.w_src;
         // no explicit sources from boundaries (following Wojtek)
         // but what about transverse velocities at boundaries? add relaxation?
         params.uv_src = false;
@@ -76,9 +75,11 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
+        params.vel_subsidence = false;
         params.friction = false;
         params.coriolis = false;
         params.radiation = false;
+        params.no_ccn_at_init = true;
     //    params.n_iters=1;
 
         this->setopts_sgs(params);
@@ -102,6 +103,11 @@ namespace setup
     
         // initial water vapor mixing ratio
         solver.advectee(ix::rv) = r_t_fctr{}(index * dz);
+
+        // absorbers
+        solver.vab_coefficient() = 0; // no absorber
+        solver.vab_relaxed_state(0) = 0; 
+        solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
       }
     
     
@@ -211,8 +217,8 @@ namespace setup
         this->p_0 = p_0;
        // this->kappa = 1.28; // NaCl aerosol
         this->Z = Z;
-        this->n1_stp = real_t(10) / si::cubic_metres;
-        this->n2_stp = real_t(10) / si::cubic_metres;
+        this->n1_stp = real_t(0) / si::cubic_metres;
+        this->n2_stp = real_t(0) / si::cubic_metres;
         this->ForceParameters.coriolis_parameter = 0.; 
 
       }
@@ -278,7 +284,7 @@ namespace setup
         this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
     
         solver.advectee(ix::v) = 0;
-   //     solver.vab_relaxed_state(1) = 0;
+        solver.vab_relaxed_state(1) = 0;
       }
 
       public:

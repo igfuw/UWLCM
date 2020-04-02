@@ -5,7 +5,7 @@
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 
-#include "detail/setup.hpp"
+#include "detail/ccn_distribution.hpp"
 #include "detail/concurr_types.hpp"
 #include "detail/ct_params.hpp"
 

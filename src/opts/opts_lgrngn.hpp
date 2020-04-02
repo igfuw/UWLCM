@@ -261,6 +261,8 @@ void setopts_micro(
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
   rt_params.cloudph_opts.subs = rt_params.subsidence;
 
+  rt_params.cloudph_opts_init.no_ccn_at_init = rt_params.no_ccn_at_init;
+
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
   for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))

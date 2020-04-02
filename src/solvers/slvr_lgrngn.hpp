@@ -745,6 +745,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
     bool out_wet_spec, out_dry_spec;
+    bool no_ccn_at_init=false;
   };
 
   private:
