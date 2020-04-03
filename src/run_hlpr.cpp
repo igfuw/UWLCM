@@ -41,7 +41,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   >;
 
   using concurr_openmp_cyclic_t = typename concurr_openmp_cyclic<solver_t, n_dims>::type;
-  using concurr_openmp_gndsky_t = typename concurr_openmp_gndsky<solver_t, n_dims>::type;
+  using concurr_openmp_rigid_t = typename concurr_openmp_rigid<solver_t, n_dims>::type;
   using concurr_openmp_cyclic_gndsky_t = typename concurr_openmp_cyclic_gndsky<solver_t, n_dims>::type;
   
   using rt_params_t = typename solver_t::rt_params_t;
@@ -154,7 +154,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   }
   else if(user_params.model_case == "pi_chamber")
   {
-    concurr.reset(new concurr_openmp_gndsky_t(p));     // rigid horizontal boundaries
+    concurr.reset(new concurr_openmp_rigid_t(p));     // rigid horizontal boundaries, zero sgs flux
   }
   else
   {

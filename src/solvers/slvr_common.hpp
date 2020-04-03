@@ -122,6 +122,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params coriolis", params.coriolis);  
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
+      this->record_aux_const("rt_params no_ccn_at_init", params.no_ccn_at_init);  
 
       this->record_aux_const("ForceParameters q_i", params.ForceParameters.q_i);  
       this->record_aux_const("ForceParameters heating_kappa", params.ForceParameters.heating_kappa);  
@@ -187,6 +188,30 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_step()
   {
+    // hack to set temperature and moisture of top and bottom walls of a Pi chamber
+    this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = 299; 
+    this->state(ix::rv)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = 0.0215865;
+
+    this->state(ix::th)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = 280; 
+    this->state(ix::rv)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = 6.1562e-3;
+
+    // side walls perpendicular to x
+    this->set_vertcl_slice_x(this->state(ix::th), 0, 285);
+    this->set_vertcl_slice_x(this->state(ix::rv), 0, 7.1183e-3);
+
+    this->set_vertcl_slice_x(this->state(ix::th), params.grid_size[0]-1, 285);
+    this->set_vertcl_slice_x(this->state(ix::rv), params.grid_size[0]-1, 7.1183e-3);
+
+    // side walls perpendicular to y
+    if(parent_t::n_dims==3)
+    {
+      this->state(ix::th)(this->vertcl_slice_y(this->ijk.lbound(1))) = 285; 
+      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.lbound(1))) = 7.1183e-3; 
+
+      this->state(ix::th)(this->vertcl_slice_y(this->ijk.ubound(1))) = 285; 
+      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = 7.1183e-3; 
+    }
+
     if (spinup != 0 && spinup == this->timestep)
     {
       // turn autoconversion on only after spinup (if spinup was specified)
@@ -476,6 +501,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
+    bool no_ccn_at_init=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
 
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;

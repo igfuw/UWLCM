@@ -13,28 +13,28 @@
 #include <libmpdata++/concurr/openmp.hpp>
 
 template <class solver_t, int n_dims>
-struct concurr_openmp_gndsky;
+struct concurr_openmp_rigid;
 
 // 2D
 template <class solver_t>
-struct concurr_openmp_gndsky<solver_t, 2>
+struct concurr_openmp_rigid<solver_t, 2>
 {
   using type = libmpdataxx::concurr::openmp<
     solver_t, 
-    libmpdataxx::bcond::gndsky,  libmpdataxx::bcond::gndsky,
-    libmpdataxx::bcond::gndsky,  libmpdataxx::bcond::gndsky 
+    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid,
+    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid 
   >;
 };
 
 // 3D
 template <class solver_t>
-struct concurr_openmp_gndsky<solver_t, 3>
+struct concurr_openmp_rigid<solver_t, 3>
 {
   using type = libmpdataxx::concurr::openmp<
     solver_t, 
-    libmpdataxx::bcond::gndsky,  libmpdataxx::bcond::gndsky,
-    libmpdataxx::bcond::gndsky,  libmpdataxx::bcond::gndsky,
-    libmpdataxx::bcond::gndsky,  libmpdataxx::bcond::gndsky 
+    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid,
+    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid,
+    libmpdataxx::bcond::rigid,  libmpdataxx::bcond::rigid 
   >;
 };
 
