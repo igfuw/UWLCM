@@ -17,6 +17,8 @@ namespace setup
     
     const quantity<si::pressure, real_t> p_0(100000 * si::pascals); // total pressure, const in the whole domain
 
+    const real_t abs_dist = 0.1; // distance from walls in which velocity absorber is applied to mimick momentum flux...
+
     // initial temperature at height z
     inline quantity<si::temperature, real_t> T(const real_t &z)
     {
@@ -91,6 +93,8 @@ namespace setup
       {
         int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
+        int nx = solver.advectee().extent(0);
+        real_t dx = (X / si::metres) / (nx-1); 
     
         solver.advectee(ix::u) = 0;
         solver.advectee(ix::w) = 0;  
@@ -104,12 +108,26 @@ namespace setup
         // initial water vapor mixing ratio
         solver.advectee(ix::rv) = r_t_fctr{}(index * dz);
 
-        // absorbers
-        solver.vab_coefficient() = 0; // no absorber
-        solver.vab_relaxed_state(0) = 0; 
-        solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+        // --- absorbers ---
+
+        // relaxed states
+        solver.vab_relaxed_state(0) = 0;
+        solver.vab_relaxed_state(ix::w) = 0;
+
+        // coefficients. TODO: right now, values of coefficients in corners are not correct and depend on the order of operations below...
+        solver.vab_coefficient() = 0;
+        // top wall
+        solver.vab_coefficient() = where(index * dz >= Z / si::metres - abs_dist,  10 * pow(sin(3.1419 / 2. * (index * dz - (Z / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
+        // bottom wall
+        solver.vab_coefficient() = where(index * dz <= abs_dist,  10 * pow(sin(3.1419 / 2. * (abs_dist - index * dz )/ abs_dist), 2), solver.vab_coefficient());
+        // left wall
+        if(solver.vab_coefficient().lbound(0) == 0) // NOTE: with MPI, this condition would be true even for rank =0 at mpi rank > 0 (?)
+          solver.vab_coefficient() = where(blitz::tensor::i * dx <= abs_dist,  10 * pow(sin(3.1419 / 2. * (abs_dist - blitz::tensor::i * dx )/ abs_dist), 2), solver.vab_coefficient());
+        // right wall
+        if(solver.vab_coefficient().ubound(0) == nx-1) // NOTE: with MPI, this condition would be true even for rank =0 at mpi rank > 0 (?)
+          solver.vab_coefficient() = where(blitz::tensor::i * dx >= X / si::metres - abs_dist,  10 * pow(sin(3.1419 / 2. * (blitz::tensor::i * dx - (X / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
       }
-    
+
     
       public:
       // calculate the initial environmental theta and rv profiles
@@ -285,6 +303,15 @@ namespace setup
     
         solver.advectee(ix::v) = 0;
         solver.vab_relaxed_state(1) = 0;
+
+        int ny = solver.advectee().extent(1);
+        real_t dy = (Y / si::metres) / (ny-1); 
+
+        // absorption coefficients
+        // back wall
+        solver.vab_coefficient() = where(blitz::tensor::j * dy >= Y / si::metres - abs_dist,  10 * pow(sin(3.1419 / 2. * (blitz::tensor::j * dy - (Y / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
+        // front wall
+        solver.vab_coefficient() = where(blitz::tensor::j * dy <= abs_dist,  10 * pow(sin(3.1419 / 2. * (abs_dist - blitz::tensor::j * dy )/ abs_dist), 2), solver.vab_coefficient());
       }
 
       public:
