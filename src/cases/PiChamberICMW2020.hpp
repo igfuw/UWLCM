@@ -17,7 +17,7 @@ namespace setup
     
     const quantity<si::pressure, real_t> p_0(100000 * si::pascals); // total pressure, const in the whole domain
 
-    const real_t abs_dist = 0.1; // distance from walls in which velocity absorber is applied to mimick momentum flux...
+    const real_t abs_dist = 0.03; // distance from walls in which velocity absorber is applied to mimick momentum flux...
 
     // initial temperature at height z
     inline quantity<si::temperature, real_t> T(const real_t &z)
