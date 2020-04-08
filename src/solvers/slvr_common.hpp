@@ -190,28 +190,37 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_step()
   {
+    // ICMW202 defaults, give wrong RH in UWLCM
+    // const real_t top_wall_rv = 6.1562e-3;
+    // const real_t bot_wall_rv = 0.0215865;
+    // const real_t side_wall_rv = 7.1183e-3;
+    const real_t top_wall_rv = 0.0062192674278;
+    const real_t bot_wall_rv = 0.0213489271007;
+    const real_t side_wall_rv = 0.00873884004297;
+
     // hack to set temperature and moisture of top and bottom walls of a Pi chamber
     this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = 299; 
-    this->state(ix::rv)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = 0.0215865;
+    this->state(ix::rv)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = bot_wall_rv;
 
     this->state(ix::th)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = 280; 
-    this->state(ix::rv)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = 6.1562e-3;
+    this->state(ix::rv)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = top_wall_rv;
+
 
     // side walls perpendicular to x
     this->set_vertcl_slice_x(this->state(ix::th), 0, 285);
-    this->set_vertcl_slice_x(this->state(ix::rv), 0, 7.1183e-3);
+    this->set_vertcl_slice_x(this->state(ix::rv), 0, side_wall_rv);
 
     this->set_vertcl_slice_x(this->state(ix::th), params.grid_size[0]-1, 285);
-    this->set_vertcl_slice_x(this->state(ix::rv), params.grid_size[0]-1, 7.1183e-3);
+    this->set_vertcl_slice_x(this->state(ix::rv), params.grid_size[0]-1, side_wall_rv);
 
     // side walls perpendicular to y
     if(parent_t::n_dims==3)
     {
       this->state(ix::th)(this->vertcl_slice_y(this->ijk.lbound(1))) = 285; 
-      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.lbound(1))) = 7.1183e-3; 
+      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_rv; 
 
       this->state(ix::th)(this->vertcl_slice_y(this->ijk.ubound(1))) = 285; 
-      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = 7.1183e-3; 
+      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_rv; 
     }
 
     if (spinup != 0 && spinup == this->timestep)

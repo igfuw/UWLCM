@@ -28,7 +28,7 @@ namespace setup
     const quantity<si::dimensionless, real_t>
       RH_top(1),    // RH at top wall
       RH_bot(1),    // RH at bottom wall
-      RH_side(0.82) // RH at side walls
+      RH_side(0.82); // RH at side walls
 
     const real_t abs_dist = 0.03; // distance from walls in which velocity absorber is applied to mimick momentum flux...
 
@@ -44,7 +44,7 @@ namespace setup
 //      return 0.0216 - 0.0154 * z / 1.; // default from the ICMW2020 case, gives different RH in UWLCM
       const real_t rv_top = RH_T_p_to_rv(RH_top, 280 * si::kelvins, p_0);
       const real_t rv_bot = RH_T_p_to_rv(RH_bot, 299 * si::kelvins, p_0);
-      return rv_bot - (rv_bot - rv_tot) * z / 1.;
+      return rv_bot - (rv_bot - rv_top) * z / 1.;
     }
 
     template<class case_ct_params_t, int n_dims>
