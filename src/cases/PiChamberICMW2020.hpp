@@ -31,6 +31,7 @@ namespace setup
       RH_side(0.82); // RH at side walls
 
     const real_t abs_dist = 0.03; // distance from walls in which velocity absorber is applied to mimick momentum flux...
+    const quantity<si::time, real_t> abs_char_time = 0.1 * si::seconds; // characteristic time defining maximal absorber strength. du/dt = 1 / abs_char_time * (u - u_relax)
 
     // initial temperature at height z
     inline quantity<si::temperature, real_t> T(const real_t &z)
@@ -131,17 +132,18 @@ namespace setup
         solver.vab_relaxed_state(ix::w) = 0;
 
         // coefficients. TODO: right now, values of coefficients in corners are not correct and depend on the order of operations below...
+        const real_t max_vab_coeff = 1. / (abs_char_time / si::seconds);
         solver.vab_coefficient() = 0;
         // top wall
-        solver.vab_coefficient() = where(index * dz >= Z / si::metres - abs_dist,  10 * pow(sin(3.1419 / 2. * (index * dz - (Z / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
+        solver.vab_coefficient() = where(index * dz >= Z / si::metres - abs_dist,  max_vab_coeff * pow(sin(3.1419 / 2. * (index * dz - (Z / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
         // bottom wall
-        solver.vab_coefficient() = where(index * dz <= abs_dist,  10 * pow(sin(3.1419 / 2. * (abs_dist - index * dz )/ abs_dist), 2), solver.vab_coefficient());
+        solver.vab_coefficient() = where(index * dz <= abs_dist,  max_vab_coeff * pow(sin(3.1419 / 2. * (abs_dist - index * dz )/ abs_dist), 2), solver.vab_coefficient());
         // left wall
         if(solver.vab_coefficient().lbound(0) == 0) // NOTE: with MPI, this condition would be true even for rank =0 at mpi rank > 0 (?)
-          solver.vab_coefficient() = where(blitz::tensor::i * dx <= abs_dist,  10 * pow(sin(3.1419 / 2. * (abs_dist - blitz::tensor::i * dx )/ abs_dist), 2), solver.vab_coefficient());
+          solver.vab_coefficient() = where(blitz::tensor::i * dx <= abs_dist,  max_vab_coeff * pow(sin(3.1419 / 2. * (abs_dist - blitz::tensor::i * dx )/ abs_dist), 2), solver.vab_coefficient());
         // right wall
         if(solver.vab_coefficient().ubound(0) == nx-1) // NOTE: with MPI, this condition would be true even for rank =0 at mpi rank > 0 (?)
-          solver.vab_coefficient() = where(blitz::tensor::i * dx >= X / si::metres - abs_dist,  10 * pow(sin(3.1419 / 2. * (blitz::tensor::i * dx - (X / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
+          solver.vab_coefficient() = where(blitz::tensor::i * dx >= X / si::metres - abs_dist,  max_vab_coeff * pow(sin(3.1419 / 2. * (blitz::tensor::i * dx - (X / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
       }
 
     
@@ -324,10 +326,11 @@ namespace setup
         real_t dy = (Y / si::metres) / (ny-1); 
 
         // absorption coefficients
+        const real_t max_vab_coeff = 1. / (abs_char_time / si::seconds);
         // back wall
-        solver.vab_coefficient() = where(blitz::tensor::j * dy >= Y / si::metres - abs_dist,  10 * pow(sin(3.1419 / 2. * (blitz::tensor::j * dy - (Y / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
+        solver.vab_coefficient() = where(blitz::tensor::j * dy >= Y / si::metres - abs_dist,  max_vab_coeff * pow(sin(3.1419 / 2. * (blitz::tensor::j * dy - (Y / si::metres - abs_dist))/ abs_dist), 2), solver.vab_coefficient());
         // front wall
-        solver.vab_coefficient() = where(blitz::tensor::j * dy <= abs_dist,  10 * pow(sin(3.1419 / 2. * (abs_dist - blitz::tensor::j * dy )/ abs_dist), 2), solver.vab_coefficient());
+        solver.vab_coefficient() = where(blitz::tensor::j * dy <= abs_dist,  max_vab_coeff * pow(sin(3.1419 / 2. * (abs_dist - blitz::tensor::j * dy )/ abs_dist), 2), solver.vab_coefficient());
       }
 
       public:
