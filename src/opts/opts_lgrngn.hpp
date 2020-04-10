@@ -352,4 +352,18 @@ void setopts_micro(
       ));
     }
   }
+  
+  // source opts for pi chamber
+  rt_params.cloudph_opts_init.src_dry_sizes.emplace(
+    1.28, // kappa
+    std::map<setup::real_t, std::pair<setup::real_t, int> > {
+      {0.125e-6, {1e6, 1}} // number/m^3 (@ STP) created per second in each source cell, represented by 1 SD added per supstp_stc.
+      // Keep in mind that multiplicity is an int, so we need (number/m^3/sec * supstp_src * dt * cell_vol * rhod/rhod@STP) to be close to an integer
+      // e.g. in Pi chamber volume of cells (except walls) is ca. 30.52 cc
+    }
+  );
+
+  rt_params.cloudph_opts_init.supstp_src = 100; // apply source every 50 steps, i.e. 2s
+  rt_params.cloudph_opts_init.src_z1 = 3*0.03125; // source ccn added in the lowest 3 horizontal slices
+  rt_params.cloudph_opts_init.src_switch = true;
 }

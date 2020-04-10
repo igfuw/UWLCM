@@ -31,7 +31,7 @@ namespace setup
       RH_side(0.82); // RH at side walls
 
     const real_t abs_dist = 0.03; // distance from walls in which velocity absorber is applied to mimick momentum flux...
-    const quantity<si::time, real_t> abs_char_time = 0.1 * si::seconds; // characteristic time defining maximal absorber strength. du/dt = 1 / abs_char_time * (u - u_relax)
+    const quantity<si::time, real_t> abs_char_time = real_t(0.1) * si::seconds; // characteristic time defining maximal absorber strength. du/dt = 1 / abs_char_time * (u - u_relax)
 
     // initial temperature at height z
     inline quantity<si::temperature, real_t> T(const real_t &z)
