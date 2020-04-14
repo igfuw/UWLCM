@@ -99,6 +99,7 @@ namespace setup
         params.coriolis = false;
         params.radiation = false;
         params.no_ccn_at_init = true;
+        params.open_side_walls = true;
     //    params.n_iters=1;
 
         this->setopts_sgs(params);

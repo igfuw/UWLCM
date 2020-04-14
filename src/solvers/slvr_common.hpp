@@ -125,6 +125,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
       this->record_aux_const("rt_params no_ccn_at_init", params.no_ccn_at_init);  
+      this->record_aux_const("rt_params open_side_walls", params.open_side_walls);  
 
       this->record_aux_const("ForceParameters q_i", params.ForceParameters.q_i);  
       this->record_aux_const("ForceParameters heating_kappa", params.ForceParameters.heating_kappa);  
@@ -512,7 +513,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
-    bool no_ccn_at_init=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
+    bool open_side_walls=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
 
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;

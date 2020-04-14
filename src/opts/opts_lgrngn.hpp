@@ -262,6 +262,7 @@ void setopts_micro(
   rt_params.cloudph_opts.subs = rt_params.subsidence;
 
   rt_params.cloudph_opts_init.no_ccn_at_init = rt_params.no_ccn_at_init;
+  rt_params.cloudph_opts_init.open_side_walls = rt_params.open_side_walls;
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
