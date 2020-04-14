@@ -513,6 +513,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
+    bool no_ccn_at_init=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
     bool open_side_walls=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
 
     // functions for updating surface fluxes per timestep
