@@ -366,11 +366,11 @@ void setopts_micro(
 
   const double dx = 0.03125;
   rt_params.cloudph_opts_init.supstp_src = 100; // apply source every 50 steps, i.e. 2s
-  rt_params.cloudph_opts_init.src_x0 = 5*dx;
+  rt_params.cloudph_opts_init.src_x0 = 6*dx;
   rt_params.cloudph_opts_init.src_x1 = 10*dx;
-  rt_params.cloudph_opts_init.src_y0 = 5*dx;
+  rt_params.cloudph_opts_init.src_y0 = 6*dx;
   rt_params.cloudph_opts_init.src_y1 = 10*dx;
-  rt_params.cloudph_opts_init.src_z0 = 5*dx;
+  rt_params.cloudph_opts_init.src_z0 = 6*dx;
   rt_params.cloudph_opts_init.src_z1 = 10*dx;
   rt_params.cloudph_opts_init.src_switch = true;
 }
