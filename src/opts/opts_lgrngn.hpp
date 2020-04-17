@@ -79,6 +79,8 @@ void setopts_micro(
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
+    ("src_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ccn injected into specified cells, [1 / m^3 / s]")
+    ("src_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected CCN")
 
     // TODO: MAC, HAC, vent_coef
   ;
@@ -353,14 +355,18 @@ void setopts_micro(
       ));
     }
   }
+
+
+  setup::real_t src_inj_rate = vm["src_inj_rate"].as<setup::real_t>();  // number/m^3 (@ STP) created per second in each source cell
+  unsigned long long src_sd_no = vm["src_sd_no"].as<unsigned long long>();  // number of SD to represent injected CCN in each cell, added per supstp_src steps
+  // Keep in mind that multiplicity is an int, so we need (number/m^3/sec * supstp_src * dt * cell_vol * rhod/rhod@STP) to be close to an integer
+  // e.g. in Pi chamber volume of cells (except walls) is ca. 30.52 cc
   
   // source opts for pi chamber
   rt_params.cloudph_opts_init.src_dry_sizes.emplace(
     1.28, // kappa
     std::map<setup::real_t, std::pair<setup::real_t, int> > {
-      {0.125e-6, {1e6, 1}} // number/m^3 (@ STP) created per second in each source cell, represented by 1 SD added per supstp_stc.
-      // Keep in mind that multiplicity is an int, so we need (number/m^3/sec * supstp_src * dt * cell_vol * rhod/rhod@STP) to be close to an integer
-      // e.g. in Pi chamber volume of cells (except walls) is ca. 30.52 cc
+      {0.125e-6, {src_inj_rate, src_sd_no}} 
     }
   );
 
