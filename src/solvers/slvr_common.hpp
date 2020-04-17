@@ -197,7 +197,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     // const real_t side_wall_rv = 7.1183e-3;
     const real_t top_wall_rv = 0.0062192674278;
     const real_t bot_wall_rv = 0.0213489271007;
-    const real_t side_wall_rv = 0.00873884004297;
+    //const real_t side_wall_rv = 0.00873884004297; // 100% RH
+    const real_t side_wall_rv = 0.00716584883524; // 82% RH
 
     // hack to set temperature and moisture of top and bottom walls of a Pi chamber
     this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = 299; 
