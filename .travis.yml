@@ -12,7 +12,6 @@ env:
     - TEST_SUITE=unit_iles MPI=none 
     - TEST_SUITE=unit_smg MPI=none
     - TEST_SUITE=moist_thermal MPI=none
-    - TEST_SUITE=drawbicyc MPI=none
     - TEST_SUITE=moist_thermal MPI=mvapich2
 
 cache:
@@ -115,8 +114,6 @@ script:
   - if [[ $TEST_SUITE == 'unit_smg' ]]; then . ./.travis_scripts/unit_smg.sh; fi
   # run the moist thermal test
   - if [[ $TEST_SUITE == 'moist_thermal' ]]; then . ./.travis_scripts/moist_thermal.sh; fi
-  # test compilation of drawbicyc
-  - if [[ $TEST_SUITE == 'drawbicyc' ]]; then . ./.travis_scripts/drawbicyc.sh; fi
 
 # define the precache stage
 # empty phases mean that default phases (before_install, install, ...) from the test stage are used (?)
@@ -138,4 +135,3 @@ jobs:
   include:
     - <<: *precache_default
       env: TEST_SUITE=moist_thermal MPI=mvapich2
-
