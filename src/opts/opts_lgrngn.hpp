@@ -27,7 +27,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 #include "../detail/outmom.hpp"
-#include "../detail/bins.hpp"
+#include <UWLCM/output_bins.hpp>
 
 // simulation and output parameters for micro=lgrngn
 template <class solver_t, class user_params_t, class case_ptr_t>
@@ -62,6 +62,7 @@ void setopts_micro(
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
     // free parameters
     ("exact_sstp_cond", po::value<bool>()->default_value(rt_params.cloudph_opts_init.exact_sstp_cond), "exact(per-particle) logic for substeps for condensation")
+    ("diag_incloud_time", po::value<bool>()->default_value(rt_params.cloudph_opts_init.diag_incloud_time), "diagnose incloud time of droplets")
     ("sd_conc_large_tail", po::value<bool>()->default_value(rt_params.cloudph_opts_init.sd_conc_large_tail), "add SDs to better represent the large tail")
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
@@ -110,7 +111,9 @@ void setopts_micro(
   neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
- 
+
+  rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
+
  // if(!unit_test)
   {
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -227,6 +230,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
   rt_params.cloudph_opts_init.exact_sstp_cond = vm["exact_sstp_cond"].as<bool>();
+  rt_params.cloudph_opts_init.diag_incloud_time = vm["diag_incloud_time"].as<bool>();
   rt_params.cloudph_opts_init.sd_conc_large_tail = vm["sd_conc_large_tail"].as<bool>();
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
@@ -242,7 +246,7 @@ void setopts_micro(
     rt_params.cloudph_opts.turb_coal = 1;
   }
   // terminal velocity choice
-  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_nonspherical;
+  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard77fast;
 
   rt_params.cloudph_opts_init.RH_formula = libcloudphxx::lgrngn::RH_formula_t::rv_cc; // use rv to be consistent with Lipps Hemler
 

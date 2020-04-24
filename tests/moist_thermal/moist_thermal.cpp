@@ -6,7 +6,7 @@
 #include <cstdlib> // system()
 #include <sstream> // std::ostringstream
 
-#include "../../drawbicyc/notice_macros.hpp" // error_macro
+#include <drawbicyc/notice_macros.hpp>
 #include "common.hpp"
 
 using std::ostringstream;
@@ -19,7 +19,7 @@ int main(int ac, char** av)
   {
     // run the simulation
     ostringstream cmd;
-    cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m.second;
+    cmd << av[1] <<  "/../../build/uwlcm " << opts_common << " " << opts_m.second;
     notice_macro("about to call: " << cmd.str())
 
     if (EXIT_SUCCESS != system(cmd.str().c_str()))
