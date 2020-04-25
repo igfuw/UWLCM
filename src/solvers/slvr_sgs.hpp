@@ -197,12 +197,22 @@ class slvr_sgs : public slvr_common<ct_params_t>
     if(params.cdrag > 0)           // kinematic momentum flux = - cdrag |U| u
       parent_t::calc_drag_cmpct();
     else if(params.fricvelsq > 0)  // kinematic momentum flux = - fricvelsq u / |U|
+    {
+      // have to use modified ijkm due to shared-memory parallelisation, otherwise overlapping ranges
+      // would lead to trobule as tau_srfc in calc_drag_cmpct_fricvel is used both as tmp storage and output 
+      // TODO: define it once at init
+      // TODO: better way ?
+      auto ijkm_aux = this->ijkm;
+      if (this->rank > 0)
+        ijkm_aux[0] = this->ijk[0];
+
       formulae::stress::calc_drag_cmpct_fricvel<ct_params_t::n_dims, ct_params_t::opts>(this->tau_srfc,
                                                                                 this->vips(),
                                                                                 *this->mem->G,
                                                                                 params.fricvelsq,
                                                                                 this->ijk,
-                                                                                this->ijkm);
+                                                                                ijkm_aux);
+    }
   }
   
   void sgs_scalar_forces(const std::vector<int> &sclr_indices) override

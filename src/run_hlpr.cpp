@@ -146,7 +146,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   }
   else if(user_params.model_case == "lasher_trapp")
   {
-    concurr.reset(new concurr_openmp_rigid_t(p));
+    //concurr.reset(new concurr_openmp_rigid_t(p));     // rigid horizontal boundaries
+    concurr.reset(new concurr_openmp_cyclic_rigid_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case
   }
   else
   {
