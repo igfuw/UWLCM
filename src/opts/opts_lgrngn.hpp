@@ -79,6 +79,7 @@ void setopts_micro(
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
+    ("supstp_src", po::value<int>()->default_value(100), "interval between time steps in which CCN from source are added")
     ("src_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ccn injected into specified cells, [1 / m^3 / s]")
     ("src_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected CCN")
 
@@ -370,8 +371,9 @@ void setopts_micro(
     }
   );
 
+  rt_params.cloudph_opts_init.supstp_src = vm["supstp_src"].as<int>();
+
   const double dx = 0.03125;
-  rt_params.cloudph_opts_init.supstp_src = 100; // apply source every 50 steps, i.e. 2s
   rt_params.cloudph_opts_init.src_x0 = 31*dx;
   rt_params.cloudph_opts_init.src_x1 = 35*dx;
   rt_params.cloudph_opts_init.src_y0 = 31*dx;
