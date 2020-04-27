@@ -56,6 +56,11 @@ int main(int ac, char** av)
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue; 
           }
+          if((opts_c == opts_case[1]) && opts_m == opts_micro[1])
+          {
+            std::cout << "skipping dry thermal tests with Lagrangian microphysics" << std::endl;
+            continue; 
+          }
 
           ostringstream cmd, opts;
           opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p << " " << opts_additional;

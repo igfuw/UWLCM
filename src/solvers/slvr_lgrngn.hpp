@@ -267,7 +267,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     typename parent_t::arr_t arr
   ) {
     return libcloudphxx::lgrngn::arrinfo_t<real_t>(
-      arr.dataZero(), 
+      arr.data(), 
       arr.stride().data()
     );
   }
@@ -327,8 +327,16 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
       params.cloudph_opts_init.nx = this->mem->grid_size[0].length();
       params.cloudph_opts_init.dx = this->di;
-      params.cloudph_opts_init.x0 = this->di / 2;
-      params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
+
+      if(this->mem->distmem.rank() == 0)
+        params.cloudph_opts_init.x0 = this->di / 2;
+      else
+        params.cloudph_opts_init.x0 = 0.;
+
+      if(this->mem->distmem.rank() == this->mem->distmem.size()-1)
+        params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
+      else
+        params.cloudph_opts_init.x1 =  params.cloudph_opts_init.nx       * this->di;
 
       int n_sd_from_dry_sizes = 0;
       for (auto const& krcm : params.cloudph_opts_init.dry_sizes)
@@ -352,10 +360,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
             params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell;
         }
         else
-          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+          params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
           
-        if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
-          params.cloudph_opts_init.n_sd_max *= 1.5; // more space for copied SDs
+        if(params.backend == libcloudphxx::lgrngn::multi_CUDA || this->mem->distmem.size()>1)
+          params.cloudph_opts_init.n_sd_max *= 1.4; // more space for copied SDs
       }
       else // 3D
       {
@@ -377,9 +385,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
             params.cloudph_opts_init.n_sd_max =       params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; 
         }
         else
-          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+          params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
 
-        if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
+        if(params.backend == libcloudphxx::lgrngn::multi_CUDA || this->mem->distmem.size()>1)
           params.cloudph_opts_init.n_sd_max *= 1.3; // more space for copied SDs
       }
 
@@ -474,8 +482,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
       this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);  
     }
-
-    // TODO: barrier?
+    this->mem->barrier();
   }
 
   void hook_mixed_rhs_ante_loop()
@@ -510,9 +517,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     parent_t::hook_ante_step(); // includes RHS, which in turn launches sync_in and step_cond
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after at the end of hook_ante_step");
   }
-
-
-
 
   void hook_ante_delayed_step()
   {
@@ -627,9 +631,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     {
       // temporarily Cx & Cz are multiplied by this->rhod ...
       auto 
-        Cx = this->mem->GC[0](this->Cx_domain).reindex(this->zero).copy(),
-        Cy = this->mem->GC[1](this->Cy_domain).reindex(this->zero).copy(),
-        Cz = this->mem->GC[ix::w](this->Cz_domain).reindex(this->zero).copy(); 
+        Cx = this->mem->GC[0](this->Cx_domain).copy(),
+        Cy = this->mem->GC[1](this->Cy_domain).copy(),
+        Cz = this->mem->GC[ix::w](this->Cz_domain).copy(); 
       nancheck(Cx, "Cx after copying from mpdata");
       nancheck(Cy, "Cy after copying from mpdata");
       nancheck(Cz, "Cz after copying from mpdata");
@@ -662,9 +666,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
       // start sync/async run of step_cond
       // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
-      using libcloudphxx::lgrngn::particles_t;
-      using libcloudphxx::lgrngn::CUDA;
-      using libcloudphxx::lgrngn::multi_CUDA;
 
 #if defined(STD_FUTURE_WORKS)
       if (params.async)
