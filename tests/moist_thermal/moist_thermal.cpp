@@ -9,8 +9,8 @@
 #include <sstream> // std::ostringstream
 
 //#include "../common.hpp"
-#include "../../plotting/drawbicyc/PlotterMicro.hpp"
-#include "../../plotting/drawbicyc/common_filters.hpp"
+#include <drawbicyc/PlotterMicro.hpp>
+#include <drawbicyc/common_filters.hpp>
 
 using std::ostringstream;
 using std::unordered_map;
@@ -113,7 +113,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 2e-2, 2e-2, 2e-2, 4e-2, 4e-2, 5e-2}} } 
+      {"lgrngn", {{1e-2, 1e-2, 1e-2, 1e-2, 1e-2, 2e-2, 2.5e-2, 2.5e-2, 4e-2, 4e-2, 5e-2}} } 
     }
   });
 
@@ -258,7 +258,7 @@ int main(int ac, char** av)
   {
     // run the simulation
     ostringstream cmd;
-    cmd << av[1] << "/src/bicycles " << opts_common << " " << opts_m.second;
+    cmd << av[1] <<  "/../../build/uwlcm " << opts_common << " " << opts_m.second;
     notice_macro("about to call: " << cmd.str())
 
     if (EXIT_SUCCESS != system(cmd.str().c_str()))
