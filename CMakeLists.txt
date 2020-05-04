@@ -40,12 +40,17 @@ SET(CMAKE_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE}")
 SET(CMAKE_CXX_FLAGS_DEBUG  "${libmpdataxx_CXX_FLAGS_DEBUG}")
 
 add_executable(uwlcm src/opts/opts_common.cpp src/detail/get_uwlcm_git_revision.cpp src/uwlcm.cpp)
+add_library(uwlcm_includes INTERFACE)
 
 # pointing to UWLCM headers
 target_include_directories(uwlcm
   PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+)
+target_include_directories(uwlcm_includes
+  INTERFACE
+    $<INSTALL_INTERFACE:include>
 )
 
 # std::future test
@@ -128,8 +133,11 @@ add_subdirectory(include)
 ############################################################################################
 # installation
 
-install(TARGETS uwlcm EXPORT uwlcm-targets DESTINATION bin)
-install(EXPORT uwlcm-targets DESTINATION share/UWLCM)
+install(TARGETS uwlcm uwlcm_includes EXPORT uwlcm-targets 
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include)
+
+install(EXPORT uwlcm-targets NAMESPACE uwlcm:: DESTINATION share/UWLCM)
 
 # generate and install a config file
 include(CMakePackageConfigHelpers)
