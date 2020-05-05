@@ -2,6 +2,6 @@
 
 get_filename_component(UWLCM_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-if(NOT TARGET UWLCM)
+if(NOT TARGET uwlcm::uwlcm)
     include("${UWLCM_CMAKE_DIR}/uwlcm-targets.cmake")
 endif()
