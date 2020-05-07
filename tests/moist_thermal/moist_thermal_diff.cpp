@@ -6,8 +6,8 @@
 #include <sstream> // std::ostringstream
 
 #include "common.hpp"
-#include "../../drawbicyc/PlotterMicro.hpp"
-#include "../../drawbicyc/common_filters.hpp"
+#include <drawbicyc/PlotterMicro.hpp>
+#include <drawbicyc/common_filters.hpp>
 
 using barr1d = blitz::Array<double, 1>;
 
@@ -180,7 +180,7 @@ int main(int ac, char** av)
     // epsilons map
     {
       {"blk_1m", {{1e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 2e-2, 5e-2, 2e-1}} },
-      {"lgrngn", {{1e-2, 1e-2, 1e-2, 1.5e-2, 3e-2, 4e-2, 7e-2, 8e-2, 8e-2, 10e-2, 10e-2}} } 
+      {"lgrngn", {{1e-2, 1e-2, 1e-2, 1.5e-2, 3e-2, 4e-2, 7e-2, 8e-2, 9e-2, 10e-2, 10e-2}} } 
     }
   });
 
