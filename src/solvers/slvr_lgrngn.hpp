@@ -173,10 +173,22 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
-//    // recording 0th wet mom of radius of aerosols (r < .5um)
-//    prtcls->diag_wet_rng(0., .5e-6);
-//    prtcls->diag_wet_mom(0);
-//    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
+    // recording 0th wet mom of radius of aerosols (r < .5um)
+    prtcls->diag_wet_rng(0., .5e-6);
+    prtcls->diag_wet_mom(0);
+    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
+
+    prtcls->diag_all();
+    prtcls->diag_up_mom(2);
+    this->record_aux("all_up_mom2", prtcls->outbuf());
+
+    prtcls->diag_all();
+    prtcls->diag_vp_mom(2);
+    this->record_aux("all_vp_mom2", prtcls->outbuf());
+
+    prtcls->diag_all();
+    prtcls->diag_wp_mom(2);
+    this->record_aux("all_wp_mom2", prtcls->outbuf());
 
 //    // recording 3rd wet mom of radius of aerosols (r < .5um)
 //    prtcls->diag_wet_rng(0., .5e-6);
