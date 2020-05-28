@@ -133,7 +133,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
       pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
       / (*this->params.mix_len)(this->vert_idx);
 
-    formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, this->ijk_vec);
+    formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, this->ijkm_sep);
 
     this->xchng_sgs_tnsr_offdiag(this->tau, this->tau_srfc, this->ijk, this->ijkm);
     
