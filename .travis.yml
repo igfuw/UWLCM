@@ -25,7 +25,7 @@ cache:
 addons:
   apt:
     packages:
-      - g++-6
+#      - g++-6
 #libcloudphxx dependencies
       - python3-dev
       - python3-pip
@@ -58,8 +58,8 @@ before_install:
 
 install:
 #compiler
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-6; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-6; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
 
     - export apt_get_install="apt-get install -t xenial --no-install-recommends -y"
 
@@ -67,36 +67,17 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
 
-    - if [[ $MPI != 'none'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
+    # order matters!
+    - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
+    - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+    - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
 
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo $apt_get_install boost1.61; fi
+    - sudo pip3 install -U pytest --ignore-installed six
+    - sudo pip3 install -U scipy --ignore-installed six
 
-# newest thrust
-    - git clone --depth=1 git://github.com/thrust/thrust.git;
-    - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
-
-#libmpdataxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install gnuplot-nox; fi
-    # gnuplot-iostream
-    - git clone -n https://github.com/dstahlke/gnuplot-iostream && cd gnuplot-iostream
-    - git checkout 8b6e30c6ea5ee4f07ccf90d858d35a10cf67a3e2 # later commits require c++17
-    - sudo cp gnuplot-iostream.h /usr/local/include/gnuplot-iostream.h
-    - cd ..
-
-
-# hdf5
-##    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0; fi
-# we need hdf5-1.10 for h5diff --enable-error-stack, so we install it manually
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then tar xf hdf5-1.10.5.tar; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then cd hdf5-1.10.5; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then CXXFLAGS=-w CFLAGS=-w ./configure --enable-cxx --enable-threadsafe --enable-unsupported --prefix=/usr; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then make; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo make install; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then sudo ldconfig; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' && $MPI == 'none' ]]; then cd ..; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-dev hdf5-tools; fi
+    # boost from a package - only when no MPI
+    - if [[ $MPI == 'none' ]]; then sudo $apt_get_install boost1.61; fi
+    - if [[ $MPI == 'none' ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 before_script:
     - chmod +x ./.travis_scripts/*
@@ -136,17 +117,17 @@ script:
 #       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
 
 # YAML alias for the options common to precache jobs
-job_info: &precache_default
-  stage: precache
-  os: linux
-  dist: xenial
-  language: cpp
-  compiler: gcc
-  install: 
-    - . .travis_scripts/install_mpi_dependencies.sh
-  script: echo "Preparing cache finished"
+aliases:
+    # YAML alias for the options common to precache jobs
+    - &precache_uwlcm_mpi
+      stage: precache
+      install:
+        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/boost.sh
+        - . ./.travis_scripts/deps_install/mpi_hdf5.sh
+      script: echo "Preparing cache finished"
 
 jobs:
   include:
-    - <<: *precache_default
+    - <<: *precache_uwlcm_mpi
       env: TEST_SUITE=moist_thermal MPI=mvapich2
