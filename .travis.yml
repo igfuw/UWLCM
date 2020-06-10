@@ -95,7 +95,7 @@ script:
 
   # install libcloudphxx in RelWithDebInfo mode
   - cd ..
-  - git clone -b mpi_merge_again --depth=1 git://github.com/pdziekan/libcloudphxx.git
+  - git clone --depth=1 git://github.com/igfuw/libcloudphxx.git
   - cd libcloudphxx
   - mkdir build
   - cd build
