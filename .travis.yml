@@ -22,6 +22,27 @@ cache:
     - ${TRAVIS_BUILD_DIR}/deps/boost
     - ${TRAVIS_BUILD_DIR}/deps/hdf5
 
+# define the precache stage
+# empty phases mean that default phases (before_install, install, ...) from the test stage are used (?)
+# TODO: precache stage has a lot of unnecessary before_install and install code common to the (default) test stage;
+#       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
+
+# YAML alias for the options common to precache jobs
+aliases:
+    # YAML alias for the options common to precache jobs
+    - &precache_uwlcm_mpi
+      stage: precache
+      install:
+        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/boost.sh
+        - . ./.travis_scripts/deps_install/mpi_hdf5.sh
+      script: echo "Preparing cache finished"
+
+jobs:
+  include:
+    - <<: *precache_uwlcm_mpi
+      env: TEST_SUITE=moist_thermal MPI=mvapich2
+
 addons:
   apt:
     packages:
@@ -110,24 +131,3 @@ script:
   - if [[ $TEST_SUITE == 'unit_smg' ]]; then . ./.travis_scripts/unit_smg.sh; fi
   # run the moist thermal test
   - if [[ $TEST_SUITE == 'moist_thermal' ]]; then . ./.travis_scripts/moist_thermal.sh; fi
-
-# define the precache stage
-# empty phases mean that default phases (before_install, install, ...) from the test stage are used (?)
-# TODO: precache stage has a lot of unnecessary before_install and install code common to the (default) test stage;
-#       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
-
-# YAML alias for the options common to precache jobs
-aliases:
-    # YAML alias for the options common to precache jobs
-    - &precache_uwlcm_mpi
-      stage: precache
-      install:
-        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
-        - . ./.travis_scripts/deps_install/boost.sh
-        - . ./.travis_scripts/deps_install/mpi_hdf5.sh
-      script: echo "Preparing cache finished"
-
-jobs:
-  include:
-    - <<: *precache_uwlcm_mpi
-      env: TEST_SUITE=moist_thermal MPI=mvapich2
