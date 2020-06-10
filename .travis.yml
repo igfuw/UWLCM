@@ -15,6 +15,8 @@ env:
     - TEST_SUITE=moist_thermal MPI=mvapich2
 
 cache:
+  packages: true
+  pip: true
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/mvapich2-2.3b
     - ${TRAVIS_BUILD_DIR}/deps/boost
@@ -24,6 +26,15 @@ addons:
   apt:
     packages:
       - g++-6
+#libcloudphxx dependencies
+      - python3-dev
+      - python3-pip
+      - python3-six
+      - python3-setuptools
+      - python3-numpy
+      - libblitz0-dev
+      - libthrust-dev
+
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
       - ubuntu-toolchain-r-test
@@ -39,7 +50,7 @@ before_install:
 # to avoid python lib/interpreter mismatch; https://github.com/travis-ci/travis-ci/issues/5326
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted"; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
 
     # locally installed stuff comes first
@@ -53,9 +64,6 @@ install:
 # cmake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
-
-#libcloudphxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev python-pytest; fi
 
     - if [[ $MPI != 'none'     ]]; then . ./.travis_scripts/install_mpi_dependencies.sh; fi
 
