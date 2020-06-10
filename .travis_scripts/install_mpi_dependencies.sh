@@ -12,26 +12,26 @@ if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g
 if [[ $MPI == 'mpich'    ]]; then sudo $apt_get_install mpich libmpich-dev; fi
 if [[ $MPI == 'lam'      ]]; then sudo $apt_get_install lam-runtime lam4-dev; fi
 if [[ $MPI == 'openmpi'  ]]; then sudo $apt_get_install openmpi-bin libopenmpi-dev; fi
-  if [[ $MPI == 'mvapich2' ]]; then 
-    ls -A ${DEPS_DIR}/mvapich2-2.3b
-    if [[ -z "$(ls -A ${DEPS_DIR}/mvapich2-2.3b)" ]]; then
-      wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3b.tar.gz;
-      tar xf mvapich2-2.3b.tar.gz;
-      cd mvapich2-2.3b;
-      if [[ $COMPILER == 'g++' ]]; then ./configure --disable-fortran --enable-cxx --enable-threads=multiple --with-device=ch3:sock CC=gcc-6 CXX=g++-6 --prefix=${DEPS_DIR}/mvapich2-2.3b ; fi 
-      if [[ $COMPILER == 'clang++' ]]; then ./configure --disable-fortran --enable-cxx --enable-threads=multiple --with-device=ch3:sock CC=clang-5.0 CXX=clang++-5.0 --prefix=${DEPS_DIR}/mvapich2-2.3b ; fi 
-      make -j4;  
-      make install;
-      cd ..;
-    else
-      echo "Using cached mvapich2."
-    fi
-    export PATH=${DEPS_DIR}/mvapich2-2.3b/bin:${PATH}
-    # LIBRARY_PATH for clang?osx?
-    export LD_LIBRARY_PATH=${DEPS_DIR}/mvapich2-2.3b/lib:${LD_LIBRARY_PATH}
-    export LD_RUN_PATH=${DEPS_DIR}/mvapich2-2.3b/lib:${LD_RUN_PATH}
-    export LIBRARY_PATH=${DEPS_DIR}/mvapich2-2.3b/lib:${LIBRARY_PATH}
+if [[ $MPI == 'mvapich2' ]]; then 
+  ls -A ${DEPS_DIR}/mvapich2-2.3b
+  if [[ -z "$(ls -A ${DEPS_DIR}/mvapich2-2.3b)" ]]; then
+    wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3b.tar.gz;
+    tar xf mvapich2-2.3b.tar.gz;
+    cd mvapich2-2.3b;
+    if [[ $COMPILER == 'g++' ]]; then ./configure --disable-fortran --enable-cxx --enable-threads=multiple --with-device=ch3:sock CC=gcc-6 CXX=g++-6 --prefix=${DEPS_DIR}/mvapich2-2.3b ; fi 
+    if [[ $COMPILER == 'clang++' ]]; then ./configure --disable-fortran --enable-cxx --enable-threads=multiple --with-device=ch3:sock CC=clang-5.0 CXX=clang++-5.0 --prefix=${DEPS_DIR}/mvapich2-2.3b ; fi 
+    make -j4;  
+    make install;
+    cd ..;
+  else
+    echo "Using cached mvapich2."
   fi
+  export PATH=${DEPS_DIR}/mvapich2-2.3b/bin:${PATH}
+  # LIBRARY_PATH for clang?osx?
+  export LD_LIBRARY_PATH=${DEPS_DIR}/mvapich2-2.3b/lib:${LD_LIBRARY_PATH}
+  export LD_RUN_PATH=${DEPS_DIR}/mvapich2-2.3b/lib:${LD_RUN_PATH}
+  export LIBRARY_PATH=${DEPS_DIR}/mvapich2-2.3b/lib:${LIBRARY_PATH}
+fi
 
 if [[ $MPI != 'none'    ]]; then export CXX=${DEPS_DIR}/mvapich2-2.3b/bin/mpic++ ; fi # full path, since libtool in hdf5 installation does not understand PATH set above (?)
 if [[ $MPI != 'none'    ]]; then export CC=${DEPS_DIR}/mvapich2-2.3b/bin/mpicc ; fi
@@ -75,7 +75,7 @@ if [[ $MPI != 'none'    ]]; then export CC=${DEPS_DIR}/mvapich2-2.3b/bin/mpicc ;
   fi
 
 # Ubuntu dependency issue fix
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0; fi
+#if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0; fi
 
 # C++ support missing in Debian package ...
 #if [[ $TRAVIS_OS_NAME == 'linux' && $MPI != 'none' ]]; then sudo $apt_get_install libhdf5-openmpi-dev; fi 
