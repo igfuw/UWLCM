@@ -113,8 +113,8 @@ namespace setup
         solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
   
         // randomly prtrb tht and rv in the lowest 1km
+        std::mt19937 gen(rng_seed);
         {
-          std::mt19937 gen(rng_seed);
           std::uniform_real_distribution<> dis(-0.1, 0.1);
           auto rand = std::bind(dis, gen);
   
@@ -124,7 +124,6 @@ namespace setup
           solver.advectee(ix::th) += prtrb;
         }
         {
-          std::mt19937 gen(rng_seed);
           std::uniform_real_distribution<> dis(-0.025e-3, 0.025e-3);
           auto rand = std::bind(dis, gen);
   
