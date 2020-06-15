@@ -5,6 +5,8 @@ set -e
 #############################################################################
 DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
 
+export apt_get_install="apt-get install -t xenial --no-install-recommends -y"
+
 # get libclang-dev for headers
 if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then sudo $apt_get_install libclang-dev; fi
 #if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXXFLAGS="-nostdinc++ ${CXXFLAGS}"; fi
