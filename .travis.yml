@@ -101,7 +101,7 @@ install:
     - if [[ $MPI == 'none' ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
 before_script:
-    - chmod +x ./.travis_scripts/*
+    - chmod -R +x ./.travis_scripts/*
 
 script:
 
