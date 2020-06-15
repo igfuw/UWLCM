@@ -4,6 +4,8 @@ set -e
 ## All the cached dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
 #############################################################################
 DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+    
+export apt_get_install="apt-get install -t xenial --no-install-recommends -y"
 
 # Ubuntu dependency issue fix
 sudo $apt_get_install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0
