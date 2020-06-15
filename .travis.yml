@@ -33,7 +33,7 @@ aliases:
     - &precache_uwlcm_mpi
       stage: precache
       install:
-        - . ./.travis_scripts/deps_install/mpi_dependencies.sh
+        - . ./.travis_scripts/deps_install/mvapich2.sh
         - . ./.travis_scripts/deps_install/boost.sh
         - . ./.travis_scripts/deps_install/mpi_hdf5.sh
       script: echo "Preparing cache finished"
@@ -89,9 +89,9 @@ install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
 
     # order matters!
-    - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/mpi_dependencies.sh; fi
+    - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/mvapich2.sh; fi
     - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
-    - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/mpi_hdf5.sh; fi
+    - . ./.travis_scripts/deps_install/libmpdata_dependencies.sh # installs mpi-hdf5 if needed
 
     - sudo pip3 install -U pytest --ignore-installed six
     - sudo pip3 install -U scipy --ignore-installed six
@@ -99,6 +99,8 @@ install:
     # boost from a package - only when no MPI
     - if [[ $MPI == 'none' ]]; then sudo $apt_get_install boost1.61; fi
     - if [[ $MPI == 'none' ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
+
+    - sudo $apt_get_install hdf5-tools
 
 before_script:
     - chmod -R +x ./.travis_scripts/*
