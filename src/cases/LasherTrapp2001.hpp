@@ -234,9 +234,9 @@ namespace setup
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_sens.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[1] / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
           else if(surf_flux_sens.rank() == 2)
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[0] / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
         }
       }
       
@@ -252,9 +252,9 @@ namespace setup
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_lat.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[1] / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
           else if(surf_flux_lat.rank() == 2)
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[0] / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
         }
       }
 
@@ -266,8 +266,9 @@ namespace setup
                                const real_t &U_ground_z,
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
-        surf_flux_uv = where(U_ground == 0., 0.,
-            - 0.0784 * uv_ground / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)// 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+        surf_flux_uv = where(U_ground < 1e-4, 
+            - 0.0784 * uv_ground / real_t(1e-4) * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters), // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+            - 0.0784 * uv_ground / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)
           );
       }
 
@@ -311,9 +312,14 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
+
         auto th_global = solver.advectee_global(ix::th);
         this->make_cyclic(th_global);
         solver.advectee_global_set(th_global, ix::th);
+
+        auto rv_global = solver.advectee_global(ix::rv);
+        this->make_cyclic(rv_global);
+        solver.advectee_global_set(rv_global, ix::rv);
       }
 
       public:
@@ -344,9 +350,14 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
+
         auto th_global = solver.advectee_global(ix::th);
         this->make_cyclic(th_global);
         solver.advectee_global_set(th_global, ix::th);
+
+        auto rv_global = solver.advectee_global(ix::rv);
+        this->make_cyclic(rv_global);
+        solver.advectee_global_set(rv_global, ix::rv);
   
         int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
