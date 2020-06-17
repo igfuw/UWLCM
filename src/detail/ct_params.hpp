@@ -15,7 +15,7 @@ struct ct_params_common : libmpdataxx::ct_params_default_t
 {
   using real_t = setup::real_t;
   enum { rhs_scheme = libmpdataxx::solvers::mixed }; 
-  enum { prs_scheme = libmpdataxx::solvers::cr };
+  enum { prs_scheme = libmpdataxx::solvers::gcrk };
   enum { vip_vab = libmpdataxx::solvers::expl };
 
   enum { opts = libmpdataxx::opts::nug 
