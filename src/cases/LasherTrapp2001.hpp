@@ -113,24 +113,48 @@ namespace setup
         solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
   
         // randomly prtrb tht and rv in the lowest 1km
-        std::mt19937 gen(rng_seed);
+        // NOTE: all processes do this, but ultimately only perturbation calculated by MPI rank 0 is used
         {
+          std::mt19937 gen(rng_seed);
           std::uniform_real_distribution<> dis(-0.1, 0.1);
           auto rand = std::bind(dis, gen);
   
-          decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
+          auto th_global = solver.advectee_global(ix::th);
+          decltype(solver.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+
           prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
-          solver.advectee(ix::th) += prtrb;
+          std::cerr << "LT th prtrb: " << prtrb;
+
+          th_global += prtrb;
+          std::cerr << "LT th  global after prtrb: " << th_global;
+
+          this->make_cyclic(th_global);
+          std::cerr << "LT th  global after periodization: " << th_global;
+
+          solver.advectee_global_set(th_global, ix::th);
+          std::cerr << "LT th after prtrb: " << solver.advectee(ix::th);
         }
         {
+          std::mt19937 gen(rng_seed+1); // different seed than in th. NOTE: if the same instance of gen is used in th and rv, for some reason it gives the same sequence in rv as in th despite being advanced in th prtrb
           std::uniform_real_distribution<> dis(-0.025e-3, 0.025e-3);
           auto rand = std::bind(dis, gen);
   
-          decltype(solver.advectee(ix::rv)) prtrb(solver.advectee(ix::rv).shape()); // array to store perturbation
+          auto rv_global = solver.advectee_global(ix::rv);
+          decltype(solver.advectee(ix::rv)) prtrb(rv_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+
           prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
-          solver.advectee(ix::rv) += prtrb;
+          std::cerr << "LT rv prtrb: " << prtrb;
+
+          rv_global += prtrb;
+          std::cerr << "LT rv  global after prtrb: " << rv_global;
+
+          this->make_cyclic(rv_global);
+          std::cerr << "LT rv  global after periodization: " << rv_global;
+
+          solver.advectee_global_set(rv_global, ix::rv);
+          std::cerr << "LT rv after prtrb: " << solver.advectee(ix::rv);
         }
       }
   
@@ -311,14 +335,6 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-
-        auto th_global = solver.advectee_global(ix::th);
-        this->make_cyclic(th_global);
-        solver.advectee_global_set(th_global, ix::th);
-
-        auto rv_global = solver.advectee_global(ix::rv);
-        this->make_cyclic(rv_global);
-        solver.advectee_global_set(rv_global, ix::rv);
       }
 
       public:
@@ -349,14 +365,6 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-
-        auto th_global = solver.advectee_global(ix::th);
-        this->make_cyclic(th_global);
-        solver.advectee_global_set(th_global, ix::th);
-
-        auto rv_global = solver.advectee_global(ix::rv);
-        this->make_cyclic(rv_global);
-        solver.advectee_global_set(rv_global, ix::rv);
   
         int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
