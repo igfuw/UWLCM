@@ -37,14 +37,22 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   void diag_rl()
   {
-    if(this->rank != 0) return;
+    // fill with rl values from superdroplets
+    if(this->rank == 0) 
+    {
+      prtcls->diag_all();
+      prtcls->diag_wet_mom(3);
+      auto r_l_indomain = this->r_l(this->domain); // rl refrences subdomain of r_l
+      r_l_indomain = typename parent_t::arr_t(prtcls->outbuf(), r_l_indomain.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+    }
+    this->mem->barrier();
 
-    prtcls->diag_all();
-    prtcls->diag_wet_mom(3);
-    auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
-    rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
-    nancheck(rl, "rl after copying from diag_wet_mom(3)");
-    rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    nancheck(this->r_l(this->ijk), "rl after copying from diag_wet_mom(3)");
+    this->r_l(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    this->mem->barrier();
+
+    // average values of rl in edge cells
+    this->avg_edge_sclr(this->r_l, this->ijk); // in case of cyclic bcond, rl on edges needs to be the same, NOTE use of r_l not rl here
   }
 
   void get_puddle() override
@@ -505,6 +513,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after at the end of hook_ante_step");
   }
 
+
   void hook_ante_delayed_step()
   {
     parent_t::hook_ante_delayed_step();
@@ -695,7 +704,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       parent_t::tbeg = parent_t::clock::now();
     }
     this->mem->barrier();
-
     this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
     this->apply_rhs(this->dt);
 
