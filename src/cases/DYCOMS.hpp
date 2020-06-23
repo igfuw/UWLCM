@@ -309,6 +309,7 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
+      };
 
       public:
       Dycoms()
