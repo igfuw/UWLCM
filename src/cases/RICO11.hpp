@@ -93,7 +93,7 @@ namespace setup
       {
         real_t operator()(const real_t &z) const
         {
-          return 0;// -9.9 + 2e-3 * z; 
+          return -9.9 + 2e-3 * z; 
         }
         BZ_DECLARE_FUNCTOR(u);
       };
@@ -373,7 +373,7 @@ namespace setup
       {
         real_t operator()(const real_t &z) const
         {
-          return 0;//-3.8;
+          return -3.8;
         }
         BZ_DECLARE_FUNCTOR(v);
       };
