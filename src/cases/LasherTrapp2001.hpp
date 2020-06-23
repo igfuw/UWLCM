@@ -124,16 +124,9 @@ namespace setup
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
 
           prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
-          std::cerr << "LT th prtrb: " << prtrb;
-
           th_global += prtrb;
-          std::cerr << "LT th  global after prtrb: " << th_global;
-
           this->make_cyclic(th_global);
-          std::cerr << "LT th  global after periodization: " << th_global;
-
           solver.advectee_global_set(th_global, ix::th);
-          std::cerr << "LT th after prtrb: " << solver.advectee(ix::th);
         }
         {
           std::mt19937 gen(rng_seed+1); // different seed than in th. NOTE: if the same instance of gen is used in th and rv, for some reason it gives the same sequence in rv as in th despite being advanced in th prtrb
@@ -145,16 +138,9 @@ namespace setup
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
 
           prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
-          std::cerr << "LT rv prtrb: " << prtrb;
-
           rv_global += prtrb;
-          std::cerr << "LT rv  global after prtrb: " << rv_global;
-
           this->make_cyclic(rv_global);
-          std::cerr << "LT rv  global after periodization: " << rv_global;
-
           solver.advectee_global_set(rv_global, ix::rv);
-          std::cerr << "LT rv after prtrb: " << solver.advectee(ix::rv);
         }
       }
   
