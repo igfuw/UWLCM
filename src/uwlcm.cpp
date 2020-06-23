@@ -28,7 +28,6 @@
 // all starts here with handling general options
 int main(int argc, char** argv)
 {
-try{
   omp_set_nested(1); // to allow openmp calls from libcloudphxx multi_CUDA backend
   // making argc and argv global
   ac = argc;
@@ -178,9 +177,4 @@ try{
         po::validation_error::invalid_option_value, micro, "micro"
       );
   }
-}
-catch(std::runtime_error &e)
-{
-  std::cerr << "caught runtime error: " << e.what() << std::endl;
-}
 }
