@@ -52,7 +52,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->mem->barrier();
 
     // average values of rl in edge cells
-    this->avg_edge_sclr(this->r_l, this->ijk); // in case of cyclic bcond, rl on edges needs to be the same, NOTE use of r_l not rl here
+    this->avg_edge_sclr(this->r_l, this->ijk); // in case of cyclic bcond, rl on edges needs to be the same
   }
 
   void get_puddle() override
@@ -288,17 +288,25 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
   };
   
+  // very similar to diag_rl, TODO: unify
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t& tmp) final
   {
-    if (this->rank == 0)
+    // fill with rc values from superdroplets
+    if(this->rank == 0) 
     {
       prtcls->diag_wet_rng(.5e-6, 25.e-6);
       prtcls->diag_wet_mom(3);
       auto rc = tmp(this->domain);
       rc = typename parent_t::arr_t(prtcls->outbuf(), rc.shape(), blitz::duplicateData);
-      nancheck(rc, "rc after copying in in get_rc");
-      rc = rc * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
     }
+    this->mem->barrier();
+
+    nancheck(tmp(this->ijk), "tmp after copying from diag_wet_mom(3) in get_rc");
+    tmp(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    this->mem->barrier();
+
+    this->avg_edge_sclr(tmp, this->ijk); // in case of cyclic bcond, rc on edges needs to be the same
+
     this->mem->barrier();
     return tmp;
   }
@@ -540,6 +548,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     // add microphysics contribution to th and rv
     if(params.cloudph_opts.cond)
     {
+      // with cyclic bcond, th and rv in corresponding edge cells needs to change by the same amount
+      this->avg_edge_sclr(rv_post_cond, this->ijk);
+      this->avg_edge_sclr(th_post_cond, this->ijk);
+
       this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
       this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
       // microphysics could have led to rv < 0 ?
