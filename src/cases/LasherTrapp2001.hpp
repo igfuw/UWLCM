@@ -27,8 +27,8 @@ namespace setup
     const quantity<si::length, real_t> 
       z_0  = 0     * si::metres,
       Y    = 10000 * si::metres,
-      Z    = 8000  * si::metres; 
-    const real_t z_abs = 7000;
+      Z    = 10000  * si::metres; 
+    const real_t z_abs = Z / si::metres - 1000;
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
     template<class case_ct_params_t, int n_dims>
