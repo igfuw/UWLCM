@@ -8,6 +8,8 @@ os:
 dist: xenial
 compiler:
     - gcc
+python:
+  - "3.6" 
 env:
     - TEST_SUITE=unit_iles MPI=none 
     - TEST_SUITE=unit_smg MPI=none
