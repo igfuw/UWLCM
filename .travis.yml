@@ -8,8 +8,6 @@ os:
 dist: xenial
 compiler:
     - gcc
-python:
-  - "3.6" 
 env:
     - TEST_SUITE=unit_iles MPI=none 
     - TEST_SUITE=unit_smg MPI=none
@@ -50,11 +48,11 @@ addons:
     packages:
 #      - g++-6
 #libcloudphxx dependencies
-      - python3-dev
-      - python3-pip
-      - python3-six
-      - python3-setuptools
-      - python3-numpy
+      - python3.6-dev
+      - python3.6-pip
+      - python3.6-six
+      - python3.6-setuptools
+      - python3.6-numpy
       - libblitz0-dev
       - libthrust-dev
 
