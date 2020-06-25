@@ -94,7 +94,8 @@ install:
     - . ./.travis_scripts/deps_install/libmpdata_dependencies.sh # installs mpi-hdf5 if needed
 
     - sudo pip3 install -U pytest --ignore-installed six
-    - sudo pip3 install -U scipy==1.4.1 --ignore-installed six
+    - sudo pip3 install -U numpy==1.18.5 --ignore-installed six # newer versions require python >= 3.6
+    - sudo pip3 install -U scipy==1.4.1 --ignore-installed six  # ditto
 
     # boost from a package - only when no MPI
     - if [[ $MPI == 'none' ]]; then sudo $apt_get_install boost1.61; fi
