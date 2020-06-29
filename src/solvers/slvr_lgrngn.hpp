@@ -37,14 +37,22 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   void diag_rl()
   {
-    if(this->rank != 0) return;
+    // fill with rl values from superdroplets
+    if(this->rank == 0) 
+    {
+      prtcls->diag_all();
+      prtcls->diag_wet_mom(3);
+      auto r_l_indomain = this->r_l(this->domain); // rl refrences subdomain of r_l
+      r_l_indomain = typename parent_t::arr_t(prtcls->outbuf(), r_l_indomain.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+    }
+    this->mem->barrier();
 
-    prtcls->diag_all();
-    prtcls->diag_wet_mom(3);
-    auto rl = parent_t::r_l(this->domain); // rl refrences subdomain of r_l
-    rl = typename parent_t::arr_t(prtcls->outbuf(), rl.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
-    nancheck(rl, "rl after copying from diag_wet_mom(3)");
-    rl = rl * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    nancheck(this->r_l(this->ijk), "rl after copying from diag_wet_mom(3)");
+    this->r_l(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    this->mem->barrier();
+
+    // average values of rl in edge cells
+    this->avg_edge_sclr(this->r_l, this->ijk); // in case of cyclic bcond, rl on edges needs to be the same
   }
 
   void get_puddle() override
@@ -255,7 +263,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     typename parent_t::arr_t arr
   ) {
     return libcloudphxx::lgrngn::arrinfo_t<real_t>(
-      arr.dataZero(), 
+      arr.data(), 
       arr.stride().data()
     );
   }
@@ -280,17 +288,25 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
   };
   
+  // very similar to diag_rl, TODO: unify
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t& tmp) final
   {
-    if (this->rank == 0)
+    // fill with rc values from superdroplets
+    if(this->rank == 0) 
     {
       prtcls->diag_wet_rng(.5e-6, 25.e-6);
       prtcls->diag_wet_mom(3);
       auto rc = tmp(this->domain);
       rc = typename parent_t::arr_t(prtcls->outbuf(), rc.shape(), blitz::duplicateData);
-      nancheck(rc, "rc after copying in in get_rc");
-      rc = rc * 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
     }
+    this->mem->barrier();
+
+    nancheck(tmp(this->ijk), "tmp after copying from diag_wet_mom(3) in get_rc");
+    tmp(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    this->mem->barrier();
+
+    this->avg_edge_sclr(tmp, this->ijk); // in case of cyclic bcond, rc on edges needs to be the same
+
     this->mem->barrier();
     return tmp;
   }
@@ -314,8 +330,16 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
       params.cloudph_opts_init.nx = this->mem->grid_size[0].length();
       params.cloudph_opts_init.dx = this->di;
-      params.cloudph_opts_init.x0 = this->di / 2;
-      params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
+
+      if(this->mem->distmem.rank() == 0)
+        params.cloudph_opts_init.x0 = this->di / 2;
+      else
+        params.cloudph_opts_init.x0 = 0.;
+
+      if(this->mem->distmem.rank() == this->mem->distmem.size()-1)
+        params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
+      else
+        params.cloudph_opts_init.x1 =  params.cloudph_opts_init.nx       * this->di;
 
       int n_sd_from_dry_sizes = 0;
       for (auto const& krcm : params.cloudph_opts_init.dry_sizes)
@@ -339,10 +363,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
             params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell;
         }
         else
-          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+          params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
           
-        if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
-          params.cloudph_opts_init.n_sd_max *= 1.5; // more space for copied SDs
+        if(params.backend == libcloudphxx::lgrngn::multi_CUDA || this->mem->distmem.size()>1)
+          params.cloudph_opts_init.n_sd_max *= 1.4; // more space for copied SDs
       }
       else // 3D
       {
@@ -364,9 +388,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
             params.cloudph_opts_init.n_sd_max =       params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; 
         }
         else
-          params.cloudph_opts_init.n_sd_max = 1.1 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+          params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dy * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
 
-        if(params.backend == libcloudphxx::lgrngn::multi_CUDA)
+        if(params.backend == libcloudphxx::lgrngn::multi_CUDA || this->mem->distmem.size()>1)
           params.cloudph_opts_init.n_sd_max *= 1.3; // more space for copied SDs
       }
 
@@ -461,8 +485,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
       this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);  
     }
-
-    // TODO: barrier?
+    this->mem->barrier();
   }
 
   void hook_mixed_rhs_ante_loop()
@@ -499,8 +522,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   }
 
 
-
-
   void hook_ante_delayed_step()
   {
     parent_t::hook_ante_delayed_step();
@@ -527,6 +548,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     // add microphysics contribution to th and rv
     if(params.cloudph_opts.cond)
     {
+      // with cyclic bcond, th and rv in corresponding edge cells needs to change by the same amount
+      this->avg_edge_sclr(rv_post_cond, this->ijk);
+      this->avg_edge_sclr(th_post_cond, this->ijk);
+
       this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
       this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
       // microphysics could have led to rv < 0 ?
@@ -614,9 +639,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     {
       // temporarily Cx & Cz are multiplied by this->rhod ...
       auto 
-        Cx = this->mem->GC[0](this->Cx_domain).reindex(this->zero).copy(),
-        Cy = this->mem->GC[1](this->Cy_domain).reindex(this->zero).copy(),
-        Cz = this->mem->GC[ix::w](this->Cz_domain).reindex(this->zero).copy(); 
+        Cx = this->mem->GC[0](this->Cx_domain).copy(),
+        Cy = this->mem->GC[1](this->Cy_domain).copy(),
+        Cz = this->mem->GC[ix::w](this->Cz_domain).copy(); 
       nancheck(Cx, "Cx after copying from mpdata");
       nancheck(Cy, "Cy after copying from mpdata");
       nancheck(Cz, "Cz after copying from mpdata");
@@ -649,9 +674,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
       // start sync/async run of step_cond
       // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
-      using libcloudphxx::lgrngn::particles_t;
-      using libcloudphxx::lgrngn::CUDA;
-      using libcloudphxx::lgrngn::multi_CUDA;
 
 #if defined(STD_FUTURE_WORKS)
       if (params.async)
@@ -694,7 +716,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       parent_t::tbeg = parent_t::clock::now();
     }
     this->mem->barrier();
-
     this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
     this->apply_rhs(this->dt);
 

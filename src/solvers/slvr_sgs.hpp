@@ -133,14 +133,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
       pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
       / (*this->params.mix_len)(this->vert_idx);
 
-    // havo to use modified ijkm due to shared-memory parallelisation, otherwise overlapping ranges
-    // would lead to double multiplications
-    // TODO: better way ?
-    auto ijkm_aux = this->ijkm;
-    if (this->rank > 0)
-      ijkm_aux[0] = this->ijk[0];
-
-    formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, ijkm_aux);
+    formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, this->ijkm_sep);
 
     this->xchng_sgs_tnsr_offdiag(this->tau, this->tau_srfc, this->ijk, this->ijkm);
     
@@ -200,18 +193,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
     {
       // have to use modified ijkm due to shared-memory parallelisation, otherwise overlapping ranges
       // would lead to trobule as tau_srfc in calc_drag_cmpct_fricvel is used both as tmp storage and output 
-      // TODO: define it once at init
-      // TODO: better way ?
-      auto ijkm_aux = this->ijkm;
-      if (this->rank > 0)
-        ijkm_aux[0] = this->ijk[0];
-
       formulae::stress::calc_drag_cmpct_fricvel<ct_params_t::n_dims, ct_params_t::opts>(this->tau_srfc,
                                                                                 this->vips(),
                                                                                 *this->mem->G,
                                                                                 params.fricvelsq,
                                                                                 this->ijk,
-                                                                                ijkm_aux);
+                                                                                this->ijkm_sep);
     }
   }
   
@@ -230,11 +217,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
       // document why
       this->mem->barrier();
 
+      // ijk_vec is used, because MPI requires that thread rank 0 calculates next vector to the left of the process' domain
       formulae::stress::multiply_vctr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(tmp_grad,
                                                                                     1.0 / prandtl_num,
                                                                                     this->k_m,
                                                                                     *this->mem->G,
-                                                                                    this->ijk);
+                                                                                    this->ijk_vec);
       for(int d = 0; d < parent_t::n_dims; ++d)
         nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after multiply_vctr_cmpct");
 

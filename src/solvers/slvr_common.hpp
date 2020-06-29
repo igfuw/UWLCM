@@ -36,7 +36,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
 
   // array with index of inversion
-  blitz::Array<real_t, parent_t::n_dims-1> k_i;
+  blitz::Array<real_t, parent_t::n_dims-1> k_i; // TODO: allocate k_i with alloc surf + in MPI calc average k_i over all processes
 
 /*
   TODO: an array (map?) of surf fluxes, something like:
@@ -92,14 +92,15 @@ class slvr_common : public slvr_dim<ct_params_t>
 #ifdef LIBMPDATAXX_GIT_REVISION
       this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, "git_revisions", -44);  
 #else
-      throw std::runtime_error("LIBMPDATAXX_GIT_REVISION is not defined, update your libmpdata++ library");
+      static_assert(false, "LIBMPDATAXX_GIT_REVISION is not defined, update your libmpdata++ library");
 #endif
 #ifdef LIBCLOUDPHXX_GIT_REVISION
       this->record_aux_const(std::string("LIBCLOUDPHXX git_revision : ") + LIBCLOUDPHXX_GIT_REVISION, "git_revisions", -44);  
 #else
-      throw std::runtime_error("LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
+      static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
+      this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());  
       this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
       this->record_aux_const("user_params nt", params.user_params.nt);  
       this->record_aux_const("user_params dt", params.user_params.dt);  
@@ -149,6 +150,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         this->record_prof_const("v_geostr", params.geostr[1]->data()); 
       }
     }
+    this->mem->barrier();
  
     // initialize surf fluxes with timestep==0
     U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
@@ -200,6 +202,11 @@ class slvr_common : public slvr_dim<ct_params_t>
   inline int shape(const rng_t &rng) { return rng.length();}
   template<int n_dims>
   blitz::TinyVector<int, n_dims> shape(const idx_t<n_dims> &rng) { return rng.ubound() - rng.lbound() + 1;}
+
+  // get base from a rng_t or an idx_t
+  inline blitz::TinyVector<int, 1> base(const rng_t &rng) { return blitz::TinyVector<int, 1>(rng.first());}
+  template<int n_dims>
+  blitz::TinyVector<int, n_dims> base(const idx_t<n_dims> &rng) { return rng.lbound();}
 
   void buoyancy(typename parent_t::arr_t &th, typename parent_t::arr_t &rv);
   void radiation(typename parent_t::arr_t &rv);
@@ -445,7 +452,10 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     get_puddle();
     for(int i=0; i < n_puddle_scalars; ++i)
-      this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", puddle.at(static_cast<cmn::output_t>(i)));
+    {
+      real_t sum = this->mem->distmem.sum(puddle.at(static_cast<cmn::output_t>(i)));
+      this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", sum);
+    }
   } 
 
   void record_all()
@@ -507,7 +517,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_u(args.mem->tmp[__FILE__][1][5]),
     surf_flux_v(args.mem->tmp[__FILE__][1][6]) // flux_v needs to be last
   {
-    k_i.resize(this->shape(this->hrzntl_domain)); // TODO: resize to hrzntl_subdomain
+    k_i.resize(this->shape(this->hrzntl_subdomain)); 
+    k_i.reindexSelf(this->base(this->hrzntl_subdomain));
     r_l = 0.;
     surf_flux_zero = 0.;
   }
