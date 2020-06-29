@@ -349,9 +349,9 @@ namespace setup
 //        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
-        int nz = solver.advectee().extent(ix::w); 
+        int nz = solver.advectee_global().extent(ix::w); 
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee().extent(0); 
+        int nx = solver.advectee_global().extent(0); 
         real_t dx = (X / si::metres) / (nx-1); 
         solver.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
           sqrt(
@@ -397,11 +397,11 @@ namespace setup
 //        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
-        int nz = solver.advectee().extent(2); 
+        int nz = solver.advectee_global().extent(2); 
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee().extent(0); 
+        int nx = solver.advectee_global().extent(0); 
         real_t dx = (X / si::metres) / (nx-1); 
-        int ny = solver.advectee().extent(1); 
+        int ny = solver.advectee_global().extent(1); 
         real_t dy = (Y / si::metres) / (ny-1); 
         solver.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
           sqrt(
