@@ -102,7 +102,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_dsc_const("vab_coefficient", this->mem->vab_coefficient());  
 
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
-      this->record_aux_const("MPI size", this->mem->distmem.size());  
+      this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());  
       this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
       this->record_aux_const("user_params nt", params.user_params.nt);  
       this->record_aux_const("user_params dt", params.user_params.dt);  
