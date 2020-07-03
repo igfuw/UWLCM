@@ -27,7 +27,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 #include "../detail/outmom.hpp"
-#include "../detail/bins.hpp"
+#include <UWLCM/output_bins.hpp>
 
 // simulation and output parameters for micro=lgrngn
 template <class solver_t, class user_params_t, class case_ptr_t>
@@ -62,6 +62,7 @@ void setopts_micro(
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
     // free parameters
     ("exact_sstp_cond", po::value<bool>()->default_value(rt_params.cloudph_opts_init.exact_sstp_cond), "exact(per-particle) logic for substeps for condensation")
+    ("diag_incloud_time", po::value<bool>()->default_value(rt_params.cloudph_opts_init.diag_incloud_time), "diagnose incloud time of droplets")
     ("sd_conc_large_tail", po::value<bool>()->default_value(rt_params.cloudph_opts_init.sd_conc_large_tail), "add SDs to better represent the large tail")
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
@@ -244,6 +245,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
   rt_params.cloudph_opts_init.exact_sstp_cond = vm["exact_sstp_cond"].as<bool>();
+  rt_params.cloudph_opts_init.diag_incloud_time = vm["diag_incloud_time"].as<bool>();
   rt_params.cloudph_opts_init.sd_conc_large_tail = vm["sd_conc_large_tail"].as<bool>();
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;

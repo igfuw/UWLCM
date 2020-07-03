@@ -57,6 +57,11 @@ int main(int ac, char** av)
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue;
           }
+          if((opts_c == opts_case[1]) && opts_m == opts_micro[1])
+          {
+            std::cout << "skipping dry thermal tests with Lagrangian microphysics" << std::endl;
+            continue; 
+          }
 
           ostringstream cmd, opts;
           opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_p << " " << opts_additional;
@@ -65,7 +70,7 @@ int main(int ac, char** av)
           auto outdir = std::hash<std::string>{}(opts.str());
           ofdict << outdir << " : " << opts.str() << std::endl;
 
-          cmd << av[1] << "/src/bicycles " << opts.str() << " --outdir=\"output/" << outdir << "\"";
+          cmd << av[1] <<  "/../../build/uwlcm " << opts.str() << " --outdir=\"output/" << outdir << "\"";
  
           cerr << endl << "=========" << endl;
           notice_macro("about to call: " << cmd.str())

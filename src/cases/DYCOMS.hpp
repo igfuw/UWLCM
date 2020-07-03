@@ -187,14 +187,21 @@ namespace setup
   
         // initial potential temperature
         solver.advectee(ix::th) = th_std_fctr()(index * dz); 
+
         // randomly prtrb tht
-        std::mt19937 gen(rng_seed);
-        std::uniform_real_distribution<> dis(-0.1, 0.1);
-        auto rand = std::bind(dis, gen);
+        // NOTE: all processes do this, but ultimately only perturbation calculated by MPI rank 0 is used
+        {
+          std::mt19937 gen(rng_seed);
+          std::uniform_real_distribution<> dis(-0.1, 0.1);
+          auto rand = std::bind(dis, gen);
   
-        decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
-        std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
-        solver.advectee(ix::th) += prtrb;
+          auto th_global = solver.advectee_global(ix::th);
+          decltype(solver.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
+          std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          th_global += prtrb;
+          this->make_cyclic(th_global);
+          solver.advectee_global_set(th_global, ix::th);
+        }
       }
   
       // calculate the initial environmental theta and rv profiles
@@ -304,8 +311,7 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        this->make_cyclic(solver.advectee(ix::th));
-      }
+      };
 
       public:
       Dycoms()
@@ -344,7 +350,6 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 

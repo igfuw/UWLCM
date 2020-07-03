@@ -220,24 +220,31 @@ namespace setup
         // initial potential temperature
         solver.advectee(ix::th) = th_std_fctr{}(index * dz); 
 
-        // randomly prtrb tht
-        std::mt19937 gen(rng_seed);
+        // randomly prtrb tht and rv
+        // NOTE: all processes do this, but ultimately only perturbation calculated by MPI rank 0 is used
         {
+          std::mt19937 gen(rng_seed);
           std::uniform_real_distribution<> dis(-0.1, 0.1);
           auto rand = std::bind(dis, gen);
   
-          decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
+          auto th_global = solver.advectee_global(ix::th);
+          decltype(solver.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
-          solver.advectee(ix::th) += prtrb;
+          th_global += prtrb;
+          this->make_cyclic(th_global);
+          solver.advectee_global_set(th_global, ix::th);
         }
-        // randomly prtrb rv
         {
-          std::uniform_real_distribution<> dis(-2.5e-5, 2.5e-5);
+          std::mt19937 gen(rng_seed+1); // different seed than in th. NOTE: if the same instance of gen is used in th and rv, for some reason it gives the same sequence in rv as in th despite being advanced in th prtrb
+          std::uniform_real_distribution<> dis(-0.025e-3, 0.025e-3);
           auto rand = std::bind(dis, gen);
   
-          decltype(solver.advectee(ix::rv)) prtrb(solver.advectee(ix::rv).shape()); // array to store perturbation
+          auto rv_global = solver.advectee_global(ix::rv);
+          decltype(solver.advectee(ix::rv)) prtrb(rv_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
-          solver.advectee(ix::rv) += prtrb;
+          rv_global += prtrb;
+          this->make_cyclic(rv_global);
+          solver.advectee_global_set(rv_global, ix::rv);
         }
       }
   
@@ -339,7 +346,14 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        this->make_cyclic(solver.advectee(ix::th));
+
+        auto th_global = solver.advectee_global(ix::th);
+        this->make_cyclic(th_global);
+        solver.advectee_global_set(th_global, ix::th);
+
+        auto rv_global = solver.advectee_global(ix::rv);
+        this->make_cyclic(rv_global);
+        solver.advectee_global_set(rv_global, ix::rv);
       }
 
       public:
@@ -379,7 +393,14 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        this->make_cyclic(solver.advectee(ix::th));
+
+        auto th_global = solver.advectee_global(ix::th);
+        this->make_cyclic(th_global);
+        solver.advectee_global_set(th_global, ix::th);
+
+        auto rv_global = solver.advectee_global(ix::rv);
+        this->make_cyclic(rv_global);
+        solver.advectee_global_set(rv_global, ix::rv);
   
         int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
