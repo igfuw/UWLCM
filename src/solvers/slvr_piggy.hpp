@@ -9,6 +9,8 @@ class slvr_piggy
 
 using namespace libmpdataxx; // TODO: get rid of it?
 
+constexpr int minhalo = 1; 
+
 // driver
 template <class ct_params_t>
 class slvr_piggy<
@@ -16,7 +18,7 @@ class slvr_piggy<
   typename std::enable_if<ct_params_t::piggy == 0 >::type
 > : public 
   output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs_sgs<ct_params_t>
+    solvers::mpdata_rhs_vip_prs_sgs<ct_params_t, minhalo>
   >
 {
   private:
@@ -25,7 +27,7 @@ class slvr_piggy<
 
   protected:
   using parent_t = output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip_prs_sgs<ct_params_t>
+    solvers::mpdata_rhs_vip_prs_sgs<ct_params_t, minhalo>
   >;  
 
   std::ofstream f_vel_out; // file for velocity field
@@ -49,6 +51,7 @@ class slvr_piggy<
       this->record_aux_const("save_vel", save_vel);  
       this->record_aux_const("rt_params prs_tol", prs_tol);  
     }
+    this->mem->barrier();
   }
 
   void hook_post_step()
@@ -105,13 +108,13 @@ class slvr_piggy<
   typename std::enable_if<ct_params_t::piggy == 1 >::type
 > : public 
   output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip<ct_params_t>
+    solvers::mpdata_rhs_vip<ct_params_t, minhalo>
   >
 {
 
   protected:
   using parent_t = output::hdf5_xdmf<
-    solvers::mpdata_rhs_vip<ct_params_t>
+    solvers::mpdata_rhs_vip<ct_params_t, minhalo>
   >;  
 
   private:

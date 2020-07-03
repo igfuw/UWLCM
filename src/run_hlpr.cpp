@@ -45,7 +45,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   using concurr_openmp_cyclic_t = typename concurr_openmp_cyclic<solver_t, n_dims>::type;
   using concurr_openmp_rigid_t = typename concurr_openmp_rigid<solver_t, n_dims>::type;
-  using concurr_openmp_cyclic_rigid_t = typename concurr_openmp_cyclic_rigid<solver_t, n_dims>::type;
+  using concurr_openmp_cyclic_gndsky_t = typename concurr_openmp_cyclic_gndsky<solver_t, n_dims>::type;
+  using concurr_openmp_rigid_gndsky_t = typename concurr_openmp_rigid_gndsky<solver_t, n_dims>::type;
   
   using rt_params_t = typename solver_t::rt_params_t;
   using ix = typename solver_t::ix;
@@ -144,17 +145,18 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // solver instantiation
   std::unique_ptr<concurr_any_t> concurr;
 
-  if(user_params.model_case == "dry_thermal")
+  if(user_params.model_case == "dry_thermal" || user_params.model_case == "dry_thermal_api_test")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
   }
-  else if(user_params.model_case == "lasher_trapp")
+  else if(user_params.model_case == "lasher_trapp" || user_params.model_case == "lasher_trapp_api_test")
   {
-    concurr.reset(new concurr_openmp_rigid_t(p));
+    //concurr.reset(new concurr_openmp_rigid_gndsky_t(p));     // rigid horizontal boundaries
+    concurr.reset(new concurr_openmp_cyclic_gndsky_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case
   }
   else
   {
-    concurr.reset(new concurr_openmp_cyclic_rigid_t(p));
+    concurr.reset(new concurr_openmp_cyclic_gndsky_t(p));
   }
   
   case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed);
