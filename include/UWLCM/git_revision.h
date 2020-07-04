@@ -1,0 +1,1 @@
+#define UWLCM_GIT_REVISION "3a69d34d6575be14ac1fa9d032bc2a38bbdb263c"

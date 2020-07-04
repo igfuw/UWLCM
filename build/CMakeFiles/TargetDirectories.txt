@@ -1,0 +1,14 @@
+/home/pzmij/biblioteki/UWLCM/build/CMakeFiles/install/strip.dir
+/home/pzmij/biblioteki/UWLCM/build/CMakeFiles/install/local.dir
+/home/pzmij/biblioteki/UWLCM/build/CMakeFiles/install.dir
+/home/pzmij/biblioteki/UWLCM/build/CMakeFiles/uwlcm.dir
+/home/pzmij/biblioteki/UWLCM/build/CMakeFiles/rebuild_cache.dir
+/home/pzmij/biblioteki/UWLCM/build/CMakeFiles/git_revision.h.dir
+/home/pzmij/biblioteki/UWLCM/build/CMakeFiles/edit_cache.dir
+/home/pzmij/biblioteki/UWLCM/build/CMakeFiles/list_install_components.dir
+/home/pzmij/biblioteki/UWLCM/build/include/CMakeFiles/install/strip.dir
+/home/pzmij/biblioteki/UWLCM/build/include/CMakeFiles/install.dir
+/home/pzmij/biblioteki/UWLCM/build/include/CMakeFiles/install/local.dir
+/home/pzmij/biblioteki/UWLCM/build/include/CMakeFiles/list_install_components.dir
+/home/pzmij/biblioteki/UWLCM/build/include/CMakeFiles/edit_cache.dir
+/home/pzmij/biblioteki/UWLCM/build/include/CMakeFiles/rebuild_cache.dir

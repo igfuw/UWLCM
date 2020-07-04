@@ -140,6 +140,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       this->record_aux_const("rt_params rc_src", params.rc_src);  
       this->record_aux_const("rt_params rr_src", params.rr_src);  
     }
+    this->mem->barrier();
   }
 
 
