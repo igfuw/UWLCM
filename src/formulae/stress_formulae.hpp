@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <libmpdata++/formulae/common.hpp>
 #include <libmpdata++/formulae/nabla_formulae.hpp>
 
 namespace libmpdataxx
@@ -16,7 +17,6 @@ namespace libmpdataxx
     {
       using arakawa_c::h;
       using opts::opts_t;
-
       
       // Compact formulation
       
@@ -44,7 +44,7 @@ namespace libmpdataxx
                                       + G<opts, 0>(rho, ijkm[0]    , zro) )
                                    );
       }
-
+  
       // 3D version
       template <int nd, opts_t opts, class arr_t, class arrvec_t, class real_t, class ijk_t, class ijkm_t>
       inline void calc_drag_cmpct_fricvel(arrvec_t &tau,

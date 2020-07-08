@@ -139,6 +139,9 @@ int main(int argc, char** argv)
     // handling the "case" option
     user_params.model_case = vm["case"].as<std::string>();
 
+    if(micro != "blk_1m" && user_params.model_case == "dry_thermal")
+      throw std::runtime_error("The DryThermal case needs micro set to blk_1m (although there's no microphysics done at all");
+
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
 #if !defined(UWLCM_DISABLE_2D_LGRNGN)
