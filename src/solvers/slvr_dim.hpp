@@ -42,13 +42,15 @@ class slvr_dim<
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   rng_t hrzntl_domain = this->mem->grid_size[0];
   rng_t hrzntl_subdomain = this->i;
-  idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]});
+  idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]}); // libcloudphxx requires courants with a halo of 2 in the x direction
   idx_t<2> Cy_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h}); // just fill in with Cz_domain to avoid some asserts
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
 
 
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
+  blitz::TinyVector<int, 1> zero_plane = blitz::TinyVector<int, 1>({0});
   blitz::TinyVector<int, 2> origin = blitz::TinyVector<int, 2>({this->i.first(), this->j.first()});
+
   blitz::secondIndex vert_idx;
   const rng_t &vert_rng = this->j;
   std::set<int> hori_vel = std::set<int>{ix::u};
@@ -111,7 +113,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    abs(this->state(ix::vip_i)(hrzntl_slice(0))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
+    abs(this->state(ix::vip_i)(this->hrzntl_slice(0))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
   )
 
   // ctor
@@ -145,7 +147,9 @@ class slvr_dim<
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
 
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
+  blitz::TinyVector<int, 2> zero_plane = blitz::TinyVector<int, 2>({0,0});
   blitz::TinyVector<int, 3> origin = blitz::TinyVector<int, 3>({this->i.first(), this->j.first(), this->k.first()});
+
   blitz::thirdIndex vert_idx;
   const rng_t &vert_rng = this->k;
   std::set<int> hori_vel = std::set<int>{ix::u, ix::v};
@@ -208,7 +212,7 @@ class slvr_dim<
 
   auto calc_U_ground() 
     return_macro(,
-    sqrt(pow2(this->state(ix::vip_i)(hrzntl_slice(0))) + pow2(this->state(ix::vip_j)(hrzntl_slice(0))))
+    sqrt(pow2(this->state(ix::vip_i)(this->hrzntl_slice(0))) + pow2(this->state(ix::vip_j)(this->hrzntl_slice(0))))
   )
 
   // ctor
