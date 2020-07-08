@@ -17,7 +17,8 @@ apt-get update -qq \
         software-properties-common \
         vim \
         curl \
-        language-pack-en-base
+        language-pack-en-base \
+        gdb
 
 add-apt-repository ppa:ubuntu-toolchain-r/test
 apt-get update
