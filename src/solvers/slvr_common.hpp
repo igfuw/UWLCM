@@ -481,15 +481,15 @@ class slvr_common : public slvr_dim<ct_params_t>
   virtual void diag()
   {
     assert(this->rank == 0);
-    this->record_aux_dsc("radiative_flux", radiative_flux); 
-
-    auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-    surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
-    this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
-
-    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
-    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
+//    this->record_aux_dsc("radiative_flux", radiative_flux); 
+//
+//    auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+//    surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
+//    this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
+//
+//    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+//    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
+//    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
 
     get_puddle();
     for(int i=0; i < n_puddle_scalars; ++i)

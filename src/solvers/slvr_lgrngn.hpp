@@ -91,10 +91,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->record_aux("libcloud_temperature", prtcls->outbuf());
     */
 
-    // recording precipitation rate per grid cel
-    prtcls->diag_all();
-    prtcls->diag_precip_rate();
-    this->record_aux("precip_rate", prtcls->outbuf());
+//    // recording precipitation rate per grid cel
+//    prtcls->diag_all();
+//    prtcls->diag_precip_rate();
+//    this->record_aux("precip_rate", prtcls->outbuf());
 
 //    // recording 1st mom of rw of gccns
 //    prtcls->diag_dry_rng(2e-6, 1);
@@ -161,35 +161,45 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_dry_mom(0);
     this->record_aux("actRH_rd_mom0", prtcls->outbuf());
     */
-    // recording 0th wet mom of radius of rain drops (r>25um)
-    prtcls->diag_wet_rng(25.e-6, 1);
-    prtcls->diag_wet_mom(0);
-    this->record_aux("rain_rw_mom0", prtcls->outbuf());
-    
-    // recording 3rd wet mom of radius of rain drops (r>25um)
-    prtcls->diag_wet_rng(25.e-6, 1);
-    prtcls->diag_wet_mom(3);
-    this->record_aux("rain_rw_mom3", prtcls->outbuf());
+//    // recording 0th wet mom of radius of rain drops (r>25um)
+//    prtcls->diag_wet_rng(25.e-6, 1);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("rain_rw_mom0", prtcls->outbuf());
+//    
+//    // recording 3rd wet mom of radius of rain drops (r>25um)
+//    prtcls->diag_wet_rng(25.e-6, 1);
+//    prtcls->diag_wet_mom(3);
+//    this->record_aux("rain_rw_mom3", prtcls->outbuf());
 
-    // recording 0th wet mom of radius of cloud drops (.5um< r < 25um)
-    prtcls->diag_wet_rng(.5e-6, 25.e-6);
+    // recording 0th wet mom of radius of cloud drops (1.5um< r < 1m)
+    prtcls->diag_wet_rng(1.5e-6, 1);
     prtcls->diag_wet_mom(0);
     this->record_aux("cloud_rw_mom0", prtcls->outbuf());
 
-    // recording 3rd wet mom of radius of cloud drops (.5um< r < 25um)
-    prtcls->diag_wet_rng(.5e-6, 25.e-6);
+    // recording 1st wet mom of radius of cloud drops (1.5um< r < 1m)
+    prtcls->diag_wet_rng(1.5e-6, 1);
+    prtcls->diag_wet_mom(1);
+    this->record_aux("cloud_rw_mom1", prtcls->outbuf());
+
+    // recording 2nd wet mom of radius of cloud drops (1.5um< r < 1m)
+    prtcls->diag_wet_rng(1.5e-6, 1);
+    prtcls->diag_wet_mom(2);
+    this->record_aux("cloud_rw_mom2", prtcls->outbuf());
+
+    // recording 3rd wet mom of radius of cloud drops (1.5um< r < 1m)
+    prtcls->diag_wet_rng(1.5e-6, 1);
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
-//    // recording 0th wet mom of radius of aerosols (r < .5um)
-//    prtcls->diag_wet_rng(0., .5e-6);
-//    prtcls->diag_wet_mom(0);
-//    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
+    // recording 0th wet mom of radius of aerosols (r < 1.5um)
+    prtcls->diag_wet_rng(0., 1.5e-6);
+    prtcls->diag_wet_mom(0);
+    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
 
-//    // recording 3rd wet mom of radius of aerosols (r < .5um)
-//    prtcls->diag_wet_rng(0., .5e-6);
-//    prtcls->diag_wet_mom(3);
-//    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
+    // recording 3rd wet mom of radius of aerosols (r < 1.5um)
+    prtcls->diag_wet_rng(0., 1.5e-6);
+    prtcls->diag_wet_mom(3);
+    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
    
 /*
     // recording divergence of the velocity field
@@ -226,17 +236,17 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 //    prtcls->diag_wet_mom(0);
 //    this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
 
-    prtcls->diag_all();
-    prtcls->diag_wet_mom(0);
-    this->record_aux("all_rw_mom0", prtcls->outbuf());
-
-    prtcls->diag_all();
-    prtcls->diag_wet_mom(1);
-    this->record_aux("all_rw_mom1", prtcls->outbuf());
-
-    prtcls->diag_all();
-    prtcls->diag_wet_mom(2);
-    this->record_aux("all_rw_mom2", prtcls->outbuf());
+//    prtcls->diag_all();
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("all_rw_mom0", prtcls->outbuf());
+//
+//    prtcls->diag_all();
+//    prtcls->diag_wet_mom(1);
+//    this->record_aux("all_rw_mom1", prtcls->outbuf());
+//
+//    prtcls->diag_all();
+//    prtcls->diag_wet_mom(2);
+//    this->record_aux("all_rw_mom2", prtcls->outbuf());
 
     // recording requested statistical moments
     {
