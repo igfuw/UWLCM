@@ -82,6 +82,7 @@ void setopts_micro(
     ("rd_min", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_min), "minimum dry radius of initialized droplets [m] (negative means automatic detection)")
     ("rd_max", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_max), "maximum dry radius of initialized droplets [m] (negative means automatic detection); sd_conc_large_tail==true may result in initialization of even larger droplets")
     ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
+    ("out_spec_freq", po::value<int>()->default_value(1), "frequency (in timesteps) of spectrum output")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -95,6 +96,8 @@ void setopts_micro(
 
   rt_params.async = vm["async"].as<bool>();
   rt_params.gccn = vm["gccn"].as<setup::real_t>();
+  rt_params.out_spec_freq = vm["out_spec_freq"].as<int>();
+  assert((rt_params.out_spec_freq % user_params.outfreq == 0) && "out_spec_freq needs to be a multiple of outfreq");
 //  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
