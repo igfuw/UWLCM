@@ -249,34 +249,37 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 //    this->record_aux("all_rw_mom2", prtcls->outbuf());
 
     // recording requested statistical moments
+    if ((this->timestep ) % static_cast<int>(params.out_spec_freq) == 0)
     {
-      // dry
-      int rng_num = 0;
-      for (auto &rng_moms : params.out_dry)
       {
-        auto &rng(rng_moms.first);
-        prtcls->diag_dry_rng(rng.first / si::metres, rng.second / si::metres);
-        for (auto &mom : rng_moms.second)
+        // dry
+        int rng_num = 0;
+        for (auto &rng_moms : params.out_dry)
         {
-          prtcls->diag_dry_mom(mom);
-          this->record_aux(aux_name("rd", rng_num, mom), prtcls->outbuf());
+          auto &rng(rng_moms.first);
+          prtcls->diag_dry_rng(rng.first / si::metres, rng.second / si::metres);
+          for (auto &mom : rng_moms.second)
+          {
+            prtcls->diag_dry_mom(mom);
+            this->record_aux(aux_name("rd", rng_num, mom), prtcls->outbuf());
+          }
+          rng_num++;
         }
-        rng_num++;
       }
-    }
-    {
-      // wet
-      int rng_num = 0;
-      for (auto &rng_moms : params.out_wet)
       {
-        auto &rng(rng_moms.first);
-        prtcls->diag_wet_rng(rng.first / si::metres, rng.second / si::metres);
-        for (auto &mom : rng_moms.second)
+        // wet
+        int rng_num = 0;
+        for (auto &rng_moms : params.out_wet)
         {
-          prtcls->diag_wet_mom(mom);
-          this->record_aux(aux_name("rw", rng_num, mom), prtcls->outbuf());
+          auto &rng(rng_moms.first);
+          prtcls->diag_wet_rng(rng.first / si::metres, rng.second / si::metres);
+          for (auto &mom : rng_moms.second)
+          {
+            prtcls->diag_wet_mom(mom);
+            this->record_aux(aux_name("rw", rng_num, mom), prtcls->outbuf());
+          }
+          rng_num++;
         }
-        rng_num++;
       }
     }
   } 
@@ -515,6 +518,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
       this->record_aux_const("out_dry_spec", params.out_dry_spec);  
       this->record_aux_const("out_wet_spec", params.out_wet_spec);  
+      this->record_aux_const("out_spec_freq", params.out_spec_freq);  
       this->record_aux_const("gccn", params.gccn);  
       this->record_aux_const("turb_adve", params.cloudph_opts.turb_adve);  
       this->record_aux_const("turb_cond", params.cloudph_opts.turb_cond);  
@@ -817,6 +821,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
     bool out_wet_spec, out_dry_spec;
+    int out_spec_freq;
   };
 
   private:
