@@ -367,34 +367,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       else
         params.cloudph_opts_init.x1 =  params.cloudph_opts_init.nx       * this->di;
 
-      // adjust src_x0 and src_x1 for MPI
-      // round to multiplicity of dx, this is done in libcloudph++ anyway
-      int src_i0 = params.cloudph_opts_init.src_x0 / params.cloudph_opts_init.dx + .5,
-          src_i1 = params.cloudph_opts_init.src_x1 / params.cloudph_opts_init.dx + .5;
-      int first = this->mem->grid_size[0].first(),
-          last  = this->mem->grid_size[0].second();
-      if(src_i0 > last || src_i1 <= first) // no source in this process domain
-      {
-        // src_x0 = 0 and src_x1 = 0 means no source in this process
-        params.cloudph_opts_init.src_x0 = 0;
-        params.cloudph_opts_init.src_x1 = 0;
-      }
-      else // there is a source in this process domain
-      {
-        // set src_x0
-        if(src_i0 <= first)
-          params.cloudph_opts_init.src_x0 = params.cloudph_opts_init.x0;
-        else
-          params.cloudph_opts_init.src_x0 = (src_i0 - first) * params.cloudph_opts_init.dx;
-        // set src_x1
-        if(src_i1 > last)
-           params.cloudph_opts_init.src_x1 = params.cloudph_opts_init.x1;
-         else
-           params.cloudph_opts_init.src_x1 = (src_i1 - first) * params.cloudph_opts_init.dx;
-      }
-
-      if(src_i1 <= this->grid_size[0].second)
-
       int n_sd_from_dry_sizes = 0;
       for (auto const& krcm : params.cloudph_opts_init.dry_sizes)
         for (auto const& rcm : krcm.second)
