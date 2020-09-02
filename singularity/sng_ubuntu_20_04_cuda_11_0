@@ -19,7 +19,10 @@ apt-get update -qq \
         vim \
         curl \
         language-pack-en-base \
-        gdb
+        gdb \
+        gfortran \
+        libnetcdf-dev \
+        libnetcdff-dev
 
 add-apt-repository ppa:ubuntu-toolchain-r/test
 apt-get update
