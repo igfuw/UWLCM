@@ -17,7 +17,11 @@ apt-get update -qq \
         software-properties-common \
         vim \
         curl \
-        language-pack-en-base
+        language-pack-en-base \
+        gdb \
+        gfortran \
+        libnetcdf-dev \
+        libnetcdff-dev
 
 add-apt-repository ppa:ubuntu-toolchain-r/test
 apt-get update
@@ -30,20 +34,24 @@ apt-get update -qq \
         libgnuplot-iostream-dev \
         libhdf5-dev \
         hdf5-tools \
-        python-dev \
-        python-h5py \
-        python-numpy \
-        python-scipy \
-        python-matplotlib \
-        python-pytest \
+        python3-dev \
+        python3-h5py \
+        python3-numpy \
+        python3-scipy \
+        python3-matplotlib \
+        python3-pytest \
+	python-tk\
+	dvipng\
+	texlive-latex-extra\
         libthrust-dev \
         libboost-all-dev
 
 wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh
 sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
 
-git clone --depth=1 git://github.com/thrust/thrust.git
+git clone --depth=1 git://github.com/thrust/thrust.git --branch 1.9.10-1
 sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust
+
 
 git clone --depth=1 git://github.com/blitzpp/blitz.git
 cd blitz

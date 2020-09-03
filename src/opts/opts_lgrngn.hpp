@@ -27,7 +27,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 #include "../detail/outmom.hpp"
-#include "../detail/bins.hpp"
+#include <UWLCM/output_bins.hpp>
 
 // simulation and output parameters for micro=lgrngn
 template <class solver_t, class user_params_t, class case_ptr_t>
@@ -62,6 +62,7 @@ void setopts_micro(
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
     // free parameters
     ("exact_sstp_cond", po::value<bool>()->default_value(rt_params.cloudph_opts_init.exact_sstp_cond), "exact(per-particle) logic for substeps for condensation")
+    ("diag_incloud_time", po::value<bool>()->default_value(rt_params.cloudph_opts_init.diag_incloud_time), "diagnose incloud time of droplets")
     ("sd_conc_large_tail", po::value<bool>()->default_value(rt_params.cloudph_opts_init.sd_conc_large_tail), "add SDs to better represent the large tail")
     ("sstp_cond", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_cond), "no. of substeps for condensation")
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
@@ -69,11 +70,7 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value(""),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
-    //CLARE, unnecessary
-    //("out_dry_str", po::value<std::string>()->default_value(""), "out_dry_str")
-    //("out_wet_str", po::value<std::string>()->default_value(""), "out_wet_str")
-    //END CLARE
-    ("gccn", po::value<bool>()->default_value(false) , "add GCCNs")
+    ("gccn", po::value<setup::real_t>()->default_value(0) , "concentration of giant aerosols = gccn * VOCALS observations")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
     ("turb_cond", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_cond), "turbulence effects in SD condensation (1=on, 0=off)")
@@ -95,7 +92,7 @@ void setopts_micro(
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
 
   rt_params.async = vm["async"].as<bool>();
-  rt_params.gccn = vm["gccn"].as<bool>();
+  rt_params.gccn = vm["gccn"].as<setup::real_t>();
   rt_params.out_wet_spec = vm["out_wet_spec"].as<bool>();
   rt_params.out_dry_spec = vm["out_dry_spec"].as<bool>();
 //  bool unit_test = vm["unit_test"].as<bool>();
@@ -114,6 +111,24 @@ void setopts_micro(
   neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
+  rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
+
+//CLARE
+/*
+ // if(!unit_test)
+  {
+    rt_params.cloudph_opts_init.dry_distros.emplace(
+      case_ptr->kappa, // key
+      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+        case_ptr->mean_rd1, // parameters
+        case_ptr->mean_rd2,
+        case_ptr->sdev_rd1,
+        case_ptr->sdev_rd2,
+        case_ptr->n1_stp,
+        case_ptr->n2_stp
+      )
+    );
+*/
 
 //CLARE: for dycoms/rico
  {
@@ -168,49 +183,49 @@ void setopts_micro(
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
 /*
     // GCCNs following Jensen and Nugent, JAS 2016
-    if(rt_params.gccn)
+    if(rt_params.gccn > setup::real_t(0))
     {
       rt_params.cloudph_opts_init.dry_sizes.emplace(
         1.28, // kappa
         std::map<setup::real_t, std::pair<setup::real_t, int> > {
-          {0.8e-6, {111800, 1}},
-          {1.0e-6, {68490,  1}},
-          {1.2e-6, {38400,  1}},
-          {1.4e-6, {21820,  1}},
-          {1.6e-6, {13300,  1}},
-          {1.8e-6, {8496,  1}},
-          {2.0e-6, {5486,  1}},
-          {2.2e-6, {3805,  1}},
-          {2.4e-6, {2593,  1}},
-          {2.6e-6, {1919,  1}},
-          {2.8e-6, {1278,  1}},
-          {3.0e-6, {988.4,  1}},
-          {3.2e-6, {777.9,  1}},
-          {3.4e-6, {519.5,  1}},
-          {3.6e-6, {400.5,  1}},
-          {3.8e-6, {376.9,  1}},
-          {4.0e-6, {265.3,  1}},
-          {4.2e-6, {212.4,  1}},
-          {4.4e-6, {137.8,  1}},
-          {4.6e-6, {121.4,  1}},
-          {4.8e-6, {100.9,  1}},
-          {5.0e-6, {122.2,  1}},
-          {5.2e-6, {50.64,  1}},
-          {5.4e-6, {38.30,  1}},
-          {5.6e-6, {55.47,  1}},
-          {5.8e-6, {21.45,  1}},
-          {6.0e-6, {12.95,  1}},
-          {6.2e-6, {43.23,  1}},
-          {6.4e-6, {26.26,  1}},
-          {6.6e-6, {30.50,  1}},
-          {6.8e-6, {4.385,  1}},
-          {7.0e-6, {4.372,  1}},
-          {7.2e-6, {4.465,  1}},
-          {7.4e-6, {4.395,  1}},
-          {7.6e-6, {4.427,  1}},
-          {7.8e-6, {4.411,  1}},
-          {8.6e-6, {4.522,  1}},
-          {9.0e-6, {4.542,  1}}
+          {0.8e-6, {rt_params.gccn * 111800, 1}},
+          {1.0e-6, {rt_params.gccn * 68490,  1}},
+          {1.2e-6, {rt_params.gccn * 38400,  1}},
+          {1.4e-6, {rt_params.gccn * 21820,  1}},
+          {1.6e-6, {rt_params.gccn * 13300,  1}},
+          {1.8e-6, {rt_params.gccn * 8496,  1}},
+          {2.0e-6, {rt_params.gccn * 5486,  1}},
+          {2.2e-6, {rt_params.gccn * 3805,  1}},
+          {2.4e-6, {rt_params.gccn * 2593,  1}},
+          {2.6e-6, {rt_params.gccn * 1919,  1}},
+          {2.8e-6, {rt_params.gccn * 1278,  1}},
+          {3.0e-6, {rt_params.gccn * 988.4,  1}},
+          {3.2e-6, {rt_params.gccn * 777.9,  1}},
+          {3.4e-6, {rt_params.gccn * 519.5,  1}},
+          {3.6e-6, {rt_params.gccn * 400.5,  1}},
+          {3.8e-6, {rt_params.gccn * 376.9,  1}},
+          {4.0e-6, {rt_params.gccn * 265.3,  1}},
+          {4.2e-6, {rt_params.gccn * 212.4,  1}},
+          {4.4e-6, {rt_params.gccn * 137.8,  1}},
+          {4.6e-6, {rt_params.gccn * 121.4,  1}},
+          {4.8e-6, {rt_params.gccn * 100.9,  1}},
+          {5.0e-6, {rt_params.gccn * 122.2,  1}},
+          {5.2e-6, {rt_params.gccn * 50.64,  1}},
+          {5.4e-6, {rt_params.gccn * 38.30,  1}},
+          {5.6e-6, {rt_params.gccn * 55.47,  1}},
+          {5.8e-6, {rt_params.gccn * 21.45,  1}},
+          {6.0e-6, {rt_params.gccn * 12.95,  1}},
+          {6.2e-6, {rt_params.gccn * 43.23,  1}},
+          {6.4e-6, {rt_params.gccn * 26.26,  1}},
+          {6.6e-6, {rt_params.gccn * 30.50,  1}},
+          {6.8e-6, {rt_params.gccn * 4.385,  1}},
+          {7.0e-6, {rt_params.gccn * 4.372,  1}},
+          {7.2e-6, {rt_params.gccn * 4.465,  1}},
+          {7.4e-6, {rt_params.gccn * 4.395,  1}},
+          {7.6e-6, {rt_params.gccn * 4.427,  1}},
+          {7.8e-6, {rt_params.gccn * 4.411,  1}},
+          {8.6e-6, {rt_params.gccn * 4.522,  1}},
+          {9.0e-6, {rt_params.gccn * 4.542,  1}}
         }
       );
     }
@@ -254,6 +269,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sstp_coal = vm["sstp_coal"].as<int>();
   rt_params.cloudph_opts_init.sstp_chem = vm["sstp_chem"].as<int>();
   rt_params.cloudph_opts_init.exact_sstp_cond = vm["exact_sstp_cond"].as<bool>();
+  rt_params.cloudph_opts_init.diag_incloud_time = vm["diag_incloud_time"].as<bool>();
   rt_params.cloudph_opts_init.sd_conc_large_tail = vm["sd_conc_large_tail"].as<bool>();
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
@@ -269,7 +285,7 @@ void setopts_micro(
     rt_params.cloudph_opts.turb_coal = 1;
   }
   // terminal velocity choice
-  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::khvorostyanov_nonspherical;
+  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard77fast;
 
   rt_params.cloudph_opts_init.RH_formula = libcloudphxx::lgrngn::RH_formula_t::rv_cc; // use rv to be consistent with Lipps Hemler
 
