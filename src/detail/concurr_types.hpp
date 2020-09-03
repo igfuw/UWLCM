@@ -39,11 +39,11 @@ struct concurr_openmp_rigid<solver_t, 3>
 };
 
 template <class solver_t, int n_dims>
-struct concurr_openmp_cyclic_rigid;
+struct concurr_openmp_cyclic_gndsky;
 
 // 2D
 template <class solver_t>
-struct concurr_openmp_cyclic_rigid<solver_t, 2>
+struct concurr_openmp_cyclic_gndsky<solver_t, 2>
 {
   using type = libmpdataxx::concurr::openmp<
     solver_t, 
@@ -54,7 +54,7 @@ struct concurr_openmp_cyclic_rigid<solver_t, 2>
 
 // 3D
 template <class solver_t>
-struct concurr_openmp_cyclic_rigid<solver_t, 3>
+struct concurr_openmp_cyclic_gndsky<solver_t, 3>
 {
   using type = libmpdataxx::concurr::openmp<
     solver_t, 
@@ -87,5 +87,31 @@ struct concurr_openmp_cyclic<solver_t, 3>
     libmpdataxx::bcond::cyclic, libmpdataxx::bcond::cyclic,
     libmpdataxx::bcond::cyclic, libmpdataxx::bcond::cyclic,
     libmpdataxx::bcond::cyclic, libmpdataxx::bcond::cyclic
+  >;
+};
+
+template <class solver_t, int n_dims>
+struct concurr_openmp_rigid_gndsky;
+
+// 2D
+template <class solver_t>
+struct concurr_openmp_rigid_gndsky<solver_t, 2>
+{
+  using type = libmpdataxx::concurr::openmp<
+    solver_t, 
+    libmpdataxx::bcond::rigid, libmpdataxx::bcond::rigid,
+    libmpdataxx::bcond::gndsky, libmpdataxx::bcond::gndsky
+  >;
+};
+
+// 3D
+template <class solver_t>
+struct concurr_openmp_rigid_gndsky<solver_t, 3>
+{
+  using type = libmpdataxx::concurr::openmp<
+    solver_t, 
+    libmpdataxx::bcond::rigid, libmpdataxx::bcond::rigid,
+    libmpdataxx::bcond::rigid, libmpdataxx::bcond::rigid,
+    libmpdataxx::bcond::gndsky, libmpdataxx::bcond::gndsky
   >;
 };

@@ -23,8 +23,17 @@
 			<Attribute Name="actrw_rw_mom3" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom3</DataItem>
 			</Attribute>
-			<Attribute Name="aerosol_rw_mom3" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/aerosol_rw_mom3</DataItem>
+			<Attribute Name="bigrain_gccn_rw_mom0" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/bigrain_gccn_rw_mom0</DataItem>
+			</Attribute>
+			<Attribute Name="bigrain_kappa_mom1" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/bigrain_kappa_mom1</DataItem>
+			</Attribute>
+			<Attribute Name="bigrain_rd_mom1" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/bigrain_rd_mom1</DataItem>
+			</Attribute>
+			<Attribute Name="bigrain_rw_mom0" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/bigrain_rw_mom0</DataItem>
 			</Attribute>
 			<Attribute Name="cloud_rw_mom0" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/cloud_rw_mom0</DataItem>
@@ -32,11 +41,8 @@
 			<Attribute Name="cloud_rw_mom3" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/cloud_rw_mom3</DataItem>
 			</Attribute>
-			<Attribute Name="gccn_rw_mom0" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/gccn_rw_mom0</DataItem>
-			</Attribute>
-			<Attribute Name="gccn_rw_mom1" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/gccn_rw_mom1</DataItem>
+			<Attribute Name="latent surface flux" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 0 " NumberType="Float" Format="HDF">timestep0000000000.h5:/latent surface flux</DataItem>
 			</Attribute>
 			<Attribute Name="precip_rate" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/precip_rate</DataItem>
@@ -205,6 +211,9 @@
 			</Attribute>
 			<Attribute Name="sd_conc" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/sd_conc</DataItem>
+			</Attribute>
+			<Attribute Name="sensible surface flux" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 0 " NumberType="Float" Format="HDF">timestep0000000000.h5:/sensible surface flux</DataItem>
 			</Attribute>
 			<Attribute Name="th" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000000.h5:/th</DataItem>

@@ -23,13 +23,13 @@ namespace setup
 
     const quantity<si::pressure, real_t> 
       p_0 = 101800 * si::pascals;
+    const quantity<si::length, real_t> X[] = {/*2D*/12000 * si::metres, /*3D*/10000 * si::metres};
     const quantity<si::length, real_t> 
-      z_0  = 0    * si::metres,
-      Z    = 8000 * si::metres, // DYCOMS: 1500
-      X    = 10000 * si::metres, // DYCOMS: 6400
-      Y    = 10000 * si::metres; // DYCOMS: 6400
-    const real_t z_abs = 7000;
-    const quantity<si::length, real_t> z_rlx = 25 * si::metres;
+      z_0  = 0     * si::metres,
+      Y    = 10000 * si::metres,
+      Z    = 10000  * si::metres; 
+    const real_t z_abs = Z / si::metres - 1000;
+    const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
     template<class case_ct_params_t, int n_dims>
     class LasherTrapp2001Common : public Anelastic<case_ct_params_t, n_dims>
@@ -45,6 +45,21 @@ namespace setup
       arr_1D_t th_std_env;
       arr_1D_t p_env;
       arr_1D_t rv_env;
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<!enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+      }
+
+      template<bool enable_sgs = case_ct_params_t::enable_sgs>
+      void setopts_sgs(rt_params_t &params,
+                       typename std::enable_if<enable_sgs>::type* = 0) 
+      {
+        parent_t::setopts_sgs(params);
+        params.fricvelsq = 0.0784;
+      }
   
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
@@ -53,7 +68,7 @@ namespace setup
         params.outfreq = user_params.outfreq;
         params.spinup = user_params.spinup;
         params.w_src = user_params.w_src;
-        params.uv_src = false; // ?
+        params.uv_src = user_params.uv_src;
         params.th_src = user_params.th_src;
         params.rv_src = user_params.rv_src;
         params.rc_src = user_params.rc_src;
@@ -62,6 +77,7 @@ namespace setup
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
+        params.vel_subsidence = false;
         params.friction = true;
         params.coriolis = false;
         params.radiation = false;
@@ -72,7 +88,7 @@ namespace setup
       // RH T and p to rv
       quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
       {
-        return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
+        return RH * const_cp::r_vs<real_t>(T, p);
       }
   
       template <class index_t>
@@ -83,7 +99,7 @@ namespace setup
         real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
         solver.advectee(ix::rv) = rv_env(index); 
-        solver.advectee(ix::th) = th_dry_env(index); 
+        solver.advectee(ix::th) = th_std_env(index); 
   
         solver.advectee(ix::u) = 0;
         solver.advectee(ix::w) = 0;  
@@ -97,25 +113,34 @@ namespace setup
         solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
   
         // randomly prtrb tht and rv in the lowest 1km
+        // NOTE: all processes do this, but ultimately only perturbation calculated by MPI rank 0 is used
         {
           std::mt19937 gen(rng_seed);
           std::uniform_real_distribution<> dis(-0.1, 0.1);
           auto rand = std::bind(dis, gen);
   
-          decltype(solver.advectee(ix::th)) prtrb(solver.advectee(ix::th).shape()); // array to store perturbation
+          auto th_global = solver.advectee_global(ix::th);
+          decltype(solver.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+
           prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
-          solver.advectee(ix::th) += prtrb;
+          th_global += prtrb;
+          this->make_cyclic(th_global);
+          solver.advectee_global_set(th_global, ix::th);
         }
         {
-          std::mt19937 gen(rng_seed);
+          std::mt19937 gen(rng_seed+1); // different seed than in th. NOTE: if the same instance of gen is used in th and rv, for some reason it gives the same sequence in rv as in th despite being advanced in th prtrb
           std::uniform_real_distribution<> dis(-0.025e-3, 0.025e-3);
           auto rand = std::bind(dis, gen);
   
-          decltype(solver.advectee(ix::rv)) prtrb(solver.advectee(ix::rv).shape()); // array to store perturbation
+          auto rv_global = solver.advectee_global(ix::rv);
+          decltype(solver.advectee(ix::rv)) prtrb(rv_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+
           prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
-          solver.advectee(ix::rv) += prtrb;
+          rv_global += prtrb;
+          this->make_cyclic(rv_global);
+          solver.advectee_global_set(rv_global, ix::rv);
         }
       }
   
@@ -201,13 +226,6 @@ namespace setup
         // calc reference profiles
         this->ref_prof(profs, nz);
 
-        profs.th_e = th_dry_env; // actual env profsile of theta_dry
-  
-        // calc divergence directly
-        real_t z_0 = z_rlx / si::metres;
-        blitz::firstIndex k;
-        profs.hgt_fctr = exp(- k * dz / z_0) / z_0;
-
         profs.w_LS = 0.; // no subsidence
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
@@ -221,30 +239,31 @@ namespace setup
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         if(timestep == 0) 
-          surf_flux_sens = .1; // [K * m/s]
+          surf_flux_sens = .1 * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; -1 because negative gradient of upward flux means inflow
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_sens.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[1] / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
           else if(surf_flux_sens.rank() == 2)
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[0] / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
         }
       }
       
+
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                       blitz::Array<real_t, n_dims> qt_ground,   
+                                       blitz::Array<real_t, n_dims> rt_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         if(timestep == 0)
-          surf_flux_lat = .4e-4; // [1/s]
+          surf_flux_lat = .4e-4 * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [m/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_lat.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2) +  pow(blitz::tensor::j * dy - 5000., 2) ) / (1700. * 1700.) );
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[1] / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
           else if(surf_flux_lat.rank() == 2)
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - 5000., 2)  ) / (1700. * 1700.) );
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[0] / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
         }
       }
 
@@ -256,8 +275,9 @@ namespace setup
                                const real_t &U_ground_z,
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
       {
-        surf_flux_uv = where(U_ground == 0., 0.,
-            - 0.0784 * uv_ground / U_ground // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+        surf_flux_uv = where(U_ground < 1e-4, 
+            - 0.0784 * uv_ground / real_t(1e-4) * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters), // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+            - 0.0784 * uv_ground / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)
           );
       }
 
@@ -266,19 +286,22 @@ namespace setup
       LasherTrapp2001Common()
       {
         this->p_0 = p_0;
-        //aerosol bimodal lognormal dist. - DYCOMS
-        //CLARE remove this
-        /*
-        this->mean_rd1 = real_t(.011e-6) * si::metres,
-        this->mean_rd2 = real_t(.06e-6) * si::metres;
-        this->sdev_rd1 = real_t(1.2),
-        this->sdev_rd2 = real_t(1.7);
-        this->n1_stp = real_t(5*125e6) / si::cubic_metres, // 125 || 31
-        this->n2_stp = real_t(5*65e6) / si::cubic_metres;  // 65 || 16
-        */
         this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
         this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
+
+        //CLARE remove this
+        /*
+        //aerosol bimodal lognormal dist. - as in RICO with 11x conc following the ICMW2020 setup
+        this->mean_rd1 = real_t(.03e-6) * si::metres,
+        this->mean_rd2 = real_t(.14e-6) * si::metres;
+        this->sdev_rd1 = real_t(1.28),
+        this->sdev_rd2 = real_t(1.75);
+        this->n1_stp = real_t(11*90e6) / si::cubic_metres, 
+        this->n2_stp = real_t(11*15e6) / si::cubic_metres;
+        */
+        
         this->Z = Z;
+        this->z_rlx = z_rlx;
       }
     };
     
@@ -295,7 +318,7 @@ namespace setup
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
+        params.di = (X[0] / si::metres) / (nps[0]-1); 
         params.dj = (Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
@@ -305,13 +328,12 @@ namespace setup
       {
         blitz::secondIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        this->make_cyclic(solver.advectee(ix::th));
       }
 
       public:
       LasherTrapp2001()
       {
-        this->X = X;
+        this->X = X[0];
       }
     };
 
@@ -325,7 +347,7 @@ namespace setup
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
+        params.di = (X[1] / si::metres) / (nps[0]-1); 
         params.dj = (Y / si::metres) / (nps[1]-1);
         params.dk = (Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
@@ -336,7 +358,6 @@ namespace setup
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
-        this->make_cyclic(solver.advectee(ix::th));
   
         int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
@@ -348,7 +369,7 @@ namespace setup
       public:
       LasherTrapp2001()
       {
-        this->X = X;
+        this->X = X[1];
         this->Y = Y;
       }
     };

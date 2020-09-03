@@ -1,3 +1,7 @@
+stages:
+  - precache
+  - test
+
 language: cpp
 os: 
     - linux
@@ -5,29 +9,70 @@ dist: xenial
 compiler:
     - gcc
 env:
-    - TEST_SUITE=unit_iles
-    - TEST_SUITE=unit_smg
-    - TEST_SUITE=moist_thermal
-    - TEST_SUITE=drawbicyc
+    - TEST_SUITE=unit_iles MPI=none 
+    - TEST_SUITE=unit_smg MPI=none
+    - TEST_SUITE=moist_thermal MPI=none
+    - TEST_SUITE=moist_thermal MPI=mvapich2
+
+cache:
+  packages: true
+  pip: true
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/mvapich2-2.3b
+    - ${TRAVIS_BUILD_DIR}/deps/boost
+    - ${TRAVIS_BUILD_DIR}/deps/hdf5
+
+# define the precache stage
+# empty phases mean that default phases (before_install, install, ...) from the test stage are used (?)
+# TODO: precache stage has a lot of unnecessary before_install and install code common to the (default) test stage;
+#       add after_success, after_failure to precache, remove building of caches from the test stage, make the build error instead;
+
+# YAML alias for the options common to precache jobs
+aliases:
+    # YAML alias for the options common to precache jobs
+    - &precache_uwlcm_mpi
+      stage: precache
+      install:
+        - . ./.travis_scripts/deps_install/mvapich2.sh
+        - . ./.travis_scripts/deps_install/boost.sh
+        - . ./.travis_scripts/deps_install/mpi_hdf5.sh
+      script: echo "Preparing cache finished"
+
+jobs:
+  include:
+    - <<: *precache_uwlcm_mpi
+      env: TEST_SUITE=moist_thermal MPI=mvapich2
+
 addons:
   apt:
     packages:
 #      - g++-6
-      - boost1.61
+#libcloudphxx dependencies
+      - python3-dev
+      - python3-pip
+      - python3-six
+      - python3-setuptools
+      - python3-numpy
+      - libblitz0-dev
+      - libthrust-dev
+
     sources: &sources
       - sourceline: 'ppa:rakhimov/boost'
-#      - ubuntu-toolchain-r-test
-#      - llvm-toolchain-trusty-4.0
+      - ubuntu-toolchain-r-test
+#      - llvm-toolchain-xenial
 
 notifications:
   email: false
 
 before_install:
+    # define a compiler variable for use in if statements
+    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export COMPILER=g++; fi
+
 # to avoid python lib/interpreter mismatch; https://github.com/travis-ci/travis-ci/issues/5326
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted"; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g"); fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo add-apt-repository "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe multiverse restricted"; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install -t xenial --no-install-recommends -y"; fi
+#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
 
     # locally installed stuff comes first
     - export PATH=/usr/local/bin:$PATH
@@ -37,40 +82,30 @@ install:
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CC=gcc-6; fi
 #    - if [[ $TRAVIS_OS_NAME == 'linux' && $CXX == 'g++'     ]]; then export CXX=g++-6; fi
 
+    - export apt_get_install="apt-get install -t xenial --no-install-recommends -y"
+
 # cmake 
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir; fi
 
-# recent boost is installed using addons functionality
+    # order matters!
+    - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/mvapich2.sh; fi
+    - if [[ $MPI != 'none' ]]; then . ./.travis_scripts/deps_install/boost.sh; fi
+    - . ./.travis_scripts/deps_install/libmpdata_dependencies.sh # installs mpi-hdf5 if needed
 
-#libcloudphxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libblitz0-dev python-numpy python-scipy libthrust-dev python-pytest; fi
+    - sudo -H pip3 install --upgrade pip
+    - sudo -H pip3 install -U pytest --ignore-installed six
+    - sudo -H pip3 install -U numpy==1.18.5 --ignore-installed six # newer versions require python >= 3.6
+    - sudo -H pip3 install -U scipy==1.4.1 six  # ditto
 
-# newest thrust
-    - git clone --depth=1 git://github.com/thrust/thrust.git;
-    - sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust;
+    # boost from a package - only when no MPI
+    - if [[ $MPI == 'none' ]]; then sudo $apt_get_install boost1.61; fi
+    - if [[ $MPI == 'none' ]]; then sudo ln -s /usr/lib/x86_64-linux-gnu/libboost_python-py35.so /usr/lib/x86_64-linux-gnu/libboost_python3.so; fi # different naming conventions for boost python with python 3
 
-#libmpdataxx dependencies
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install gnuplot-nox; fi
-    - sudo wget -O /usr/local/include/gnuplot-iostream.h https://raw.githubusercontent.com/dstahlke/gnuplot-iostream/master/gnuplot-iostream.h
-
-
-# hdf5
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-7; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install  -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" libpango-1.0-0 libpangocairo-1.0-0; fi
-# we need hdf5-1.10 for h5diff --enable-error-stack, so we install it manually
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then tar xf hdf5-1.10.5.tar; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd hdf5-1.10.5; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then CXXFLAGS=-w CFLAGS=-w ./configure --enable-cxx --enable-threadsafe --enable-unsupported --prefix=/usr; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then make; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo make install; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo ldconfig; fi
-    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then cd ..; fi
-#    - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libhdf5-dev hdf5-tools; fi
+    - sudo $apt_get_install hdf5-tools
 
 before_script:
-    - chmod +x ./.travis_scripts/*
+    - chmod -R +x ./.travis_scripts/*
 
 script:
 
@@ -80,7 +115,7 @@ script:
   - cd libcloudphxx
   - mkdir build
   - cd build
-  - cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+  - cmake -DBoost_DEBUG=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
   - make
   - sudo make install
   - cd ../..
@@ -100,5 +135,3 @@ script:
   - if [[ $TEST_SUITE == 'unit_smg' ]]; then . ./.travis_scripts/unit_smg.sh; fi
   # run the moist thermal test
   - if [[ $TEST_SUITE == 'moist_thermal' ]]; then . ./.travis_scripts/moist_thermal.sh; fi
-  # test compilation of drawbicyc
-  - if [[ $TEST_SUITE == 'drawbicyc' ]]; then . ./.travis_scripts/drawbicyc.sh; fi
