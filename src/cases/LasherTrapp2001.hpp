@@ -95,7 +95,7 @@ namespace setup
       void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
         // we assume here that set_profs was called already, so that *_env profiles are initialized
-        int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
         solver.advectee(ix::rv) = rv_env(index); 
@@ -352,7 +352,7 @@ namespace setup
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
   
-        int nz = solver.advectee().extent(ix::w);
+        int nz = solver.advectee_global().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
   
         solver.advectee(ix::v)= 0;
