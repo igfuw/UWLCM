@@ -134,15 +134,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
       this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
 
-      this->record_aux_const("mean_rd1", "aerosol_dist_params", params.user_params.mean_rd1 / si::metres);  
-      this->record_aux_const("sdev_rd1", "aerosol_dist_params", params.user_params.sdev_rd1);
-      this->record_aux_const("n1_stp", "aerosol_dist_params", params.user_params.n1_stp * si::cubic_metres);
-      this->record_aux_const("kappa1", "aerosol_dist_params", params.user_params.kappa1);
-      this->record_aux_const("mean_rd2", "aerosol_dist_params", params.user_params.mean_rd2 / si::metres);  
-      this->record_aux_const("sdev_rd2", "aerosol_dist_params", params.user_params.sdev_rd2);
-      this->record_aux_const("n2_stp", "aerosol_dist_params", params.user_params.n2_stp * si::cubic_metres);
-      this->record_aux_const("kappa2", "aerosol_dist_params", params.user_params.kappa2);
-     
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
       this->record_prof_const("p_e", params.p_e->data()); 

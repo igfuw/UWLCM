@@ -8,15 +8,9 @@
  #pragma once
 
  #include <libcloudph++/blk_2m/options.hpp>
-
  #include "opts_common.hpp"
  
-/*
- #include "slvr_blk_2m.hpp"
- #include "calc_forces_common.hpp"
-*/
-
- // simulation and output parameters for micro=blk_2m
+// simulation and output parameters for micro=blk_2m
 template <class solver_t, class user_params_t, class case_ptr_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params,
@@ -38,13 +32,11 @@ void setopts_micro(
     ("acnv_A", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_A), "parameter in autoconversion rate formulae")
     ("acnv_b", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_b), "parameter in autoconversion rate formulae")
     ("acnv_c", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_c), "parameter in autoconversion rate formulae")
-/*
     ("blk2m_mean_rd", po::value<typename solver_t::real_t>()->default_value(0.02e-6), "mean aerosol dry radius [m]")
     ("blk2m_sdev_rd", po::value<typename solver_t::real_t>()->default_value(1.4),     "aerosol standard deviation")
     ("blk2m_N_stp",   po::value<typename solver_t::real_t>()->default_value(60e6),    "aerosol concentration [1/m3]")
-    ("blk2m_chem_b",  po::value<typename solver_t::real_t>()->default_value(.55),     "kappa - chemical composition parameter")
-*/  
-  ;
+    ("blk2m_chem_b",  po::value<typename solver_t::real_t>()->default_value(.55),     "kappa - chemical composition parameter") 
+ ;
   po::variables_map vm;
   handle_opts(opts, vm);
 
@@ -59,20 +51,11 @@ void setopts_micro(
   rt_params.cloudph_opts.acnv_c = vm["acnv_c"].as<typename solver_t::real_t>();
 
   rt_params.cloudph_opts.dry_distros.push_back({
-    .mean_rd = user_params.mean_rd1 / si::metres,
-    .sdev_rd = user_params.sdev_rd1,
-    .N_stp   = user_params.n1_stp * si::cubic_metres,
-    .chem_b  = user_params.kappa1
-  });
-
-/*
-  rt_params.cloudph_opts.dry_distros.push_back({
     .mean_rd = vm["blk2m_mean_rd"].as<typename solver_t::real_t>(),
     .sdev_rd = vm["blk2m_sdev_rd"].as<typename solver_t::real_t>(),
     .N_stp   = vm["blk2m_N_stp"].as<typename solver_t::real_t>(),
     .chem_b  = vm["blk2m_chem_b"].as<typename solver_t::real_t>()
   });
-*/
 
   // output variables
   rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
