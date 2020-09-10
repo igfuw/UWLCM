@@ -57,12 +57,25 @@ class slvr_dim<
 
   idx_t<2> hrzntl_slice(int k)
   {
-      return idx_t<2>({this->i, rng_t(k, k)});
+    return idx_t<2>({this->i, rng_t(k, k)});
   }
   
   auto hrzntl_slice(const typename parent_t::arr_t &a, int k)
   {
-      return blitz::safeToReturn(a(idx_t<2>({this->i, rng_t(k, k)})) + 0);
+    return blitz::safeToReturn(a(idx_t<2>({this->i, rng_t(k, k)})) + 0);
+  }
+
+  idx_t<2> vertcl_slice_y(int k) // vertical slice for a given y
+  {
+    assert(0 && "vertcl_slice_y called in a 2D simulation.");
+  }
+  
+  // different treatment of slice at given x, because domain decomposition is done in x
+  void set_vertcl_slice_x(const typename parent_t::arr_t &a, int i, const setup::real_t &val)
+  {
+    if(this->ijk.lbound(0) <= i && i <= this->ijk.ubound(0)) // NOTE: with MPI, this condition would be true even for rank =0 at mpi rank > 0 (?)
+      a(idx_t<2>({rng_t(i, i), this->j})) = val;
+    // NOTE: add a barrier?
   }
 
   void vert_grad_fwd(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
@@ -157,6 +170,19 @@ class slvr_dim<
   idx_t<3> hrzntl_slice(int k)
   {
       return idx_t<3>({this->i, this->j, rng_t(k, k)});
+  }
+
+  idx_t<3> vertcl_slice_y(int k) // vertical slice for a given y
+  {
+      return idx_t<3>({this->i, rng_t(k, k), this->k});
+  }
+  
+  // different treatment of slice at given x, because domain decomposition is done in x
+  void set_vertcl_slice_x(const typename parent_t::arr_t &a, int i, const setup::real_t &val)
+  {
+    if(this->ijk.lbound(0) <= i && i <= this->ijk.ubound(0)) // NOTE: with MPI, this condition would be true even for rank =0 at mpi rank > 0 (?)
+      a(idx_t<3>({rng_t(i, i), this->j, this->k})) = val;
+    // NOTE: add a barrier?
   }
 
   auto hrzntl_slice(const typename parent_t::arr_t &a, int k)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "setup.hpp"
+#include "ccn_distribution.hpp"
 
 // simulation parameters container
 // TODO: write them to rt_params directly in main()

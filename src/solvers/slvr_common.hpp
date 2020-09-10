@@ -99,6 +99,8 @@ class slvr_common : public slvr_dim<ct_params_t>
 #else
       static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
+      this->record_aux_dsc_const("vab_coefficient", this->mem->vab_coefficient());  
+
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
       this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());  
       this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
@@ -123,6 +125,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rt_params coriolis", params.coriolis);  
       this->record_aux_const("rt_params friction", params.friction);  
       this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
+      this->record_aux_const("rt_params no_ccn_at_init", params.no_ccn_at_init);  
+      this->record_aux_const("rt_params open_side_walls", params.open_side_walls);  
 
       this->record_aux_const("ForceParameters q_i", params.ForceParameters.q_i);  
       this->record_aux_const("ForceParameters heating_kappa", params.ForceParameters.heating_kappa);  
@@ -189,6 +193,43 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_step()
   {
+    // ICMW202 defaults, give wrong RH in UWLCM
+    // const real_t top_wall_rv = 6.1562e-3;
+    // const real_t bot_wall_rv = 0.0215865;
+    // const real_t side_wall_rv = 7.1183e-3;
+    const real_t top_wall_rv = 0.0062192674278;
+    const real_t bot_wall_rv = 0.0213489271007;
+    //const real_t side_wall_rv = 0.00873884004297; // 100% RH
+    //const real_t side_wall_rv = 0.00716584883524; // 82% RH
+    //const real_t side_wall_rv = 0.00699107203438; // 80% RH
+    const real_t side_wall_rv = 0.00611718803008; // 70% RH
+    //const real_t side_wall_rv = 0.00524330402578; // 60% RH
+
+    // hack to set temperature and moisture of top and bottom walls of a Pi chamber
+    this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = 299; 
+    this->state(ix::rv)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = bot_wall_rv;
+
+    this->state(ix::th)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = 280; 
+    this->state(ix::rv)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = top_wall_rv;
+
+
+    // side walls perpendicular to x
+    this->set_vertcl_slice_x(this->state(ix::th), 0, 285);
+    this->set_vertcl_slice_x(this->state(ix::rv), 0, side_wall_rv);
+
+    this->set_vertcl_slice_x(this->state(ix::th), params.grid_size[0]-1, 285);
+    this->set_vertcl_slice_x(this->state(ix::rv), params.grid_size[0]-1, side_wall_rv);
+
+    // side walls perpendicular to y
+    if(parent_t::n_dims==3)
+    {
+      this->state(ix::th)(this->vertcl_slice_y(this->ijk.lbound(1))) = 285; 
+      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_rv; 
+
+      this->state(ix::th)(this->vertcl_slice_y(this->ijk.ubound(1))) = 285; 
+      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_rv; 
+    }
+
     if (spinup != 0 && spinup == this->timestep)
     {
       // turn autoconversion on only after spinup (if spinup was specified)
@@ -440,15 +481,15 @@ class slvr_common : public slvr_dim<ct_params_t>
   virtual void diag()
   {
     assert(this->rank == 0);
-    this->record_aux_dsc("radiative_flux", radiative_flux); 
-
-    auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-    surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
-    this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
-
-    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
-    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
+//    this->record_aux_dsc("radiative_flux", radiative_flux); 
+//
+//    auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+//    surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
+//    this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
+//
+//    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+//    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
+//    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
 
     get_puddle();
     for(int i=0; i < n_puddle_scalars; ++i)
@@ -486,6 +527,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
+    bool no_ccn_at_init=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
+    bool open_side_walls=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
 
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;

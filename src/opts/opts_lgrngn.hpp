@@ -79,6 +79,10 @@ void setopts_micro(
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
+    ("out_spec_freq", po::value<int>()->default_value(1), "frequency (in timesteps) of spectrum output")
+    ("supstp_src", po::value<int>()->default_value(100), "interval between time steps in which CCN from source are added")
+    ("src_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ccn injected into specified cells, [1 / m^3 / s]")
+    ("src_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected CCN")
 
     // TODO: MAC, HAC, vent_coef
   ;
@@ -95,6 +99,9 @@ void setopts_micro(
   rt_params.gccn = vm["gccn"].as<setup::real_t>();
   rt_params.out_wet_spec = vm["out_wet_spec"].as<bool>();
   rt_params.out_dry_spec = vm["out_dry_spec"].as<bool>();
+  rt_params.out_spec_freq = vm["out_spec_freq"].as<int>();
+  assert((rt_params.out_spec_freq % user_params.outfreq == 0) && "out_spec_freq needs to be a multiple of outfreq");
+
 //  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
@@ -261,6 +268,9 @@ void setopts_micro(
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
   rt_params.cloudph_opts.subs = rt_params.subsidence;
 
+  rt_params.cloudph_opts_init.no_ccn_at_init = rt_params.no_ccn_at_init;
+  rt_params.cloudph_opts_init.open_side_walls = rt_params.open_side_walls;
+
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
   for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
@@ -350,4 +360,29 @@ void setopts_micro(
       ));
     }
   }
+
+
+  setup::real_t src_inj_rate = vm["src_inj_rate"].as<setup::real_t>();  // number/m^3 (@ STP) created per second in each source cell
+  unsigned long long src_sd_no = vm["src_sd_no"].as<unsigned long long>();  // number of SD to represent injected CCN in each cell, added per supstp_src steps
+  // Keep in mind that multiplicity is an int, so we need (number/m^3/sec * supstp_src * dt * cell_vol * rhod/rhod@STP) to be close to an integer
+  // e.g. in Pi chamber volume of cells (except walls) is ca. 30.52 cc
+  
+  // source opts for pi chamber
+  rt_params.cloudph_opts_init.src_dry_sizes.emplace(
+    1.28, // kappa
+    std::map<setup::real_t, std::pair<setup::real_t, int> > {
+      {0.125e-6, {src_inj_rate, src_sd_no}} 
+    }
+  );
+
+  rt_params.cloudph_opts_init.supstp_src = vm["supstp_src"].as<int>();
+
+  const double dx = 0.03125;
+  rt_params.cloudph_opts_init.src_x0 = 31*dx;
+  rt_params.cloudph_opts_init.src_x1 = 35*dx;
+  rt_params.cloudph_opts_init.src_y0 = 31*dx;
+  rt_params.cloudph_opts_init.src_y1 = 35*dx;
+  rt_params.cloudph_opts_init.src_z0 = 15*dx;
+  rt_params.cloudph_opts_init.src_z1 = 19*dx;
+  rt_params.cloudph_opts_init.src_switch = true;
 }

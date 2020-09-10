@@ -5,7 +5,7 @@
  * GPLv3+ (see the COPYING file or http://www.gnu.org/licenses/)
  */
 
-#include "detail/setup.hpp"
+#include "detail/ccn_distribution.hpp"
 #include "detail/concurr_types.hpp"
 #include "detail/ct_params.hpp"
 
@@ -15,6 +15,7 @@
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/LasherTrapp2001.hpp"
+#include "cases/PiChamberICMW2020.hpp"
 
 #include "opts/opts_lgrngn.hpp"
 #include "opts/opts_blk_1m.hpp"
@@ -75,6 +76,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
+  else if (user_params.model_case == "pi_chamber")
+    case_ptr.reset(new setup::PiChamber::PiChamberICMW2020<case_ct_params_t, n_dims>());
   else if (user_params.model_case == "rico11")
     case_ptr.reset(new setup::rico::Rico11<case_ct_params_t, n_dims>());
   // special versions for api test - they have much lower aerosol concentrations to avoid multiplicity overflow
@@ -149,6 +152,10 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   {
     //concurr.reset(new concurr_openmp_rigid_gndsky_t(p));     // rigid horizontal boundaries
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case
+  }
+  else if(user_params.model_case == "pi_chamber")
+  {
+    concurr.reset(new concurr_openmp_rigid_t(p));     // rigid horizontal boundaries, zero sgs flux
   }
   else
   {
