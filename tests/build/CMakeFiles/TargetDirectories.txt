@@ -1,0 +1,7 @@
+/home/csinger/microphys/UWLCM/tests/build/CMakeFiles/rebuild_cache.dir
+/home/csinger/microphys/UWLCM/tests/build/CMakeFiles/test.dir
+/home/csinger/microphys/UWLCM/tests/build/CMakeFiles/edit_cache.dir
+/home/csinger/microphys/UWLCM/tests/build/unit/CMakeFiles/rebuild_cache.dir
+/home/csinger/microphys/UWLCM/tests/build/unit/CMakeFiles/edit_cache.dir
+/home/csinger/microphys/UWLCM/tests/build/unit/CMakeFiles/api_test.dir
+/home/csinger/microphys/UWLCM/tests/build/unit/CMakeFiles/test.dir
