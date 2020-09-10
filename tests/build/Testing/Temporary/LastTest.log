@@ -1,0 +1,128 @@
+Start testing: Sep 09 13:28 PDT
+----------------------------------------------------------
+1/4 Testing: api_test_iles
+1/4 Test: api_test_iles
+Command: "/home/csinger/microphys/UWLCM/tests/build/unit/api_test" "/home/csinger/microphys/UWLCM/tests/build"
+Directory: /home/csinger/microphys/UWLCM/tests/build/unit
+"api_test_iles" start time: Sep 09 13:28 PDT
+Output:
+----------------------------------------------------------
+
+=========
+ info: about to call: /home/csinger/microphys/UWLCM/tests/build/../../build/uwlcm --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=0  --outdir="output/6722594712192181588"
+rng seed: 44
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  mpirun environment variable detected but libmpdata++ was compiled with MPI disabled
+Aborted (core dumped)
+error: model run failed: /home/csinger/microphys/UWLCM/tests/build/../../build/uwlcm --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=0  --outdir="output/6722594712192181588"
+terminate called after throwing an instance of 'std::exception'
+  what():  std::exception
+<end of output>
+Test time =   2.93 sec
+----------------------------------------------------------
+Test Failed.
+"api_test_iles" end time: Sep 09 13:28 PDT
+"api_test_iles" time elapsed: 00:00:02
+----------------------------------------------------------
+
+2/4 Testing: api_test_smg
+2/4 Test: api_test_smg
+Command: "/home/csinger/microphys/UWLCM/tests/build/unit/api_test" "/home/csinger/microphys/UWLCM/tests/build" " --sgs=1 "
+Directory: /home/csinger/microphys/UWLCM/tests/build/unit
+"api_test_smg" start time: Sep 09 13:28 PDT
+Output:
+----------------------------------------------------------
+mkdir: cannot create directory ‘output’: File exists
+
+=========
+ info: about to call: /home/csinger/microphys/UWLCM/tests/build/../../build/uwlcm --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=0  --sgs=1  --outdir="output/13763753489637624258"
+rng seed: 44
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  SGS option was disabled at compile time
+Aborted (core dumped)
+error: model run failed: /home/csinger/microphys/UWLCM/tests/build/../../build/uwlcm --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=0  --sgs=1  --outdir="output/13763753489637624258"
+terminate called after throwing an instance of 'std::exception'
+  what():  std::exception
+<end of output>
+Test time =   0.19 sec
+----------------------------------------------------------
+Test Failed.
+"api_test_smg" end time: Sep 09 13:28 PDT
+"api_test_smg" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/4 Testing: api_test_iles_diff
+3/4 Test: api_test_iles_diff
+Command: "/bin/bash" "-c" " 
+  cd /home/csinger/microphys/UWLCM/tests/unit/refdata_iles/ && find ./* -maxdepth 1 -type d -print0 |            
+    while IFS= read -rd '' dir; do 
+      echo "
+============== working with $dir ===============";
+      grep $(echo "$dir" | sed 's/..//') hash_dict.txt
+
+      echo   'comparing const.h5'                                                                                                                          
+      h5diff -v2 --relative=3e-5 --exclude-path "/git_revisions" --exclude-path "/MPI details" "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/const.h5"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_iles/$dir/const.h5"                 &&
+      echo   'comparing temp.xmf'                                                                                                                                                      &&
+      diff "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/temp.xmf"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_iles/$dir/temp.xmf"                                                         && 
+      echo   'comparing timestep0000000000.h5'                                                                                                                                         &&
+      h5diff  -v2 --relative=1e-6 "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/timestep0000000000.h5"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_iles/$dir/timestep0000000000.h5" rv     &&
+      h5diff  -v2 --relative=1e-6 "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/timestep0000000000.h5"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_iles/$dir/timestep0000000000.h5" th     &&
+      echo   'comparing timestep0000000000.xmf'                                                                                                                                        &&
+      diff "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/timestep0000000000.xmf"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_iles/$dir/timestep0000000000.xmf"                             || exit 1; 
+    done  
+"
+Directory: /home/csinger/microphys/UWLCM/tests/build/unit
+"api_test_iles_diff" start time: Sep 09 13:28 PDT
+Output:
+----------------------------------------------------------
+
+============== working with ./10264215866689342848 ===============
+10264215866689342848 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --nz=4 --case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1 --piggy=0 --save_vel=1 
+comparing const.h5
+h5diff: </home/csinger/microphys/UWLCM/tests/build/unit/output/./10264215866689342848/const.h5>: unable to open file
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Failed.
+"api_test_iles_diff" end time: Sep 09 13:28 PDT
+"api_test_iles_diff" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/4 Testing: api_test_smg_diff
+4/4 Test: api_test_smg_diff
+Command: "/bin/bash" "-c" " 
+  cd /home/csinger/microphys/UWLCM/tests/unit/refdata_smg/ && find ./* -maxdepth 1 -type d -print0 |            
+    while IFS= read -rd '' dir; do 
+      echo "
+============== working with $dir ===============";
+      grep $(echo "$dir" | sed 's/..//') hash_dict.txt
+
+      echo   'comparing const.h5'                                                                                                                          
+      h5diff -v2 --relative=3e-5 --exclude-path "/git_revisions" --exclude-path "/MPI details" "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/const.h5"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_smg/$dir/const.h5"                  &&
+      echo   'comparing temp.xmf'                                                                                                                                                      &&
+      diff "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/temp.xmf"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_smg/$dir/temp.xmf"                                                          &&
+      echo   'comparing timestep0000000000.h5'                                                                                                                                         &&
+      h5diff  -v2 --relative=1e-6 "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/timestep0000000000.h5"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_smg/$dir/timestep0000000000.h5" rv      &&
+      h5diff  -v2 --relative=1e-6 "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/timestep0000000000.h5"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_smg/$dir/timestep0000000000.h5" th      &&
+      echo   'comparing timestep0000000000.xmf'                                                                                                                                        &&
+      diff "/home/csinger/microphys/UWLCM/tests/build/unit/output/$dir/timestep0000000000.xmf"     "/home/csinger/microphys/UWLCM/tests/unit/refdata_smg/$dir/timestep0000000000.xmf"                              || exit 1; 
+    done  
+"
+Directory: /home/csinger/microphys/UWLCM/tests/build/unit
+"api_test_smg_diff" start time: Sep 09 13:28 PDT
+Output:
+----------------------------------------------------------
+
+============== working with ./10008670509437324989 ===============
+10008670509437324989 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --ny=4 --nz=4 --case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1 --piggy=0  --sgs=1 
+comparing const.h5
+h5diff: </home/csinger/microphys/UWLCM/tests/build/unit/output/./10008670509437324989/const.h5>: unable to open file
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Failed.
+"api_test_smg_diff" end time: Sep 09 13:28 PDT
+"api_test_smg_diff" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Sep 09 13:28 PDT
