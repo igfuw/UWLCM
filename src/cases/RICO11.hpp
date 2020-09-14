@@ -311,15 +311,12 @@ namespace setup
       Rico11Common()
       {
         this->p_0 = p_0;
-        //CLARE
-        /*
         this->mean_rd1 = real_t(.03e-6) * si::metres,
         this->mean_rd2 = real_t(.14e-6) * si::metres;
         this->sdev_rd1 = real_t(1.28),
         this->sdev_rd2 = real_t(1.75);
         this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
-        */
         
         //CLARE: might need to delete these lines
         this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
