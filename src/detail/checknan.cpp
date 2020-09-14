@@ -37,7 +37,7 @@ namespace nancheck_hlprs
   template<class arr_t>
   void nancheck_hlpr(const arr_t &arr, const std::string &name)
   {
-    if(!std::isfinite(sum(arr))) 
+    if(!std::isfinite(sum(arr)))
     {
       #pragma omp critical
       {
@@ -51,7 +51,7 @@ namespace nancheck_hlprs
   template<class arr_t>
   void nancheck2_hlpr(const arr_t &arrcheck, const arr_t &arrout, const std::string &name)
   {
-    if(!std::isfinite(sum(arrcheck))) 
+    if(!std::isfinite(sum(arrcheck)))
     {
       #pragma omp critical
       {
@@ -66,7 +66,7 @@ namespace nancheck_hlprs
   template<class arr_t>
   void negcheck_hlpr(const arr_t &arr, const std::string &name)
   {
-    if(min(arr) < 0.) 
+    if(min(arr) < 0.)
     {
       #pragma omp critical
       {
@@ -106,5 +106,7 @@ namespace nancheck_hlprs
       arr = where(arr <= 0., 1e-10, arr);
     }
   }
+
+
 };
 #endif

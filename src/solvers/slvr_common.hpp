@@ -74,7 +74,9 @@ class slvr_common : public slvr_dim<ct_params_t>
   virtual void sgs_scalar_forces(const std::vector<int>&) {}
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) = 0;
 
-  void hook_ante_loop(int nt) 
+  //void common_water_src(int, int);
+
+  void hook_ante_loop(int nt)
   {
     if (spinup > 0)
     {
@@ -83,7 +85,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     else
       set_rain(true);
 
-    parent_t::hook_ante_loop(nt); 
+    parent_t::hook_ante_loop(nt);
 
     // record user_params and profiles
     if(this->rank==0)
@@ -100,7 +102,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
-      
       this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());
       this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);
       this->record_aux_const("user_params nt", params.user_params.nt);
@@ -108,35 +109,31 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("user_params outfreq", params.user_params.outfreq);  
       this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);
       this->record_aux_const("user_params spinup", params.user_params.spinup);  
-      this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);
-      this->record_aux_const("user_params th_src", params.user_params.th_src);
-      this->record_aux_const("user_params rv_src", params.user_params.rv_src);
-      this->record_aux_const("user_params uv_src", params.user_params.uv_src);
-      this->record_aux_const("user_params w_src", params.user_params.w_src);
+      this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);  
+      this->record_aux_const("user_params th_src", params.user_params.th_src);  
+      this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
+      this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
+      this->record_aux_const("user_params w_src", params.user_params.w_src);  
 
-      this->record_aux_const("rt_params th_src", params.th_src);
-      this->record_aux_const("rt_params rv_src", params.rv_src);
-      this->record_aux_const("rt_params uv_src", params.uv_src);
-      this->record_aux_const("rt_params w_src", params.w_src);
-      this->record_aux_const("rt_params spinup", params.spinup);
-      this->record_aux_const("rt_params subsidence", params.subsidence);
-      this->record_aux_const("rt_params vel_subsidence", params.vel_subsidence);
-      this->record_aux_const("rt_params coriolis", params.coriolis);
-      this->record_aux_const("rt_params friction", params.friction);
-      this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);
+      this->record_aux_const("rt_params th_src", params.th_src);  
+      this->record_aux_const("rt_params rv_src", params.rv_src);  
+      this->record_aux_const("rt_params uv_src", params.uv_src);  
+      this->record_aux_const("rt_params w_src", params.w_src);  
+      this->record_aux_const("rt_params spinup", params.spinup);  
+      this->record_aux_const("rt_params subsidence", params.subsidence);  
+      this->record_aux_const("rt_params vel_subsidence", params.vel_subsidence);  
+      this->record_aux_const("rt_params coriolis", params.coriolis);  
+      this->record_aux_const("rt_params friction", params.friction);  
+      this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
 
-      this->record_aux_const("ForceParameters q_i", params.ForceParameters.q_i);
-      this->record_aux_const("ForceParameters heating_kappa", params.ForceParameters.heating_kappa);
-      this->record_aux_const("ForceParameters F_0", params.ForceParameters.F_0);
-      this->record_aux_const("ForceParameters F_1", params.ForceParameters.F_1);
-      this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);
-      this->record_aux_const("ForceParameters D", params.ForceParameters.D);
-      this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);
+      this->record_aux_const("ForceParameters q_i", params.ForceParameters.q_i);  
+      this->record_aux_const("ForceParameters heating_kappa", params.ForceParameters.heating_kappa);  
+      this->record_aux_const("ForceParameters F_0", params.ForceParameters.F_0);  
+      this->record_aux_const("ForceParameters F_1", params.ForceParameters.F_1);  
+      this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);  
+      this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
+      this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
 
-      this->record_aux_const("coriolis_parameter", "ForceParameters", params.ForceParameters.coriolis_parameter);  
-      this->record_aux_const("input_LHF", "ForceParameters", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
-      this->record_aux_const("input_SHF", "ForceParameters", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
-     
       // CLARE: record aerosol distribution params in const.h5 file
       this->record_aux_const("mean_rd1", "aerosol_dist_params", params.user_params.mean_rd1 / si::metres);  
       this->record_aux_const("sdev_rd1", "aerosol_dist_params", params.user_params.sdev_rd1);
@@ -148,7 +145,9 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("n2_stp", "aerosol_dist_params", params.user_params.n2_stp * si::cubic_metres);
       this->record_aux_const("kappa2", "aerosol_dist_params", params.user_params.kappa2);
 
-      //CLARE: record calculated LHF, SHF, and momentum flux
+      //CLARE: record input and calculated LHF, SHF, and momentum flux
+      this->record_aux_const("input_LHF", "ForceParameters", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
+      this->record_aux_const("input_SHF", "ForceParameters", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
       this->record_aux_const("calculated_LHF","surface_fluxes",-44);
       this->record_aux_const("calculated_SHF","surface_fluxes",-44);
 
@@ -170,8 +169,9 @@ class slvr_common : public slvr_dim<ct_params_t>
         this->record_prof_const("v_geostr", params.geostr[1]->data()); 
       }
     }
+    
     this->mem->barrier();
- 
+    
     // initialize surf fluxes with timestep==0
     U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
 
@@ -214,7 +214,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       // turn autoconversion on only after spinup (if spinup was specified)
       set_rain(true);
     }
-    parent_t::hook_ante_step(); 
+    parent_t::hook_ante_step();
   }
 
 
@@ -364,14 +364,14 @@ class slvr_common : public slvr_dim<ct_params_t>
           rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
-        // horizontal velocity sources 
+        // horizontal velocity sources
         // large-scale vertical wind
 /*
         if(params.uv_src)
         {
           for(auto type : this->hori_vel)
           {
-            subsidence(type); 
+            subsidence(type);
             rhs.at(type)(ijk) += F(ijk);
           }
         }
@@ -399,7 +399,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     parent_t::vip_rhs_expl_calc();
 
     if(!params.friction) return;
-  
+
     this->mem->barrier();
     if(this->rank == 0)
       tbeg = clock::now();
@@ -415,7 +415,7 @@ class slvr_common : public slvr_dim<ct_params_t>
           -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
         );
     }
 
@@ -436,7 +436,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
 
-    if (this->rank == 0) 
+    if (this->rank == 0)
     {
       // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
       if(this->timestep == params.nt) // timestep incremented before post_step
@@ -494,15 +494,15 @@ class slvr_common : public slvr_dim<ct_params_t>
   }
 
   public:
-
   // note dual inheritance to get profile pointers
   struct rt_params_t : parent_t::rt_params_t, setup::profile_ptrs_t
-  { 
+  {
     int spinup = 0, // number of timesteps during which autoconversion is to be turned off
         nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, coriolis, friction, buoyancy_wet, radiation;
     bool vel_subsidence = true; // should subsidence be also applied to velocitiy fields - False eg. in RICO
-    bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
+    bool rc_src, rr_src; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
+    bool nc_src, nr_src; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
@@ -515,10 +515,10 @@ class slvr_common : public slvr_dim<ct_params_t>
   rt_params_t params;
 
   // ctor
-  slvr_common( 
-    typename parent_t::ctor_args_t args, 
+  slvr_common(
+    typename parent_t::ctor_args_t args,
     const rt_params_t &p
-  ) : 
+  ) :
     parent_t(args, p),
     params(p),
     spinup(p.spinup),

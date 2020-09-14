@@ -183,6 +183,8 @@ namespace setup
         params.rv_src = user_params.rv_src;
         params.rc_src = user_params.rc_src;
         params.rr_src = user_params.rr_src;
+        params.nc_src = user_params.nc_src;
+        params.nr_src = user_params.nr_src;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
