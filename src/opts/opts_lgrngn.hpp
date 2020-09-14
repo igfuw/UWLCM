@@ -18,7 +18,6 @@
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/RH_formula.hpp>
 
-
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
 #include <boost/fusion/adapted/std_pair.hpp> 

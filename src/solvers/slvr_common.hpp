@@ -493,7 +493,8 @@ class slvr_common : public slvr_dim<ct_params_t>
         nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, coriolis, friction, buoyancy_wet, radiation;
     bool vel_subsidence = true; // should subsidence be also applied to velocitiy fields - False eg. in RICO
-    bool rc_src, rr_src, nc_src, nr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
+    bool rc_src, rr_src; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
+    bool nc_src, nr_src; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop

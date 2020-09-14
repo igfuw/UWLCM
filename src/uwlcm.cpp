@@ -132,6 +132,7 @@ int main(int argc, char** argv)
 
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();
+    user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
 
     // sanity check if desired options were compiled
 #if defined(UWLCM_DISABLE_PIGGYBACKER)
@@ -147,7 +148,6 @@ int main(int argc, char** argv)
     if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
 #endif
 
-    user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
     user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
     user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
     user_params.n1_stp = vm["n1_stp"].as<setup::real_t>() / si::cubic_metres;
