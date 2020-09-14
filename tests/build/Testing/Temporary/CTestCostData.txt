@@ -1,9 +1,0 @@
-api_test_iles 0 0
-api_test_smg 0 0
-api_test_iles_diff 0 0
-api_test_smg_diff 0 0
----
-api_test_iles
-api_test_smg
-api_test_iles_diff
-api_test_smg_diff
