@@ -20,7 +20,10 @@
 
 #include "solvers/slvr_lgrngn.hpp"
 #include "solvers/slvr_blk_1m.hpp"
+#include "solvers/slvr_blk_2m.hpp"
+
 #include "forcings/calc_forces_blk_1m.hpp"
+#include "forcings/calc_forces_blk_2m.hpp"
 #include "forcings/calc_forces_common.hpp"
 
 #include <map>
@@ -50,8 +53,10 @@ int main(int argc, char** argv)
       ("serial", po::value<bool>()->default_value(false), "force advection and microphysics to be computed on single thread")
       ("th_src", po::value<bool>()->default_value(true) , "temp src")
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
-      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1m)")
-      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1m)")
+      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1/2m)")
+      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1/2m)")
+      ("nc_src", po::value<bool>()->default_value(true) , "cloud water concentration source (in blk_2m)")
+      ("nr_src", po::value<bool>()->default_value(true) , "rain water concentration source (in blk_2m)")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
@@ -59,15 +64,15 @@ int main(int argc, char** argv)
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model delta")
       ("help", "produce a help message (see also --micro X --help)")
       // CLARE: add aerosol distribution params options
-      ("mean_rd1", po::value<setup::real_t>()->default_value(0.1e-6) , "mean_rd1")
-      ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd1")
-      ("n1_stp", po::value<setup::real_t>()->default_value(10e6) , "n1_stp")
-      ("kappa1", po::value<setup::real_t>()->default_value(0.6) , "kappa1")
-      // dist #2
-      ("mean_rd2", po::value<setup::real_t>()->default_value(0.1e-6) , "mean_rd2")
-      ("sdev_rd2", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd2")
-      ("n2_stp", po::value<setup::real_t>()->default_value(0.0) , "n2_stp")
-      ("kappa2", po::value<setup::real_t>()->default_value(0.6) , "kappa2")
+      // default values are negative
+      ("mean_rd1", po::value<setup::real_t>()->default_value(-1.0) , "mean_rd1")
+      ("sdev_rd1", po::value<setup::real_t>()->default_value(-1.0) , "sdev_rd1")
+      ("n1_stp", po::value<setup::real_t>()->default_value(-1.0) , "n1_stp")
+      ("kappa1", po::value<setup::real_t>()->default_value(-1.0) , "kappa1")
+      ("mean_rd2", po::value<setup::real_t>()->default_value(-1.0) , "mean_rd2")
+      ("sdev_rd2", po::value<setup::real_t>()->default_value(-1.0) , "sdev_rd2")
+      ("n2_stp", po::value<setup::real_t>()->default_value(-1.0) , "n2_stp")
+      ("kappa2", po::value<setup::real_t>()->default_value(-1.0) , "kappa2")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
@@ -121,11 +126,14 @@ int main(int argc, char** argv)
     user_params.rv_src = vm["rv_src"].as<bool>();
     user_params.rc_src = vm["rc_src"].as<bool>();
     user_params.rr_src = vm["rr_src"].as<bool>();
+    user_params.nc_src = vm["nc_src"].as<bool>();
+    user_params.nr_src = vm["nr_src"].as<bool>();
     user_params.uv_src = vm["uv_src"].as<bool>();
     user_params.w_src = vm["w_src"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();
+    user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
 
     // sanity check if desired options were compiled
 #if defined(UWLCM_DISABLE_PIGGYBACKER)
@@ -141,7 +149,14 @@ int main(int argc, char** argv)
     if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
 #endif
 
-    user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
+    user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
+    user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
+    user_params.n1_stp = vm["n1_stp"].as<setup::real_t>() / si::cubic_metres;
+    user_params.kappa1 = vm["kappa1"].as<setup::real_t>();
+    user_params.mean_rd2 = vm["mean_rd2"].as<setup::real_t>() * si::metres;
+    user_params.sdev_rd2 = vm["sdev_rd2"].as<setup::real_t>();
+    user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
+    user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
 
     // CLARE: set aerosol params to user_params data structure
     // handling aerosol distribution parameters
@@ -203,7 +218,21 @@ int main(int argc, char** argv)
       throw std::runtime_error("3D Bulk 1-moment option was disabled at compile time");
 #endif
 
-  // TODO: not only micro can be wrong
+    else if (micro == "blk_2m" && ny == 0) // 2D two-moment
+#if !defined(UWLCM_DISABLE_2D_BLK_2M)
+      run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Bulk 2-moment option was disabled at compile time");
+#endif
+
+    else if (micro == "blk_2m" && ny > 0) // 3D two-moment
+#if !defined(UWLCM_DISABLE_3D_BLK_2M)      
+      run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Bulk 2-moment option was disabled at compile time");
+#endif
+
+    // TODO: not only micro can be wrong
     else throw
       po::validation_error(
         po::validation_error::invalid_option_value, micro, "micro"

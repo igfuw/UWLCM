@@ -33,7 +33,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void condevap()
   {
-    auto 
+    auto
       th   = this->state(ix::th)(this->ijk), // potential temperature
       rv   = this->state(ix::rv)(this->ijk), // water vapour mixing ratio
       rc   = this->state(ix::rc)(this->ijk), // cloud water mixing ratio
@@ -53,11 +53,11 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     libcloudphxx::blk_1m::adj_cellwise_nwtrph<real_t>( 
       params.cloudph_opts, p_e_arg, th, rv, rc, this->dt
     );
-    this->mem->barrier(); 
+    this->mem->barrier();
   }
 
   protected:
-  
+
   // accumulated water falling out of domain
   real_t liquid_puddle;
 
@@ -78,7 +78,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->record_aux_dsc("precip_rate", precipitation_rate);
   } 
 
-
   void rc_src();
   void rr_src();
   bool get_rain() { return params.cloudph_opts.conv; }
@@ -96,13 +95,13 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   {}
   void hook_mixed_rhs_ante_step()
   {
-    update_rhs(this->rhs, this->dt, 0); 
-    this->apply_rhs(this->dt); 
+    update_rhs(this->rhs, this->dt, 0);
+    this->apply_rhs(this->dt);
   }
   void hook_mixed_rhs_post_step()
   {
-    update_rhs(this->rhs, this->dt, 1); 
-    this->apply_rhs(this->dt); 
+    update_rhs(this->rhs, this->dt, 1);
+    this->apply_rhs(this->dt);
   }
 
   // deals with initial supersaturation
@@ -113,7 +112,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     // fill with zeros
     this->state(ix::rc)(this->ijk) = 0;
     this->state(ix::rr)(this->ijk) = 0;
- 
+
     // init the p_e array
     p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
 
@@ -148,7 +147,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   {
 
     parent_t::hook_ante_step();
-    
+
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after first half of rhs");
     negtozero(this->mem->advectee(ix::rc)(this->ijk), "rc after first half of rhs");
     negtozero(this->mem->advectee(ix::rr)(this->ijk), "rr after first half of rhs");
@@ -169,7 +168,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   void update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
-    const int &at 
+    const int &at
   ) {
     // store rl for buoyancy
     this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk);
@@ -188,12 +187,12 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     // TODO: rozne cell-wise na n i n+1 ?
     if(at == 0)
     {
-      auto 
+      auto
 	dot_th = rhs.at(ix::th)(this->ijk),
 	dot_rv = rhs.at(ix::rv)(this->ijk),
 	dot_rc = rhs.at(ix::rc)(this->ijk),
 	dot_rr = rhs.at(ix::rr)(this->ijk);
-      const auto 
+      const auto
 	th   = this->state(ix::th)(this->ijk),
 	rv   = this->state(ix::rv)(this->ijk),
 	rc   = this->state(ix::rc)(this->ijk),
@@ -248,8 +247,8 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
         // ---- rain water sources ----
         rr_src();
         rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
-  
-*/     
+
+*/
         break;
       }
     }
@@ -262,7 +261,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     
   }
 
-  // 
+  //
   void hook_post_step()
   {
     //condevap(); // treat saturation adjustment as post-advection, pre-rhs adjustment
@@ -272,8 +271,8 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   public:
 
-  struct rt_params_t : parent_t::rt_params_t 
-  { 
+  struct rt_params_t : parent_t::rt_params_t
+  {
     libcloudphxx::blk_1m::opts_t<real_t> cloudph_opts;
     bool flag_conv; // do we want coal after spinup
   };
@@ -293,10 +292,10 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   }
 
   // ctor
-  slvr_blk_1m_common( 
-    typename parent_t::ctor_args_t args, 
+  slvr_blk_1m_common(
+    typename parent_t::ctor_args_t args,
     const rt_params_t &p
-  ) : 
+  ) :
     parent_t(args, p),
     params(p),
     liquid_puddle(0),
@@ -306,13 +305,13 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 };
 
 template <class ct_params_t, class enableif = void>
-class slvr_blk_1m 
+class slvr_blk_1m
 {};
 
 using libmpdataxx::arakawa_c::h;
 using namespace libmpdataxx; // TODO: get rid of it?
 
-// 2D version 
+// 2D version
 template <class ct_params_t>
 class slvr_blk_1m<
   ct_params_t,
@@ -325,18 +324,18 @@ class slvr_blk_1m<
   using clock = typename parent_t::clock;
 
   // ctor
-  slvr_blk_1m( 
-    typename parent_t::ctor_args_t args, 
+  slvr_blk_1m(
+    typename parent_t::ctor_args_t args,
     const typename parent_t::rt_params_t &p
-  ) : 
+  ) :
     parent_t(args, p)
-  {}  
-  
+  {}
+
   protected:
   void update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
-    const int &at 
+    const int &at
   ) {
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
@@ -370,7 +369,7 @@ class slvr_blk_1m<
   }
 };
 
-// 3D version 
+// 3D version
 template <class ct_params_t>
 class slvr_blk_1m<
   ct_params_t,
@@ -383,18 +382,18 @@ class slvr_blk_1m<
   using clock = typename parent_t::clock;
 
   // ctor
-  slvr_blk_1m( 
-    typename parent_t::ctor_args_t args, 
+  slvr_blk_1m(
+    typename parent_t::ctor_args_t args,
     const typename parent_t::rt_params_t &p
-  ) : 
+  ) :
     parent_t(args, p)
-  {}  
+  {}
 
   protected:
   void update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
-    const int &at 
+    const int &at
   ) {
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 

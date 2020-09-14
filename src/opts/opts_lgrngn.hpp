@@ -18,7 +18,6 @@
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/RH_formula.hpp>
 
-
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
 #include <boost/fusion/adapted/std_pair.hpp> 
@@ -113,25 +112,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
   rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
 
-//CLARE
-/*
- // if(!unit_test)
-  {
-    rt_params.cloudph_opts_init.dry_distros.emplace(
-      case_ptr->kappa, // key
-      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        case_ptr->mean_rd1, // parameters
-        case_ptr->mean_rd2,
-        case_ptr->sdev_rd1,
-        case_ptr->sdev_rd2,
-        case_ptr->n1_stp,
-        case_ptr->n2_stp
-      )
-    );
-*/
-
-//CLARE: for dycoms/rico
- {
+if(user_params.kappa1 >= 0 && user_params.mean_rd1 >= 0 && user_params.mean_rd2 >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp >= 0 && user_params.n2_stp >= 0) {
    rt_params.cloudph_opts_init.dry_distros.emplace(
      user_params.kappa1,
      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
@@ -143,24 +124,19 @@ void setopts_micro(
        user_params.n2_stp
      )
    );
- }
-//CLARE: for one mode sensitivity tests
-/*
- {
-   rt_params.cloudph_opts_init.dry_distros.emplace(
-     user_params.kappa1,
-     std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-       user_params.mean_rd1,
-       thrust_real_t(1.0e-6) * si::metres,
-       user_params.sdev_rd1,
-       thrust_real_t(1.2),
-       user_params.n1_stp,
-       thrust_real_t(0) / si::cubic_metres
-     )
-   );
- }
-*/
-
+} else {
+  rt_params.cloudph_opts_init.dry_distros.emplace(
+    case_ptr->kappa, // key
+    std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+      case_ptr->mean_rd1, // parameters
+      case_ptr->mean_rd2,
+      case_ptr->sdev_rd1,
+      case_ptr->sdev_rd2,
+      case_ptr->n1_stp,
+      case_ptr->n2_stp
+    )
+  );
+}
 
 
 // CLARE: remove
