@@ -33,12 +33,6 @@ void setopts_micro(
     ("acnv_A", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_A), "parameter in autoconversion rate formulae")
     ("acnv_b", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_b), "parameter in autoconversion rate formulae")
     ("acnv_c", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_c), "parameter in autoconversion rate formulae")
-/*
-    ("blk2m_mean_rd", po::value<typename solver_t::real_t>()->default_value(0.02e-6), "mean aerosol dry radius [m]")
-    ("blk2m_sdev_rd", po::value<typename solver_t::real_t>()->default_value(1.4),     "aerosol standard deviation")
-    ("blk2m_N_stp",   po::value<typename solver_t::real_t>()->default_value(60e6),    "aerosol concentration [1/m3]")
-    ("blk2m_chem_b",  po::value<typename solver_t::real_t>()->default_value(.55),     "kappa - chemical composition parameter")
-*/  
   ;
   po::variables_map vm;
   handle_opts(opts, vm);
@@ -53,23 +47,34 @@ void setopts_micro(
   rt_params.cloudph_opts.acnv_b = vm["acnv_b"].as<typename solver_t::real_t>();
   rt_params.cloudph_opts.acnv_c = vm["acnv_c"].as<typename solver_t::real_t>();
 
-  rt_params.cloudph_opts.dry_distros.push_back({
-    .mean_rd = user_params.mean_rd1 / si::metres,
-    .sdev_rd = user_params.sdev_rd1,
-    .N_stp   = user_params.n1_stp * si::cubic_metres,
-    .chem_b  = user_params.kappa1
-  });
-
-/*
-  rt_params.cloudph_opts.dry_distros.push_back({
-    .mean_rd = vm["blk2m_mean_rd"].as<typename solver_t::real_t>(),
-    .sdev_rd = vm["blk2m_sdev_rd"].as<typename solver_t::real_t>(),
-    .N_stp   = vm["blk2m_N_stp"].as<typename solver_t::real_t>(),
-    .chem_b  = vm["blk2m_chem_b"].as<typename solver_t::real_t>()
-  });
-*/
-
-  // output variables
+  if (user_params.kappa1 >= 0 && user_params.mean_rd1 >= 0 && user_params.mean_rd2 >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp >= 0 && user_params.n2_stp >= 0) {
+    rt_params.cloudph_opts.dry_distros.push_back({
+      .mean_rd = user_params.mean_rd1 / si::metres,
+      .sdev_rd = user_params.sdev_rd1,
+      .N_stp   = user_params.n1_stp * si::cubic_metres,
+      .chem_b  = user_params.kappa1
+    });
+    rt_params.cloudph_opts.dry_distros.push_back({
+      .mean_rd = user_params.mean_rd2 / si::metres,
+      .sdev_rd = user_params.sdev_rd2,
+      .N_stp   = user_params.n2_stp * si::cubic_metres,
+      .chem_b  = user_params.kappa2
+    });
+  } else {
+    rt_params.cloudph_opts.dry_distros.push_back({
+      .mean_rd = case_ptr->mean_rd1,
+      .sdev_rd = case_ptr->sdev_rd1,
+      .N_stp   = case_ptr->n1_stp,
+      .chem_b  = case_ptr->kappa
+    });
+    rt_params.cloudph_opts.dry_distros.push_back({
+      .mean_rd = case_ptr->mean_rd2,
+      .sdev_rd = case_ptr->sdev_rd2,
+      .N_stp   = case_ptr->n2_stp,
+      .chem_b  = case_ptr->kappa
+    });
+  }
+  
   rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::rr, {"rr", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::nc, {"nc", "[kg-1]"}});
