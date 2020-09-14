@@ -11,11 +11,6 @@
 
  #include "opts_common.hpp"
  
-/*
- #include "slvr_blk_2m.hpp"
- #include "calc_forces_common.hpp"
-*/
-
  // simulation and output parameters for micro=blk_2m
 template <class solver_t, class user_params_t, class case_ptr_t>
 void setopts_micro(
