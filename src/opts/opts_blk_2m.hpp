@@ -74,7 +74,7 @@ void setopts_micro(
       .chem_b  = case_ptr->kappa
     });
   }
-  
+
   rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::rr, {"rr", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::nc, {"nc", "[kg-1]"}});
