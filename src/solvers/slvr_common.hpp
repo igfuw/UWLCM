@@ -145,12 +145,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("n2_stp", "aerosol_dist_params", params.user_params.n2_stp * si::cubic_metres);
       this->record_aux_const("kappa2", "aerosol_dist_params", params.user_params.kappa2);
 
-      //CLARE: record input and calculated LHF, SHF, and momentum flux
-      this->record_aux_const("input_LHF", "ForceParameters", params.ForceParameters.surf_latent_flux_in_watts_per_square_meter);  
-      this->record_aux_const("input_SHF", "ForceParameters", params.ForceParameters.surf_sensible_flux_in_watts_per_square_meter);  
-      this->record_aux_const("calculated_LHF","surface_fluxes",-44);
-      this->record_aux_const("calculated_SHF","surface_fluxes",-44);
-
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
       this->record_prof_const("p_e", params.p_e->data()); 

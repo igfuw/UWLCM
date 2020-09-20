@@ -47,7 +47,7 @@ void setopts_micro(
   rt_params.cloudph_opts.acnv_b = vm["acnv_b"].as<typename solver_t::real_t>();
   rt_params.cloudph_opts.acnv_c = vm["acnv_c"].as<typename solver_t::real_t>();
 
-  if (user_params.kappa1 >= 0 && user_params.mean_rd1 >= 0 && user_params.mean_rd2 >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp >= 0 && user_params.n2_stp >= 0) {
+  if (user_params.kappa1 >= 0 && user_params.mean_rd1 / si::metres >= 0 && user_params.mean_rd2 / si::metres >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp * si::cubic_metres >= 0 && user_params.n2_stp * si::cubic_metres >= 0) {
     rt_params.cloudph_opts.dry_distros.push_back({
       .mean_rd = user_params.mean_rd1 / si::metres,
       .sdev_rd = user_params.sdev_rd1,
