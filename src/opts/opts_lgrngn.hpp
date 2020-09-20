@@ -112,67 +112,35 @@ void setopts_micro(
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
   rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
 
-  if(user_params.kappa1 >= 0 && user_params.mean_rd1 >= 0 && user_params.mean_rd2 >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp >= 0 && user_params.n2_stp >= 0) {
-    rt_params.cloudph_opts_init.dry_distros.emplace(
-      user_params.kappa1,
-      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        user_params.mean_rd1,
-        user_params.mean_rd2,
-        user_params.sdev_rd1,
-        user_params.sdev_rd2,
-        user_params.n1_stp,
-        user_params.n2_stp
-      )
-    );
-  } else {
-    rt_params.cloudph_opts_init.dry_distros.emplace(
-      case_ptr->kappa, // key
-      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        case_ptr->mean_rd1, // parameters
-        case_ptr->mean_rd2,
-        case_ptr->sdev_rd1,
-        case_ptr->sdev_rd2,
-        case_ptr->n1_stp,
-        case_ptr->n2_stp
-      )
-    );
-  }
+  {
+    if(user_params.kappa1 >= 0 && user_params.mean_rd1 / si::metres >= 0 && user_params.mean_rd2 / si::metres >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp * si::cubic_metres >= 0 && user_params.n2_stp * si::cubic_metres >= 0) {
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        user_params.kappa1,
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          user_params.mean_rd1,
+          user_params.mean_rd2,
+          user_params.sdev_rd1,
+          user_params.sdev_rd2,
+          user_params.n1_stp,
+          user_params.n2_stp
+        )
+      );
+    } else {
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        case_ptr->kappa, // key
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          case_ptr->mean_rd1, // parameters
+          case_ptr->mean_rd2,
+          case_ptr->sdev_rd1,
+          case_ptr->sdev_rd2,
+          case_ptr->n1_stp,
+          case_ptr->n2_stp
+        )
+      );
+    }
 
-// CLARE - what is diff between push_back and emplace?
-// will this work?
 /*
-  if (user_params.kappa1 >= 0 && user_params.mean_rd1 >= 0 && user_params.mean_rd2 >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp >= 0 && user_params.n2_stp >= 0) {
-    rt_params.cloudph_opts.dry_distros.push_back({
-      .mean_rd = user_params.mean_rd1 / si::metres,
-      .sdev_rd = user_params.sdev_rd1,
-      .N_stp   = user_params.n1_stp * si::cubic_metres,
-      .kappa  = user_params.kappa1
-    });
-    rt_params.cloudph_opts.dry_distros.push_back({
-      .mean_rd = user_params.mean_rd2 / si::metres,
-      .sdev_rd = user_params.sdev_rd2,
-      .N_stp   = user_params.n2_stp * si::cubic_metres,
-      .kappa  = user_params.kappa2
-    });
-  } else {
-    rt_params.cloudph_opts.dry_distros.push_back({
-      .mean_rd = case_ptr->mean_rd1,
-      .sdev_rd = case_ptr->sdev_rd1,
-      .N_stp   = case_ptr->n1_stp,
-      .kappa  = case_ptr->kappa
-    });
-    rt_params.cloudph_opts.dry_distros.push_back({
-      .mean_rd = case_ptr->mean_rd2,
-      .sdev_rd = case_ptr->sdev_rd2,
-      .N_stp   = case_ptr->n2_stp,
-      .kappa  = case_ptr->kappa
-    });
-  }
-
-*/ // CLARE, end
-
     // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
-    /*
     rt_params.cloudph_opts_init.dry_distros.emplace(
       1.28, // key
       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
@@ -184,7 +152,8 @@ void setopts_micro(
         quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t>(setup::real_t(0e6) / si::cubic_meters)
       )
     );
-    */
+*/
+
 //std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
     
@@ -244,8 +213,8 @@ void setopts_micro(
       rt_params.cloudph_opts_init.dry_distros // map
     )(
       setup::kappa // key
-    );*/
-/*
+    );
+  
   if(gccn) // add the gccns spectra
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_gccn<thrust_real_t> // value type

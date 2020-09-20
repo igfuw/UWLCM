@@ -318,10 +318,6 @@ namespace setup
         this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
         
-        //CLARE: might need to delete these lines
-        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
-        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
-        
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
         this->X = X;
         this->Z = Z;

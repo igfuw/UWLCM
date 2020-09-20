@@ -288,8 +288,6 @@ namespace setup
       LasherTrapp2001Common()
       {
         this->p_0 = p_0;
-        this->ForceParameters.surf_latent_flux_in_watts_per_square_meter = false; // it's given as mean(rv w) [kg/kg m/s]
-        this->ForceParameters.surf_sensible_flux_in_watts_per_square_meter = false; // it's given as mean(theta) w [ K m/s]
 
         //aerosol bimodal lognormal dist. - as in RICO with 11x conc following the ICMW2020 setup
         this->mean_rd1 = real_t(.03e-6) * si::metres,
