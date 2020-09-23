@@ -33,11 +33,11 @@ int main(int ac, char** av)
   }
 
   string opts_common =
-    "--outfreq=200 --nt=12000 --spinup=9600 --nx=128 --nz=300 --dt=0.75 ";
+    "--outfreq=200 --nt=12000 --spinup=9600 --nx=129 --nz=301 --dt=0.75 ";
   set<string> opts_micro({
     "--micro=blk_1m --outdir=out_blk_1m  --backend=OpenMP --adv_serial=false --async=true --case=dycoms_rf02",
     "--micro=blk_2m --outdir=out_blk_2m  --backend=OpenMP --adv_serial=false --async=true --case=dycoms_rf02",
-    "--micro=lgrngn --outdir=out_lgrngn  --backend=CUDA   --adv_serial=false --async=true --case=dycoms_rf02 --sd_conc=128 --sstp_cond=10"
+    "--micro=lgrngn --outdir=out_lgrngn  --backend=CUDA   --adv_serial=false --async=true --case=dycoms_rf02 --sd_conc=128 --sstp_cond=10 --out_wet= \".5e-6:25e-6|0,1,2,3; 25e-6:1|0,3;\" "
  });
   for (auto &opts_m : opts_micro)
   {
