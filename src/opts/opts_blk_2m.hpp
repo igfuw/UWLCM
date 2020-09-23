@@ -23,6 +23,8 @@ void setopts_micro(
   >::value>::type* = 0
 )
 {
+  using thrust_real_t = setup::real_t;
+
   po::options_description opts("Double-moment bulk microphysics options");
   opts.add_options()
     ("acti", po::value<bool>()->default_value(rt_params.cloudph_opts.acti) , "TODO (on/off)")
@@ -62,19 +64,19 @@ void setopts_micro(
     });
   } else {
     rt_params.cloudph_opts.dry_distros.push_back({
-      .mean_rd = case_ptr->mean_rd1,
+      .mean_rd = case_ptr->mean_rd1 / si::metres,
       .sdev_rd = case_ptr->sdev_rd1,
-      .N_stp   = case_ptr->n1_stp,
+      .N_stp   = case_ptr->n1_stp * si::cubic_metres,
       .chem_b  = case_ptr->kappa
     });
     rt_params.cloudph_opts.dry_distros.push_back({
-      .mean_rd = case_ptr->mean_rd2,
+      .mean_rd = case_ptr->mean_rd2 / si::metres,
       .sdev_rd = case_ptr->sdev_rd2,
-      .N_stp   = case_ptr->n2_stp,
+      .N_stp   = case_ptr->n2_stp * si::cubic_metres,
       .chem_b  = case_ptr->kappa
     });
   }
-
+  
   rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::rr, {"rr", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::nc, {"nc", "[kg-1]"}});
