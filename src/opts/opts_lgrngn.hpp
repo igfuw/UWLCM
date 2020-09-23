@@ -113,7 +113,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
 
   {
-    if(user_params.kappa1 >= 0 && user_params.mean_rd1 / si::metres >= 0 && user_params.mean_rd2 / si::metres >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp * si::cubic_metres >= 0 && user_params.n2_stp * si::cubic_metres >= 0) {
+    if(user_params.kappa1 > 0 && user_params.kappa2 > 0 && user_params.mean_rd1 / si::metres >= 0 && user_params.mean_rd2 / si::metres >= 0 && user_params.sdev_rd1 >= 0 && user_params.sdev_rd2 >= 0 && user_params.n1_stp * si::cubic_metres >= 0 && user_params.n2_stp * si::cubic_metres >= 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
         user_params.kappa1,
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
