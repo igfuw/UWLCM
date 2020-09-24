@@ -160,7 +160,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_RH_ge_Sc();
     prtcls->diag_dry_mom(0);
     this->record_aux("actRH_rd_mom0", prtcls->outbuf());
-    */
+*/
+
     // recording 0th wet mom of radius of rain drops (r>25um)
     prtcls->diag_wet_rng(25.e-6, 1);
     prtcls->diag_wet_mom(0);
@@ -181,12 +182,14 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
+/*
     // recording 3rd wet mom of radius of aerosols (r < .5um)
     prtcls->diag_wet_rng(0., .5e-6);
     prtcls->diag_wet_mom(3);
     this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
+*/
 
-
+/* removing because it fails the diff tests
 //CLARE record number concentration of aerosols with certain kappa ranges
 // checking for x-small, small, medium, large, and x-large
 // ie (0.0-0.3), (0.3-0.6), (0.6-0.9), (0.9-1.2), (1.2-3.0)
@@ -215,6 +218,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_dry_mom(0);
     this->record_aux("kappa_rng_1.2_3.0_rd_mom0", prtcls->outbuf());
 //END CLARE
+*/
 
 /*    
     // recording divergence of the velocity field
@@ -449,21 +453,19 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     if (this->rank == 0) 
     {
       this->record_aux_const("super-droplet microphysics", -44);  
-      /* TODO: need to update the ref files for tests to include this in output
-      this->record_aux_const("nx", "grid_dimensions", params.cloudph_opts_init.nx);  
-      this->record_aux_const("ny", "grid_dimensions", params.cloudph_opts_init.ny);  
-      this->record_aux_const("nz", "grid_dimensions", params.cloudph_opts_init.nz);  
-      this->record_aux_const("dx", "grid_dimensions", params.cloudph_opts_init.dx);  
-      this->record_aux_const("dy", "grid_dimensions", params.cloudph_opts_init.dy);  
-      this->record_aux_const("dz", "grid_dimensions", params.cloudph_opts_init.dz);  
-      this->record_aux_const("dt", "grid_dimensions", params.cloudph_opts_init.dt);  
-      this->record_aux_const("x0", "grid_dimensions", params.cloudph_opts_init.x0);  
-      this->record_aux_const("y0", "grid_dimensions", params.cloudph_opts_init.y0);  
-      this->record_aux_const("z0", "grid_dimensions", params.cloudph_opts_init.z0);  
-      this->record_aux_const("x1", "grid_dimensions", params.cloudph_opts_init.x1);  
-      this->record_aux_const("y1", "grid_dimensions", params.cloudph_opts_init.y1);  
-      this->record_aux_const("z1", "grid_dimensions", params.cloudph_opts_init.z1); 
-      */
+      this->record_aux_const("nx", params.cloudph_opts_init.nx);  
+      this->record_aux_const("ny", params.cloudph_opts_init.ny);  
+      this->record_aux_const("nz", params.cloudph_opts_init.nz);  
+      this->record_aux_const("dx", params.cloudph_opts_init.dx);  
+      this->record_aux_const("dy", params.cloudph_opts_init.dy);  
+      this->record_aux_const("dz", params.cloudph_opts_init.dz);  
+      this->record_aux_const("dt", params.cloudph_opts_init.dt);  
+      this->record_aux_const("x0", params.cloudph_opts_init.x0);  
+      this->record_aux_const("y0", params.cloudph_opts_init.y0);  
+      this->record_aux_const("z0", params.cloudph_opts_init.z0);  
+      this->record_aux_const("x1", params.cloudph_opts_init.x1);  
+      this->record_aux_const("y1", params.cloudph_opts_init.y1);  
+      this->record_aux_const("z1", params.cloudph_opts_init.z1);  
       this->record_aux_const("aerosol_independent_of_rhod", params.cloudph_opts_init.aerosol_independent_of_rhod);  
       this->record_aux_const("sd_conc", params.cloudph_opts_init.sd_conc);  
       this->record_aux_const("sd_conc_large_tail", params.cloudph_opts_init.sd_conc_large_tail);  
@@ -510,7 +512,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("opts_init RH_max", params.cloudph_opts_init.RH_max);  
       this->record_aux_const("supstp_src", params.cloudph_opts_init.supstp_src);  
       this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
-      this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);  
+      this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1); 
     }
     this->mem->barrier();
   }
