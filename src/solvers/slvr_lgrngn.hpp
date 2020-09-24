@@ -449,6 +449,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     if (this->rank == 0) 
     {
       this->record_aux_const("super-droplet microphysics", -44);  
+      /* TODO: need to update the ref files for tests to include this in output
       this->record_aux_const("nx", "grid_dimensions", params.cloudph_opts_init.nx);  
       this->record_aux_const("ny", "grid_dimensions", params.cloudph_opts_init.ny);  
       this->record_aux_const("nz", "grid_dimensions", params.cloudph_opts_init.nz);  
@@ -462,10 +463,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("x1", "grid_dimensions", params.cloudph_opts_init.x1);  
       this->record_aux_const("y1", "grid_dimensions", params.cloudph_opts_init.y1);  
       this->record_aux_const("z1", "grid_dimensions", params.cloudph_opts_init.z1); 
-      //CLARE: this works, removing it because netcdf won't save such a long string
-      //this->record_aux_const(std::string("out_wet_str : ") + params.out_wet_str, -44);
-      //this->record_aux_const(std::string("out_dry_str : ") + params.out_dry_str, -44);
-      //end CLARE
+      */
       this->record_aux_const("aerosol_independent_of_rhod", params.cloudph_opts_init.aerosol_independent_of_rhod);  
       this->record_aux_const("sd_conc", params.cloudph_opts_init.sd_conc);  
       this->record_aux_const("sd_conc_large_tail", params.cloudph_opts_init.sd_conc_large_tail);  

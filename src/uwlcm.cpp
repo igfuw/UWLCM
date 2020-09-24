@@ -64,15 +64,15 @@ int main(int argc, char** argv)
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model delta")
       ("help", "produce a help message (see also --micro X --help)")
       // CLARE: add aerosol distribution params options
-      // default values are negative
-      ("mean_rd1", po::value<setup::real_t>()->default_value(-1.0) , "mean_rd1")
-      ("sdev_rd1", po::value<setup::real_t>()->default_value(-1.0) , "sdev_rd1")
+      // default values are realistic params, except n1_stp=n2_stp=-1
+      ("mean_rd1", po::value<setup::real_t>()->default_value(1.0e-6) , "mean_rd1")
+      ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd1")
       ("n1_stp", po::value<setup::real_t>()->default_value(-1.0) , "n1_stp")
-      ("kappa1", po::value<setup::real_t>()->default_value(-1.0) , "kappa1")
-      ("mean_rd2", po::value<setup::real_t>()->default_value(-1.0) , "mean_rd2")
-      ("sdev_rd2", po::value<setup::real_t>()->default_value(-1.0) , "sdev_rd2")
+      ("kappa1", po::value<setup::real_t>()->default_value(0.61) , "kappa1")
+      ("mean_rd2", po::value<setup::real_t>()->default_value(1.0e-6) , "mean_rd2")
+      ("sdev_rd2", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd2")
       ("n2_stp", po::value<setup::real_t>()->default_value(-1.0) , "n2_stp")
-      ("kappa2", po::value<setup::real_t>()->default_value(-1.0) , "kappa2")
+      ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "kappa2")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
@@ -149,22 +149,11 @@ int main(int argc, char** argv)
     if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
 #endif
 
-    user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
-    user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
-    user_params.n1_stp = vm["n1_stp"].as<setup::real_t>() / si::cubic_metres;
-    user_params.kappa1 = vm["kappa1"].as<setup::real_t>();
-    user_params.mean_rd2 = vm["mean_rd2"].as<setup::real_t>() * si::metres;
-    user_params.sdev_rd2 = vm["sdev_rd2"].as<setup::real_t>();
-    user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
-    user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
-
     // CLARE: set aerosol params to user_params data structure
-    // handling aerosol distribution parameters
     user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
     user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
     user_params.n1_stp = vm["n1_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa1 = vm["kappa1"].as<setup::real_t>();
-    // dist #2
     user_params.mean_rd2 = vm["mean_rd2"].as<setup::real_t>() * si::metres;
     user_params.sdev_rd2 = vm["sdev_rd2"].as<setup::real_t>();
     user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
