@@ -130,12 +130,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       this->record_aux_const("rt_params rr_src", params.rr_src);
       this->record_aux_const("rt_params nc_src", params.nc_src);
       this->record_aux_const("rt_params nr_src", params.nr_src);
-      /* gives error
-      this->record_aux_const("blk2m_mean_rd", params.cloudph_opts.dry_distros.mean_rd);
-      this->record_aux_const("blk2m_sdev_rd", params.cloudph_opts.dry_distros.sdev_rd);
-      this->record_aux_const("blk2m_N_stp", params.cloudph_opts.dry_distros.N_stp);
-      this->record_aux_const("blk2m_chem_b", params.cloudph_opts.dry_distros.chem_b);
-      */
     }
   }
 
