@@ -3,15 +3,15 @@
 #include "gnuplot.hpp"
 #include "hdf5.hpp"
 #include <unordered_set>
-#include <iomanip>
+#include <iomanip> 
 
 int main(int ac, char** av)
 {
   if (ac != 2) error_macro("expecting 1 argument: out_lgrngn parent dir")
 
   std::string
-    dir = string(av[1]),
-    h5  = "out_lgrngn";
+    dir = string(av[1]), 
+    h5  = dir + "out_lgrngn";
 
   blitz::firstIndex i;
   blitz::secondIndex j;
@@ -24,7 +24,7 @@ int main(int ac, char** av)
     {
       std::cout << at * n["outfreq"] << " : " << plt << std::endl;
       Gnuplot gp;
-      init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".png", 1, 1, n);
+      init(gp, h5 + ".plot/" + plt + "/" + zeropad(at * n["outfreq"]) + ".svg", 1, 1, n); 
 
       if (plt == "rl")
       {
@@ -84,7 +84,7 @@ int main(int ac, char** av)
       {
 	// effective radius
 	auto tmp = h5load(h5, "rw_rng000_mom3", at * n["outfreq"]) / h5load(h5, "rw_rng000_mom2", at * n["outfreq"]) * 1e6;
-	std::string title = "cloud (0.5um < r < 25um) droplet effective radius [μm]";
+	std::string title = "cloud (0.5um < r < 25um) droplet effective radius [μm]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [1:20]\n";
 	plot(gp, tmp);
@@ -111,47 +111,47 @@ int main(int ac, char** av)
       }
 */
       else if (plt == "rv")
-      {
-	std::string title = "water vapour mixing ratio [g/kg]";
+      {   
+	std::string title = "water vapour mixing ratio [g/kg]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = h5load(h5, "rv", at * n["outfreq"]);
         plot(gp, tmp);
-      }
+      }   
       else if (plt == "th")
-      {
-	std::string title = "dry air potential temperature [K]";
+      {   
+	std::string title = "dry air potential temperature [K]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = h5load(h5, "th", at * n["outfreq"]);
         plot(gp, tmp);
-      }
+      }   
       else if (plt == "u")
-      {
-	std::string title = "velocity in x [m/s]";
+      {   
+	std::string title = "velocity in x [m/s]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = h5load(h5, "u", at * n["outfreq"]);
         plot(gp, tmp);
-      }
+      }   
       else if (plt == "w")
-      {
-	std::string title = "velocity in z [m/s]";
+      {   
+	std::string title = "velocity in z [m/s]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = h5load(h5, "w", at * n["outfreq"]);
         plot(gp, tmp);
-      }
+      }   
       else if (plt == "RH")
-      {
-	std::string title = "relative humidity";
+      {   
+	std::string title = "relative humidity"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = h5load(h5, "RH", at * n["outfreq"]);
         plot(gp, tmp);
-      }
+      }   
       else if (plt == "sd_conc")
-      {
-	std::string title = "number of super-droplets";
+      {   
+	std::string title = "number of super-droplets"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         auto tmp = h5load(h5, "sd_conc", at * n["outfreq"]);
         plot(gp, tmp);
-      }
+      }   
     } // var loop
   } // time loop
 } // main
