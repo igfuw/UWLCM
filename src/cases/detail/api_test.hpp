@@ -16,10 +16,6 @@ namespace setup
     {
       this->n1_stp = real_t(2) / si::cubic_metres;
       this->n2_stp = real_t(1) / si::cubic_metres;
-      /*
-      user_params.n1_stp = real_t(2) / si::cubic_metres;
-      user_params.n2_stp = real_t(1) / si::cubic_metres;
-      */
     }
   };
 };

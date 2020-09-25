@@ -288,7 +288,6 @@ namespace setup
       LasherTrapp2001Common()
       {
         this->p_0 = p_0;
-
         //aerosol bimodal lognormal dist. - as in RICO with 11x conc following the ICMW2020 setup
         this->mean_rd1 = real_t(.03e-6) * si::metres,
         this->mean_rd2 = real_t(.14e-6) * si::metres;
@@ -296,7 +295,6 @@ namespace setup
         this->sdev_rd2 = real_t(1.75);
         this->n1_stp = real_t(11*90e6) / si::cubic_metres, 
         this->n2_stp = real_t(11*15e6) / si::cubic_metres;
-        
         this->Z = Z;
         this->z_rlx = z_rlx;
       }
