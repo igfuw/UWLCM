@@ -174,8 +174,8 @@ void setopts_micro(
       );
     }
  
-/*
     // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
+    /*
     rt_params.cloudph_opts_init.dry_distros.emplace(
       1.28, // key
       std::make_shared<setup::log_dry_radii<thrust_real_t>> (
@@ -187,11 +187,11 @@ void setopts_micro(
         quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t>(setup::real_t(0e6) / si::cubic_meters)
       )
     );
-*/
+    */
 
 //std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
-    
+ 
     // GCCNs following Jensen and Nugent, JAS 2016
     if(rt_params.gccn > setup::real_t(0))
     {
@@ -239,8 +239,7 @@ void setopts_micro(
         }
       );
     }
-  }
-
+   }
 /*  else if(unit_test)
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_unit_test<thrust_real_t> // value type
@@ -248,8 +247,8 @@ void setopts_micro(
       rt_params.cloudph_opts_init.dry_distros // map
     )(
       setup::kappa // key
-    );
-  
+    );*/
+/*  
   if(gccn) // add the gccns spectra
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_gccn<thrust_real_t> // value type
