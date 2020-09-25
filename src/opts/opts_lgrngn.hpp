@@ -173,7 +173,7 @@ void setopts_micro(
         )
       );
     }
-
+ 
 /*
     // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -305,7 +305,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
   
-  //CLARE: set out_xxx_str from command line option input
+  // set out_xxx_str from command line option input
   rt_params.out_dry_str = vm["out_dry"].as<std::string>();
   rt_params.out_wet_str = vm["out_wet"].as<std::string>();
 

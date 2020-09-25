@@ -8,10 +8,9 @@
  #pragma once
 
  #include <libcloudph++/blk_2m/options.hpp>
-
  #include "opts_common.hpp"
  
- // simulation and output parameters for micro=blk_2m
+// simulation and output parameters for micro=blk_2m
 template <class solver_t, class user_params_t, class case_ptr_t>
 void setopts_micro(
   typename solver_t::rt_params_t &rt_params,
@@ -35,7 +34,13 @@ void setopts_micro(
     ("acnv_A", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_A), "parameter in autoconversion rate formulae")
     ("acnv_b", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_b), "parameter in autoconversion rate formulae")
     ("acnv_c", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_c), "parameter in autoconversion rate formulae")
-  ;
+    /*
+    ("blk2m_mean_rd", po::value<typename solver_t::real_t>()->default_value(0.02e-6), "mean aerosol dry radius [m]")
+    ("blk2m_sdev_rd", po::value<typename solver_t::real_t>()->default_value(1.4),     "aerosol standard deviation")
+    ("blk2m_N_stp",   po::value<typename solver_t::real_t>()->default_value(60e6),    "aerosol concentration [1/m3]")
+    ("blk2m_chem_b",  po::value<typename solver_t::real_t>()->default_value(.55),     "kappa - chemical composition parameter") 
+    */
+ ;
   po::variables_map vm;
   handle_opts(opts, vm);
 
@@ -91,6 +96,7 @@ void setopts_micro(
     });
   }
   
+  // output variables
   rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::rr, {"rr", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::nc, {"nc", "[kg-1]"}});
