@@ -63,7 +63,7 @@ int main(int argc, char** argv)
       ("sgs", po::value<bool>()->default_value(false) , "is subgrid-scale turbulence model on")
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model delta")
       ("help", "produce a help message (see also --micro X --help)")
-      // CLARE: add aerosol distribution params options
+      // add aerosol distribution params options
       // default values are realistic params, except n1_stp=n2_stp=-1
       ("mean_rd1", po::value<setup::real_t>()->default_value(1.0e-6) , "mean_rd1")
       ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd1")
@@ -134,8 +134,8 @@ int main(int argc, char** argv)
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();
     user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
-
-    // sanity check if desired options were compiled
+    
+// sanity check if desired options were compiled
 #if defined(UWLCM_DISABLE_PIGGYBACKER)
     if(piggy)  throw std::runtime_error("Piggybacker option was disabled at compile time");
 #endif
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
     if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
 #endif
 
-    // CLARE: set aerosol params to user_params data structure
+    // set aerosol params to user_params data structure
     user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
     user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
     user_params.n1_stp = vm["n1_stp"].as<setup::real_t>() / si::cubic_metres;
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
 
-    // CLARE: printing aerosol dist params to check that user_params data structure has been set
+    // printing aerosol dist params to check that user_params data structure has been set
     std::cout << "mean_rd1: " << user_params.mean_rd1 << std::endl;
     std::cout << "sdev_rd1: " << user_params.sdev_rd1 << std::endl;
     std::cout << "n1_stp: " << user_params.n1_stp << std::endl;
