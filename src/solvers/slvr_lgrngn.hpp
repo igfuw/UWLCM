@@ -160,7 +160,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_RH_ge_Sc();
     prtcls->diag_dry_mom(0);
     this->record_aux("actRH_rd_mom0", prtcls->outbuf());
-*/
+    */
 
     // recording 0th wet mom of radius of rain drops (r>25um)
     prtcls->diag_wet_rng(25.e-6, 1);
@@ -182,43 +182,15 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     prtcls->diag_wet_mom(3);
     this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
-/*
-    // recording 3rd wet mom of radius of aerosols (r < .5um)
-    prtcls->diag_wet_rng(0., .5e-6);
-    prtcls->diag_wet_mom(3);
-    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
-*/
+//    // recording 0th wet mom of radius of aerosols (r < .5um)
+//    prtcls->diag_wet_rng(0., .5e-6);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
 
-/* removing because it fails the diff tests
-//CLARE record number concentration of aerosols with certain kappa ranges
-// checking for x-small, small, medium, large, and x-large
-// ie (0.0-0.3), (0.3-0.6), (0.6-0.9), (0.9-1.2), (1.2-3.0)
-    // recording 0th dry mom of kappa of aerosols (0.0 < k < 0.3) = x-small
-    prtcls->diag_kappa_rng(0.0,0.3);
-    prtcls->diag_dry_mom(0);
-    this->record_aux("kappa_rng_0.0_0.3_rd_mom0", prtcls->outbuf());
-
-    // recording 0th dry mom of kappa of aerosols (0.3 < k < 0.6) = small
-    prtcls->diag_kappa_rng(0.3,0.6);
-    prtcls->diag_dry_mom(0);
-    this->record_aux("kappa_rng_0.3_0.6_rd_mom0", prtcls->outbuf());
-
-    // recording 0th dry mom of kappa of aerosols (0.6 < k < 0.9) = medium
-    prtcls->diag_kappa_rng(0.6,0.9);
-    prtcls->diag_dry_mom(0);
-    this->record_aux("kappa_rng_0.6_0.9_rd_mom0", prtcls->outbuf());
-   
-    // recording 0th dry mom of kappa of aerosols (0.9 < k < 1.2) = large
-    prtcls->diag_kappa_rng(0.9,1.2);
-    prtcls->diag_dry_mom(0);
-    this->record_aux("kappa_rng_0.9_1.2_rd_mom0", prtcls->outbuf());
-    
-    // recording 0th dry mom of kappa of aerosols (1.2 < k < 3.0) = x-large
-    prtcls->diag_kappa_rng(1.2,3.0);
-    prtcls->diag_dry_mom(0);
-    this->record_aux("kappa_rng_1.2_3.0_rd_mom0", prtcls->outbuf());
-//END CLARE
-*/
+//    // recording 3rd wet mom of radius of aerosols (r < .5um)
+//    prtcls->diag_wet_rng(0., .5e-6);
+//    prtcls->diag_wet_mom(3);
+//    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
 
 /*    
     // recording divergence of the velocity field
@@ -512,7 +484,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       this->record_aux_const("opts_init RH_max", params.cloudph_opts_init.RH_max);  
       this->record_aux_const("supstp_src", params.cloudph_opts_init.supstp_src);  
       this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
-      this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1); 
+      this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);
     }
     this->mem->barrier();
   }
