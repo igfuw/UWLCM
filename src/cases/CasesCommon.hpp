@@ -14,7 +14,7 @@
 #include "../detail/user_params.hpp"
 #include "../detail/concurr_types.hpp"
 
-namespace setup 
+namespace setup
 {
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
   namespace theta_std = libcloudphxx::common::theta_std;
@@ -26,7 +26,7 @@ namespace setup
   {
     real_t q_i, heating_kappa, F_0, F_1, rho_i, D, coriolis_parameter;
   };
- 
+
   // CAUTION: new profiles have to be added to both structs and in copy_profiles below
   // TODO: try a different design where it is not necessary ?
   struct profiles_t
@@ -223,22 +223,22 @@ namespace setup
     virtual ~CasesCommon() = default;
 
     protected:
-  
+
     // function enforcing cyclic values in horizontal directions
     // 2D version
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 2>::type* = 0)
     { arr(arr.extent(0) - 1, blitz::Range::all()) = arr(0, blitz::Range::all()); }
-  
+
     // 3D version
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 3>::type* = 0)
-    { 
-      arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) = 
-        arr(0, blitz::Range::all(), blitz::Range::all()); 
-      arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) = 
+    {
+      arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) =
+        arr(0, blitz::Range::all(), blitz::Range::all());
+      arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) =
         arr(blitz::Range::all(), 0, blitz::Range::all());
     }
   };

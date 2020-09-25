@@ -20,7 +20,10 @@
 
 #include "solvers/slvr_lgrngn.hpp"
 #include "solvers/slvr_blk_1m.hpp"
+#include "solvers/slvr_blk_2m.hpp"
+
 #include "forcings/calc_forces_blk_1m.hpp"
+#include "forcings/calc_forces_blk_2m.hpp"
 #include "forcings/calc_forces_common.hpp"
 
 #include <map>
@@ -50,8 +53,10 @@ int main(int argc, char** argv)
       ("serial", po::value<bool>()->default_value(false), "force advection and microphysics to be computed on single thread")
       ("th_src", po::value<bool>()->default_value(true) , "temp src")
       ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
-      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1m)")
-      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1m)")
+      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1/2m)")
+      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1/2m)")
+      ("nc_src", po::value<bool>()->default_value(true) , "cloud water concentration source (in blk_2m)")
+      ("nr_src", po::value<bool>()->default_value(true) , "rain water concentration source (in blk_2m)")
       ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
       ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
@@ -111,12 +116,15 @@ int main(int argc, char** argv)
     user_params.rv_src = vm["rv_src"].as<bool>();
     user_params.rc_src = vm["rc_src"].as<bool>();
     user_params.rr_src = vm["rr_src"].as<bool>();
+    user_params.nc_src = vm["nc_src"].as<bool>();
+    user_params.nr_src = vm["nr_src"].as<bool>();
     user_params.uv_src = vm["uv_src"].as<bool>();
     user_params.w_src = vm["w_src"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();
-
+    user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
+    
     // sanity check if desired options were compiled
 #if defined(UWLCM_DISABLE_PIGGYBACKER)
     if(piggy)  throw std::runtime_error("Piggybacker option was disabled at compile time");
@@ -130,8 +138,6 @@ int main(int argc, char** argv)
 #if defined(UWLCM_DISABLE_ILES)
     if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
 #endif
-
-    user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
@@ -171,7 +177,21 @@ int main(int argc, char** argv)
       throw std::runtime_error("3D Bulk 1-moment option was disabled at compile time");
 #endif
 
-  // TODO: not only micro can be wrong
+    else if (micro == "blk_2m" && ny == 0) // 2D two-moment
+#if !defined(UWLCM_DISABLE_2D_BLK_2M)
+      run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Bulk 2-moment option was disabled at compile time");
+#endif
+
+    else if (micro == "blk_2m" && ny > 0) // 3D two-moment
+#if !defined(UWLCM_DISABLE_3D_BLK_2M)      
+      run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Bulk 2-moment option was disabled at compile time");
+#endif
+
+    // TODO: not only micro can be wrong
     else throw
       po::validation_error(
         po::validation_error::invalid_option_value, micro, "micro"

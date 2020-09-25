@@ -47,16 +47,16 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     // radiation
     radiation(rv);
     nancheck(radiative_flux(ijk), "radiation");
+    
     // sum of th flux, F(j) is upward flux through the bottom of the j-th cell
     this->vert_grad_fwd(radiative_flux, alpha, params.dz);
     alpha(ijk) *= -1; // negative gradient means inflow
     nancheck(alpha(ijk), "sum of th flux");
-  
+    
     // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) * 
-      calc_c_p()(rv(ijk).reindex(this->zero)) * 
+    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) *
+      calc_c_p()(rv(ijk).reindex(this->zero)) *
       (*params.rhod)(this->vert_idx);
-
     nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surf flux = d/dz mean(theta*w) [K/s]
@@ -65,7 +65,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     alpha(ijk) += F(ijk);
   
     // large-scale vertical wind
-    subsidence(ix::th); 
+    subsidence(ix::th);
     nancheck(F(ijk), "subsidence");
     alpha(ijk) += F(ijk);
     nancheck(alpha(ijk), "alpha in th_src");
@@ -93,7 +93,7 @@ void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
   if(at == 0 && params.vel_subsidence) // subsidence added explicitly, so updated only at n
   {
     // large-scale vertical wind
-    subsidence(ix::w); 
+    subsidence(ix::w);
     alpha(ijk) += F(ijk);
   }
 }
