@@ -118,6 +118,19 @@ void setopts_micro(
         user_params.kappa1,
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           user_params.mean_rd1,
+          user_params.mean_rd2,
+          user_params.sdev_rd1,
+          user_params.sdev_rd2,
+          user_params.n1_stp,
+          user_params.n2_stp
+        )
+      );
+
+      /* 
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        user_params.kappa1,
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          user_params.mean_rd1,
           thrust_real_t(1.0e-6) * si::metres,
           user_params.sdev_rd1,
           thrust_real_t(1.2),
@@ -136,6 +149,7 @@ void setopts_micro(
           user_params.n2_stp
         )
       );
+      */
     } else if(user_params.n1_stp * si::cubic_metres >= 0 && user_params.n2_stp * si::cubic_metres < 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
         user_params.kappa1,
