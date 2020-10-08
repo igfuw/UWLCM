@@ -196,6 +196,16 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     // recording divergence of the velocity field
     prtcls->diag_vel_div();
     this->record_aux("vel_div", prtcls->outbuf());
+
+    // record 0th moment of cloud droplets with kappa < 0.5
+    prtcls->diag_kappa_rng(0.0,0.5);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("smallkappa_rd_mom0", prtcls->outbuf());    
+
+    // record 0th moment of cloud droplets with kappa >= 0.5
+    prtcls->diag_kappa_rng(0.5,2.0);
+    prtcls->diag_dry_mom(0);
+    this->record_aux("bigkappa_rd_mom0", prtcls->outbuf());    
 */
 
     // recording 0th wet mom of radius of big rain drops (r>40um)
