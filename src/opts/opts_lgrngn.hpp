@@ -318,10 +318,6 @@ void setopts_micro(
   rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
   
-  // set out_xxx_str from command line option input
-  rt_params.out_dry_str = vm["out_dry"].as<std::string>();
-  rt_params.out_wet_str = vm["out_wet"].as<std::string>();
-
   // subsidence of SDs
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
   rt_params.cloudph_opts.subs = rt_params.subsidence;
