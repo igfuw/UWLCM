@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../../detail/user_params.hpp"
-
 namespace setup 
 {
   // special case for api tests - low aerosol concentration to avoid multiplicity overflows in tests with very low nx/ny/nz
@@ -10,8 +8,6 @@ namespace setup
   {
     public:
     
-    user_params_t user_params;
-
     api_test()
     {
       this->n1_stp = real_t(2) / si::cubic_metres;
