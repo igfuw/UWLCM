@@ -12,11 +12,11 @@
 # include <omp.h>
 #endif
 
+#include "opts/opts_common.hpp"
+
 #include "run_hlpr.hpp"
 
 #include "detail/ct_params.hpp"
-
-#include "opts/opts_common.hpp"
 
 #if !defined(UWLCM_DISABLE_2D_LGRNGN) &&  !defined(UWLCM_DISABLE_3D_LGRNGN)
   #include "solvers/slvr_lgrngn.hpp"
