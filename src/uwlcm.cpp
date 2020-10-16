@@ -18,12 +18,20 @@
 
 #include "opts/opts_common.hpp"
 
-#include "solvers/slvr_lgrngn.hpp"
-#include "solvers/slvr_blk_1m.hpp"
-#include "solvers/slvr_blk_2m.hpp"
+#if !defined(UWLCM_DISABLE_2D_LGRNGN) &&  !defined(UWLCM_DISABLE_3D_LGRNGN)
+  #include "solvers/slvr_lgrngn.hpp"
+#endif
 
-#include "forcings/calc_forces_blk_1m.hpp"
-#include "forcings/calc_forces_blk_2m.hpp"
+#if !defined(UWLCM_DISABLE_2D_BLK_1M) &&  !defined(UWLCM_DISABLE_3D_BLK_1M)
+  #include "solvers/slvr_blk_1m.hpp"
+  #include "forcings/calc_forces_blk_1m.hpp"
+#endif
+
+#if !defined(UWLCM_DISABLE_2D_BLK_2M) &&  !defined(UWLCM_DISABLE_3D_BLK_2M)
+  #include "solvers/slvr_blk_2m.hpp"
+  #include "forcings/calc_forces_blk_2m.hpp"
+#endif
+
 #include "forcings/calc_forces_common.hpp"
 
 #include <map>
