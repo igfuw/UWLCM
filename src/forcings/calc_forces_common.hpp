@@ -1,12 +1,12 @@
 //TODO: move calc_forces and forcings to case class?
 #pragma once
+#include "../solvers/slvr_common.hpp"
+#include "../detail/blitz_hlpr_fctrs.hpp"
 #include "buoyancy.hpp"
 #include "coriolis.hpp"
 #include "radiation.hpp"
 #include "subsidence.hpp"
 #include "surface_fluxes.hpp"
-#include "../solvers/slvr_common.hpp"
-#include "../detail/blitz_hlpr_fctrs.hpp"
 
 // common forcing functions
 // TODO: make functions return blitz arrays to avoid unnecessary copies
