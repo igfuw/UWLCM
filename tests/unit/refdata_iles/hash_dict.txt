@@ -19,9 +19,30 @@
 11032007339295279452 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --nz=4 --case=lasher_trapp_api_test --piggy=0 
 10715693511912560590 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --nz=4 --case=lasher_trapp_api_test --piggy=0 --save_vel=1 
 16852115855540709469 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --nz=4 --case=lasher_trapp_api_test --piggy=1 --vel_in=velocity_out.dat 
+4479804134252781023 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=0 
+3736564001071221304 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=0 --save_vel=1 
+16506836698797435702 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=1 --vel_in=velocity_out.dat 
+3570314569640973999 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf02_api_test --piggy=0 
+12798363196292193219 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf02_api_test --piggy=0 --save_vel=1 
+12934624903650677445 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf02_api_test --piggy=1 --vel_in=velocity_out.dat 
+8018416429312514450 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1 --piggy=0 
+9722389001799214233 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1 --piggy=0 --save_vel=1 
+10593193204309731724 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1 --piggy=1 --vel_in=velocity_out.dat 
+4267524394336684477 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=rico11_api_test --piggy=0 
+4163774448127715426 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=rico11_api_test --piggy=0 --save_vel=1 
+8963514191554503557 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=rico11_api_test --piggy=1 --vel_in=velocity_out.dat 
+2578518320655591002 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf01_api_test --piggy=0 
+194909627014358730 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf01_api_test --piggy=0 --save_vel=1 
+4913118250768307877 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=dycoms_rf01_api_test --piggy=1 --vel_in=velocity_out.dat 
+7833981627671109639 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=lasher_trapp_api_test --piggy=0 
+2380218397698311593 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=lasher_trapp_api_test --piggy=0 --save_vel=1 
+4942239319627649501 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --nz=4 --case=lasher_trapp_api_test --piggy=1 --vel_in=velocity_out.dat 
 1674800916974482152 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=0 
 6451096901534284222 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=0 --save_vel=1 
 5303283015320658418 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=moist_thermal_api_test --piggy=1 --vel_in=velocity_out.dat 
+15305436843741208313 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=dry_thermal_api_test --cond=0 --coal=0 --piggy=0 
+13726684502497121597 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=dry_thermal_api_test --cond=0 --coal=0 --piggy=0 --save_vel=1 
+17506640367070509074 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=dry_thermal_api_test --cond=0 --coal=0 --piggy=1 --vel_in=velocity_out.dat 
 5076663503363370411 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=dycoms_rf02_api_test --piggy=0 
 17435547776510192885 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=dycoms_rf02_api_test --piggy=0 --save_vel=1 
 14256448653901190895 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --nz=4 --case=dycoms_rf02_api_test --piggy=1 --vel_in=velocity_out.dat 
@@ -55,6 +76,24 @@
 5589087988802716733 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --ny=4 --nz=4 --case=lasher_trapp_api_test --piggy=0 
 180217492005718161 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --ny=4 --nz=4 --case=lasher_trapp_api_test --piggy=0 --save_vel=1 
 17837598050755279081 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_1m --nx=4 --ny=4 --nz=4 --case=lasher_trapp_api_test --piggy=1 --vel_in=velocity_out.dat 
+2783657934992713214 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=moist_thermal_api_test --piggy=0 
+16722014774311450913 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=moist_thermal_api_test --piggy=0 --save_vel=1 
+13427700917192843364 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=moist_thermal_api_test --piggy=1 --vel_in=velocity_out.dat 
+2199222001325763541 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf02_api_test --piggy=0 
+12376625850534198766 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf02_api_test --piggy=0 --save_vel=1 
+6526419225887036207 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf02_api_test --piggy=1 --vel_in=velocity_out.dat 
+9075693019218658725 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1 --piggy=0 
+10028561794862138125 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1 --piggy=0 --save_vel=1 
+7633861186309655820 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1 --piggy=1 --vel_in=velocity_out.dat 
+17370812216467418430 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=rico11_api_test --piggy=0 
+6757478129564135540 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=rico11_api_test --piggy=0 --save_vel=1 
+17030320366143018862 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=rico11_api_test --piggy=1 --vel_in=velocity_out.dat 
+10773195781966385647 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf01_api_test --piggy=0 
+8277404460655156831 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf01_api_test --piggy=0 --save_vel=1 
+7902745413480924895 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=dycoms_rf01_api_test --piggy=1 --vel_in=velocity_out.dat 
+1009532968601925218 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=lasher_trapp_api_test --piggy=0 
+3151914223287934360 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=lasher_trapp_api_test --piggy=0 --save_vel=1 
+14971688286139684271 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --micro=blk_2m --nx=4 --ny=4 --nz=4 --case=lasher_trapp_api_test --piggy=1 --vel_in=velocity_out.dat 
 9409363423956725703 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --ny=4 --nz=4 --case=moist_thermal_api_test --piggy=0 
 4234119117121311461 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --ny=4 --nz=4 --case=moist_thermal_api_test --piggy=0 --save_vel=1 
 12162519758661095594 : --outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --async=false --micro=lgrngn --backend=serial --sd_conc=8 --nx=4 --ny=4 --nz=4 --case=moist_thermal_api_test --piggy=1 --vel_in=velocity_out.dat 

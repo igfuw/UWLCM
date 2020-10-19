@@ -111,21 +111,51 @@ void setopts_micro(
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
   rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
- 
- // if(!unit_test)
-  {
-    rt_params.cloudph_opts_init.dry_distros.emplace(
-      case_ptr->kappa, // key
-      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        case_ptr->mean_rd1, // parameters
-        case_ptr->mean_rd2,
-        case_ptr->sdev_rd1,
-        case_ptr->sdev_rd2,
-        case_ptr->n1_stp,
-        case_ptr->n2_stp
-      )
-    );
 
+  {
+    if(user_params.n1_stp*si::cubic_metres >= 0 && user_params.n2_stp*si::cubic_metres >= 0 && user_params.kappa1 == user_params.kappa2) {
+        throw std::runtime_error("cannot emplace two modes with same kappa");
+    }
+    if(user_params.n1_stp*si::cubic_metres >= 0) {
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        user_params.kappa1,
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          user_params.mean_rd1,
+          thrust_real_t(1.0e-6) * si::metres,
+          user_params.sdev_rd1,
+          thrust_real_t(1.2),
+          user_params.n1_stp,
+          thrust_real_t(0) / si::cubic_metres
+        )
+      );
+    } 
+    if(user_params.n2_stp*si::cubic_metres >= 0) {
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        user_params.kappa2,
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          thrust_real_t(1.0e-6) * si::metres,
+          user_params.mean_rd2,
+          thrust_real_t(1.2),
+          user_params.sdev_rd2,
+          thrust_real_t(0) / si::cubic_metres,
+          user_params.n2_stp
+        )
+      );
+    } 
+    if(user_params.n1_stp*si::cubic_metres < 0 && user_params.n2_stp*si::cubic_metres < 0) {
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        case_ptr->kappa,
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          case_ptr->mean_rd1,
+          case_ptr->mean_rd2,
+          case_ptr->sdev_rd1,
+          case_ptr->sdev_rd2,
+          case_ptr->n1_stp,
+          case_ptr->n2_stp
+        )
+      );
+    }
+ 
     // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
     /*
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -140,9 +170,10 @@ void setopts_micro(
       )
     );
     */
+
 //std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
-
+ 
     // GCCNs following Jensen and Nugent, JAS 2016
     if(rt_params.gccn > setup::real_t(0))
     {
@@ -199,7 +230,7 @@ void setopts_micro(
     )(
       setup::kappa // key
     );*/
-/*
+/*  
   if(gccn) // add the gccns spectra
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_gccn<thrust_real_t> // value type
@@ -254,7 +285,7 @@ void setopts_micro(
   
   rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
-
+  
   // subsidence of SDs
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
   rt_params.cloudph_opts.subs = rt_params.subsidence;
