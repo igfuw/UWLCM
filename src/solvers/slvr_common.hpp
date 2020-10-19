@@ -102,12 +102,12 @@ class slvr_common : public slvr_dim<ct_params_t>
       static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
-      this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());  
-      this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
-      this->record_aux_const("user_params nt", params.user_params.nt);  
+      this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());
+      this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);
+      this->record_aux_const("user_params nt", params.user_params.nt);
       this->record_aux_const("user_params dt", params.user_params.dt);  
       this->record_aux_const("user_params outfreq", params.user_params.outfreq);  
-      this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);  
+      this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);
       this->record_aux_const("user_params spinup", params.user_params.spinup);  
       this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);  
       this->record_aux_const("user_params th_src", params.user_params.th_src);  
@@ -133,6 +133,16 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);  
       this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
       this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
+
+      // TODO: need to update ref files in tests to include this in output
+      this->record_aux_const("mean_rd1", "aerosol_dist_params", params.user_params.mean_rd1 / si::metres);  
+      this->record_aux_const("sdev_rd1", "aerosol_dist_params", params.user_params.sdev_rd1);
+      this->record_aux_const("n1_stp", "aerosol_dist_params", params.user_params.n1_stp * si::cubic_metres);
+      this->record_aux_const("kappa1", "aerosol_dist_params", params.user_params.kappa1);
+      this->record_aux_const("mean_rd2", "aerosol_dist_params", params.user_params.mean_rd2 / si::metres);  
+      this->record_aux_const("sdev_rd2", "aerosol_dist_params", params.user_params.sdev_rd2);
+      this->record_aux_const("n2_stp", "aerosol_dist_params", params.user_params.n2_stp * si::cubic_metres);
+      this->record_aux_const("kappa2", "aerosol_dist_params", params.user_params.kappa2);
 
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 

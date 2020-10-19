@@ -7,6 +7,7 @@ namespace setup
   class api_test : public case_t
   {
     public:
+    
     api_test()
     {
       this->n1_stp = real_t(2) / si::cubic_metres;
