@@ -520,10 +520,14 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         ((this->timestep ) % this->outfreq != 0) // ... and not after diag call, note: timestep is updated after ante_step
       ) {
         assert(ftr.valid());
+#if defined(UWLCM_TIMING)
         parent_t::tbeg = parent_t::clock::now();
+#endif
         ftr.get();
+#if defined(UWLCM_TIMING)
         parent_t::tend = parent_t::clock::now();
         parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+#endif
       } else assert(!ftr.valid()); 
 #endif
     }
@@ -538,8 +542,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     parent_t::hook_ante_delayed_step();
     if (this->rank == 0) 
     {
+#if defined(UWLCM_TIMING)
       parent_t::tend = parent_t::clock::now();
       parent_t::tnondelayed_step += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+#endif
 
       // assuring previous sync step finished ...
 #if defined(STD_FUTURE_WORKS)
@@ -547,10 +553,14 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         params.async
       ) {
         assert(ftr.valid());
+#if defined(UWLCM_TIMING)
         parent_t::tbeg = parent_t::clock::now();
+#endif
         ftr.get();
+#if defined(UWLCM_TIMING)
         parent_t::tend = parent_t::clock::now();
         parent_t::tsync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+#endif
       } else assert(!ftr.valid()); 
 #endif
     }
@@ -583,7 +593,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         using libcloudphxx::lgrngn::particles_t;
         using libcloudphxx::lgrngn::CUDA;
         using libcloudphxx::lgrngn::multi_CUDA;
+#if defined(UWLCM_TIMING)
         parent_t::tbeg = parent_t::clock::now();
+#endif
 #if defined(STD_FUTURE_WORKS)
         if (params.async)
         {
@@ -606,8 +618,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         } else 
 #endif
           prtcls->step_async(params.cloudph_opts);
+#if defined(UWLCM_TIMING)
         parent_t::tend = parent_t::clock::now();
         parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+#endif
       }
     }
     this->mem->barrier();
@@ -665,7 +679,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       }
 
       // start synchronous stuff timer
+#if defined(UWLCM_TIMING)
       parent_t::tbeg = parent_t::clock::now();
+#endif
 
       using libcloudphxx::lgrngn::particles_t;
       using libcloudphxx::lgrngn::CUDA;
@@ -721,14 +737,41 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         );
       }
 
+#if defined(UWLCM_TIMING)
       parent_t::tend = parent_t::clock::now();
       parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
-      // start recording time of the non-delayed advection step
+#endif
+    }
+    this->mem->barrier();
+
+#if defined(UWLCM_TIMING)
+    if (this->rank == 0) 
+      parent_t::tbeg_urhs = parent_t::clock::now();
+    this->mem->barrier();
+#endif
+
+    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
+
+#if defined(UWLCM_TIMING)
+    if (this->rank == 0) 
+    {
+      parent_t::tend_urhs = parent_t::clock::now();
+      parent_t::tupdate_rhs0 += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend_urhs - parent_t::tbeg_urhs );
       parent_t::tbeg = parent_t::clock::now();
     }
     this->mem->barrier();
-    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
+#endif
+
     this->apply_rhs(this->dt);
+
+#if defined(UWLCM_TIMING)
+    if (this->rank == 0) 
+    {
+      parent_t::tend = parent_t::clock::now();
+      parent_t::tapply_rhs0 += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+    }
+    this->mem->barrier();
+#endif
 
     // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
     // turn all negative rv into rv = 0... CHEATING
@@ -737,14 +780,49 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
     negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+
+    // start recording time of the non-delayed advection step
+#if defined(UWLCM_TIMING)
+    if (this->rank == 0) 
+      parent_t::tbeg = parent_t::clock::now();
+    this->mem->barrier();
+#endif
   }
 
   void hook_mixed_rhs_post_step()
   {
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after advection");
+
+#if defined(UWLCM_TIMING)
+    if (this->rank == 0) 
+      parent_t::tbeg_urhs = parent_t::clock::now();
+    this->mem->barrier();
+#endif
+
     this->update_rhs(this->rhs, this->dt, 1);
+
+#if defined(UWLCM_TIMING)
+    if (this->rank == 0) 
+    {
+      parent_t::tend_urhs = parent_t::clock::now();
+      parent_t::tupdate_rhs1 += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend_urhs - parent_t::tbeg_urhs );
+      parent_t::tbeg = parent_t::clock::now();
+    }
+    this->mem->barrier();
+#endif
+
     negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
     this->apply_rhs(this->dt);
+
+#if defined(UWLCM_TIMING)
+    if (this->rank == 0) 
+    {
+      parent_t::tend = parent_t::clock::now();
+      parent_t::tapply_rhs1 += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+    }
+    this->mem->barrier();
+#endif
+
     // no negtozero after apply, because only w changed here
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");

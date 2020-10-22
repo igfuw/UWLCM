@@ -68,6 +68,11 @@ foreach(opts ${MPDATA_OPTS})
   target_compile_definitions(uwlcm PRIVATE ${MPDATA_OPTS_PREFIX}${opts})
 endforeach()
 
+#handle execution timing flag
+if(UWLCM_TIMING)
+  target_compile_options(uwlcm PRIVATE "-DUWLCM_TIMING")
+endif()
+
 # handle the disable compilation options
 if(UWLCM_DISABLE)
   set(UWLCM_DISABLE_PREFIX "UWLCM_DISABLE_")

@@ -275,6 +275,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
   ) {
     parent_t::update_rhs(rhs, dt, at);
 
+#if defined(UWLCM_TIMING)
+    if(this->rank == 0)
+      parent_t::tbeg = parent_t::clock::now();
+    this->mem->barrier();
+#endif
+
     // explicit application of subgrid forcings
     if(at == 0)
     {
@@ -285,6 +291,14 @@ class slvr_sgs : public slvr_common<ct_params_t>
       nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after sgs_scalar_forces");
       nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after sgs_scalar_forces");
     }
+
+#if defined(UWLCM_TIMING)
+    if(this->rank == 0)
+    {
+      parent_t::tend = parent_t::clock::now();
+      parent_t::tupdate_rhs_slvr_sgs += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+    }
+#endif
   }
 
   void diag() override

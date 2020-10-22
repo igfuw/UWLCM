@@ -157,8 +157,11 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
     this->mem->barrier();
+#if defined(UWLCM_TIMING)
     if(this->rank == 0)
       this->tbeg = clock::now();
+    this->mem->barrier();
+#endif
 
     // cell-wise
     // TODO: rozne cell-wise na n i n+1 ?
@@ -248,8 +251,10 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
       nancheck(rhs.at(ix::nc)(this->domain), "RHS of nc after rhs_update");
       nancheck(rhs.at(ix::nr)(this->domain), "RHS of nr after rhs_update");
+#if defined(UWLCM_TIMING)
       this->tend = clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+#endif
     }
   }
 
@@ -325,8 +330,11 @@ class slvr_blk_2m<
     this->mem->barrier();
     if(at == 0)
     {
-      if(this->rank == 0)
-        this->tbeg = clock::now();
+#if defined(UWLCM_TIMING)
+    if(this->rank == 0)
+      this->tbeg = clock::now();
+    this->mem->barrier();
+#endif
 
       // column-wise
       for (int i = this->i.first(); i <= this->i.last(); ++i)
@@ -348,8 +356,10 @@ class slvr_blk_2m<
       {
         nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
+#if defined(UWLCM_TIMING)
         this->tend = clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+#endif
       }
     }
   }
@@ -386,8 +396,11 @@ class slvr_blk_2m<
     this->mem->barrier();
     if(at == 0)
     {
-      if(this->rank == 0)
-        this->tbeg = clock::now();
+#if defined(UWLCM_TIMING)
+    if(this->rank == 0)
+      this->tbeg = clock::now();
+    this->mem->barrier();
+#endif
 
       // column-wise
       for (int i = this->i.first(); i <= this->i.last(); ++i)
@@ -410,8 +423,10 @@ class slvr_blk_2m<
       {
         nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
+#if defined(UWLCM_TIMING)
         this->tend = clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+#endif
       }
     }
   }
