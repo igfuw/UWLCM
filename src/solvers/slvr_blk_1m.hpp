@@ -180,8 +180,11 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       precipitation_rate(this->ijk) = 0;
 
     this->mem->barrier();
+#if defined(UWLCM_TIMING)
     if(this->rank == 0)
       this->tbeg = clock::now();
+    this->mem->barrier();
+#endif
 
     // cell-wise
     // TODO: rozne cell-wise na n i n+1 ?
@@ -253,11 +256,13 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       }
     }
     this->mem->barrier();
+#if defined(UWLCM_TIMING)
     if(this->rank == 0)
     {
       this->tend = clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
+#endif
     
   }
 
@@ -342,8 +347,11 @@ class slvr_blk_1m<
     this->mem->barrier();
     if(at == 0)
     {
+#if defined(UWLCM_TIMING)
       if(this->rank == 0)
         this->tbeg = clock::now();
+      this->mem->barrier();
+#endif
 
       // column-wise
       for (int i = this->i.first(); i <= this->i.last(); ++i)
@@ -360,11 +368,13 @@ class slvr_blk_1m<
 
       nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
       this->mem->barrier();
+#if defined(UWLCM_TIMING)
       if(this->rank == 0)
       {
         this->tend = clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
       }
+#endif
     }
   }
 };
@@ -400,8 +410,11 @@ class slvr_blk_1m<
     this->mem->barrier();
     if(at == 0)
     {
+#if defined(UWLCM_TIMING)
       if(this->rank == 0)
         this->tbeg = clock::now();
+      this->mem->barrier();
+#endif
 
       // column-wise
       for (int i = this->i.first(); i <= this->i.last(); ++i)
@@ -418,11 +431,13 @@ class slvr_blk_1m<
 
       nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
       this->mem->barrier();
+#if defined(UWLCM_TIMING)
       if(this->rank == 0)
       {
         this->tend = clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
       }
+#endif
     }
   }
 };
