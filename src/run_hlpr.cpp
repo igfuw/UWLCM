@@ -180,7 +180,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   concurr->advance(user_params.nt);
 }
 
-#if defined(UWLCM_TIMER)
+#if defined(UWLCM_TIMING)
   template<class slvr>
   using timer = exec_timer<slvr>;
 #else
