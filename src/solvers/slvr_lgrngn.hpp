@@ -23,7 +23,12 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   using ix = typename ct_params_t::ix;
   using real_t = typename ct_params_t::real_t;
   using arr_sub_t = typename parent_t::arr_sub_t;
+
   private:
+
+#if defined(UWLCM_TIMING)
+  typename parent_t::clock::time_point tbeg, tend;
+#endif
 
   // member fields
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
@@ -521,12 +526,12 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       ) {
         assert(ftr.valid());
 #if defined(UWLCM_TIMING)
-        parent_t::tbeg = parent_t::clock::now();
+        tbeg = parent_t::clock::now();
 #endif
         ftr.get();
 #if defined(UWLCM_TIMING)
-        parent_t::tend = parent_t::clock::now();
-        parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+        tend = parent_t::clock::now();
+        parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
       } else assert(!ftr.valid()); 
 #endif
@@ -542,11 +547,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     parent_t::hook_ante_delayed_step();
     if (this->rank == 0) 
     {
-#if defined(UWLCM_TIMING)
-      parent_t::tend = parent_t::clock::now();
-      parent_t::tnondelayed_step += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
-#endif
-
       // assuring previous sync step finished ...
 #if defined(STD_FUTURE_WORKS)
       if (
@@ -554,12 +554,12 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       ) {
         assert(ftr.valid());
 #if defined(UWLCM_TIMING)
-        parent_t::tbeg = parent_t::clock::now();
+        tbeg = parent_t::clock::now();
 #endif
         ftr.get();
 #if defined(UWLCM_TIMING)
-        parent_t::tend = parent_t::clock::now();
-        parent_t::tsync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+        tend = parent_t::clock::now();
+        parent_t::tsync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
       } else assert(!ftr.valid()); 
 #endif
@@ -594,7 +594,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
         using libcloudphxx::lgrngn::CUDA;
         using libcloudphxx::lgrngn::multi_CUDA;
 #if defined(UWLCM_TIMING)
-        parent_t::tbeg = parent_t::clock::now();
+        tbeg = parent_t::clock::now();
 #endif
 #if defined(STD_FUTURE_WORKS)
         if (params.async)
@@ -619,8 +619,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 #endif
           prtcls->step_async(params.cloudph_opts);
 #if defined(UWLCM_TIMING)
-        parent_t::tend = parent_t::clock::now();
-        parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+        tend = parent_t::clock::now();
+        parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
       }
     }
@@ -680,7 +680,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
       // start synchronous stuff timer
 #if defined(UWLCM_TIMING)
-      parent_t::tbeg = parent_t::clock::now();
+      tbeg = parent_t::clock::now();
 #endif
 
       using libcloudphxx::lgrngn::particles_t;
@@ -738,15 +738,15 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
       }
 
 #if defined(UWLCM_TIMING)
-      parent_t::tend = parent_t::clock::now();
-      parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+      tend = parent_t::clock::now();
+      parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
     }
     this->mem->barrier();
 
 #if defined(UWLCM_TIMING)
     if (this->rank == 0) 
-      parent_t::tbeg_urhs = parent_t::clock::now();
+      tbeg = parent_t::clock::now();
     this->mem->barrier();
 #endif
 
@@ -755,9 +755,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 #if defined(UWLCM_TIMING)
     if (this->rank == 0) 
     {
-      parent_t::tend_urhs = parent_t::clock::now();
-      parent_t::tupdate_rhs0 += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend_urhs - parent_t::tbeg_urhs );
-      parent_t::tbeg = parent_t::clock::now();
+      tend = parent_t::clock::now();
+      parent_t::tupdate_rhs0 += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+      tbeg = parent_t::clock::now();
     }
     this->mem->barrier();
 #endif
@@ -767,8 +767,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 #if defined(UWLCM_TIMING)
     if (this->rank == 0) 
     {
-      parent_t::tend = parent_t::clock::now();
-      parent_t::tapply_rhs0 += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+      tend = parent_t::clock::now();
+      parent_t::tapply_rhs0 += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
     this->mem->barrier();
 #endif
@@ -780,13 +780,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
     negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
-
-    // start recording time of the non-delayed advection step
-#if defined(UWLCM_TIMING)
-    if (this->rank == 0) 
-      parent_t::tbeg = parent_t::clock::now();
-    this->mem->barrier();
-#endif
   }
 
   void hook_mixed_rhs_post_step()
@@ -795,7 +788,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
 #if defined(UWLCM_TIMING)
     if (this->rank == 0) 
-      parent_t::tbeg_urhs = parent_t::clock::now();
+      tbeg = parent_t::clock::now();
     this->mem->barrier();
 #endif
 
@@ -804,9 +797,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 #if defined(UWLCM_TIMING)
     if (this->rank == 0) 
     {
-      parent_t::tend_urhs = parent_t::clock::now();
-      parent_t::tupdate_rhs1 += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend_urhs - parent_t::tbeg_urhs );
-      parent_t::tbeg = parent_t::clock::now();
+      tend = parent_t::clock::now();
+      parent_t::tupdate_rhs1 += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+      tbeg = parent_t::clock::now();
     }
     this->mem->barrier();
 #endif
@@ -817,8 +810,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 #if defined(UWLCM_TIMING)
     if (this->rank == 0) 
     {
-      parent_t::tend = parent_t::clock::now();
-      parent_t::tapply_rhs1 += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+      tend = parent_t::clock::now();
+      parent_t::tapply_rhs1 += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
     this->mem->barrier();
 #endif
@@ -833,12 +826,21 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   
   void record_all()
   {
+    assert(this->rank == 0);
+
+#if defined(UWLCM_TIMING)
+        tbeg = parent_t::clock::now();
+#endif
 #if defined(STD_FUTURE_WORKS)
     if (this->timestep > 0 && params.async)
     {
       assert(ftr.valid());
       ftr.get();
     }
+#endif
+#if defined(UWLCM_TIMING)
+        tend = parent_t::clock::now();
+        parent_t::tasync_wait_in_record_all += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
     parent_t::record_all();
   }
