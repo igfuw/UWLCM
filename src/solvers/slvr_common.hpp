@@ -25,9 +25,15 @@ class slvr_common : public slvr_dim<ct_params_t>
   protected:
 
 #if defined(UWLCM_TIMING)
-  using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
-  clock::time_point tbeg, tend, tbeg_loop, tbeg_urhs, tend_urhs;
-  std::chrono::milliseconds tdiag, tupdate_rhs_slvr_common, tupdate_rhs_slvr_sgs, tsync, tsync_wait, tasync, tasync_wait, tloop, tnondelayed_step, tupdate_rhs0, tapply_rhs0, tupdate_rhs1, tapply_rhs1;
+
+  using clock = std::chrono::high_resolution_clock; 
+  using timer = std::chrono::milliseconds; 
+  timer tupdate_rhs_slvr_common, tupdate_rhs_slvr_sgs, tsync, tsync_wait, tasync, tasync_wait, tasync_wait_in_record_all, tupdate_rhs0, tapply_rhs0, tupdate_rhs1, tapply_rhs1;
+
+  private:
+  clock::time_point tbeg, tend;
+
+  protected:
 #endif
 
   int spinup; // number of timesteps
@@ -193,11 +199,6 @@ class slvr_common : public slvr_dim<ct_params_t>
         params.dz / 2, 0, this->dt, this->di, this->dj
       );
     }
-
-    // save current time for execution time diagnostic
-#if defined(UWLCM_TIMING)
-    tbeg_loop = clock::now();
-#endif
   }
 
   void hook_ante_step()
@@ -433,32 +434,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step");
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
-
-#if defined(UWLCM_TIMING)
-    if (this->rank == 0)
-    {
-      // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
-      if(this->timestep == params.nt) // timestep incremented before post_step
-      {
-        tend = clock::now();
-        tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg_loop );
-        std::cout <<  "wall time in milliseconds: " << std::endl
-          << "loop: " << tloop.count() << std::endl
-          << "update_rhs in slvr_common: " << tupdate_rhs_slvr_common.count() << " ("<< setup::real_t(tupdate_rhs_slvr_common.count())/tloop.count()*100 <<"%)" << std::endl
-          << "update_rhs in slvr_sgs: " << tupdate_rhs_slvr_sgs.count() << " ("<< setup::real_t(tupdate_rhs_slvr_sgs.count())/tloop.count()*100 <<"%)" << std::endl
-          << "update_rhs0: " << tupdate_rhs0.count() << " ("<< setup::real_t(tupdate_rhs0.count())/tloop.count()*100 <<"%)" << std::endl
-          << "update_rhs1: " << tupdate_rhs1.count() << " ("<< setup::real_t(tupdate_rhs1.count())/tloop.count()*100 <<"%)" << std::endl
-          << "apply_rhs0: " << tapply_rhs0.count() << " ("<< setup::real_t(tapply_rhs0.count())/tloop.count()*100 <<"%)" << std::endl
-          << "apply_rhs1: " << tapply_rhs1.count() << " ("<< setup::real_t(tapply_rhs1.count())/tloop.count()*100 <<"%)" << std::endl
-          << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
-          << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "nondelayed step: " << tnondelayed_step.count() << " ("<< setup::real_t(tnondelayed_step.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async: " << tasync.count() << " ("<< setup::real_t(tasync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
-          << "sync_wait: " << tsync_wait.count() << " ("<< setup::real_t(tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
-      }
-    }
-#endif
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at end of slvr_common::hook_post_step");
   }
 
@@ -486,20 +461,12 @@ class slvr_common : public slvr_dim<ct_params_t>
   void record_all()
   {
     assert(this->rank == 0);
-#if defined(UWLCM_TIMING)
-    tbeg = clock::now();
-#endif
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
     this->diag();
     // xmf markup
     this->write_xmfs();
-
-#if defined(UWLCM_TIMING)
-    tend = clock::now();
-    tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-#endif
   }
 
   public:

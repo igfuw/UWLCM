@@ -12,6 +12,10 @@ class slvr_sgs : public slvr_common<ct_params_t>
   using real_t = typename ct_params_t::real_t;
   using ix = typename ct_params_t::ix;
 
+#if defined(UWLCM_TIMING)
+  private:
+  typename parent_t::clock::time_point tbeg, tend;
+#endif
   protected:
 
   real_t prandtl_num;
@@ -277,7 +281,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
-      parent_t::tbeg = parent_t::clock::now();
+      tbeg = parent_t::clock::now();
     this->mem->barrier();
 #endif
 
@@ -295,8 +299,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
     {
-      parent_t::tend = parent_t::clock::now();
-      parent_t::tupdate_rhs_slvr_sgs += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
+      tend = parent_t::clock::now();
+      parent_t::tupdate_rhs_slvr_sgs += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
 #endif
   }

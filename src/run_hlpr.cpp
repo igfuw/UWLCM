@@ -20,6 +20,10 @@
 #include "opts/opts_common.hpp"
 #include "forcings/calc_forces_common.hpp"
 
+#if defined(UWLCM_TIMING)
+  #include "detail/exec_timer.hpp"
+#endif
+
 #if !defined(UWLCM_DISABLE_2D_LGRNGN) ||  !defined(UWLCM_DISABLE_3D_LGRNGN)
   #include "opts/opts_lgrngn.hpp"
   #include "solvers/slvr_lgrngn.hpp"
@@ -176,6 +180,15 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   concurr->advance(user_params.nt);
 }
 
+#if defined(UWLCM_TIMER)
+  template<class slvr>
+  using timer = exec_timer<slvr>;
+#else
+  template<class slvr>
+  using timer = slvr;
+#endif
+
+
 template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
 void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
 {
@@ -183,7 +196,7 @@ void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_
   {
 #if !defined(UWLCM_DISABLE_PIGGYBACKER)
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 1 }; };
-    run<slvr<ct_params_piggy>>(nps, user_params);
+    run<timer<slvr<ct_params_piggy>>>(nps, user_params);
 #endif
   }
   else // driver
@@ -198,14 +211,14 @@ void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_
         enum { sgs_scheme = libmpdataxx::solvers::smg };
         enum { stress_diff = libmpdataxx::solvers::compact };
       };
-      run<slvr<ct_params_sgs>>(nps, user_params);
+      run<timer<slvr<ct_params_sgs>>>(nps, user_params);
   #endif
     }
     else
     {
   #if !defined(UWLCM_DISABLE_ILES)
       struct ct_params_iles : ct_params_piggy {};
-      run<slvr<ct_params_iles>>(nps, user_params);
+      run<timer<slvr<ct_params_iles>>>(nps, user_params);
   #endif
     }
 #endif
