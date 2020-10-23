@@ -26,7 +26,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
 #if defined(UWLCM_TIMING)
 
-  using clock = std::chrono::high_resolution_clock; 
+  using clock = std::chrono::system_clock; 
   using timer = std::chrono::milliseconds; 
   timer tupdate_rhs_slvr_common, tupdate_rhs_slvr_sgs, tsync, tsync_wait, tasync, tasync_wait, tasync_wait_in_record_all, tupdate_rhs0, tapply_rhs0, tupdate_rhs1, tapply_rhs1;
 

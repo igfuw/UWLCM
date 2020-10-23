@@ -6,6 +6,8 @@ class exec_timer : public solver_t
   using parent_t = solver_t;
 
   private:
+  const unsigned long nt;
+
   typename parent_t::clock::time_point tbeg,      tend,
                                        tbeg_loop, tend_loop;
 
@@ -26,9 +28,9 @@ class exec_timer : public solver_t
 
   protected:
 
-  void hook_ante_loop()
+  void hook_ante_loop(int nt) override
   {
-    parent_t::hook_ante_loop();
+    parent_t::hook_ante_loop(nt);
     this->mem->barrier();
     if (this->rank == 0) 
       tbeg_loop = parent_t::clock::now();
@@ -37,26 +39,26 @@ class exec_timer : public solver_t
 
   void hook_ante_step()
   {
-    timer(thps_has);
+    time(thps_has);
     parent_t::hook_ante_step();
-    timer(thas);
+    time(thas);
   }
 
   void hook_ante_delayed_step()
   {
-    timer(thas_hads);
+    time(thas_hads);
     parent_t::hook_ante_delayed_step();
-    timer(thads);
+    time(thads);
   }
 
   void hook_post_step()
   {
-    timer(thads_hps);
+    time(thads_hps);
     parent_t::hook_post_step();
-    timer(thps);
+    time(thps);
 
     // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
-    if(this->timestep == this->params.nt) // timestep incremented before post_step
+    if(this->timestep == nt) // timestep incremented before post_step
     {
       if (this->rank == 0)
       {
@@ -80,7 +82,7 @@ class exec_timer : public solver_t
           << "    apply_rhs1:                      " << parent_t::tapply_rhs1.count() << " ("<< setup::real_t(parent_t::tapply_rhs1.count())/tloop.count()*100 <<"%)" << std::endl
           << "    record_all:                      " << trecord_all.count() << " ("<< setup::real_t(trecord_all.count())/tloop.count()*100 <<"%)" << std::endl
           << "      async_wait in record_all:      " << parent_t::tasync_wait_in_record_all.count() << " ("<< setup::real_t(parent_t::tasync_wait_in_record_all.count())/tloop.count()*100 <<"%)" << std::endl
-          << "  hook_post_step->hook_ante_step:  " << thps.count() << " ("<< setup::real_t(thps.count())/tloop.count()*100 <<"%)" << std::endl
+          << "  hook_post_step->hook_ante_step:  " << thps_has.count() << " ("<< setup::real_t(thps_has.count())/tloop.count()*100 <<"%)" << std::endl
           << std::endl
           << "  update_rhs parts from update_rhs0 + update_rhs1: " << std::endl
           << "    update_rhs in slvr_common: " << parent_t::tupdate_rhs_slvr_common.count() << " ("<< setup::real_t(parent_t::tupdate_rhs_slvr_common.count())/tloop.count()*100 <<"%)" << std::endl
@@ -99,4 +101,14 @@ class exec_timer : public solver_t
     trecord_all = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
   }
 
+  public:
+
+  // ctor
+  exec_timer( 
+    typename parent_t::ctor_args_t args, 
+    const typename parent_t::rt_params_t &p
+  ) : 
+    parent_t(args, p),
+    nt(p.nt)
+  {}  
 };
