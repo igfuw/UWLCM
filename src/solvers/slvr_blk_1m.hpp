@@ -22,7 +22,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
   using arr_sub_t = typename parent_t::arr_sub_t;
-  using clock = typename parent_t::clock;
 
   protected:
   typename parent_t::arr_t &precipitation_rate; 
@@ -182,7 +181,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->mem->barrier();
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
-      this->tbeg = clock::now();
+      this->tbeg = parent_t::clock::now();
     this->mem->barrier();
 #endif
 
@@ -259,7 +258,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
     {
-      this->tend = clock::now();
+      this->tend = parent_t::clock::now();
       this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
     }
 #endif
@@ -326,7 +325,6 @@ class slvr_blk_1m<
   public:
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
-  using clock = typename parent_t::clock;
 
   // ctor
   slvr_blk_1m(
@@ -349,7 +347,7 @@ class slvr_blk_1m<
     {
 #if defined(UWLCM_TIMING)
       if(this->rank == 0)
-        this->tbeg = clock::now();
+        this->tbeg = parent_t::clock::now();
       this->mem->barrier();
 #endif
 
@@ -371,7 +369,7 @@ class slvr_blk_1m<
 #if defined(UWLCM_TIMING)
       if(this->rank == 0)
       {
-        this->tend = clock::now();
+        this->tend = parent_t::clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
       }
 #endif
@@ -389,7 +387,6 @@ class slvr_blk_1m<
   public:
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
-  using clock = typename parent_t::clock;
 
   // ctor
   slvr_blk_1m(
@@ -412,7 +409,7 @@ class slvr_blk_1m<
     {
 #if defined(UWLCM_TIMING)
       if(this->rank == 0)
-        this->tbeg = clock::now();
+        this->tbeg = parent_t::clock::now();
       this->mem->barrier();
 #endif
 
@@ -434,7 +431,7 @@ class slvr_blk_1m<
 #if defined(UWLCM_TIMING)
       if(this->rank == 0)
       {
-        this->tend = clock::now();
+        this->tend = parent_t::clock::now();
         this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
       }
 #endif
