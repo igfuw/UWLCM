@@ -25,6 +25,10 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   // a 2D/3D array with copy of the environmental total pressure of dry air
   typename parent_t::arr_t &p_e;
 
+#if defined(UWLCM_TIMING)
+  clock::time_point tbeg, tend;
+#endif
+
   protected:
 
   // accumulated water falling out of domain
@@ -158,7 +162,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->mem->barrier();
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
-      this->tbeg = parent_t::clock::now();
+      tbeg = parent_t::clock::now();
     this->mem->barrier();
 #endif
 
@@ -251,8 +255,8 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       nancheck(rhs.at(ix::nc)(this->domain), "RHS of nc after rhs_update");
       nancheck(rhs.at(ix::nr)(this->domain), "RHS of nr after rhs_update");
 #if defined(UWLCM_TIMING)
-      this->tend = parent_t::clock::now();
-      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+      tend = parent_t::clock::now();
+      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
     }
   }
@@ -330,7 +334,7 @@ class slvr_blk_2m<
     {
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
-      this->tbeg = parent_t::clock::now();
+      tbeg = parent_t::clock::now();
     this->mem->barrier();
 #endif
 
@@ -355,8 +359,8 @@ class slvr_blk_2m<
         nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
 #if defined(UWLCM_TIMING)
-        this->tend = parent_t::clock::now();
-        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+        tend = parent_t::clock::now();
+        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
       }
     }
@@ -395,7 +399,7 @@ class slvr_blk_2m<
     {
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
-      this->tbeg = parent_t::clock::now();
+      tbeg = parent_t::clock::now();
     this->mem->barrier();
 #endif
 
@@ -421,8 +425,8 @@ class slvr_blk_2m<
         nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
 #if defined(UWLCM_TIMING)
-        this->tend = parent_t::clock::now();
-        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+        tend = parent_t::clock::now();
+        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
       }
     }
