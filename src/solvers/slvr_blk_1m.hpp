@@ -30,6 +30,10 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   // a 2D/3D array with copy of the environmental total pressure of dry air 
   typename parent_t::arr_t &p_e;
 
+#if defined(UWLCM_TIMING)
+  clock::time_point tbeg, tend;
+#endif
+
   void condevap()
   {
     auto
@@ -181,7 +185,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->mem->barrier();
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
-      this->tbeg = parent_t::clock::now();
+      tbeg = parent_t::clock::now();
     this->mem->barrier();
 #endif
 
@@ -258,8 +262,8 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 #if defined(UWLCM_TIMING)
     if(this->rank == 0)
     {
-      this->tend = parent_t::clock::now();
-      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+      tend = parent_t::clock::now();
+      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
     }
 #endif
     
@@ -347,7 +351,7 @@ class slvr_blk_1m<
     {
 #if defined(UWLCM_TIMING)
       if(this->rank == 0)
-        this->tbeg = parent_t::clock::now();
+        tbeg = parent_t::clock::now();
       this->mem->barrier();
 #endif
 
@@ -369,8 +373,8 @@ class slvr_blk_1m<
 #if defined(UWLCM_TIMING)
       if(this->rank == 0)
       {
-        this->tend = parent_t::clock::now();
-        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+        tend = parent_t::clock::now();
+        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
       }
 #endif
     }
@@ -409,7 +413,7 @@ class slvr_blk_1m<
     {
 #if defined(UWLCM_TIMING)
       if(this->rank == 0)
-        this->tbeg = parent_t::clock::now();
+        tbeg = parent_t::clock::now();
       this->mem->barrier();
 #endif
 
@@ -431,8 +435,8 @@ class slvr_blk_1m<
 #if defined(UWLCM_TIMING)
       if(this->rank == 0)
       {
-        this->tend = parent_t::clock::now();
-        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( this->tend - this->tbeg );
+        tend = parent_t::clock::now();
+        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
       }
 #endif
     }
