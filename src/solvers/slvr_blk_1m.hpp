@@ -326,6 +326,11 @@ class slvr_blk_1m<
   typename std::enable_if<ct_params_t::n_dims == 2 >::type
 > : public slvr_blk_1m_common<ct_params_t>
 {
+  private:
+#if defined(UWLCM_TIMING)
+  typename parent_t::clock::time_point tbeg, tend;
+#endif
+
   public:
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
@@ -388,6 +393,11 @@ class slvr_blk_1m<
   typename std::enable_if<ct_params_t::n_dims == 3 >::type
 > : public slvr_blk_1m_common<ct_params_t>
 {
+  private:
+#if defined(UWLCM_TIMING)
+  typename parent_t::clock::time_point tbeg, tend;
+#endif
+
   public:
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
