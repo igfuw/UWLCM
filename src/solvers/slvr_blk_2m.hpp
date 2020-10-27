@@ -26,7 +26,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   typename parent_t::arr_t &p_e;
 
 #if defined(UWLCM_TIMING)
-  clock::time_point tbeg, tend;
+  typename parent_t::clock::time_point tbeg, tend;
 #endif
 
   protected:
