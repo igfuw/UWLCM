@@ -156,6 +156,8 @@ namespace setup
         params.rv_src = false;
         params.rc_src = false;
         params.rr_src = false;
+        params.nc_src = false;
+        params.nr_src = false;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
@@ -172,10 +174,8 @@ namespace setup
       void intcond_hlpr(typename parent_t::concurr_any_t &solver,
                         arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
       {
-        int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dx = (X / si::metres) / (nx-1); 
     
         solver.advectee(ix::u) = 0;
         solver.advectee(ix::w) = 0;  

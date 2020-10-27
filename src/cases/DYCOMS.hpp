@@ -154,6 +154,8 @@ namespace setup
         params.rv_src = user_params.rv_src;
         params.rc_src = user_params.rc_src;
         params.rr_src = user_params.rr_src;
+        params.nc_src = user_params.nc_src;
+        params.nr_src = user_params.nr_src;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
@@ -168,7 +170,7 @@ namespace setup
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
   
         solver.advectee(ix::rv) = r_t_fctr{}(index * dz); 
@@ -349,7 +351,7 @@ namespace setup
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
   
-        int nz = solver.advectee().extent(ix::w);
+        int nz = solver.advectee_global().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
   
         solver.advectee(ix::v)= v()(k * dz);
