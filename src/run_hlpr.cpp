@@ -40,6 +40,7 @@
   #include "opts/opts_blk_2m.hpp"
   #include "solvers/slvr_blk_2m.hpp"
   #include "solvers/blk_2m/calc_forces_blk_2m.hpp"
+  #include "solvers/blk_2m/update_rhs_blk_2m_common.hpp"
 #endif
 
 #include "run_hlpr.hpp"

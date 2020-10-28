@@ -1,5 +1,4 @@
 #pragma once
-#include "slvr_sgs.hpp"
 #include "blk_1m/slvr_blk_1m_common.hpp"
 
 #include <libcloudph++/blk_1m/rhs_columnwise.hpp>
