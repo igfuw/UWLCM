@@ -84,18 +84,11 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void hook_mixed_rhs_ante_loop()
   {}
+
   void hook_mixed_rhs_ante_step()
   {
-    const auto nc     = this->state(ix::nc)(this->ijk);
-    update_rhs(this->rhs, this->dt, 0);
-    negcheck(nc, "nc before apply rhs ante step");
-    this->apply_rhs(this->dt);
-  }
-  void hook_mixed_rhs_post_step()
-  {
-    const auto nc     = this->state(ix::nc)(this->ijk);
-    update_rhs(this->rhs, this->dt, 1);
-    this->apply_rhs(this->dt);
+    negcheck(this->mem->advectee(ix::nc)(this->ijk), "nc at start of hook_mixed_rhs_ante_step");
+    parent_t::hook_mixed_rhs_ante_step();
   }
 
   void hook_ante_loop(int nt)

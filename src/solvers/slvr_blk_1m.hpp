@@ -96,16 +96,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void hook_mixed_rhs_ante_loop()
   {}
-  void hook_mixed_rhs_ante_step()
-  {
-    update_rhs(this->rhs, this->dt, 0);
-    this->apply_rhs(this->dt);
-  }
-  void hook_mixed_rhs_post_step()
-  {
-    update_rhs(this->rhs, this->dt, 1);
-    this->apply_rhs(this->dt);
-  }
 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)

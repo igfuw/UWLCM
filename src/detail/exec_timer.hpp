@@ -37,21 +37,21 @@ class exec_timer : public solver_t
     this->mem->barrier();
   }
 
-  void hook_ante_step()
+  void hook_ante_step() override
   {
     time(thps_has);
     parent_t::hook_ante_step();
     time(thas);
   }
 
-  void hook_ante_delayed_step()
+  void hook_ante_delayed_step() override
   {
     time(thas_hads);
     parent_t::hook_ante_delayed_step();
     time(thads);
   }
 
-  void hook_post_step()
+  void hook_post_step() override
   {
     time(thads_hps);
     parent_t::hook_post_step();
@@ -91,7 +91,7 @@ class exec_timer : public solver_t
     }
   }
 
-  void record_all()
+  void record_all() override
   {
     assert(this->rank == 0);
 
