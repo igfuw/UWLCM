@@ -1,6 +1,5 @@
 #pragma once
 #include "../slvr_sgs.hpp"
-
 #include <libcloudph++/blk_2m/options.hpp>
 
 template <class ct_params_t>
