@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 set -ex
 
-# build UWLCM in RelWithDebInfo mode without 3D and with 'abs' libmpdata++ option
+# build UWLCM in RelWithDebInfo mode without 3D, with 'abs' libmpdata++ option and with timing of execution
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="3D_LGRNGN;3D_BLK_1M;3D_BLK_2M;PIGGYBACKER;SGS" -DMPDATA_OPTS="ABS"
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="3D_LGRNGN;3D_BLK_1M;3D_BLK_2M;PIGGYBACKER;SGS" -DMPDATA_OPTS="ABS" -DUWLCM_TIMING=1
 VERBOSE=1 make -j2
 sudo make install
 cd ../..
