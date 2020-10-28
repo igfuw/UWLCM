@@ -24,7 +24,7 @@
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)
   #include "solvers/slvr_blk_1m.hpp"
-  #include "solvers/blk_1m/calc_forces_blk_1m.hpp"
+  #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_2M) || !defined(UWLCM_DISABLE_3D_BLK_2M)
