@@ -1,7 +1,6 @@
 #pragma once
-#include "../slvr_blk_1m.hpp"
-
 #include <libcloudph++/blk_1m/rhs_cellwise.hpp>
+#include "../slvr_blk_1m.hpp"
 
 template <class ct_params_t>
 void slvr_blk_1m_common<ct_params_t>::update_rhs(
