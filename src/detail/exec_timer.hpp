@@ -14,7 +14,7 @@ class exec_timer : public solver_t
 
   typename parent_t::timer tloop, trecord_all, thas, thads, thps, thps_has, thas_hads, thads_hps, thmas, thmps;
 
-  void get_step_time(parent_t::timer &timer)
+  void get_step_time(typename parent_t::timer &timer)
   {
     this->mem->barrier();
     if (this->rank == 0) 
@@ -36,7 +36,7 @@ class exec_timer : public solver_t
     this->mem->barrier();
   }
 
-  void stop_aux_clock(parent_t::timer &timer)
+  void stop_aux_clock(typename parent_t::timer &timer)
   {
     this->mem->barrier();
     if (this->rank == 0) 
