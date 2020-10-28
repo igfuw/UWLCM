@@ -744,7 +744,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     }
     this->mem->barrier();
 
-    parent_t::mixed_rhs_ante_step();
+    parent_t::hook_mixed_rhs_ante_step();
   }
   
   void record_all()
