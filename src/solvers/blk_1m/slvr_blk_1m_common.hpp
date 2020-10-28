@@ -1,6 +1,5 @@
 #pragma once
 #include "../slvr_sgs.hpp"
-
 #include <libcloudph++/blk_1m/options.hpp>
 #include <libcloudph++/blk_1m/adj_cellwise.hpp>
 

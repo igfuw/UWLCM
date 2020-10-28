@@ -2,7 +2,7 @@
 #include "../slvr_lgrngn.hpp"
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_param_t>::hook_ante_loop(int nt)
+void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
 {
   params.flag_coal = params.cloudph_opts.coal;
 
