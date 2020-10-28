@@ -25,10 +25,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   // a 2D/3D array with copy of the environmental total pressure of dry air
   typename parent_t::arr_t &p_e;
 
-#if defined(UWLCM_TIMING)
-  typename parent_t::clock::time_point tbeg, tend;
-#endif
-
   protected:
 
   // accumulated water falling out of domain
@@ -52,7 +48,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
     /*
     assert(this->rank == 0);
-    parent_t::tbeg = parent_t::parent_t::clock::now();
 
     // recording puddle
     for(int i=0; i < 10; ++i)
@@ -60,9 +55,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
        this->f_puddle << i << " " << (i == 8 ? this->puddle : 0) << "\n";
     }
     this->f_puddle << "\n";
-
-    parent_t::tend = parent_t::parent_t::clock::now();
-    parent_t::tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( parent_t::tend - parent_t::tbeg );
     */
   }
 
@@ -153,11 +145,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
     this->mem->barrier();
-#if defined(UWLCM_TIMING)
-    if(this->rank == 0)
-      tbeg = parent_t::clock::now();
-    this->mem->barrier();
-#endif
 
     // cell-wise
     // TODO: rozne cell-wise na n i n+1 ?
@@ -247,10 +234,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
       nancheck(rhs.at(ix::nc)(this->domain), "RHS of nc after rhs_update");
       nancheck(rhs.at(ix::nr)(this->domain), "RHS of nr after rhs_update");
-#if defined(UWLCM_TIMING)
-      tend = parent_t::clock::now();
-      this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-#endif
     }
   }
 
@@ -306,12 +289,6 @@ class slvr_blk_2m<
   using parent_t = slvr_blk_2m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
 
-#if defined(UWLCM_TIMING)
-  private:
-  typename parent_t::clock::time_point tbeg, tend;
-  public:
-#endif
-
   // ctor
   slvr_blk_2m(
     typename parent_t::ctor_args_t args,
@@ -331,12 +308,6 @@ class slvr_blk_2m<
     this->mem->barrier();
     if(at == 0)
     {
-#if defined(UWLCM_TIMING)
-    if(this->rank == 0)
-      tbeg = parent_t::clock::now();
-    this->mem->barrier();
-#endif
-
       // column-wise
       for (int i = this->i.first(); i <= this->i.last(); ++i)
       {
@@ -357,10 +328,6 @@ class slvr_blk_2m<
       {
         nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
-#if defined(UWLCM_TIMING)
-        tend = parent_t::clock::now();
-        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-#endif
       }
     }
   }
@@ -376,12 +343,6 @@ class slvr_blk_2m<
   public:
   using parent_t = slvr_blk_2m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
-
-#if defined(UWLCM_TIMING)
-  private:
-  typename parent_t::clock::time_point tbeg, tend;
-  public:
-#endif
 
   // ctor
   slvr_blk_2m(
@@ -402,12 +363,6 @@ class slvr_blk_2m<
     this->mem->barrier();
     if(at == 0)
     {
-#if defined(UWLCM_TIMING)
-    if(this->rank == 0)
-      tbeg = parent_t::clock::now();
-    this->mem->barrier();
-#endif
-
       // column-wise
       for (int i = this->i.first(); i <= this->i.last(); ++i)
         for (int j = this->j.first(); j <= this->j.last(); ++j)
@@ -429,10 +384,6 @@ class slvr_blk_2m<
       {
         nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
-#if defined(UWLCM_TIMING)
-        tend = parent_t::clock::now();
-        this->tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-#endif
       }
     }
   }

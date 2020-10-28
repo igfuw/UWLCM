@@ -12,10 +12,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
   using real_t = typename ct_params_t::real_t;
   using ix = typename ct_params_t::ix;
 
-#if defined(UWLCM_TIMING)
-  private:
-  typename parent_t::clock::time_point tbeg, tend;
-#endif
   protected:
 
   real_t prandtl_num;
@@ -279,12 +275,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
   ) {
     parent_t::update_rhs(rhs, dt, at);
 
-#if defined(UWLCM_TIMING)
-    if(this->rank == 0)
-      tbeg = parent_t::clock::now();
-    this->mem->barrier();
-#endif
-
     // explicit application of subgrid forcings
     if(at == 0)
     {
@@ -295,14 +285,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
       nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after sgs_scalar_forces");
       nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after sgs_scalar_forces");
     }
-
-#if defined(UWLCM_TIMING)
-    if(this->rank == 0)
-    {
-      tend = parent_t::clock::now();
-      parent_t::tupdate_rhs_slvr_sgs += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-    }
-#endif
   }
 
   void diag() override

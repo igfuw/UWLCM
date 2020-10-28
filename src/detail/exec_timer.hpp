@@ -8,23 +8,44 @@ class exec_timer : public solver_t
   private:
   const unsigned long nt;
 
-  typename parent_t::clock::time_point tbeg,      tend,
+  typename parent_t::clock::time_point tbeg_step, tend_step,
+                                       tbeg_aux , tend_aux ,
                                        tbeg_loop, tend_loop;
 
-  typename parent_t::timer tloop, trecord_all, thas, thads, thps, thps_has, thas_hads, thads_hps;
+  typename parent_t::timer tloop, trecord_all, thas, thads, thps, thps_has, thas_hads, thads_hps, thmas, thmps;
 
-  void time(std::chrono::milliseconds &timer)
+  void get_step_time(parent_t::timer &timer)
   {
     this->mem->barrier();
     if (this->rank == 0) 
     {
-      tend = parent_t::clock::now();
-      timer += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-      tbeg = parent_t::clock::now();
+      tend_step = parent_t::clock::now();
+      timer += std::chrono::duration_cast<std::chrono::milliseconds>( tend_step - tbeg_step );
+      tbeg_step = parent_t::clock::now();
     }
     this->mem->barrier();
   }
 
+  void start_aux_clock()
+  {
+    this->mem->barrier();
+    if (this->rank == 0) 
+    {
+      tbeg_aux = parent_t::clock::now();
+    }
+    this->mem->barrier();
+  }
+
+  void stop_aux_clock(parent_t::timer &timer)
+  {
+    this->mem->barrier();
+    if (this->rank == 0) 
+    {
+      tend_aux = parent_t::clock::now();
+      timer += std::chrono::duration_cast<std::chrono::milliseconds>( tend_aux - tbeg_aux );
+    }
+    this->mem->barrier();
+  }
 
   protected:
 
@@ -39,23 +60,23 @@ class exec_timer : public solver_t
 
   void hook_ante_step() override
   {
-    time(thps_has);
+    get_step_time(thps_has);
     parent_t::hook_ante_step();
-    time(thas);
+    get_step_time(thas);
   }
 
   void hook_ante_delayed_step() override
   {
-    time(thas_hads);
+    get_step_time(thas_hads);
     parent_t::hook_ante_delayed_step();
-    time(thads);
+    get_step_time(thads);
   }
 
   void hook_post_step() override
   {
-    time(thads_hps);
+    get_step_time(thads_hps);
     parent_t::hook_post_step();
-    time(thps);
+    get_step_time(thps);
 
     // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
     if(this->timestep == nt) // timestep incremented before post_step
@@ -68,9 +89,8 @@ class exec_timer : public solver_t
         std::cout <<  "wall time in milliseconds: " << std::endl
           << "loop:                            " << tloop.count() << std::endl
           << "  hook_ante_step:                  " << thas.count() << " ("<< setup::real_t(thas.count())/tloop.count()*100 <<"%)" << std::endl
+          << "    hook_mixed_rhs_ante_step:        " << thmas.count() << " ("<< setup::real_t(thmas.count())/tloop.count()*100 <<"%)" << std::endl
           << "    async_wait:                      " << parent_t::tasync_wait.count() << " ("<< setup::real_t(parent_t::tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
-          << "    update_rhs0:                     " << parent_t::tupdate_rhs0.count() << " ("<< setup::real_t(parent_t::tupdate_rhs0.count())/tloop.count()*100 <<"%)" << std::endl
-          << "    apply_rhs0:                      " << parent_t::tapply_rhs0.count() << " ("<< setup::real_t(parent_t::tapply_rhs0.count())/tloop.count()*100 <<"%)" << std::endl
           << "    sync:                            " << parent_t::tsync.count() << " ("<< setup::real_t(parent_t::tsync.count())/tloop.count()*100 <<"%)" << std::endl
           << "  step:                            " << thas_hads.count() << " ("<< setup::real_t(thas_hads.count())/tloop.count()*100 <<"%)" << std::endl
           << "  hook_ante_delayed_step:          " << thads.count() << " ("<< setup::real_t(thads.count())/tloop.count()*100 <<"%)" << std::endl
@@ -78,15 +98,10 @@ class exec_timer : public solver_t
           << "    async:                           " << parent_t::tasync.count() << " ("<< setup::real_t(parent_t::tasync.count())/tloop.count()*100 <<"%)" << std::endl
           << "  delayed step:                    " << thads_hps.count() << " ("<< setup::real_t(thads_hps.count())/tloop.count()*100 <<"%)" << std::endl
           << "  hook_post_step:                  " << thps.count() << " ("<< setup::real_t(thps.count())/tloop.count()*100 <<"%)" << std::endl
-          << "    update_rhs1:                     " << parent_t::tupdate_rhs1.count() << " ("<< setup::real_t(parent_t::tupdate_rhs1.count())/tloop.count()*100 <<"%)" << std::endl
-          << "    apply_rhs1:                      " << parent_t::tapply_rhs1.count() << " ("<< setup::real_t(parent_t::tapply_rhs1.count())/tloop.count()*100 <<"%)" << std::endl
+          << "    hook_mixed_rhs_post_step:        " << thmps.count() << " ("<< setup::real_t(thmps.count())/tloop.count()*100 <<"%)" << std::endl
           << "    record_all:                      " << trecord_all.count() << " ("<< setup::real_t(trecord_all.count())/tloop.count()*100 <<"%)" << std::endl
           << "      async_wait in record_all:      " << parent_t::tasync_wait_in_record_all.count() << " ("<< setup::real_t(parent_t::tasync_wait_in_record_all.count())/tloop.count()*100 <<"%)" << std::endl
-          << "  hook_post_step->hook_ante_step:  " << thps_has.count() << " ("<< setup::real_t(thps_has.count())/tloop.count()*100 <<"%)" << std::endl
-          << std::endl
-          << "  update_rhs parts from update_rhs0 + update_rhs1: " << std::endl
-          << "    update_rhs in slvr_common: " << parent_t::tupdate_rhs_slvr_common.count() << " ("<< setup::real_t(parent_t::tupdate_rhs_slvr_common.count())/tloop.count()*100 <<"%)" << std::endl
-          << "    update_rhs in slvr_sgs:    " << parent_t::tupdate_rhs_slvr_sgs.count() << " ("<< setup::real_t(parent_t::tupdate_rhs_slvr_sgs.count())/tloop.count()*100 <<"%)" << std::endl;
+          << "  hook_post_step->hook_ante_step:  " << thps_has.count() << " ("<< setup::real_t(thps_has.count())/tloop.count()*100 <<"%)" << std::endl;
       }
     }
   }
@@ -95,10 +110,24 @@ class exec_timer : public solver_t
   {
     assert(this->rank == 0);
 
-    tbeg = parent_t::clock::now();
+    tbeg_aux = parent_t::clock::now();
     parent_t::record_all();
-    tend = parent_t::clock::now();
-    trecord_all = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+    tend_aux = parent_t::clock::now();
+    trecord_all = std::chrono::duration_cast<std::chrono::milliseconds>( tend_aux - tbeg_aux );
+  }
+
+  void hook_mixed_rhs_ante_step() override
+  {
+    start_aux_clock();
+    parent_t::hook_mixed_rhs_ante_step();
+    stop_aux_clock(thmas);
+  }
+
+  void hook_mixed_rhs_post_step() override
+  {
+    start_aux_clock();
+    parent_t::hook_mixed_rhs_post_step();
+    stop_aux_clock(thmps);
   }
 
   public:

@@ -28,10 +28,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   using clock = std::chrono::system_clock; 
   using timer = std::chrono::milliseconds; 
-  timer tupdate_rhs_slvr_common, tupdate_rhs_slvr_sgs, tsync, tsync_wait, tasync, tasync_wait, tasync_wait_in_record_all, tupdate_rhs0, tapply_rhs0, tupdate_rhs1, tapply_rhs1;
-
-  private:
-  clock::time_point tbeg, tend;
+  timer tsync, tsync_wait, tasync, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
 
   protected:
 #endif
@@ -256,11 +253,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::update_rhs(rhs, dt, at); // zero-out rhs
     this->mem->barrier();
-#if defined(UWLCM_TIMING)
-    if(this->rank == 0)
-      tbeg = clock::now();
-    this->mem->barrier();
-#endif
 
     using ix = typename ct_params_t::ix;
 
@@ -382,13 +374,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     for(auto type : this->hori_vel)
       {nancheck(rhs.at(type)(this->ijk), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
     this->mem->barrier();
-#if defined(UWLCM_TIMING)
-    if(this->rank == 0)
-    {
-      tend = clock::now();
-      tupdate_rhs_slvr_common += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-    }
-#endif
   }
 
 
@@ -439,34 +424,8 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_mixed_rhs_ante_step()
   {
-#if defined(UWLCM_TIMING)
-    if (this->rank == 0)
-      tbeg = parent_t::clock::now();
-    this->mem->barrier();
-#endif
-
-    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero
-
-#if defined(UWLCM_TIMING)
-    if (this->rank == 0)
-    {
-      tend = parent_t::clock::now();
-      parent_t::tupdate_rhs0 += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-      tbeg = parent_t::clock::now();
-    }
-    this->mem->barrier();
-#endif
-
+    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero (?)
     this->apply_rhs(this->dt);
-
-#if defined(UWLCM_TIMING)
-    if (this->rank == 0)
-    {
-      tend = parent_t::clock::now();
-      parent_t::tapply_rhs0 += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-    }
-    this->mem->barrier();
-#endif
 
     // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
     // turn all negative rv into rv = 0... CHEATING
@@ -481,35 +440,9 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after advection");
 
-#if defined(UWLCM_TIMING)
-    if (this->rank == 0)
-      tbeg = parent_t::clock::now();
-    this->mem->barrier();
-#endif
-
     this->update_rhs(this->rhs, this->dt, 1);
-
-#if defined(UWLCM_TIMING)
-    if (this->rank == 0)
-    {
-      tend = parent_t::clock::now();
-      parent_t::tupdate_rhs1 += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-      tbeg = parent_t::clock::now();
-    }
-    this->mem->barrier();
-#endif
-
     negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
     this->apply_rhs(this->dt);
-
-#if defined(UWLCM_TIMING)
-    if (this->rank == 0)
-    {
-      tend = parent_t::clock::now();
-      parent_t::tapply_rhs1 += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-    }
-    this->mem->barrier();
-#endif
 
     // no negtozero after apply, because only w changed here
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
