@@ -9,7 +9,7 @@ VERBOSE=1 travis_wait 20 make -j2
 
 # test compilation with execution timing
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="ILES" -DUWLCM_TIMING=1
-VERBOSE=1 travis_wait 20 make -j2
+VERBOSE=1 travis_wait 30 make -j2
 
 # build tests
 cd ../tests
