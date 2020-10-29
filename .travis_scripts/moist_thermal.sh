@@ -28,6 +28,7 @@ VERBOSE=1 make -j2
 cd moist_thermal
 if [[ $MPI != 'none'    ]]; then OMP_NUM_THREADS=6 travis_wait 30 make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
 if [[ $MPI == 'none'    ]]; then OMP_NUM_THREADS=6 make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
+cat Testing/Temporary/LastTest.log # to see execution time of the test
 cd ../../..
 
 set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
