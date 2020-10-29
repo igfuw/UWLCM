@@ -89,9 +89,9 @@ class exec_timer : public solver_t
         std::cout <<  "wall time in milliseconds: " << std::endl
           << "loop:                            " << tloop.count() << std::endl
           << "  hook_ante_step:                  " << thas.count() << " ("<< setup::real_t(thas.count())/tloop.count()*100 <<"%)" << std::endl
-          << "    hook_mixed_rhs_ante_step:        " << thmas.count() << " ("<< setup::real_t(thmas.count())/tloop.count()*100 <<"%)" << std::endl
           << "    async_wait:                      " << parent_t::tasync_wait.count() << " ("<< setup::real_t(parent_t::tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
-          << "    sync:                            " << parent_t::tsync.count() << " ("<< setup::real_t(parent_t::tsync.count())/tloop.count()*100 <<"%)" << std::endl
+          << "    hook_mixed_rhs_ante_step:        " << thmas.count() << " ("<< setup::real_t(thmas.count())/tloop.count()*100 <<"%)" << std::endl
+          << "      sync:                            " << parent_t::tsync.count() << " ("<< setup::real_t(parent_t::tsync.count())/tloop.count()*100 <<"%)" << std::endl
           << "  step:                            " << thas_hads.count() << " ("<< setup::real_t(thas_hads.count())/tloop.count()*100 <<"%)" << std::endl
           << "  hook_ante_delayed_step:          " << thads.count() << " ("<< setup::real_t(thads.count())/tloop.count()*100 <<"%)" << std::endl
           << "    sync_wait:                       " << parent_t::tsync_wait.count() << " ("<< setup::real_t(parent_t::tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl
