@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 set -ex
 
-# build UWLCM in RelWithDebInfo mode without 3D and with 'abs' libmpdata++ option
+# build UWLCM in RelWithDebInfo mode without 3D, with 'abs' libmpdata++ option and with timing of execution
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="3D_LGRNGN;3D_BLK_1M;3D_BLK_2M;PIGGYBACKER;SGS" -DMPDATA_OPTS="ABS"
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="3D_LGRNGN;3D_BLK_1M;3D_BLK_2M;PIGGYBACKER;SGS" -DMPDATA_OPTS="ABS" -DUWLCM_TIMING=1
 VERBOSE=1 make -j2
 sudo make install
 cd ../..
@@ -28,6 +28,7 @@ VERBOSE=1 make -j2
 cd moist_thermal
 if [[ $MPI != 'none'    ]]; then OMP_NUM_THREADS=6 travis_wait 30 make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
 if [[ $MPI == 'none'    ]]; then OMP_NUM_THREADS=6 make test || cat Testing/Temporary/LastTest.log /; fi # "/" intentional! (just to make cat exit with an error code)
+cat Testing/Temporary/LastTest.log # to see execution time of the test
 cd ../../..
 
 set +ex # see https://github.com/travis-ci/travis-ci/issues/6522
