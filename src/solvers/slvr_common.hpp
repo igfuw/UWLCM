@@ -24,13 +24,14 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   protected:
 
-  using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
-  // timing fields
-  // TODO: timing slows down simulations
-  //       either remove it and use profiling tools (e.g. vtune)
-  //       or add some compile-time flag to turn it off
-  clock::time_point tbeg, tend, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tnondelayed_step;
+#if defined(UWLCM_TIMING)
+
+  using clock = std::chrono::system_clock; 
+  using timer = std::chrono::milliseconds; 
+  timer tsync, tsync_wait, tasync, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
+
+  protected:
+#endif
 
   int spinup; // number of timesteps
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
@@ -195,9 +196,6 @@ class slvr_common : public slvr_dim<ct_params_t>
         params.dz / 2, 0, this->dt, this->di, this->dj
       );
     }
-
-    // save current time for execution time diagnostic
-    tbeg_loop = clock::now();
   }
 
   void hook_ante_step()
@@ -255,8 +253,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::update_rhs(rhs, dt, at); // zero-out rhs
     this->mem->barrier();
-    if(this->rank == 0)
-      tbeg = clock::now();
 
     using ix = typename ct_params_t::ix;
 
@@ -378,11 +374,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     for(auto type : this->hori_vel)
       {nancheck(rhs.at(type)(this->ijk), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
     this->mem->barrier();
-    if(this->rank == 0)
-    {
-      tend = clock::now();
-      tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-    }
   }
 
 
@@ -428,26 +419,37 @@ class slvr_common : public slvr_dim<ct_params_t>
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step");
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
-
-    if (this->rank == 0)
-    {
-      // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
-      if(this->timestep == params.nt) // timestep incremented before post_step
-      {
-        tend = clock::now();
-        tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg_loop );
-        std::cout <<  "wall time in milliseconds: " << std::endl
-          << "loop: " << tloop.count() << std::endl
-          << "custom rhs update: " << tupdate.count() << " ("<< setup::real_t(tupdate.count())/tloop.count()*100 <<"%)" << std::endl
-          << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
-          << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "nondelayed step: " << tnondelayed_step.count() << " ("<< setup::real_t(tnondelayed_step.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async: " << tasync.count() << " ("<< setup::real_t(tasync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
-          << "sync_wait: " << tsync_wait.count() << " ("<< setup::real_t(tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
-      }
-    }
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at end of slvr_common::hook_post_step");
+  }
+
+  void hook_mixed_rhs_ante_step()
+  {
+    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero (?)
+    this->apply_rhs(this->dt);
+
+    // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
+    // turn all negative rv into rv = 0... CHEATING
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+  }
+
+  void hook_mixed_rhs_post_step()
+  {
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after advection");
+
+    this->update_rhs(this->rhs, this->dt, 1);
+    negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
+    this->apply_rhs(this->dt);
+
+    // no negtozero after apply, because only w changed here
+    // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
+    negcheck2(this->mem->advectee(ix::th)(this->ijk), this->rhs.at(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs (+ output of th rhs)");
+    negcheck2(this->mem->advectee(ix::rv)(this->ijk), this->rhs.at(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs (+ output of rv rhs)");
   }
 
   virtual void diag()
@@ -474,16 +476,12 @@ class slvr_common : public slvr_dim<ct_params_t>
   void record_all()
   {
     assert(this->rank == 0);
-    tbeg = clock::now();
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
     this->diag();
     // xmf markup
     this->write_xmfs();
-
-    tend = clock::now();
-    tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
   }
 
   public:
