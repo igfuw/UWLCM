@@ -1,8 +1,8 @@
 //TODO: move calc_forces and forcings to case class?
 #pragma once
-#include "subsidence.hpp"
-#include "calc_forces_common.hpp"
-#include "../solvers/slvr_blk_2m.hpp"
+#include "../../forcings/subsidence.hpp"
+#include "../common/calc_forces_common.hpp"
+#include "../slvr_blk_2m.hpp"
 
 // double-moment bulk forcing functions
 // rc_src

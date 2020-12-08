@@ -7,6 +7,10 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="ILES"
 VERBOSE=1 make -j1
 
+# test compilation with execution timing
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUWLCM_DISABLE="ILES" -DUWLCM_TIMING=1
+VERBOSE=1 make -j1
+
 # build tests
 cd ../tests
 mkdir build && cd build
