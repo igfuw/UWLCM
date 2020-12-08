@@ -1,7 +1,0 @@
-/home/pzmij/biblioteki/local_folder/RWDI/bin/uwlcm
-/home/pzmij/biblioteki/local_folder/RWDI/share/UWLCM/uwlcm-targets.cmake
-/home/pzmij/biblioteki/local_folder/RWDI/share/UWLCM/uwlcm-targets-release.cmake
-/home/pzmij/biblioteki/local_folder/RWDI/share/UWLCM/uwlcm-config.cmake
-/home/pzmij/biblioteki/local_folder/RWDI/include/UWLCM/output_bins.hpp
-/home/pzmij/biblioteki/local_folder/RWDI/include/UWLCM/setup.hpp
-/home/pzmij/biblioteki/local_folder/RWDI/include/UWLCM/git_revision.h
