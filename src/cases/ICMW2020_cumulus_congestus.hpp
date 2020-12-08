@@ -2,11 +2,11 @@
 #include <random>
 #include <fstream>
 #include "Anelastic.hpp"
-#include "LasherTrapp2001_sounding/x7221545.adjdec2.hpp"
+#include "ICMW2020_cumulus_congestus_sounding/x7221545.adjdec2.hpp"
 
 namespace setup 
 {
-  namespace LasherTrapp
+  namespace ICMW2020_cc
   {
     namespace moist_air = libcloudphxx::common::moist_air;
     namespace const_cp = libcloudphxx::common::const_cp;
@@ -32,7 +32,7 @@ namespace setup
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
     template<class case_ct_params_t, int n_dims>
-    class LasherTrapp2001Common : public Anelastic<case_ct_params_t, n_dims>
+    class ICMW2020_cumulus_congestusCommon : public Anelastic<case_ct_params_t, n_dims>
     {
 
       protected:
@@ -73,8 +73,6 @@ namespace setup
         params.rv_src = user_params.rv_src;
         params.rc_src = user_params.rc_src;
         params.rr_src = user_params.rr_src;
-        params.nc_src = user_params.nc_src;
-        params.nr_src = user_params.nr_src;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
         params.buoyancy_wet = true;
@@ -97,7 +95,7 @@ namespace setup
       void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
       {
         // we assume here that set_profs was called already, so that *_env profiles are initialized
-        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
         solver.advectee(ix::rv) = rv_env(index); 
@@ -162,7 +160,7 @@ namespace setup
         // read the soundings
         // containers for soundings
         std::vector<real_t> pres_s, temp_s, RH_s, z_s;
-        for(std::string line : LasherTrapp2001_sounding_file)
+        for(std::string line :ICMW2020_cumulus_congestus_sounding_file)
         {
           real_t pres, temp, RH, z;
           sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
@@ -285,7 +283,7 @@ namespace setup
 
 
       // ctor
-      LasherTrapp2001Common()
+      ICMW2020_cumulus_congestusCommon()
       {
         this->p_0 = p_0;
         //aerosol bimodal lognormal dist. - as in RICO with 11x conc following the ICMW2020 setup
@@ -293,20 +291,24 @@ namespace setup
         this->mean_rd2 = real_t(.14e-6) * si::metres;
         this->sdev_rd1 = real_t(1.28),
         this->sdev_rd2 = real_t(1.75);
-        this->n1_stp = real_t(4*90e6) / si::cubic_metres, 
-        this->n2_stp = real_t(4*15e6) / si::cubic_metres;
+	/// FOR NAx4
+       	//this->n1_stp = real_t(4*90e6) / si::cubic_metres,  
+        //this->n2_stp = real_t(4*15e6) / si::cubic_metres;
+        /// FOR normal run
+	this->n1_stp = real_t(11*90e6) / si::cubic_metres, 
+        this->n2_stp = real_t(11*15e6) / si::cubic_metres;
         this->Z = Z;
         this->z_rlx = z_rlx;
       }
     };
     
     template<class case_ct_params_t, int n_dims>
-    class LasherTrapp2001;
+    class ICMW2020_cumulus_congestus;
 
     template<class case_ct_params_t>
-    class LasherTrapp2001<case_ct_params_t, 2> : public LasherTrapp2001Common<case_ct_params_t, 2>
+    class ICMW2020_cumulus_congestus<case_ct_params_t, 2> : public ICMW2020_cumulus_congestusCommon<case_ct_params_t, 2>
     {
-      using parent_t = LasherTrapp2001Common<case_ct_params_t, 2>;
+      using parent_t = ICMW2020_cumulus_congestusCommon<case_ct_params_t, 2>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -326,16 +328,16 @@ namespace setup
       }
 
       public:
-      LasherTrapp2001()
+      ICMW2020_cumulus_congestus()
       {
         this->X = X[0];
       }
     };
 
     template<class case_ct_params_t>
-    class LasherTrapp2001<case_ct_params_t, 3> : public LasherTrapp2001Common<case_ct_params_t, 3>
+    class ICMW2020_cumulus_congestus<case_ct_params_t, 3> : public ICMW2020_cumulus_congestusCommon<case_ct_params_t, 3>
     {
-      using parent_t = LasherTrapp2001Common<case_ct_params_t, 3>;
+      using parent_t = ICMW2020_cumulus_congestusCommon<case_ct_params_t, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -354,7 +356,7 @@ namespace setup
         blitz::thirdIndex k;
         this->intcond_hlpr(solver, rhod, rng_seed, k);
   
-        int nz = solver.advectee_global().extent(ix::w);
+        int nz = solver.advectee().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
   
         solver.advectee(ix::v)= 0;
@@ -362,7 +364,7 @@ namespace setup
       }
 
       public:
-      LasherTrapp2001()
+      ICMW2020_cumulus_congestus()
       {
         this->X = X[1];
         this->Y = Y;
