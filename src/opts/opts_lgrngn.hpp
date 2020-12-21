@@ -263,6 +263,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sd_conc_large_tail = vm["sd_conc_large_tail"].as<bool>();
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
+  rt_params.cloudph_opts_init.rng_seed_init = user_params.rng_seed_init;
 
   // coalescence kernel choice
   if(!vm["turb_coal"].as<bool>())
