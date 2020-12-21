@@ -13,8 +13,9 @@ using std::string;
 
 int main(int ac, char** av)
 {
-  if (ac != 2 && ac != 3) error_macro("expecting one or two arguments: 1. CMAKE_BINARY_DIR 2. additional command line options (optional)");
-  string opts_additional = ac == 3 ? av[2] : "";
+  if (ac != 3 && ac != 4) error_macro("expecting two or three arguments: 1. CMAKE_BINARY_DIR 2. should piggybacking be tested (bool) 3. additional command line options (optional)");
+  string opts_additional = ac == 4 ? av[3] : "";
+  bool run_piggy = std::stoi(av[2]);
 
   string opts_common = 
     "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44"; 
@@ -38,9 +39,11 @@ int main(int ac, char** av)
   });
   vector<string> opts_piggy({
     "--piggy=0",
-    "--piggy=0 --save_vel=1",
-    "--piggy=1 --vel_in=velocity_out.dat"  // take vel file from blk, cause it's ran first
+    "--piggy=0 --save_vel=1"
   });
+  // run the piggybacker, if required
+  if(run_piggy)
+    opts_piggy.push_back("--piggy=1 --vel_in=velocity_out.dat");  // take vel file from blk, cause it's ran first
 
   system("mkdir output");
 
