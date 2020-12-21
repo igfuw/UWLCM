@@ -167,6 +167,8 @@ int main(int argc, char** argv)
     if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
 #endif
 
+    if(piggy && sgs) throw std::runtime_error("SGS does not work in a piggybacker run");
+
     // set aerosol params to user_params data structure
     user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
     user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
