@@ -20,7 +20,11 @@ void slvr_lgrngn<ct_params_t>::hook_ante_step()
 #if defined(UWLCM_TIMING)
       tbeg = parent_t::clock::now();
 #endif
+#if defined(UWLCM_TIMING)
+      parent_t::tasync_gpu += ftr.get();
+#else
       ftr.get();
+#endif
 #if defined(UWLCM_TIMING)
       tend = parent_t::clock::now();
       parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );

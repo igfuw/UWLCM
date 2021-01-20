@@ -129,7 +129,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   } 
 
 #if defined(STD_FUTURE_WORKS)
-  std::future<void> ftr;
+  std::future<typename parent_t::timer> ftr;
 #endif
   
   void record_all()
@@ -143,7 +143,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     if (this->timestep > 0 && params.async)
     {
       assert(ftr.valid());
+#if defined(UWLCM_TIMING)
+      parent_t::tasync_gpu += ftr.get();
+#else
       ftr.get();
+#endif
     }
 #endif
 #if defined(UWLCM_TIMING)
