@@ -86,6 +86,13 @@ class exec_timer : public solver_t
         tend_loop = parent_t::clock::now();
         tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend_loop - tbeg_loop );
 
+        // calculate CPU/GPU times and concurrency, valid only for async runs and not taking into account diagnostics in record_all
+        typename parent_t::timer tloop_wo_diag = tloop - (trecord_all - parent_t::tasync_wait_in_record_all),
+                                 tsync_in = parent_t::tsync,
+                                 tgpu = parent_t::tasync_wait_in_record_all + parent_t::tsync_wait + parent_t::tasync_wait + tsync_in, // time of pure GPU calculations (= wait time of CPU)
+                                 tcpugpu = tsync_in + parent_t::tasync_gpu + parent_t::tsync_gpu - tgpu, // time of concurrent CPU and GPU calculations (= total time of GPU calculations - tgpu)
+                                 tcpu = tloop_wo_diag - tgpu - tcpugpu;
+         
         std::cout <<  "wall time in milliseconds: " << std::endl
           << "loop:                            " << tloop.count() << std::endl
           << "  hook_ante_step:                  " << thas.count() << " ("<< setup::real_t(thas.count())/tloop.count()*100 <<"%)" << std::endl
@@ -102,6 +109,13 @@ class exec_timer : public solver_t
           << "    record_all:                      " << trecord_all.count() << " ("<< setup::real_t(trecord_all.count())/tloop.count()*100 <<"%)" << std::endl
           << "      async_wait in record_all:      " << parent_t::tasync_wait_in_record_all.count() << " ("<< setup::real_t(parent_t::tasync_wait_in_record_all.count())/tloop.count()*100 <<"%)" << std::endl
           << "  hook_post_step->hook_ante_step:  " << thps_has.count() << " ("<< setup::real_t(thps_has.count())/tloop.count()*100 <<"%)" << std::endl;
+
+          std::cout << std::endl
+          << "CPU/GPU concurrency stats, only make sense for async lgrngn runs:" << std::endl
+          << "tloop without diag                : " << tloop_wo_diag.count() << std::endl
+          << "  pure CPU calculations without diag: " << tcpu.count() << " ("<< setup::real_t(tcpu.count())/tloop_wo_diag.count()*100 <<"%)" << std::endl
+          << "  pure GPU calculations without diag: " << tgpu.count() << " ("<< setup::real_t(tgpu.count())/tloop_wo_diag.count()*100 <<"%)" << std::endl
+          << "  concurrent CPU&GPU    without diag: " << tcpugpu.count() << " ("<< setup::real_t(tcpugpu.count())/tloop_wo_diag.count()*100 <<"%)" << std::endl;
       }
     }
   }

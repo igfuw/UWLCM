@@ -28,7 +28,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   using clock = std::chrono::system_clock; 
   using timer = std::chrono::milliseconds; 
-  timer tsync, tsync_wait, tasync, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
+  timer tsync, tsync_gpu, tsync_wait, tasync, tasync_gpu, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
 
   protected:
 #endif

@@ -3,6 +3,9 @@
 #if defined(STD_FUTURE_WORKS)
 #  include <future>
 #endif
+#if defined(UWLCM_TIMING)
+#  include "../../detail/func_time.hpp"
+#endif
 
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
@@ -64,6 +67,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       if(params.backend == CUDA)
         ftr = std::async(
           std::launch::async, 
+          func_time<parent_t::clock, parent_t::timer>,
           &particles_t<real_t, CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
           params.cloudph_opts,
@@ -74,6 +78,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       else if(params.backend == multi_CUDA)
         ftr = std::async(
           std::launch::async, 
+          func_time<parent_t::clock, parent_t::timer>,
           &particles_t<real_t, multi_CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
           params.cloudph_opts,
