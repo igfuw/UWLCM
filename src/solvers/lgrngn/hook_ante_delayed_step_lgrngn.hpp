@@ -3,9 +3,7 @@
 #if defined(STD_FUTURE_WORKS)
 #  include <future>
 #endif
-#if defined(UWLCM_TIMING)
-#  include "../../detail/func_time.hpp"
-#endif
+#include "../../detail/func_time.hpp"
 
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
@@ -71,17 +69,13 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
       {
         assert(!ftr.valid());
         if(params.backend == CUDA)
-          ftr = std::async(
-            std::launch::async, 
-            func_time<typename parent_t::clock, typename parent_t::timer>,
+          ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
             &particles_t<real_t, CUDA>::step_async, 
             dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
             params.cloudph_opts
           );
         else if(params.backend == multi_CUDA)
-          ftr = std::async(
-            std::launch::async, 
-            func_time<typename parent_t::clock, typename parent_t::timer>,
+          ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
             &particles_t<real_t, multi_CUDA>::step_async, 
             dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
             params.cloudph_opts
