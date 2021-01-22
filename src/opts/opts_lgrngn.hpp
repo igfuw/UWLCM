@@ -378,11 +378,12 @@ void setopts_micro(
   rt_params.cloudph_opts_init.supstp_src = vm["supstp_src"].as<int>();
 
   const double dx = 0.03125;
-  rt_params.cloudph_opts_init.src_x0 = 31*dx;
-  rt_params.cloudph_opts_init.src_x1 = 35*dx;
-  rt_params.cloudph_opts_init.src_y0 = 31*dx;
-  rt_params.cloudph_opts_init.src_y1 = 35*dx;
-  rt_params.cloudph_opts_init.src_z0 = 15*dx;
-  rt_params.cloudph_opts_init.src_z1 = 19*dx;
+  // TODO: fix src_xyz01 for MPI (do it as x0 is done - in ante_loop)
+  rt_params.cloudph_opts_init.src_x0 = 0.5 * dx;
+  rt_params.cloudph_opts_init.src_x1 = (64 + .5) * dx; 
+  rt_params.cloudph_opts_init.src_y0 = 0.5 * dx;
+  rt_params.cloudph_opts_init.src_y1 = (64 + .5) * dx; 
+  rt_params.cloudph_opts_init.src_z0 = 0.5 * dx;
+  rt_params.cloudph_opts_init.src_z1 = (32 + .5) * dx; 
   rt_params.cloudph_opts_init.src_switch = true;
 }
