@@ -53,6 +53,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 
   // store liquid water content (post-cond, pre-adve and pre-subsidence)
   diag_rl();
+  if(ct_params_t::sgs_scheme == libmpdataxx::solvers::smg)
+    diag_rc();
     
   if (this->rank == 0) 
   {
@@ -109,9 +111,18 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
     this->vert_grad_cnt(tmp1, F, params.dz);
     F(ijk).reindex(this->zero) *= - (*params.w_LS)(this->vert_idx);
     r_l(ijk) += F(ijk) * this->dt;
+
+    tmp1(ijk) = r_c(ijk);
+    // fill halos for gradient calculation
+    // TODO: no need to xchng in horizontal, which potentially causes MPI communication
+    this->xchng_sclr(tmp1, this->ijk, this->halo);
+    this->vert_grad_cnt(tmp1, F, params.dz);
+    F(ijk).reindex(this->zero) *= - (*params.w_LS)(this->vert_idx);
+    r_c(ijk) += F(ijk) * this->dt;
   }
 
-  // advect r_l (1st-order)
+  // advect r_l and r_c (1st-order)
   this->self_advec_donorcell(this->r_l);
+  this->self_advec_donorcell(this->r_c);
   negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at the end of ante delayed step");
 }
