@@ -3,11 +3,14 @@
 #include <libcloudph++/common/unary_function.hpp>
 #include <libcloudph++/common/lognormal.hpp>
 #include <UWLCM/setup.hpp>
+#include <chrono>
 
 namespace setup 
 {
   using arr_1D_t = blitz::Array<setup::real_t, 1>;
 
+  using clock = std::chrono::system_clock;
+  using timer = std::chrono::milliseconds;
 
 /*
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>

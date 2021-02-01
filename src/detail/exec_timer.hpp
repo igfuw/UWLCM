@@ -8,20 +8,20 @@ class exec_timer : public solver_t
   private:
   const unsigned long nt;
 
-  typename parent_t::clock::time_point tbeg_step, tend_step,
-                                       tbeg_aux , tend_aux ,
-                                       tbeg_loop, tend_loop;
+  setup::clock::time_point tbeg_step, tend_step,
+                           tbeg_aux , tend_aux ,
+                           tbeg_loop, tend_loop;
 
-  typename parent_t::timer tloop, trecord_all, thas, thads, thps, thps_has, thas_hads, thads_hps, thmas, thmps;
+  setup::timer tloop, trecord_all, thas, thads, thps, thps_has, thas_hads, thads_hps, thmas, thmps;
 
-  void get_step_time(typename parent_t::timer &timer)
+  void get_step_time(setup::timer &timer)
   {
     this->mem->barrier();
     if (this->rank == 0) 
     {
-      tend_step = parent_t::clock::now();
+      tend_step = setup::clock::now();
       timer += std::chrono::duration_cast<std::chrono::milliseconds>( tend_step - tbeg_step );
-      tbeg_step = parent_t::clock::now();
+      tbeg_step = setup::clock::now();
     }
     this->mem->barrier();
   }
@@ -31,17 +31,17 @@ class exec_timer : public solver_t
     this->mem->barrier();
     if (this->rank == 0) 
     {
-      tbeg_aux = parent_t::clock::now();
+      tbeg_aux = setup::clock::now();
     }
     this->mem->barrier();
   }
 
-  void stop_aux_clock(typename parent_t::timer &timer)
+  void stop_aux_clock(setup::timer &timer)
   {
     this->mem->barrier();
     if (this->rank == 0) 
     {
-      tend_aux = parent_t::clock::now();
+      tend_aux = setup::clock::now();
       timer += std::chrono::duration_cast<std::chrono::milliseconds>( tend_aux - tbeg_aux );
     }
     this->mem->barrier();
@@ -54,7 +54,7 @@ class exec_timer : public solver_t
     parent_t::hook_ante_loop(nt);
     this->mem->barrier();
     if (this->rank == 0) 
-      tbeg_loop = parent_t::clock::now();
+      tbeg_loop = setup::clock::now();
     this->mem->barrier();
   }
 
@@ -83,11 +83,11 @@ class exec_timer : public solver_t
     {
       if (this->rank == 0)
       {
-        tend_loop = parent_t::clock::now();
+        tend_loop = setup::clock::now();
         tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend_loop - tbeg_loop );
 
         // calculate CPU/GPU times and concurrency, valid only for async runs and not taking into account diagnostics in record_all
-        typename parent_t::timer tloop_wo_diag = tloop - (trecord_all - parent_t::tasync_wait_in_record_all),
+        setup::timer tloop_wo_diag = tloop - (trecord_all - parent_t::tasync_wait_in_record_all),
                                  tsync_in = parent_t::tsync,
                                  tgpu = parent_t::tasync_wait_in_record_all + parent_t::tsync_wait + parent_t::tasync_wait + tsync_in, // time of pure GPU calculations (= wait time of CPU)
                                  tcpugpu = tsync_in + parent_t::tasync_gpu + parent_t::tsync_gpu - tgpu, // time of concurrent CPU and GPU calculations (= total time of GPU calculations - tgpu)
@@ -124,9 +124,9 @@ class exec_timer : public solver_t
   {
     assert(this->rank == 0);
 
-    tbeg_aux = parent_t::clock::now();
+    tbeg_aux = setup::clock::now();
     parent_t::record_all();
-    tend_aux = parent_t::clock::now();
+    tend_aux = setup::clock::now();
     trecord_all = std::chrono::duration_cast<std::chrono::milliseconds>( tend_aux - tbeg_aux );
   }
 
