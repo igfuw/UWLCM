@@ -26,7 +26,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   private:
 
 #if defined(UWLCM_TIMING)
-  typename parent_t::clock::time_point tbeg, tend;
+  setup::clock::time_point tbeg, tend;
 #endif
 
   // member fields
@@ -129,7 +129,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   } 
 
 #if defined(STD_FUTURE_WORKS)
-  std::future<void> ftr;
+  #if defined(UWLCM_TIMING)
+    std::future<setup::timer> ftr;
+  #else
+    std::future<void> ftr;
+  #endif
 #endif
   
   void record_all()
@@ -137,17 +141,21 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     assert(this->rank == 0);
 
 #if defined(UWLCM_TIMING)
-        tbeg = parent_t::clock::now();
+        tbeg = setup::clock::now();
 #endif
 #if defined(STD_FUTURE_WORKS)
     if (this->timestep > 0 && params.async)
     {
       assert(ftr.valid());
+#if defined(UWLCM_TIMING)
+      parent_t::tasync_gpu += ftr.get();
+#else
       ftr.get();
+#endif
     }
 #endif
 #if defined(UWLCM_TIMING)
-        tend = parent_t::clock::now();
+        tend = setup::clock::now();
         parent_t::tasync_wait_in_record_all += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
     parent_t::record_all();

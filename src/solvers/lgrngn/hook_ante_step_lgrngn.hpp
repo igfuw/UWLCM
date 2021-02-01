@@ -18,11 +18,15 @@ void slvr_lgrngn<ct_params_t>::hook_ante_step()
     ) {
       assert(ftr.valid());
 #if defined(UWLCM_TIMING)
-      tbeg = parent_t::clock::now();
+      tbeg = setup::clock::now();
 #endif
-      ftr.get();
 #if defined(UWLCM_TIMING)
-      tend = parent_t::clock::now();
+      parent_t::tasync_gpu += ftr.get();
+#else
+      ftr.get();
+#endif
+#if defined(UWLCM_TIMING)
+      tend = setup::clock::now();
       parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
 #endif
     } else assert(!ftr.valid()); 
