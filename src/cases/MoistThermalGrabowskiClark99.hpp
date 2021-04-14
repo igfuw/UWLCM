@@ -31,7 +31,6 @@ namespace setup
     using libcloudphxx::common::const_cp::p_vs;
     using libcloudphxx::common::theta_std::p_1000;
 
-
     // RH T and p to rv assuming RH = r_v / r_vs
     inline quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
     {
@@ -76,6 +75,17 @@ namespace setup
     const setup::real_t cs = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
 
     const real_t z_abs = 125000; // [m] height above which absorber works, no absorber
+
+    // westerly wind
+    struct u
+    {
+      real_t operator()(const real_t &z) const
+      {
+        return 5 * cos(real_t((z * si::metres) / Z) * M_PI);
+      }
+      BZ_DECLARE_FUNCTOR(u);
+    };
+
 
 ///WARNING: these functors, taken from Clark Farley 1984, are for dry air!!
 
@@ -339,6 +349,7 @@ namespace setup
         params.dz = params.dj;
       }
 
+      protected:
       // function expecting a libmpdata++ solver as argument
       void intcond(typename parent_t::concurr_any_t &solver,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
@@ -387,6 +398,7 @@ namespace setup
         params.dz = params.dk;
       }
 
+      protected:
       // function expecting a libmpdata++ solver as argument
       void intcond(typename parent_t::concurr_any_t &solver,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
@@ -421,6 +433,47 @@ namespace setup
       {
         this->X = X;
         this->Y = Y;
+      }
+    };
+
+    template<class case_ct_params_t, int n_dims>
+    class MoistThermalGrabowskiClark99_horvel;
+
+    template<class case_ct_params_t>
+    class MoistThermalGrabowskiClark99_horvel<case_ct_params_t, 2> : public MoistThermalGrabowskiClark99<case_ct_params_t, 2>
+    {
+      using parent_t = MoistThermalGrabowskiClark99<case_ct_params_t, 2>;
+      using ix = typename case_ct_params_t::ix;
+
+      // function expecting a libmpdata++ solver as argument
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      {
+        parent_t::intcond(solver, rhod, th_e, rv_e, rl_e, p_e, rng_seed);
+        blitz::secondIndex k;
+        int nz = solver.advectee_global().extent(ix::w);
+        real_t dz = (Z / si::metres) / (nz-1); 
+        solver.advectee(ix::u)= u()(k * dz);
+        solver.vab_relaxed_state(0) = solver.advectee(ix::u);
+      }
+    };
+
+    template<class case_ct_params_t>
+    class MoistThermalGrabowskiClark99_horvel<case_ct_params_t, 3> : public MoistThermalGrabowskiClark99<case_ct_params_t, 3>
+    {
+      using parent_t = MoistThermalGrabowskiClark99<case_ct_params_t, 3>;
+      using ix = typename case_ct_params_t::ix;
+
+      // function expecting a libmpdata++ solver as argument
+      void intcond(typename parent_t::concurr_any_t &solver,
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+      {
+        parent_t::intcond(solver, rhod, th_e, rv_e, rl_e, p_e, rng_seed);
+        blitz::thirdIndex k;
+        int nz = solver.advectee_global().extent(ix::w);
+        real_t dz = (Z / si::metres) / (nz-1); 
+        solver.advectee(ix::u)= u()(k * dz);
+        solver.vab_relaxed_state(0) = solver.advectee(ix::u);
       }
     };
   };
