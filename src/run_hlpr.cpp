@@ -89,6 +89,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // setup choice
   if (user_params.model_case == "moist_thermal")
     case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>()); 
+  else if (user_params.model_case == "moist_thermal_horvel")
+    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99_horvel<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "dry_thermal")
     case_ptr.reset(new setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "dycoms_rf01")
