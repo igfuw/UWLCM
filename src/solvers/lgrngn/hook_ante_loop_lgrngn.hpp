@@ -13,6 +13,9 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     assert(params.backend != -1);
     assert(params.dt != 0); 
 
+    if(params.gccn > 0)
+      params.cloudph_opts.src = true;
+
     // async does not make sense without CUDA
     if (params.backend != libcloudphxx::lgrngn::CUDA && params.backend != libcloudphxx::lgrngn::multi_CUDA) params.async = false;
 
@@ -153,6 +156,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("cond", params.cloudph_opts.cond);  
     this->record_aux_const("coal", params.flag_coal);  // cloudph_opts.coal could be 0 here due to spinup
     this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
+    this->record_aux_const("src", params.cloudph_opts.src);  
     this->record_aux_const("out_dry_spec", params.out_dry_spec);  
     this->record_aux_const("out_wet_spec", params.out_wet_spec);  
     this->record_aux_const("gccn", params.gccn);  

@@ -31,6 +31,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 #endif
     } else assert(!ftr.valid()); 
 #endif
+    params.cloudph_opts.src = false; // we only want source in the first step to introduce gccn below some height
   }
   this->mem->barrier();
 

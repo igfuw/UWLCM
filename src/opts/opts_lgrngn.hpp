@@ -177,47 +177,55 @@ void setopts_micro(
     // GCCNs following Jensen and Nugent, JAS 2016
     if(rt_params.gccn > setup::real_t(0))
     {
-      rt_params.cloudph_opts_init.dry_sizes.emplace(
+      rt_params.cloudph_opts_init.src_switch = 1;
+      rt_params.cloudph_opts_init.src_x0 = 0;
+      rt_params.cloudph_opts_init.src_x1 = 6400;
+      rt_params.cloudph_opts_init.src_y0 = 0;
+      rt_params.cloudph_opts_init.src_y1 = 6400;
+      rt_params.cloudph_opts_init.src_z0 = 0;
+      rt_params.cloudph_opts_init.src_z1 = 795;
+
+      rt_params.cloudph_opts_init.src_dry_sizes.emplace(
         1.28, // kappa
         std::map<setup::real_t, std::pair<setup::real_t, int> > {
-          {0.8e-6, {rt_params.gccn * 111800, 1}},
-          {1.0e-6, {rt_params.gccn * 68490,  1}},
-          {1.2e-6, {rt_params.gccn * 38400,  1}},
-          {1.4e-6, {rt_params.gccn * 21820,  1}},
-          {1.6e-6, {rt_params.gccn * 13300,  1}},
-          {1.8e-6, {rt_params.gccn * 8496,  1}},
-          {2.0e-6, {rt_params.gccn * 5486,  1}},
-          {2.2e-6, {rt_params.gccn * 3805,  1}},
-          {2.4e-6, {rt_params.gccn * 2593,  1}},
-          {2.6e-6, {rt_params.gccn * 1919,  1}},
-          {2.8e-6, {rt_params.gccn * 1278,  1}},
-          {3.0e-6, {rt_params.gccn * 988.4,  1}},
-          {3.2e-6, {rt_params.gccn * 777.9,  1}},
-          {3.4e-6, {rt_params.gccn * 519.5,  1}},
-          {3.6e-6, {rt_params.gccn * 400.5,  1}},
-          {3.8e-6, {rt_params.gccn * 376.9,  1}},
-          {4.0e-6, {rt_params.gccn * 265.3,  1}},
-          {4.2e-6, {rt_params.gccn * 212.4,  1}},
-          {4.4e-6, {rt_params.gccn * 137.8,  1}},
-          {4.6e-6, {rt_params.gccn * 121.4,  1}},
-          {4.8e-6, {rt_params.gccn * 100.9,  1}},
-          {5.0e-6, {rt_params.gccn * 122.2,  1}},
-          {5.2e-6, {rt_params.gccn * 50.64,  1}},
-          {5.4e-6, {rt_params.gccn * 38.30,  1}},
-          {5.6e-6, {rt_params.gccn * 55.47,  1}},
-          {5.8e-6, {rt_params.gccn * 21.45,  1}},
-          {6.0e-6, {rt_params.gccn * 12.95,  1}},
-          {6.2e-6, {rt_params.gccn * 43.23,  1}},
-          {6.4e-6, {rt_params.gccn * 26.26,  1}},
-          {6.6e-6, {rt_params.gccn * 30.50,  1}},
-          {6.8e-6, {rt_params.gccn * 4.385,  1}},
-          {7.0e-6, {rt_params.gccn * 4.372,  1}},
-          {7.2e-6, {rt_params.gccn * 4.465,  1}},
-          {7.4e-6, {rt_params.gccn * 4.395,  1}},
-          {7.6e-6, {rt_params.gccn * 4.427,  1}},
-          {7.8e-6, {rt_params.gccn * 4.411,  1}},
-          {8.6e-6, {rt_params.gccn * 4.522,  1}},
-          {9.0e-6, {rt_params.gccn * 4.542,  1}}
+          {0.8e-6 / rt_params.dt, {rt_params.gccn * 111800, 1}},
+          {1.0e-6 / rt_params.dt, {rt_params.gccn * 68490,  1}},
+          {1.2e-6 / rt_params.dt, {rt_params.gccn * 38400,  1}},
+          {1.4e-6 / rt_params.dt, {rt_params.gccn * 21820,  1}},
+          {1.6e-6 / rt_params.dt, {rt_params.gccn * 13300,  1}},
+          {1.8e-6 / rt_params.dt, {rt_params.gccn * 8496,  1}},
+          {2.0e-6 / rt_params.dt, {rt_params.gccn * 5486,  1}},
+          {2.2e-6 / rt_params.dt, {rt_params.gccn * 3805,  1}},
+          {2.4e-6 / rt_params.dt, {rt_params.gccn * 2593,  1}},
+          {2.6e-6 / rt_params.dt, {rt_params.gccn * 1919,  1}},
+          {2.8e-6 / rt_params.dt, {rt_params.gccn * 1278,  1}},
+          {3.0e-6 / rt_params.dt, {rt_params.gccn * 988.4,  1}},
+          {3.2e-6 / rt_params.dt, {rt_params.gccn * 777.9,  1}},
+          {3.4e-6 / rt_params.dt, {rt_params.gccn * 519.5,  1}},
+          {3.6e-6 / rt_params.dt, {rt_params.gccn * 400.5,  1}},
+          {3.8e-6 / rt_params.dt, {rt_params.gccn * 376.9,  1}},
+          {4.0e-6 / rt_params.dt, {rt_params.gccn * 265.3,  1}},
+          {4.2e-6 / rt_params.dt, {rt_params.gccn * 212.4,  1}},
+          {4.4e-6 / rt_params.dt, {rt_params.gccn * 137.8,  1}},
+          {4.6e-6 / rt_params.dt, {rt_params.gccn * 121.4,  1}},
+          {4.8e-6 / rt_params.dt, {rt_params.gccn * 100.9,  1}},
+          {5.0e-6 / rt_params.dt, {rt_params.gccn * 122.2,  1}},
+          {5.2e-6 / rt_params.dt, {rt_params.gccn * 50.64,  1}},
+          {5.4e-6 / rt_params.dt, {rt_params.gccn * 38.30,  1}},
+          {5.6e-6 / rt_params.dt, {rt_params.gccn * 55.47,  1}},
+          {5.8e-6 / rt_params.dt, {rt_params.gccn * 21.45,  1}},
+          {6.0e-6 / rt_params.dt, {rt_params.gccn * 12.95,  1}},
+          {6.2e-6 / rt_params.dt, {rt_params.gccn * 43.23,  1}},
+          {6.4e-6 / rt_params.dt, {rt_params.gccn * 26.26,  1}},
+          {6.6e-6 / rt_params.dt, {rt_params.gccn * 30.50,  1}},
+          {6.8e-6 / rt_params.dt, {rt_params.gccn * 4.385,  1}},
+          {7.0e-6 / rt_params.dt, {rt_params.gccn * 4.372,  1}},
+          {7.2e-6 / rt_params.dt, {rt_params.gccn * 4.465,  1}},
+          {7.4e-6 / rt_params.dt, {rt_params.gccn * 4.395,  1}},
+          {7.6e-6 / rt_params.dt, {rt_params.gccn * 4.427,  1}},
+          {7.8e-6 / rt_params.dt, {rt_params.gccn * 4.411,  1}},
+          {8.6e-6 / rt_params.dt, {rt_params.gccn * 4.522,  1}},
+          {9.0e-6 / rt_params.dt, {rt_params.gccn * 4.542,  1}}
         }
       );
     }
