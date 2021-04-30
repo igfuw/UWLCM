@@ -37,6 +37,11 @@ void slvr_lgrngn<ct_params_t>::diag()
   prtcls->diag_precip_rate();
   this->record_aux("precip_rate", prtcls->outbuf());
 
+  // recording 0th mom of rw of rd>=0.8um
+  prtcls->diag_dry_rng(0.7999e-6, 1);
+  prtcls->diag_wet_mom(0);
+  this->record_aux("rd_geq_0.8um_rw_mom0", prtcls->outbuf());
+
 //    // recording 1st mom of rw of gccns
 //    prtcls->diag_dry_rng(2e-6, 1);
 //    prtcls->diag_wet_mom(1);
