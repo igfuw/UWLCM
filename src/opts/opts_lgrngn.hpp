@@ -179,9 +179,9 @@ void setopts_micro(
     {
       rt_params.cloudph_opts_init.src_switch = 1;
       rt_params.cloudph_opts_init.src_x0 = 0;
-      rt_params.cloudph_opts_init.src_x1 = 6400;
+      rt_params.cloudph_opts_init.src_x1 = case_ptr->X;
       rt_params.cloudph_opts_init.src_y0 = 0;
-      rt_params.cloudph_opts_init.src_y1 = 6400;
+      rt_params.cloudph_opts_init.src_y1 = case_ptr->Y;
       rt_params.cloudph_opts_init.src_z0 = 0;
       rt_params.cloudph_opts_init.src_z1 = 795;
 
