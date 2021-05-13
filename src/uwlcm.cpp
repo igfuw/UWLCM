@@ -132,6 +132,7 @@ int main(int argc, char** argv)
       std::random_device rd;
       user_params.rng_seed = rd();
     }
+    user_params.rng_seed_init_switch = true;
     user_params.rng_seed_init = vm["rng_seed_init"].as<int>();
     if(user_params.rng_seed_init == 0) 
       user_params.rng_seed_init = user_params.rng_seed;
