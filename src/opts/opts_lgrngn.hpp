@@ -173,6 +173,28 @@ void setopts_micro(
 
 //std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
+
+    // CCN relaxation stuff
+    rt_params.cloudph_opts_init.rlx_switch = 1;
+    rt_params.cloudph_opts_init.rlx_bins = 100;
+    rt_params.cloudph_opts_init.supstp_rlx = 120; // TODO: 1min in RICO, make it depend on dt
+
+    rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+      case_ptr->kappa,
+      std::make_tuple(
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          case_ptr->mean_rd1,
+          case_ptr->mean_rd2,
+          case_ptr->sdev_rd1,
+          case_ptr->sdev_rd2,
+          case_ptr->n1_stp,
+          case_ptr->n2_stp
+        ),
+        std::make_pair<thrust_real_t>(0., (0.61 + 1.28) / 2.),
+        std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+      )
+    );
+
  
     // GCCNs following Jensen and Nugent, JAS 2016
     if(rt_params.gccn > setup::real_t(0))
@@ -183,7 +205,8 @@ void setopts_micro(
       rt_params.cloudph_opts_init.src_y0 = 0;
       rt_params.cloudph_opts_init.src_y1 = case_ptr->Y / si::meters;
       rt_params.cloudph_opts_init.src_z0 = 0;
-      rt_params.cloudph_opts_init.src_z1 = 795;
+//      rt_params.cloudph_opts_init.src_z1 = case_ptr->Z / si::meters;
+      rt_params.cloudph_opts_init.src_z1 = 700;
 
       rt_params.cloudph_opts_init.src_dry_sizes.emplace(
         1.28, // kappa
@@ -227,6 +250,20 @@ void setopts_micro(
           {8.6e-6, {rt_params.gccn / rt_params.dt * 4.522,  1}},
           {9.0e-6, {rt_params.gccn / rt_params.dt * 4.542,  1}}
         }
+      );
+
+      // GCCN relaxation stuff
+      rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+        1.28, // kappa
+        std::make_tuple(
+          std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+            log(0.8e-6),      // minimum radius  
+            log(10e-6),   // maximum radius
+            rt_params.gccn // concenctration multiplier
+          ),
+          std::make_pair<thrust_real_t>((0.61 + 1.28) / 2., 10000),
+          std::make_pair<thrust_real_t>(0, rt_params.cloudph_opts_init.src_z1)
+        )
       );
     }
    }

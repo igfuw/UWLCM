@@ -16,6 +16,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     if(params.gccn > 0)
       params.cloudph_opts.src = true;
 
+    params.cloudph_opts.rlx = false;
+
     // async does not make sense without CUDA
     if (params.backend != libcloudphxx::lgrngn::CUDA && params.backend != libcloudphxx::lgrngn::multi_CUDA) params.async = false;
 
@@ -39,7 +41,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
       for (auto const& rcm : krcm.second)
         n_sd_from_dry_sizes += rcm.second.second;
       
-    const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes;
+    const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes + 40; // +40 temporary to account for GCCN that are added via souce, not init dry sizes
 
     if(parent_t::n_dims == 2) // 2D
     {
@@ -157,6 +159,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("coal", params.flag_coal);  // cloudph_opts.coal could be 0 here due to spinup
     this->record_aux_const("rcyc", params.cloudph_opts.rcyc);  
     this->record_aux_const("src", params.cloudph_opts.src);  
+    this->record_aux_const("rlx", params.cloudph_opts.rlx);  
     this->record_aux_const("out_dry_spec", params.out_dry_spec);  
     this->record_aux_const("out_wet_spec", params.out_wet_spec);  
     this->record_aux_const("gccn", params.gccn);  
@@ -168,6 +171,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("sedi_switch", params.cloudph_opts_init.sedi_switch);  
     this->record_aux_const("subs_switch", params.cloudph_opts_init.subs_switch);  
     this->record_aux_const("src_switch", params.cloudph_opts_init.src_switch);  
+    this->record_aux_const("rlx_switch", params.cloudph_opts_init.rlx_switch);  
     this->record_aux_const("turb_adve_switch", params.cloudph_opts_init.turb_adve_switch);  
     this->record_aux_const("turb_cond_switch", params.cloudph_opts_init.turb_cond_switch);  
     this->record_aux_const("turb_coal_switch", params.cloudph_opts_init.turb_coal_switch);  
@@ -177,8 +181,10 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("chem_rho", params.cloudph_opts_init.chem_rho);  
     this->record_aux_const("opts_init RH_max", params.cloudph_opts_init.RH_max);  
     this->record_aux_const("supstp_src", params.cloudph_opts_init.supstp_src);  
+    this->record_aux_const("supstp_rlx", params.cloudph_opts_init.supstp_rlx);  
     this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
     this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);
+    this->record_aux_const("rlx_bins", params.cloudph_opts_init.rlx_bins);  
   }
   this->mem->barrier();
 }
