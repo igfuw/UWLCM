@@ -177,7 +177,9 @@ void setopts_micro(
     // CCN relaxation stuff
     rt_params.cloudph_opts_init.rlx_switch = 1;
     rt_params.cloudph_opts_init.rlx_bins = 100;
-    rt_params.cloudph_opts_init.supstp_rlx = 120; // TODO: 1min in RICO, make it depend on dt
+    rt_params.cloudph_opts_init.rlx_sd_per_bin = 100;
+    rt_params.cloudph_opts_init.supstp_rlx = 240; // TODO: 2min in RICO, make it depend on dt / put it in case
+    rt_params.cloudph_opts_init.rlx_timescale = 600; // 10 min
 
     rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
       case_ptr->kappa,
@@ -189,8 +191,11 @@ void setopts_micro(
           case_ptr->sdev_rd2,
           case_ptr->n1_stp,
           case_ptr->n2_stp
+          //thrust_real_t(4*90e6) / si::cubic_metres,
+          //thrust_real_t(4*15e6) / si::cubic_metres 
         ),
         std::make_pair<thrust_real_t>(0., (0.61 + 1.28) / 2.),
+        //std::make_pair<thrust_real_t>(1000, case_ptr->Z / si::meters)
         std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
       )
     );
@@ -207,6 +212,7 @@ void setopts_micro(
       rt_params.cloudph_opts_init.src_z0 = 0;
 //      rt_params.cloudph_opts_init.src_z1 = case_ptr->Z / si::meters;
       rt_params.cloudph_opts_init.src_z1 = 700;
+  //    rt_params.cloudph_opts_init.src_z1 = 200;
 
       rt_params.cloudph_opts_init.src_dry_sizes.emplace(
         1.28, // kappa
@@ -263,6 +269,7 @@ void setopts_micro(
           ),
           std::make_pair<thrust_real_t>((0.61 + 1.28) / 2., 10000),
           std::make_pair<thrust_real_t>(0, rt_params.cloudph_opts_init.src_z1)
+          //std::make_pair<thrust_real_t>(0, 700)
         )
       );
     }
