@@ -30,6 +30,7 @@ namespace setup
     const real_t z_abs = 3000;
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
+    const quantity<si::length, real_t> gccn_max_height = 700 * si::metres; // below cloud base
 
     inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
@@ -315,12 +316,13 @@ namespace setup
         this->mean_rd2 = real_t(.14e-6) * si::metres;
         this->sdev_rd1 = real_t(1.28),
         this->sdev_rd2 = real_t(1.75);
-        this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
-        this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
+        this->n1_stp = real_t(2*90e6) / si::cubic_metres, // 125 || 31
+        this->n2_stp = real_t(2*15e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
         this->X = X;
         this->Z = Z;
         this->z_rlx = z_rlx;
+        this->gccn_max_height = gccn_max_height;
       }
     };
     

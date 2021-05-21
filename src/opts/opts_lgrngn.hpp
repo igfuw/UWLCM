@@ -178,7 +178,7 @@ void setopts_micro(
     rt_params.cloudph_opts_init.rlx_switch = 1;
     rt_params.cloudph_opts_init.rlx_bins = 100;
     rt_params.cloudph_opts_init.rlx_sd_per_bin = 100;
-    rt_params.cloudph_opts_init.supstp_rlx = 240; // TODO: 2min in RICO, make it depend on dt / put it in case
+    rt_params.cloudph_opts_init.supstp_rlx = 120 / rt_params.dt; // relaxation every two minutes
     rt_params.cloudph_opts_init.rlx_timescale = 600; // 10 min
 
     rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
@@ -211,7 +211,7 @@ void setopts_micro(
       rt_params.cloudph_opts_init.src_y1 = case_ptr->Y / si::meters;
       rt_params.cloudph_opts_init.src_z0 = 0;
 //      rt_params.cloudph_opts_init.src_z1 = case_ptr->Z / si::meters;
-      rt_params.cloudph_opts_init.src_z1 = 700;
+      rt_params.cloudph_opts_init.src_z1 = case_ptr->gccn_max_height / si::meters;// 700;
   //    rt_params.cloudph_opts_init.src_z1 = 200;
 
       rt_params.cloudph_opts_init.src_dry_sizes.emplace(

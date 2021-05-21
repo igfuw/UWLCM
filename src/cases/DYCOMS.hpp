@@ -20,6 +20,7 @@ namespace setup
     const real_t z_abs = 1250;
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
+    const quantity<si::length, real_t> gccn_max_height = 795 * si::metres; // below inversion
     const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
 
     // liquid water potential temperature at height z
@@ -285,6 +286,7 @@ namespace setup
         this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
         this->Z = Z;
         this->z_rlx = z_rlx;
+        this->gccn_max_height = gccn_max_height;
       }
     };
     
