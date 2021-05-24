@@ -89,6 +89,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
         params.cloudph_opts_init.n_sd_max *= 1.3; // more space for copied SDs
     }
 
+     params.cloudph_opts_init.rlx_sd_per_bin /= this->mem->distmem.size();
+
     prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
       (libcloudphxx::lgrngn::backend_t)params.backend, 
       params.cloudph_opts_init
