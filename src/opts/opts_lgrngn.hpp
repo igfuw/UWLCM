@@ -177,7 +177,7 @@ void setopts_micro(
     // CCN relaxation stuff
     rt_params.cloudph_opts_init.rlx_switch = 1;
     rt_params.cloudph_opts_init.rlx_bins = 100;
-    rt_params.cloudph_opts_init.rlx_sd_per_bin = 100;
+    rt_params.cloudph_opts_init.rlx_sd_per_bin = 400;
     rt_params.cloudph_opts_init.supstp_rlx = 120 / rt_params.dt; // relaxation every two minutes
     rt_params.cloudph_opts_init.rlx_timescale = 600; // 10 min
 
