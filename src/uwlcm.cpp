@@ -95,6 +95,7 @@ int main(int argc, char** argv)
       ("n2_stp", po::value<setup::real_t>()->default_value(-1.0) , "n2_stp")
       ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "kappa2")
       ("case_n_stp_multiplier", po::value<setup::real_t>()->default_value(1.0) , "multiply case-default aerosols concentration by this value")
+      ("ccn_relax", po::value<bool>()->default_value(false) , "should ccn be added to relax towards the initial distribution")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
@@ -154,6 +155,8 @@ int main(int argc, char** argv)
     user_params.nr_src = vm["nr_src"].as<bool>();
     user_params.uv_src = vm["uv_src"].as<bool>();
     user_params.w_src = vm["w_src"].as<bool>();
+
+    user_params.ccn_relax = vm["ccn_relax"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();

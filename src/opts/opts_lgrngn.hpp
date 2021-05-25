@@ -175,30 +175,33 @@ void setopts_micro(
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
 
     // CCN relaxation stuff
-    rt_params.cloudph_opts_init.rlx_switch = 1;
-    rt_params.cloudph_opts_init.rlx_bins = 100;
-    rt_params.cloudph_opts_init.rlx_sd_per_bin = 400;
-    rt_params.cloudph_opts_init.supstp_rlx = 120 / rt_params.dt; // relaxation every two minutes
-    rt_params.cloudph_opts_init.rlx_timescale = 600; // 10 min
+    if(user_params.ccn_relax)
+    {
+      rt_params.cloudph_opts_init.rlx_switch = 1;
+      rt_params.cloudph_opts_init.rlx_bins = 100;
+      rt_params.cloudph_opts_init.rlx_sd_per_bin = 400;
+      rt_params.cloudph_opts_init.supstp_rlx = 120 / rt_params.dt; // relaxation every two minutes
+      rt_params.cloudph_opts_init.rlx_timescale = 600; // 10 min
 
-    rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
-      case_ptr->kappa,
-      std::make_tuple(
-        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-          case_ptr->mean_rd1,
-          case_ptr->mean_rd2,
-          case_ptr->sdev_rd1,
-          case_ptr->sdev_rd2,
-          case_ptr->n1_stp,
-          case_ptr->n2_stp
-          //thrust_real_t(4*90e6) / si::cubic_metres,
-          //thrust_real_t(4*15e6) / si::cubic_metres 
-        ),
-        std::make_pair<thrust_real_t>(0., (0.61 + 1.28) / 2.),
-        //std::make_pair<thrust_real_t>(1000, case_ptr->Z / si::meters)
-        std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
-      )
-    );
+      rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+        case_ptr->kappa,
+        std::make_tuple(
+          std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+            case_ptr->mean_rd1,
+            case_ptr->mean_rd2,
+            case_ptr->sdev_rd1,
+            case_ptr->sdev_rd2,
+            case_ptr->n1_stp,
+            case_ptr->n2_stp
+            //thrust_real_t(4*90e6) / si::cubic_metres,
+            //thrust_real_t(4*15e6) / si::cubic_metres 
+          ),
+          std::make_pair<thrust_real_t>(0., (0.61 + 1.28) / 2.),
+          //std::make_pair<thrust_real_t>(1000, case_ptr->Z / si::meters)
+          std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+        )
+      );
+    }
 
  
     // GCCNs following Jensen and Nugent, JAS 2016
@@ -259,19 +262,22 @@ void setopts_micro(
       );
 
       // GCCN relaxation stuff
-      rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
-        1.28, // kappa
-        std::make_tuple(
-          std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
-            log(0.8e-6),      // minimum radius  
-            log(10e-6),   // maximum radius
-            rt_params.gccn // concenctration multiplier
-          ),
-          std::make_pair<thrust_real_t>((0.61 + 1.28) / 2., 10000),
-          std::make_pair<thrust_real_t>(0, rt_params.cloudph_opts_init.src_z1)
-          //std::make_pair<thrust_real_t>(0, 700)
-        )
-      );
+      if(user_params.ccn_relax)
+      {
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+          1.28, // kappa
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+              log(0.8e-6),      // minimum radius  
+              log(10e-6),   // maximum radius
+              rt_params.gccn // concenctration multiplier
+            ),
+            std::make_pair<thrust_real_t>((0.61 + 1.28) / 2., 10000),
+            std::make_pair<thrust_real_t>(0, rt_params.cloudph_opts_init.src_z1)
+            //std::make_pair<thrust_real_t>(0, 700)
+          )
+        );
+      }
     }
    }
 /*  else if(unit_test)
