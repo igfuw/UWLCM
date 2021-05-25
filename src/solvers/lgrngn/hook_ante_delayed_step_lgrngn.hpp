@@ -31,8 +31,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 #endif
     } else assert(!ftr.valid()); 
 #endif
-    params.cloudph_opts.src = false; // we only want source in the first step to introduce gccn below some height
-    params.cloudph_opts.rlx = true;
   }
   this->mem->barrier();
 
@@ -88,6 +86,13 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
       } else 
 #endif
         prtcls->step_async(params.cloudph_opts);
+
+      // turn off aerosol src, because it was only used to initialize gccn below some height
+      params.cloudph_opts.src = false;
+      // if relaxation is to be done, turn it on after gccn were created by src
+      if(user_params.ccn_relax)
+        params.cloudph_opts.rlx = true;
+
 #if defined(UWLCM_TIMING)
       tend = parent_t::clock::now();
       parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
