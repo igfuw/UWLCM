@@ -84,6 +84,8 @@ int main(int argc, char** argv)
       ("help", "produce a help message (see also --micro X --help)")
       // add aerosol distribution params options
       // default values are realistic params, except n1_stp=n2_stp=-1
+      // if n1_stp<0 and n2_stp<0, the case-default aerosols distribution is used,
+      // concentration of this case-default distribution can be changed by setting the case_n_stp_multiplier
       ("mean_rd1", po::value<setup::real_t>()->default_value(1.0e-6) , "mean_rd1")
       ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd1")
       ("n1_stp", po::value<setup::real_t>()->default_value(-1.0) , "n1_stp")
@@ -92,6 +94,7 @@ int main(int argc, char** argv)
       ("sdev_rd2", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd2")
       ("n2_stp", po::value<setup::real_t>()->default_value(-1.0) , "n2_stp")
       ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "kappa2")
+      ("case_n_stp_multiplier", po::value<setup::real_t>()->default_value(1.0) , "multiply case-default aerosols concentration by this value")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
@@ -181,6 +184,8 @@ int main(int argc, char** argv)
     user_params.sdev_rd2 = vm["sdev_rd2"].as<setup::real_t>();
     user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
+
+    user_params.case_n_stp_multiplier = vm["case_n_stp_multiplier"].as<setup::real_t>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();
