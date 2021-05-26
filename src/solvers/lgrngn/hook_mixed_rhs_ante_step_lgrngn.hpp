@@ -57,6 +57,16 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     } else assert(!ftr.valid()); 
 #endif
 
+    // change src and rlx flags after the first step. needs to be done after async finished, because async uses opts reference
+    if(this->timestep == 1)
+    {
+      // turn off aerosol src, because it was only used to initialize gccn below some height
+      params.cloudph_opts.src = false;
+      // if relaxation is to be done, turn it on after gccn were created by src
+      if(params.user_params.ccn_relax)
+        params.cloudph_opts.rlx = true;
+    }
+
     // start synchronous stuff timer
 #if defined(UWLCM_TIMING)
     tbeg = parent_t::clock::now();
