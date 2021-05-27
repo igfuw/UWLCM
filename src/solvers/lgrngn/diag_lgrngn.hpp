@@ -52,20 +52,20 @@ void slvr_lgrngn<ct_params_t>::diag()
 //    prtcls->diag_wet_mom(1);
 //    this->record_aux("gccn_rw_mom1", prtcls->outbuf());
 //
-    // recording 0th mom of rw of gccns
-    prtcls->diag_dry_rng(2e-6, 1);
-    prtcls->diag_wet_mom(0);
-    this->record_aux("gccn_rw_mom0", prtcls->outbuf());
+//    // recording 0th mom of rw of gccns
+//    prtcls->diag_dry_rng(2e-6, 1);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("gccn_rw_mom0", prtcls->outbuf());
 //
 //    // recording 1st mom of rw of non-gccns
 //    prtcls->diag_dry_rng(0., 2e-6);
 //    prtcls->diag_wet_mom(1);
 //    this->record_aux("non_gccn_rw_mom1", prtcls->outbuf());
 //
-    // recording 0th mom of rw of gccns
-    prtcls->diag_dry_rng(0., 2e-6);
-    prtcls->diag_wet_mom(0);
-    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
+//    // recording 0th mom of rw of gccns
+//    prtcls->diag_dry_rng(0., 2e-6);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
 
   // recording 0th mom of rw of activated drops
   prtcls->diag_rw_ge_rc();
