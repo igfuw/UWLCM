@@ -191,8 +191,8 @@ void setopts_micro(
             case_ptr->mean_rd2,
             case_ptr->sdev_rd1,
             case_ptr->sdev_rd2,
-            case_ptr->n1_stp,
-            case_ptr->n2_stp
+            user_params.case_n_stp_multiplier * case_ptr->n1_stp,
+            user_params.case_n_stp_multiplier * case_ptr->n2_stp
             //thrust_real_t(4*90e6) / si::cubic_metres,
             //thrust_real_t(4*15e6) / si::cubic_metres 
           ),
