@@ -52,20 +52,20 @@ void slvr_lgrngn<ct_params_t>::diag()
 //    prtcls->diag_wet_mom(1);
 //    this->record_aux("gccn_rw_mom1", prtcls->outbuf());
 //
-    // recording 0th mom of rw of gccns
-    prtcls->diag_dry_rng(2e-6, 1);
-    prtcls->diag_wet_mom(0);
-    this->record_aux("gccn_rw_mom0", prtcls->outbuf());
+//    // recording 0th mom of rw of gccns
+//    prtcls->diag_dry_rng(2e-6, 1);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("gccn_rw_mom0", prtcls->outbuf());
 //
 //    // recording 1st mom of rw of non-gccns
 //    prtcls->diag_dry_rng(0., 2e-6);
 //    prtcls->diag_wet_mom(1);
 //    this->record_aux("non_gccn_rw_mom1", prtcls->outbuf());
 //
-    // recording 0th mom of rw of gccns
-    prtcls->diag_dry_rng(0., 2e-6);
-    prtcls->diag_wet_mom(0);
-    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
+//    // recording 0th mom of rw of gccns
+//    prtcls->diag_dry_rng(0., 2e-6);
+//    prtcls->diag_wet_mom(0);
+//    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
 
   // recording 0th mom of rw of activated drops
   prtcls->diag_rw_ge_rc();
@@ -132,6 +132,15 @@ void slvr_lgrngn<ct_params_t>::diag()
   prtcls->diag_wet_rng(.5e-6, 25.e-6);
   prtcls->diag_wet_mom(3);
   this->record_aux("cloud_rw_mom3", prtcls->outbuf());
+
+  prtcls->diag_all();
+  prtcls->diag_accr25();
+  this->record_aux("acc_accr25", prtcls->outbuf());
+
+  prtcls->diag_all();
+  prtcls->diag_acnv25();
+  this->record_aux("acc_acnv25", prtcls->outbuf());
+
 
 //    // recording 0th wet mom of radius of aerosols (r < .5um)
 //    prtcls->diag_wet_rng(0., .5e-6);
