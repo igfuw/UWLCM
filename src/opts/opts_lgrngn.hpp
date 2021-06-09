@@ -217,6 +217,9 @@ void setopts_micro(
       rt_params.cloudph_opts_init.src_z1 = case_ptr->gccn_max_height / si::meters;// 700;
   //    rt_params.cloudph_opts_init.src_z1 = 200;
 
+      rt_params.cloudph_opts_init.src_sd_conc = 38;
+
+/*
       rt_params.cloudph_opts_init.src_dry_sizes.emplace(
         1.28, // kappa
         std::map<setup::real_t, std::pair<setup::real_t, int> > {
@@ -259,6 +262,16 @@ void setopts_micro(
           {8.6e-6, {rt_params.gccn / rt_params.dt * 4.522,  1}},
           {9.0e-6, {rt_params.gccn / rt_params.dt * 4.542,  1}}
         }
+      );
+      */
+
+      rt_params.cloudph_opts_init.src_dry_distros.emplace(
+        1.28, // kappa
+        std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+          log(0.8e-6),      // minimum radius  
+          log(10e-6),   // maximum radius
+          rt_params.gccn / rt_params.dt // concenctration multiplier
+        )
       );
 
       // GCCN relaxation stuff
