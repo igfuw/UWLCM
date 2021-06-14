@@ -35,12 +35,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   int spinup; // number of timesteps
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
 
-  // accumulated total changes of th and rv at top and bottom
-  real_t tot_rv_change_top,
-         tot_rv_change_bot,
-         tot_th_change_top,
-         tot_th_change_bot;
-
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i; // TODO: allocate k_i with alloc surf + in MPI calc average k_i over all processes
 
@@ -210,39 +204,29 @@ class slvr_common : public slvr_dim<ct_params_t>
     //const real_t side_wall_rv = 0.00699107203438; // 80% RH
     const real_t side_wall_rv = 0.00611718803008; // 70% RH
     //const real_t side_wall_rv = 0.00524330402578; // 60% RH
-    
-    const real_t top_wall_th = 280;
-    const real_t bot_wall_th = 299;
-    const real_t side_wall_th = 285;
 
     // hack to set temperature and moisture of top and bottom walls of a Pi chamber
-    tot_th_change_bot += bot_wall_th - blitz::sum(this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))));
-    tot_rv_change_bot += bot_wall_rv - blitz::sum(this->state(ix::rv)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))));
-
-    tot_th_change_top += top_wall_th - blitz::sum(this->state(ix::th)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))));
-    tot_rv_change_top += top_wall_rv - blitz::sum(this->state(ix::rv)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))));
-
-    this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = bot_wall_th; 
+    this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = 299; 
     this->state(ix::rv)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = bot_wall_rv;
 
-    this->state(ix::th)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = top_wall_th; 
+    this->state(ix::th)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = 280; 
     this->state(ix::rv)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = top_wall_rv;
 
 
     // side walls perpendicular to x
-    this->set_vertcl_slice_x(this->state(ix::th), 0, side_wall_th);
+    this->set_vertcl_slice_x(this->state(ix::th), 0, 285);
     this->set_vertcl_slice_x(this->state(ix::rv), 0, side_wall_rv);
 
-    this->set_vertcl_slice_x(this->state(ix::th), params.grid_size[0]-1, side_wall_th);
+    this->set_vertcl_slice_x(this->state(ix::th), params.grid_size[0]-1, 285);
     this->set_vertcl_slice_x(this->state(ix::rv), params.grid_size[0]-1, side_wall_rv);
 
     // side walls perpendicular to y
     if(parent_t::n_dims==3)
     {
-      this->state(ix::th)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_th; 
+      this->state(ix::th)(this->vertcl_slice_y(this->ijk.lbound(1))) = 285; 
       this->state(ix::rv)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_rv; 
 
-      this->state(ix::th)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_th; 
+      this->state(ix::th)(this->vertcl_slice_y(this->ijk.ubound(1))) = 285; 
       this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_rv; 
     }
 
@@ -513,11 +497,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       real_t sum = this->mem->distmem.sum(puddle.at(static_cast<cmn::output_t>(i)));
       this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", sum);
     }
-
-    this->record_aux_scalar("tot_th_change_bot", tot_th_change_bot);
-    this->record_aux_scalar("tot_th_change_top", tot_th_change_top);
-    this->record_aux_scalar("tot_rv_change_bot", tot_rv_change_bot);
-    this->record_aux_scalar("tot_rv_change_top", tot_rv_change_top);
   } 
 
   void record_all()
@@ -579,11 +558,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     U_ground(args.mem->tmp[__FILE__][1][3]),
     surf_flux_tmp(args.mem->tmp[__FILE__][1][4]),
     surf_flux_u(args.mem->tmp[__FILE__][1][5]),
-    surf_flux_v(args.mem->tmp[__FILE__][1][6]), // flux_v needs to be last
-    tot_rv_change_top(0),
-    tot_rv_change_bot(0),
-    tot_th_change_top(0),
-    tot_th_change_bot(0)
+    surf_flux_v(args.mem->tmp[__FILE__][1][6]) // flux_v needs to be last
   {
     k_i.resize(this->shape(this->hrzntl_subdomain)); 
     k_i.reindexSelf(this->base(this->hrzntl_subdomain));
