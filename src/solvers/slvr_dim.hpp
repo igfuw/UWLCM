@@ -77,6 +77,11 @@ class slvr_dim<
       a(idx_t<2>({rng_t(i, i), this->j})) = val;
     // NOTE: add a barrier?
   }
+  
+  void set_vertcl_slice_y(const typename parent_t::arr_t &a, int i, const setup::real_t &val)
+  {
+    assert(0 && "set_vertcl_slice_y called in a 2D simulation.");
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
@@ -172,16 +177,35 @@ class slvr_dim<
       return idx_t<3>({this->i, this->j, rng_t(k, k)});
   }
 
-  idx_t<3> vertcl_slice_y(int k) // vertical slice for a given y
+//  idx_t<3> vertcl_slice_y(int k) // vertical slice for a given y
+//  {
+//      return idx_t<3>({this->i, rng_t(k, k), this->k});
+//  }
+
+  idx_t<3> vertcl_slice_x(int i) // vertical slice for a given x
   {
-      return idx_t<3>({this->i, rng_t(k, k), this->k});
+      return idx_t<3>({rng_t(i, i), this->j, this->k});
   }
   
   // different treatment of slice at given x, because domain decomposition is done in x
+  //void set_vertcl_slice_x(const typename parent_t::arr_t &a, int i, const setup::real_t &val)
+  //{
+  //  if(this->ijk.lbound(0) <= i && i <= this->ijk.ubound(0)) // NOTE: with MPI, this condition would be true even for rank =0 at mpi rank > 0 (?)
+  //    a(idx_t<3>({rng_t(i, i), this->j, this->k})) = val;
+  //  // NOTE: add a barrier?
+  //}
+  
   void set_vertcl_slice_x(const typename parent_t::arr_t &a, int i, const setup::real_t &val)
   {
-    if(this->ijk.lbound(0) <= i && i <= this->ijk.ubound(0)) // NOTE: with MPI, this condition would be true even for rank =0 at mpi rank > 0 (?)
-      a(idx_t<3>({rng_t(i, i), this->j, this->k})) = val;
+    a(vertcl_slice_x(i)) = val;
+  }
+  
+  // different treatment of slice at given y, because sharedmem domain decomposition is done in y
+  // TODO: take into account distmem domain decompostion (MPI)!
+  void set_vertcl_slice_y(const typename parent_t::arr_t &a, int j, const setup::real_t &val)
+  {
+    if(this->ijk.lbound(1) <= j && j <= this->ijk.ubound(1))
+      a(idx_t<3>({this->i, rng_t(j, j), this->k})) = val;
     // NOTE: add a barrier?
   }
 

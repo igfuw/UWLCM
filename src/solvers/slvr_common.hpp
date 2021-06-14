@@ -236,14 +236,26 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->set_vertcl_slice_x(this->state(ix::th), params.grid_size[0]-1, side_wall_th);
     this->set_vertcl_slice_x(this->state(ix::rv), params.grid_size[0]-1, side_wall_rv);
 
+//      this->state(ix::th)(this->vertcl_slice_x(this->ijk.lbound(0))) = side_wall_th; 
+//      this->state(ix::rv)(this->vertcl_slice_x(this->ijk.lbound(0))) = side_wall_rv; 
+//
+//      this->state(ix::th)(this->vertcl_slice_x(this->ijk.ubound(0))) = side_wall_th; 
+//      this->state(ix::rv)(this->vertcl_slice_x(this->ijk.ubound(0))) = side_wall_rv; 
+
     // side walls perpendicular to y
     if(parent_t::n_dims==3)
     {
-      this->state(ix::th)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_th; 
-      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_rv; 
+      //this->state(ix::th)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_th; 
+      //this->state(ix::rv)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_rv; 
 
-      this->state(ix::th)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_th; 
-      this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_rv; 
+      //this->state(ix::th)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_th; 
+      //this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_rv; 
+
+      this->set_vertcl_slice_y(this->state(ix::th), 0, side_wall_th);
+      this->set_vertcl_slice_y(this->state(ix::rv), 0, side_wall_rv);
+  
+      this->set_vertcl_slice_y(this->state(ix::th), params.grid_size[1]-1, side_wall_th);
+      this->set_vertcl_slice_y(this->state(ix::rv), params.grid_size[1]-1, side_wall_rv);
     }
 
     if (spinup != 0 && spinup == this->timestep)
