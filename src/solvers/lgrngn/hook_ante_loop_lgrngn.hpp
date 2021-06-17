@@ -45,6 +45,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     int n_sd_from_src_dry_distros = params.cloudph_opts_init.src_sd_conc * params.cloudph_opts_init.src_z1 / params.cloudph_opts_init.z1 + 0.5;
       
     const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes + n_sd_from_src_dry_distros;
+    // TODO: add some space if relax_ccn is on?
 
     if(parent_t::n_dims == 2) // 2D
     {
