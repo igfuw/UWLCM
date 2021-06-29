@@ -134,7 +134,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   } 
 
 #if defined(STD_FUTURE_WORKS)
-  std::future<typename parent_t::timer> ftr;
+  #if defined(UWLCM_TIMING)
+    std::future<typename parent_t::timer> ftr;
+  #else
+    std::future<void> ftr;
+  #endif
 #endif
   
   void record_all()
