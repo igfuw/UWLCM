@@ -183,24 +183,84 @@ void setopts_micro(
       rt_params.cloudph_opts_init.supstp_rlx = 120 / rt_params.dt; // relaxation every two minutes
       rt_params.cloudph_opts_init.rlx_timescale = 600; // 10 min
 
-      rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
-        case_ptr->kappa,
-        std::make_tuple(
-          std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-            case_ptr->mean_rd1,
-            case_ptr->mean_rd2,
-            case_ptr->sdev_rd1,
-            case_ptr->sdev_rd2,
-            user_params.case_n_stp_multiplier * case_ptr->n1_stp,
-            user_params.case_n_stp_multiplier * case_ptr->n2_stp
-            //thrust_real_t(4*90e6) / si::cubic_metres,
-            //thrust_real_t(4*15e6) / si::cubic_metres 
-          ),
-          std::make_pair<thrust_real_t>(0., (0.61 + 1.28) / 2.),
-          //std::make_pair<thrust_real_t>(1000, case_ptr->Z / si::meters)
-          std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
-        )
-      );
+      // define kappa ranges of user-defined aerosol distros
+      std::pair<thrust_real_t, thrust_real_t> user_kpa_rng1, user_kpa_rng2;
+
+      if(user_params.n1_stp*si::cubic_metres >= 0 || user_params.n2_stp*si::cubic_metres >= 0) {
+        if(rt_params.gccn > setup::real_t(0)) 
+          throw std::runtime_error("CCN relaxation + GCCN + user-defined aerosol spectra does not work, because kappa ranges for relaxation are not known");
+        if(user_params.n1_stp*si::cubic_metres < 0)
+          user_kpa_rng2 = std::make_pair<thrust_real_t, thrust_real_t>(0,10); // only one user-defined distribution, whole kappa range
+        if(user_params.n2_stp*si::cubic_metres < 0)
+          user_kpa_rng1 = std::make_pair<thrust_real_t, thrust_real_t>(0,10); // only one user-defined distribution, whole kappa range
+        if(user_params.n1_stp*si::cubic_metres >= 0 && user_params.n2_stp*si::cubic_metres >= 0) {
+          if(user_params.kappa1 < user_params.kappa2)
+          {
+            user_kpa_rng1 = std::make_pair<thrust_real_t, thrust_real_t>(0, (user_params.kappa1 + user_params.kappa2) / 2.);
+            user_kpa_rng2 = std::make_pair<thrust_real_t, thrust_real_t>((user_params.kappa1 + user_params.kappa2) / 2., 10);
+          }
+          else
+          {
+            user_kpa_rng2 = std::make_pair<thrust_real_t, thrust_real_t>(0, (user_params.kappa1 + user_params.kappa2) / 2.);
+            user_kpa_rng1 = std::make_pair<thrust_real_t, thrust_real_t>((user_params.kappa1 + user_params.kappa2) / 2., 10);
+          }
+        }
+      }
+
+      if(user_params.n1_stp*si::cubic_metres >= 0) {
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+          user_params.kappa1,
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+              user_params.mean_rd1,
+              thrust_real_t(1.0e-6) * si::metres,
+              user_params.sdev_rd1,
+              thrust_real_t(1.2),
+              user_params.n1_stp,
+              thrust_real_t(0) / si::cubic_metres
+            ),
+            user_kpa_rng1,
+            std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+          )
+        );
+      } 
+      if(user_params.n2_stp*si::cubic_metres >= 0) {
+        rt_params.cloudph_opts_init.dry_distros.emplace(
+          user_params.kappa2,
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+              thrust_real_t(1.0e-6) * si::metres,
+              user_params.mean_rd2,
+              thrust_real_t(1.2),
+              user_params.sdev_rd2,
+              thrust_real_t(0) / si::cubic_metres,
+              user_params.n2_stp
+            ),
+            user_kpa_rng2,
+            std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+          )
+        );
+      } 
+
+      if(user_params.n1_stp*si::cubic_metres < 0 && user_params.n2_stp*si::cubic_metres < 0) {
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+          case_ptr->kappa,
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+              case_ptr->mean_rd1,
+              case_ptr->mean_rd2,
+              case_ptr->sdev_rd1,
+              case_ptr->sdev_rd2,
+              user_params.case_n_stp_multiplier * case_ptr->n1_stp,
+              user_params.case_n_stp_multiplier * case_ptr->n2_stp
+              //thrust_real_t(4*90e6) / si::cubic_metres,
+              //thrust_real_t(4*15e6) / si::cubic_metres 
+            ),
+            std::make_pair<thrust_real_t>(0., (0.61 + 1.28) / 2.),
+            //std::make_pair<thrust_real_t>(1000, case_ptr->Z / si::meters)
+            std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+          )
+        );
     }
 
  
