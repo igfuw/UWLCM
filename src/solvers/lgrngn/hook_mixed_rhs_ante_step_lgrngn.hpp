@@ -96,7 +96,11 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     {
       assert(!ftr.valid());
       if(params.backend == CUDA)
+  #if defined(UWLCM_TIMING)
         ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
+  #else
+        ftr = std::async(std::launch::async,
+  #endif
           &particles_t<real_t, CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
           params.cloudph_opts,
@@ -105,7 +109,11 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
           std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
         );
       else if(params.backend == multi_CUDA)
+  #if defined(UWLCM_TIMING)
         ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
+  #else
+        ftr = std::async(std::launch::async,
+  #endif
           &particles_t<real_t, multi_CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
           params.cloudph_opts,

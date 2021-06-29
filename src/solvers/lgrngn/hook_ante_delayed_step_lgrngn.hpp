@@ -71,13 +71,21 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
       {
         assert(!ftr.valid());
         if(params.backend == CUDA)
+  #if defined(UWLCM_TIMING)
           ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
+  #else
+          ftr = std::async(std::launch::async,
+  #endif
             &particles_t<real_t, CUDA>::step_async, 
             dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
             params.cloudph_opts
           );
         else if(params.backend == multi_CUDA)
+  #if defined(UWLCM_TIMING)
           ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
+  #else
+          ftr = std::async(std::launch::async,
+  #endif
             &particles_t<real_t, multi_CUDA>::step_async, 
             dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
             params.cloudph_opts

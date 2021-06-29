@@ -225,7 +225,7 @@ void setopts_micro(
         );
       } 
       if(user_params.n2_stp*si::cubic_metres >= 0) {
-        rt_params.cloudph_opts_init.dry_distros.emplace(
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
           user_params.kappa2,
           std::make_tuple(
             std::make_shared<setup::log_dry_radii<thrust_real_t>> (
@@ -261,6 +261,7 @@ void setopts_micro(
             std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
           )
         );
+      }
     }
 
  
