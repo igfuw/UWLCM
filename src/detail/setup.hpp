@@ -84,12 +84,23 @@ namespace setup
   template <typename T>
   struct log_dry_radii_gccn : public libcloudphxx::common::unary_function<T>
   {
+    real_t lnrd_min, lnrd_max, conc_multiplier;
+
     T funval(const T lnrd) const
     {
-      return T((
-          lognormal::n_e(mean_rd3, sdev_rd3, n3_stp, quantity<si::dimensionless, real_t>(lnrd)) 
-        ) * si::cubic_metres
-      );
+      return 
+        lnrd < lnrd_min ? 0 :
+          lnrd > lnrd_max ? 0 :
+            T((
+              lognormal::n_e(mean_rd3, sdev_rd3, conc_multiplier * n3_stp, quantity<si::dimensionless, real_t>(lnrd)) 
+            ) * si::cubic_metres
+            );
     }
+
+    log_dry_radii_gccn(const real_t lnrd_min = 0, const real_t lnrd_max = 1000000, const real_t conc_multiplier = 1): 
+      lnrd_min(lnrd_min),
+      lnrd_max(lnrd_max),
+      conc_multiplier(conc_multiplier)
+    {}
   };
 };

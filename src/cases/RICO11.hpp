@@ -30,6 +30,7 @@ namespace setup
     const real_t z_abs = 3000;
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
+    const quantity<si::length, real_t> gccn_max_height = 460 * si::metres; // below cloud base
 
     inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
@@ -321,6 +322,7 @@ namespace setup
         this->X = X;
         this->Z = Z;
         this->z_rlx = z_rlx;
+        this->gccn_max_height = gccn_max_height;
       }
     };
     

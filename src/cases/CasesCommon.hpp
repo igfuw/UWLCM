@@ -116,6 +116,7 @@ namespace setup
 
     real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
+    quantity<si::length, real_t> gccn_max_height; // GCCN added (at init and via relaxation) only up to this level
 
     template<bool enable_sgs = case_ct_params_t::enable_sgs>
     void setopts_sgs(rt_params_t &params,
@@ -218,6 +219,7 @@ namespace setup
       X = 0 * si::metres;
       Y = 0 * si::metres;
       Z = 0 * si::metres;
+      gccn_max_height = 0 * si::metres;
     }
 
     virtual ~CasesCommon() = default;

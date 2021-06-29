@@ -68,13 +68,13 @@ void setopts_micro(
     rt_params.cloudph_opts.dry_distros.push_back({
       .mean_rd = case_ptr->mean_rd1 / si::metres,
       .sdev_rd = case_ptr->sdev_rd1,
-      .N_stp   = case_ptr->n1_stp * si::cubic_metres,
+      .N_stp   = user_params.case_n_stp_multiplier * case_ptr->n1_stp * si::cubic_metres,
       .chem_b  = case_ptr->kappa
     });
     rt_params.cloudph_opts.dry_distros.push_back({
       .mean_rd = case_ptr->mean_rd2 / si::metres,
       .sdev_rd = case_ptr->sdev_rd2,
-      .N_stp   = case_ptr->n2_stp * si::cubic_metres,
+      .N_stp   = user_params.case_n_stp_multiplier * case_ptr->n2_stp * si::cubic_metres,
       .chem_b  = case_ptr->kappa
     });
   }
