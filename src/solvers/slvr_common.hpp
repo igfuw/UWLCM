@@ -202,13 +202,15 @@ class slvr_common : public slvr_dim<ct_params_t>
     // ICMW202 defaults, give wrong RH in UWLCM
     // const real_t top_wall_rv = 6.1562e-3;
     // const real_t bot_wall_rv = 0.0215865;
-    // const real_t side_wall_rv = 7.1183e-3;
+    //const real_t side_wall_rv = 7.1183e-3;
     const real_t top_wall_rv = 0.0062192674278;
     const real_t bot_wall_rv = 0.0213489271007;
     //const real_t side_wall_rv = 0.00873884004297; // 100% RH
     //const real_t side_wall_rv = 0.00716584883524; // 82% RH
-    //const real_t side_wall_rv = 0.00699107203438; // 80% RH
-    const real_t side_wall_rv = 0.00611718803008; // 70% RH
+    const real_t side_wall_rv = 0.00699107203438; // 80% RH
+//    const real_t side_wall_rv = 0.0068;
+    //const real_t side_wall_rv = 0.0066;
+    //const real_t side_wall_rv = 0.00611718803008; // 70% RH
     //const real_t side_wall_rv = 0.00524330402578; // 60% RH
     
     const real_t top_wall_th = 280;
