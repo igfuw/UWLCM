@@ -532,6 +532,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->record_aux_scalar("acc_mean_th_change_top", acc_mean_th_change_top);
     this->record_aux_scalar("acc_mean_rv_change_bot", acc_mean_rv_change_bot);
     this->record_aux_scalar("acc_mean_rv_change_top", acc_mean_rv_change_top);
+    acc_mean_th_change_bot = 0;
+    acc_mean_th_change_top = 0;
+    acc_mean_rv_change_bot = 0;
+    acc_mean_rv_change_top = 0;
+
   } 
 
   void record_all()
