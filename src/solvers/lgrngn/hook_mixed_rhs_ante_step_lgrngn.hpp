@@ -1,5 +1,6 @@
 #pragma once
 #include "../slvr_lgrngn.hpp"
+#include "../../detail/func_time.hpp"
 #if defined(STD_FUTURE_WORKS)
 #  include <future>
 #endif
@@ -33,6 +34,39 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       Cz.reindex(this->zero) /= (*params.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
     }
 
+    // assuring previous async step finished ...
+#if defined(STD_FUTURE_WORKS)
+    if (
+      params.async && 
+      this->timestep != 0 && // ... but not in first timestep ...
+      ((this->timestep ) % this->outfreq != 0) // ... and not after diag call, note: timestep is updated after ante_step
+    ) {
+      assert(ftr.valid());
+#if defined(UWLCM_TIMING)
+      tbeg = parent_t::clock::now();
+#endif
+#if defined(UWLCM_TIMING)
+      parent_t::tasync_gpu += ftr.get();
+#else
+      ftr.get();
+#endif
+#if defined(UWLCM_TIMING)
+      tend = parent_t::clock::now();
+      parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+#endif
+    } else assert(!ftr.valid()); 
+#endif
+
+    // change src and rlx flags after the first step. needs to be done after async finished, because async uses opts reference
+    if(this->timestep == 1)
+    {
+      // turn off aerosol src, because it was only used to initialize gccn below some height
+      params.cloudph_opts.src = false;
+      // if relaxation is to be done, turn it on after gccn were created by src
+      if(params.user_params.ccn_relax)
+        params.cloudph_opts.rlx = true;
+    }
+
     // start synchronous stuff timer
 #if defined(UWLCM_TIMING)
     tbeg = parent_t::clock::now();
@@ -62,8 +96,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     {
       assert(!ftr.valid());
       if(params.backend == CUDA)
-        ftr = std::async(
-          std::launch::async, 
+        ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
           &particles_t<real_t, CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
           params.cloudph_opts,
@@ -72,8 +105,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
           std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
         );
       else if(params.backend == multi_CUDA)
-        ftr = std::async(
-          std::launch::async, 
+        ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
           &particles_t<real_t, multi_CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
           params.cloudph_opts,

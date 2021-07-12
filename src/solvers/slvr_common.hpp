@@ -28,7 +28,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   using clock = std::chrono::system_clock; 
   using timer = std::chrono::milliseconds; 
-  timer tsync, tsync_wait, tasync, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
+  timer tsync, tsync_gpu, tsync_wait, tasync, tasync_gpu, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
 
   protected:
 #endif
@@ -116,6 +116,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
       this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
       this->record_aux_const("user_params w_src", params.user_params.w_src);  
+      this->record_aux_const("user_params ccn_relax", params.user_params.ccn_relax);  
+      this->record_aux_const("user_params case_n_stp_multiplier", params.user_params.case_n_stp_multiplier);  
 
       this->record_aux_const("rt_params th_src", params.th_src);  
       this->record_aux_const("rt_params rv_src", params.rv_src);  

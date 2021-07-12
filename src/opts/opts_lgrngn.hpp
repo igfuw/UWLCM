@@ -150,8 +150,8 @@ void setopts_micro(
           case_ptr->mean_rd2,
           case_ptr->sdev_rd1,
           case_ptr->sdev_rd2,
-          case_ptr->n1_stp,
-          case_ptr->n2_stp
+          user_params.case_n_stp_multiplier * case_ptr->n1_stp,
+          user_params.case_n_stp_multiplier * case_ptr->n2_stp
         )
       );
     }
@@ -173,53 +173,124 @@ void setopts_micro(
 
 //std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
+
+    // CCN relaxation stuff
+    if(user_params.ccn_relax)
+    {
+      rt_params.cloudph_opts_init.rlx_switch = 1;
+      rt_params.cloudph_opts_init.rlx_bins = 100;
+      rt_params.cloudph_opts_init.rlx_sd_per_bin = 400;
+      rt_params.cloudph_opts_init.supstp_rlx = 120 / rt_params.dt; // relaxation every two minutes
+      rt_params.cloudph_opts_init.rlx_timescale = 600; // 10 min
+
+      rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+        case_ptr->kappa,
+        std::make_tuple(
+          std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+            case_ptr->mean_rd1,
+            case_ptr->mean_rd2,
+            case_ptr->sdev_rd1,
+            case_ptr->sdev_rd2,
+            user_params.case_n_stp_multiplier * case_ptr->n1_stp,
+            user_params.case_n_stp_multiplier * case_ptr->n2_stp
+            //thrust_real_t(4*90e6) / si::cubic_metres,
+            //thrust_real_t(4*15e6) / si::cubic_metres 
+          ),
+          std::make_pair<thrust_real_t>(0., (0.61 + 1.28) / 2.),
+          //std::make_pair<thrust_real_t>(1000, case_ptr->Z / si::meters)
+          std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+        )
+      );
+    }
+
  
     // GCCNs following Jensen and Nugent, JAS 2016
     if(rt_params.gccn > setup::real_t(0))
     {
-      rt_params.cloudph_opts_init.dry_sizes.emplace(
+      rt_params.cloudph_opts_init.src_switch = 1;
+      rt_params.cloudph_opts_init.src_x0 = 0;
+      rt_params.cloudph_opts_init.src_x1 = case_ptr->X / si::meters;
+      rt_params.cloudph_opts_init.src_y0 = 0;
+      rt_params.cloudph_opts_init.src_y1 = case_ptr->Y / si::meters;
+      rt_params.cloudph_opts_init.src_z0 = 0;
+//      rt_params.cloudph_opts_init.src_z1 = case_ptr->Z / si::meters;
+      rt_params.cloudph_opts_init.src_z1 = case_ptr->gccn_max_height / si::meters;// 700;
+  //    rt_params.cloudph_opts_init.src_z1 = 200;
+
+      rt_params.cloudph_opts_init.src_sd_conc = 38;
+
+/*
+      rt_params.cloudph_opts_init.src_dry_sizes.emplace(
         1.28, // kappa
         std::map<setup::real_t, std::pair<setup::real_t, int> > {
-          {0.8e-6, {rt_params.gccn * 111800, 1}},
-          {1.0e-6, {rt_params.gccn * 68490,  1}},
-          {1.2e-6, {rt_params.gccn * 38400,  1}},
-          {1.4e-6, {rt_params.gccn * 21820,  1}},
-          {1.6e-6, {rt_params.gccn * 13300,  1}},
-          {1.8e-6, {rt_params.gccn * 8496,  1}},
-          {2.0e-6, {rt_params.gccn * 5486,  1}},
-          {2.2e-6, {rt_params.gccn * 3805,  1}},
-          {2.4e-6, {rt_params.gccn * 2593,  1}},
-          {2.6e-6, {rt_params.gccn * 1919,  1}},
-          {2.8e-6, {rt_params.gccn * 1278,  1}},
-          {3.0e-6, {rt_params.gccn * 988.4,  1}},
-          {3.2e-6, {rt_params.gccn * 777.9,  1}},
-          {3.4e-6, {rt_params.gccn * 519.5,  1}},
-          {3.6e-6, {rt_params.gccn * 400.5,  1}},
-          {3.8e-6, {rt_params.gccn * 376.9,  1}},
-          {4.0e-6, {rt_params.gccn * 265.3,  1}},
-          {4.2e-6, {rt_params.gccn * 212.4,  1}},
-          {4.4e-6, {rt_params.gccn * 137.8,  1}},
-          {4.6e-6, {rt_params.gccn * 121.4,  1}},
-          {4.8e-6, {rt_params.gccn * 100.9,  1}},
-          {5.0e-6, {rt_params.gccn * 122.2,  1}},
-          {5.2e-6, {rt_params.gccn * 50.64,  1}},
-          {5.4e-6, {rt_params.gccn * 38.30,  1}},
-          {5.6e-6, {rt_params.gccn * 55.47,  1}},
-          {5.8e-6, {rt_params.gccn * 21.45,  1}},
-          {6.0e-6, {rt_params.gccn * 12.95,  1}},
-          {6.2e-6, {rt_params.gccn * 43.23,  1}},
-          {6.4e-6, {rt_params.gccn * 26.26,  1}},
-          {6.6e-6, {rt_params.gccn * 30.50,  1}},
-          {6.8e-6, {rt_params.gccn * 4.385,  1}},
-          {7.0e-6, {rt_params.gccn * 4.372,  1}},
-          {7.2e-6, {rt_params.gccn * 4.465,  1}},
-          {7.4e-6, {rt_params.gccn * 4.395,  1}},
-          {7.6e-6, {rt_params.gccn * 4.427,  1}},
-          {7.8e-6, {rt_params.gccn * 4.411,  1}},
-          {8.6e-6, {rt_params.gccn * 4.522,  1}},
-          {9.0e-6, {rt_params.gccn * 4.542,  1}}
+          {0.8e-6, {rt_params.gccn / rt_params.dt * 111800, 1}},
+          {1.0e-6, {rt_params.gccn / rt_params.dt * 68490,  1}},
+          {1.2e-6, {rt_params.gccn / rt_params.dt * 38400,  1}},
+          {1.4e-6, {rt_params.gccn / rt_params.dt * 21820,  1}},
+          {1.6e-6, {rt_params.gccn / rt_params.dt * 13300,  1}},
+          {1.8e-6, {rt_params.gccn / rt_params.dt * 8496,  1}},
+          {2.0e-6, {rt_params.gccn / rt_params.dt * 5486,  1}},
+          {2.2e-6, {rt_params.gccn / rt_params.dt * 3805,  1}},
+          {2.4e-6, {rt_params.gccn / rt_params.dt * 2593,  1}},
+          {2.6e-6, {rt_params.gccn / rt_params.dt * 1919,  1}},
+          {2.8e-6, {rt_params.gccn / rt_params.dt * 1278,  1}},
+          {3.0e-6, {rt_params.gccn / rt_params.dt * 988.4,  1}},
+          {3.2e-6, {rt_params.gccn / rt_params.dt * 777.9,  1}},
+          {3.4e-6, {rt_params.gccn / rt_params.dt * 519.5,  1}},
+          {3.6e-6, {rt_params.gccn / rt_params.dt * 400.5,  1}},
+          {3.8e-6, {rt_params.gccn / rt_params.dt * 376.9,  1}},
+          {4.0e-6, {rt_params.gccn / rt_params.dt * 265.3,  1}},
+          {4.2e-6, {rt_params.gccn / rt_params.dt * 212.4,  1}},
+          {4.4e-6, {rt_params.gccn / rt_params.dt * 137.8,  1}},
+          {4.6e-6, {rt_params.gccn / rt_params.dt * 121.4,  1}},
+          {4.8e-6, {rt_params.gccn / rt_params.dt * 100.9,  1}},
+          {5.0e-6, {rt_params.gccn / rt_params.dt * 122.2,  1}},
+          {5.2e-6, {rt_params.gccn / rt_params.dt * 50.64,  1}},
+          {5.4e-6, {rt_params.gccn / rt_params.dt * 38.30,  1}},
+          {5.6e-6, {rt_params.gccn / rt_params.dt * 55.47,  1}},
+          {5.8e-6, {rt_params.gccn / rt_params.dt * 21.45,  1}},
+          {6.0e-6, {rt_params.gccn / rt_params.dt * 12.95,  1}},
+          {6.2e-6, {rt_params.gccn / rt_params.dt * 43.23,  1}},
+          {6.4e-6, {rt_params.gccn / rt_params.dt * 26.26,  1}},
+          {6.6e-6, {rt_params.gccn / rt_params.dt * 30.50,  1}},
+          {6.8e-6, {rt_params.gccn / rt_params.dt * 4.385,  1}},
+          {7.0e-6, {rt_params.gccn / rt_params.dt * 4.372,  1}},
+          {7.2e-6, {rt_params.gccn / rt_params.dt * 4.465,  1}},
+          {7.4e-6, {rt_params.gccn / rt_params.dt * 4.395,  1}},
+          {7.6e-6, {rt_params.gccn / rt_params.dt * 4.427,  1}},
+          {7.8e-6, {rt_params.gccn / rt_params.dt * 4.411,  1}},
+          {8.6e-6, {rt_params.gccn / rt_params.dt * 4.522,  1}},
+          {9.0e-6, {rt_params.gccn / rt_params.dt * 4.542,  1}}
         }
       );
+      */
+
+      rt_params.cloudph_opts_init.src_dry_distros.emplace(
+        1.28, // kappa
+        std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+          log(0.8e-6),      // minimum radius  
+          log(10e-6),   // maximum radius
+          rt_params.gccn / rt_params.dt // concenctration multiplier
+        )
+      );
+
+      // GCCN relaxation stuff
+      if(user_params.ccn_relax)
+      {
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+          1.28, // kappa
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+              log(0.8e-6),      // minimum radius  
+              log(10e-6),   // maximum radius
+              rt_params.gccn // concenctration multiplier
+            ),
+            std::make_pair<thrust_real_t>((0.61 + 1.28) / 2., 10000),
+            std::make_pair<thrust_real_t>(0, rt_params.cloudph_opts_init.src_z1)
+            //std::make_pair<thrust_real_t>(0, 700)
+          )
+        );
+      }
     }
    }
 /*  else if(unit_test)

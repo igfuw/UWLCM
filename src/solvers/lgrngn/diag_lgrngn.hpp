@@ -37,6 +37,16 @@ void slvr_lgrngn<ct_params_t>::diag()
   prtcls->diag_precip_rate();
   this->record_aux("precip_rate", prtcls->outbuf());
 
+  // recording 0th mom of rw of rd>=0.8um
+  prtcls->diag_dry_rng(0.7999e-6, 1);
+  prtcls->diag_wet_mom(0);
+  this->record_aux("rd_geq_0.8um_rw_mom0", prtcls->outbuf());
+
+  // recording 0th mom of rw of rd>=0.8um
+  prtcls->diag_dry_rng(0, 0.8e-6);
+  prtcls->diag_wet_mom(0);
+  this->record_aux("rd_lt_0.8um_rw_mom0", prtcls->outbuf());
+
 //    // recording 1st mom of rw of gccns
 //    prtcls->diag_dry_rng(2e-6, 1);
 //    prtcls->diag_wet_mom(1);
@@ -123,6 +133,15 @@ void slvr_lgrngn<ct_params_t>::diag()
   prtcls->diag_wet_mom(3);
   this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
+  prtcls->diag_all();
+  prtcls->diag_accr25();
+  this->record_aux("acc_accr25", prtcls->outbuf());
+
+  prtcls->diag_all();
+  prtcls->diag_acnv25();
+  this->record_aux("acc_acnv25", prtcls->outbuf());
+
+
 //    // recording 0th wet mom of radius of aerosols (r < .5um)
 //    prtcls->diag_wet_rng(0., .5e-6);
 //    prtcls->diag_wet_mom(0);
@@ -149,34 +168,34 @@ void slvr_lgrngn<ct_params_t>::diag()
     this->record_aux("bigkappa_rd_mom0", prtcls->outbuf());    
 */
 
-  // recording 0th wet mom of radius of big rain drops (r>40um)
-  prtcls->diag_wet_rng(40.e-6, 1);
-  prtcls->diag_wet_mom(0);
-  this->record_aux("bigrain_rw_mom0", prtcls->outbuf());
-
-  // recording 1st mom of incloud_time of big rain drops (r>40um)
-  if(params.cloudph_opts_init.diag_incloud_time)
-  {
-    prtcls->diag_wet_rng(40.e-6, 1);
-    prtcls->diag_incloud_time_mom(1);
-    this->record_aux("bigrain_incloud_time_mom1", prtcls->outbuf());
-  }
-
-  // recording 1st mom of kappa of big rain drops (r>40um)
-  prtcls->diag_wet_rng(40.e-6, 1);
-  prtcls->diag_kappa_mom(1);
-  this->record_aux("bigrain_kappa_mom1", prtcls->outbuf());
-
-  // recording 1st mom of rd of big rain drops (r>40um)
-  prtcls->diag_wet_rng(40.e-6, 1);
-  prtcls->diag_dry_mom(1);
-  this->record_aux("bigrain_rd_mom1", prtcls->outbuf());
-
-  // recording 0th mom of rw of big rain drops (r>40um) with kappa > 0.61
-  prtcls->diag_wet_rng(40.e-6, 1);
-  prtcls->diag_kappa_rng_cons(0.61000001, 10);
-  prtcls->diag_wet_mom(0);
-  this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
+//  // recording 0th wet mom of radius of big rain drops (r>40um)
+//  prtcls->diag_wet_rng(40.e-6, 1);
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("bigrain_rw_mom0", prtcls->outbuf());
+//
+//  // recording 1st mom of incloud_time of big rain drops (r>40um)
+//  if(params.cloudph_opts_init.diag_incloud_time)
+//  {
+//    prtcls->diag_wet_rng(40.e-6, 1);
+//    prtcls->diag_incloud_time_mom(1);
+//    this->record_aux("bigrain_incloud_time_mom1", prtcls->outbuf());
+//  }
+//
+//  // recording 1st mom of kappa of big rain drops (r>40um)
+//  prtcls->diag_wet_rng(40.e-6, 1);
+//  prtcls->diag_kappa_mom(1);
+//  this->record_aux("bigrain_kappa_mom1", prtcls->outbuf());
+//
+//  // recording 1st mom of rd of big rain drops (r>40um)
+//  prtcls->diag_wet_rng(40.e-6, 1);
+//  prtcls->diag_dry_mom(1);
+//  this->record_aux("bigrain_rd_mom1", prtcls->outbuf());
+//
+//  // recording 0th mom of rw of big rain drops (r>40um) with kappa > 0.61
+//  prtcls->diag_wet_rng(40.e-6, 1);
+//  prtcls->diag_kappa_rng_cons(0.61000001, 10);
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
 
   // recording requested statistical moments
   {
