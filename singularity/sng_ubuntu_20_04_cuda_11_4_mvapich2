@@ -94,7 +94,7 @@ cd ..
 wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.12/hdf5-1.12.1/src/hdf5-1.12.1.tar.gz
 tar xf hdf5-1.12.1.tar.gz
 cd hdf5-1.12.1
-CXXFLAGS=-w CFLAGS=-w ./configure --enable-parallel --enable-cxx --enable-unsupported --enable-threadsafe
+CXXFLAGS=-w CFLAGS=-w ./configure --enable-parallel --enable-cxx --enable-unsupported --enable-threadsafe --prefix=/usr/local
 make -j4 || cat config.log
 make install
 
