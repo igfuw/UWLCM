@@ -101,3 +101,7 @@ make install
 # include Boost.Odeint fix for Thrust >= 1.10
 git clone -b thrust_1_10_0 --depth=1 git://github.com/lhofmann/odeint.git
 sudo cp -r odeint/include/boost/numeric/odeint/external/thrust/* /usr/local/include/boost/numeric/odeint/external/thrust/ 
+
+# Help linker find Boost installation directory 
+%environment
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
