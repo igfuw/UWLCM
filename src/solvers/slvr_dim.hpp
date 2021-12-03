@@ -64,6 +64,12 @@ class slvr_dim<
   {
       return blitz::safeToReturn(a(idx_t<2>({this->i, rng_t(k, k)})) + 0);
   }
+  
+  void hrzntl_mean(const typename parent_t::arr_t &a, setup::arr_1D_t &res)
+  {
+    for(int k=0; k<this->mem->distmem.grid_size[1]; ++k)
+      res(k) = this->mem->sum(this->rank, a, hrzntl_slice(k), false) / (this->mem->distmem.grid_size[0]);
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
@@ -162,6 +168,12 @@ class slvr_dim<
   auto hrzntl_slice(const typename parent_t::arr_t &a, int k)
   {
       return blitz::safeToReturn(a(idx_t<3>({this->i, this->j, rng_t(k, k)})) + 0);
+  }
+  
+  void hrzntl_mean(const typename parent_t::arr_t &a, setup::arr_1D_t &res)
+  {
+    for(int k=0; k<this->mem->distmem.grid_size[2]; ++k)
+      res(k) = this->mem->sum(this->rank, a, hrzntl_slice(k), false) / (this->mem->distmem.grid_size[0] * this->mem->distmem.grid_size[1]);
   }
 
   void vert_grad_fwd(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)

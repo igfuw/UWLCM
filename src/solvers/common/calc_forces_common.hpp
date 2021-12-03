@@ -72,14 +72,21 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 
     // large-scale horizontal advection
     alpha(ijk).reindex(this->zero) += (*params.th_LS)(this->vert_idx);
+
+    // nudging of mean theta at this level;
+    // TODO: as of now, with MPI mean is calculated separately within each process domain
+//    nudging_mean(ix::th);
+//    auto &diff(this->prof_tmp);
+//    this->mem->barrier(); // ?
+//    if(this->rank == 0)
+//      diff = this->hrzntl_mean(this->state(ix::th)(ijk)) - (*params.th_e);
+    //alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.th_e)(this->vert_idx);
+    //beta(ijk) = - (*this->mem->vab_coeff)(ijk);
   }
   else
     alpha(ijk) = 0.;
 
   beta(ijk) = 0.;
-  // nudging, todo: use some other coeff than vab_coeff
-  //alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.th_e)(this->vert_idx);
-  //beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
 template <class ct_params_t>

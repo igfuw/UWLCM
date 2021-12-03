@@ -63,6 +63,8 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &radiative_flux,
                            &diss_rate; // TODO: move to slvr_sgs to save memory in iles simulations !;
 
+  setup::arr_1D_t th_mean_prof, rv_mean_prof; // profiles with mean th/rv at each level
+
   // precip output
   std::map<cmn::output_t, real_t> puddle;
   const int n_puddle_scalars = cmn::output_names.size();
@@ -269,6 +271,10 @@ class slvr_common : public slvr_dim<ct_params_t>
       {
         // calculate surface wind magnitude, TODO: not needed if there are no surface fluxes
         U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
+
+        // calculate mean th and rv at each level, TODO: needed only if nudging of horizontal mean is done
+        this->hrzntl_mean(this->state(ix::rv), rv_mean_prof);
+        this->hrzntl_mean(this->state(ix::th), th_mean_prof);
 
         // ---- water vapor sources ----
         rv_src();
@@ -535,6 +541,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     k_i.reindexSelf(this->base(this->hrzntl_subdomain));
     r_l = 0.;
     surf_flux_zero = 0.;
+    th_mean_prof.resize(this->vert_rng.length());
+    rv_mean_prof.resize(this->vert_rng.length());
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
