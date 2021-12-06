@@ -184,13 +184,6 @@ namespace setup
         concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
         concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
         concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
-
-        //nudging
-        if(nudging) // Zhou et al. 2018
-          concurr.nudging_coeff = where(index * dz >= 800, 
-            1. / 180.,  // 180s time scale at and above 800m
-            1. / 7200. * pow(sin(3.1419 / 2. * (index * dz) / 800.), 2) // 7200s time scale below 800m + sinusoidal factor = 0 at ground
-            );
   
         // density profile
         concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
@@ -237,6 +230,13 @@ namespace setup
         profs.w_LS = w_LS_fctr()(k * dz);
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
+
+        //nudging
+        if(nudging) // Zhou et al. 2018
+          profs.nudging_coeff = where(k * dz >= 800, 
+            1. / 180.,  // 180s time scale at and above 800m
+            1. / 7200. * pow(sin(3.1419 / 2. * (k * dz) / 800.), 2) // 7200s time scale below 800m + sinusoidal factor = 0 at ground
+            );
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,

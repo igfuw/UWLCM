@@ -45,6 +45,7 @@ class slvr_dim<
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]}); // libcloudphxx requires courants with a halo of 2 in the x direction
   idx_t<2> Cy_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h}); // just fill in with Cz_domain to avoid some asserts
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
+  const int n_cell_per_level = this->mem->distmem.grid_size[0];
 
 
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
@@ -151,6 +152,7 @@ class slvr_dim<
   idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^h, this->mem->grid_size[1], this->mem->grid_size[2]});
   idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1]^h, this->mem->grid_size[2]});
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
+  const int n_cell_per_level = this->mem->distmem.grid_size[0] * this->mem->distmem.grid_size[1];
 
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
   blitz::TinyVector<int, 2> zero_plane = blitz::TinyVector<int, 2>({0,0});

@@ -63,8 +63,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &radiative_flux,
                            &diss_rate; // TODO: move to slvr_sgs to save memory in iles simulations !;
 
-  setup::arr_1D_t th_mean_prof, rv_mean_prof, // profiles with mean th/rv at each level
-                  nudging_coeff;              // profile of the nudging coefficient
+  setup::arr_1D_t th_mean_prof, rv_mean_prof; // profiles with mean th/rv at each level
                                               // NOTE: these profiles hold the same values for all threads (and MPI processes),
                                               //       but each thread has it's own copy. We could have one per MPI process to save memory
 
@@ -551,7 +550,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_zero = 0.;
     th_mean_prof.resize(this->vert_rng.length());
     rv_mean_prof.resize(this->vert_rng.length());
-    nudging_coeff.resize(this->vert_rng.length());
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
