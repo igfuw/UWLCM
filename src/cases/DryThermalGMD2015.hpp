@@ -50,29 +50,29 @@ namespace setup
       }
   
       template <class index_t>
-      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee_global().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nx = concurr.advectee_global().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dx = (X / si::metres) / (nx-1); 
     
-    //    solver.advectee(ix::rv) = r_t()(index * dz); 
-        solver.advectee(ix::u)= 0;// setup::u()(index * dz);
-        solver.advectee(ix::w) = 0;  
+    //    concurr.advectee(ix::rv) = r_t()(index * dz); 
+        concurr.advectee(ix::u)= 0;// setup::u()(index * dz);
+        concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
-        solver.vab_relaxed_state(0) = solver.advectee(ix::u);
-        solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
+        concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
     
         // density profile
-        solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
+        concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
     
         // initial potential temperature
         real_t r0 = 250;
-        solver.advectee(ix::rv) = 1e-3; // some rv, but no actual wet physics
-        solver.advectee(ix::th) = 300. + where(
+        concurr.advectee(ix::rv) = 1e-3; // some rv, but no actual wet physics
+        concurr.advectee(ix::th) = 300. + where(
           // if
           pow(blitz::tensor::i * dx - 4    * r0 , 2) + 
           pow(blitz::tensor::j * dz - 1.04 * r0 , 2) <= pow(r0, 2), 
@@ -139,7 +139,7 @@ namespace setup
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
-      // function expecting a libmpdata solver parameters struct as argument
+      // function expecting a libmpdata concurr parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -148,12 +148,12 @@ namespace setup
         params.dz = params.dj;
       }
   
-      // function expecting a libmpdata++ solver as argument
-      void intcond(typename parent_t::concurr_any_t &solver,
+      // function expecting a libmpdata++ concurr as argument
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
-        this->intcond_hlpr(solver, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, rng_seed, k);
       }
 
       public:
@@ -169,7 +169,7 @@ namespace setup
       using parent_t = DryThermalCommon<case_ct_params_t, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
-      // function expecting a libmpdata solver parameters struct as argument
+      // function expecting a libmpdata concurr parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -179,15 +179,15 @@ namespace setup
         params.dz = params.dk;
       }
 
-      // function expecting a libmpdata++ solver as argument
-      void intcond(typename parent_t::concurr_any_t &solver,
+      // function expecting a libmpdata++ concurr as argument
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
-        this->intcond_hlpr(solver, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, rng_seed, k);
     
-        solver.advectee(ix::v) = 0;
-        solver.vab_relaxed_state(1) = 0;
+        concurr.advectee(ix::v) = 0;
+        concurr.vab_relaxed_state(1) = 0;
       }
 
       public:

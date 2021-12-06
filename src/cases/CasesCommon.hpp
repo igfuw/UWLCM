@@ -6,7 +6,7 @@
 #include <libcloudph++/common/theta_std.hpp>
 #include <libcloudph++/common/theta_dry.hpp>
 
-#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
+//#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
 
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
@@ -138,7 +138,7 @@ namespace setup
     ForceParameters_t ForceParameters;
 
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
-    virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
+    virtual void intcond(concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
     virtual void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
     {
       real_t dz = (Z / si::metres) / (nz-1);

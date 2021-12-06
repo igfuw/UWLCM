@@ -171,32 +171,32 @@ namespace setup
       }
   
       template <class index_t>
-      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
   
-        solver.advectee(ix::rv) = r_t_fctr{}(index * dz); 
-        solver.advectee(ix::u)= u{}(index * dz);
-        solver.advectee(ix::w) = 0;  
+        concurr.advectee(ix::rv) = r_t_fctr{}(index * dz); 
+        concurr.advectee(ix::u)= u{}(index * dz);
+        concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
-        solver.vab_relaxed_state(0) = solver.advectee(ix::u);
-        solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
+        concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
 
         //nudging
         if(nudging) // Zhou et al. 2018
-          solver.nudging_coeff = where(index * dz >= 800, 
+          concurr.nudging_coeff = where(index * dz >= 800, 
             1. / 180.,  // 180s time scale at and above 800m
             1. / 7200. * pow(sin(3.1419 / 2. * (index * dz) / 800.), 2) // 7200s time scale below 800m + sinusoidal factor = 0 at ground
             );
   
         // density profile
-        solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
+        concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
   
         // initial potential temperature
-        solver.advectee(ix::th) = th_std_fctr()(index * dz); 
+        concurr.advectee(ix::th) = th_std_fctr()(index * dz); 
 
         // randomly prtrb tht
         // NOTE: all processes do this, but ultimately only perturbation calculated by MPI rank 0 is used
@@ -205,12 +205,12 @@ namespace setup
           std::uniform_real_distribution<> dis(-0.1, 0.1);
           auto rand = std::bind(dis, gen);
   
-          auto th_global = solver.advectee_global(ix::th);
-          decltype(solver.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
+          auto th_global = concurr.advectee_global(ix::th);
+          decltype(concurr.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
           th_global += prtrb;
           this->make_cyclic(th_global);
-          solver.advectee_global_set(th_global, ix::th);
+          concurr.advectee_global_set(th_global, ix::th);
         }
       }
   
@@ -317,11 +317,11 @@ namespace setup
         params.dz = params.dj;
       }
 
-      void intcond(typename parent_t::concurr_any_t &solver,
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
-        this->intcond_hlpr(solver, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, rng_seed, k);
       };
 
       public:
@@ -356,17 +356,17 @@ namespace setup
         params.dz = params.dk;
       }
 
-      void intcond(typename parent_t::concurr_any_t &solver,
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
-        this->intcond_hlpr(solver, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, rng_seed, k);
   
-        int nz = solver.advectee_global().extent(ix::w);
+        int nz = concurr.advectee_global().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
   
-        solver.advectee(ix::v)= v()(k * dz);
-        solver.vab_relaxed_state(1) = solver.advectee(ix::v);
+        concurr.advectee(ix::v)= v()(k * dz);
+        concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
       void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
