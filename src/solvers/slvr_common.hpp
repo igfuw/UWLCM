@@ -63,7 +63,10 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &radiative_flux,
                            &diss_rate; // TODO: move to slvr_sgs to save memory in iles simulations !;
 
-  setup::arr_1D_t th_mean_prof, rv_mean_prof; // profiles with mean th/rv at each level
+  setup::arr_1D_t th_mean_prof, rv_mean_prof, // profiles with mean th/rv at each level
+                  nudging_coeff;              // profile of the nudging coefficient
+                                              // NOTE: these profiles hold the same values for all threads (and MPI processes),
+                                              //       but each thread has it's own copy. We could have one per MPI process to save memory
 
   // precip output
   std::map<cmn::output_t, real_t> puddle;
@@ -249,6 +252,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void subsidence(const int&);
   void coriolis(const int&);
+  void nudging(const int&);
 
   void update_rhs(
     arrvec_t<typename parent_t::arr_t> &rhs,
@@ -272,9 +276,12 @@ class slvr_common : public slvr_dim<ct_params_t>
         // calculate surface wind magnitude, TODO: not needed if there are no surface fluxes
         U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
 
-        // calculate mean th and rv at each level, TODO: needed only if nudging of horizontal mean is done
-        this->hrzntl_mean(this->state(ix::rv), rv_mean_prof);
-        this->hrzntl_mean(this->state(ix::th), th_mean_prof);
+        // calculate mean th and rv at each level, needed for nudging of the horizontal mean
+        if(params.nudging)
+        {
+          this->hrzntl_mean(this->state(ix::rv), rv_mean_prof);
+          this->hrzntl_mean(this->state(ix::th), th_mean_prof);
+        }
 
         // ---- water vapor sources ----
         rv_src();
@@ -503,6 +510,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     bool vel_subsidence = true; // should subsidence be also applied to velocitiy fields - False eg. in RICO
     bool rc_src, rr_src; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
     bool nc_src, nr_src; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
+    bool nudging = false; // nudging of mean th and rv per level
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
@@ -543,6 +551,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_zero = 0.;
     th_mean_prof.resize(this->vert_rng.length());
     rv_mean_prof.resize(this->vert_rng.length());
+    nudging_coeff.resize(this->vert_rng.length());
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)

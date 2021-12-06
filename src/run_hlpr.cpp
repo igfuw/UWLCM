@@ -92,9 +92,11 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   else if (user_params.model_case == "dry_thermal")
     case_ptr.reset(new setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "dycoms_rf01")
-    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims, false>()); 
   else if (user_params.model_case == "dycoms_rf02")
-    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
+    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims, false>()); 
+  else if (user_params.model_case == "dycoms_rf02_nudging")
+    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims, true>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
   else if (user_params.model_case == "rico11")
@@ -105,9 +107,9 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   else if (user_params.model_case == "dry_thermal_api_test")
     case_ptr.reset(new setup::api_test<setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>>()); 
   else if (user_params.model_case == "dycoms_rf01_api_test")
-    case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>>()); 
+    case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims, false>>()); 
   else if (user_params.model_case == "dycoms_rf02_api_test")
-    case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>>()); 
+    case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims, false>>()); 
   else if (user_params.model_case == "lasher_trapp_api_test")
     case_ptr.reset(new setup::api_test<setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>>());
   else if (user_params.model_case == "rico11_api_test")

@@ -44,7 +44,7 @@ namespace setup
       return z < z_i[RF - 1] ? rt_below : rt_above;
     }
   
-    template<class case_ct_params_t, int RF, int n_dims>
+    template<class case_ct_params_t, int RF, int n_dims, bool nudging>
     class DycomsCommon : public Anelastic<case_ct_params_t, n_dims>
     {
       static_assert(RF == 1 || RF == 2,
@@ -164,6 +164,8 @@ namespace setup
         params.friction = true;
         params.coriolis = true;
         params.radiation = true;
+        if(nudging)
+          params.nudging = true;
 
         this->setopts_sgs(params);
       }
@@ -182,6 +184,13 @@ namespace setup
         solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
         solver.vab_relaxed_state(0) = solver.advectee(ix::u);
         solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+
+        //nudging
+        if(nudging) // Zhou et al. 2018
+          solver.nudging_coeff = where(index * dz >= 800, 
+            1. / 180.,  // 180s time scale at and above 800m
+            1. / 7200. * pow(sin(3.1419 / 2. * (index * dz) / 800.), 2) // 7200s time scale below 800m + sinusoidal factor = 0 at ground
+            );
   
         // density profile
         solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
@@ -290,13 +299,13 @@ namespace setup
       }
     };
     
-    template<class case_ct_params_t, int RF, int n_dims>
+    template<class case_ct_params_t, int RF, int n_dims, bool nudging>
     class Dycoms;
 
-    template<class case_ct_params_t, int RF>
-    class Dycoms<case_ct_params_t, RF, 2> : public DycomsCommon<case_ct_params_t, RF, 2>
+    template<class case_ct_params_t, int RF, bool nudging>
+    class Dycoms<case_ct_params_t, RF, 2, nudging> : public DycomsCommon<case_ct_params_t, RF, 2, nudging>
     {
-      using parent_t = DycomsCommon<case_ct_params_t, RF, 2>;
+      using parent_t = DycomsCommon<case_ct_params_t, RF, 2, nudging>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -322,10 +331,10 @@ namespace setup
       }
     };
 
-    template<class case_ct_params_t, int RF>
-    class Dycoms<case_ct_params_t, RF, 3> : public DycomsCommon<case_ct_params_t, RF, 3>
+    template<class case_ct_params_t, int RF, bool nudging>
+    class Dycoms<case_ct_params_t, RF, 3, nudging> : public DycomsCommon<case_ct_params_t, RF, 3, nudging>
     {
-      using parent_t = DycomsCommon<case_ct_params_t, RF, 3>;
+      using parent_t = DycomsCommon<case_ct_params_t, RF, 3, nudging>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
       // southerly wind

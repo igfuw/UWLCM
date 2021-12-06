@@ -6,6 +6,7 @@
 #include "../../forcings/coriolis.hpp"
 #include "../../forcings/radiation.hpp"
 #include "../../forcings/subsidence.hpp"
+#include "../../forcings/nudging.hpp"
 #include "../../forcings/surface_fluxes.hpp"
 
 // common forcing functions
@@ -26,14 +27,15 @@ void slvr_common<ct_params_t>::rv_src()
 
     // large-scale horizontal advection
     alpha(ijk).reindex(this->zero) += (*params.rv_LS)(this->vert_idx);
+
+    // per-level nudging of the mean
+    nudging(ix::rv);
+    alpha(ijk) += F(ijk);
   }
   else
     alpha(ijk) = 0.;
 
   beta(ijk) = 0.;
-  // nudging, todo: use some other coeff than vab_coeff
-//  alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
-//  beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
 template <class ct_params_t>
@@ -73,15 +75,9 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     // large-scale horizontal advection
     alpha(ijk).reindex(this->zero) += (*params.th_LS)(this->vert_idx);
 
-    // nudging of mean theta at this level;
-    // TODO: as of now, with MPI mean is calculated separately within each process domain
-//    nudging_mean(ix::th);
-//    auto &diff(this->prof_tmp);
-//    this->mem->barrier(); // ?
-//    if(this->rank == 0)
-//      diff = this->hrzntl_mean(this->state(ix::th)(ijk)) - (*params.th_e);
-    //alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.th_e)(this->vert_idx);
-    //beta(ijk) = - (*this->mem->vab_coeff)(ijk);
+    // per-level nudging of the mean
+    nudging(ix::th);
+    alpha(ijk) += F(ijk);
   }
   else
     alpha(ijk) = 0.;
