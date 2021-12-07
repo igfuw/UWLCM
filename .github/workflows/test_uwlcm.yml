@@ -100,4 +100,4 @@ jobs:
     - name: configure and make UWLCM
       working-directory: ${{ github.workspace }}/build
       run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c "cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} && cmake --build build --config ${{matrix.build_type}} -j4"
-uild_type}}_mpi_${{matrix.mpi}}_tar
+
