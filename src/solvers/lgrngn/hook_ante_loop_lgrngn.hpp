@@ -141,6 +141,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("exact_sstp_cond", params.cloudph_opts_init.exact_sstp_cond);  
     this->record_aux_const("diag_incloud_time", params.cloudph_opts_init.diag_incloud_time);  
     this->record_aux_const("rng_seed", params.cloudph_opts_init.rng_seed);  
+    this->record_aux_const("rng_seed_init", params.cloudph_opts_init.rng_seed_init);  
     this->record_aux_const("kernel", params.cloudph_opts_init.kernel);  
     this->record_aux_const("terminal_velocity", params.cloudph_opts_init.terminal_velocity);  
     this->record_aux_const("RH_formula", params.cloudph_opts_init.RH_formula);  

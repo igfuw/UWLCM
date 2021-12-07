@@ -180,7 +180,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p));
   }
   
-  case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed);
+  case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed_init);
 
   // setup panic pointer and the signal handler
   panic = concurr->panic_ptr();

@@ -59,11 +59,13 @@ int main(int argc, char** argv)
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
       ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, lasher_trapp, ICMW2020_cc")
+      //("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, lasher_trapp")
       ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
       ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
       ("nt", po::value<int>()->default_value(3600) , "timestep count")
       ("rng_seed", po::value<int>()->default_value(0) , "rng seed, 0 for random")
+      ("rng_seed_init", po::value<int>()->default_value(0) , "rng seed for initial conditions, 0 for the same as rng_seed")
       ("dt", po::value<setup::real_t>()->required() , "timestep length")
       ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>(), "output rate (timestep interval)")
@@ -131,7 +133,9 @@ int main(int argc, char** argv)
       std::random_device rd;
       user_params.rng_seed = rd();
     }
-    std::cout << "rng seed: " << user_params.rng_seed << std::endl;
+    user_params.rng_seed_init = vm["rng_seed_init"].as<int>();
+    if(user_params.rng_seed_init == 0) 
+      user_params.rng_seed_init = user_params.rng_seed;
 
     //handling timestep length
     user_params.dt = vm["dt"].as<setup::real_t>();
@@ -166,6 +170,8 @@ int main(int argc, char** argv)
 #if defined(UWLCM_DISABLE_ILES)
     if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
 #endif
+
+    if(piggy && sgs) throw std::runtime_error("SGS does not work in a piggybacker run");
 
     // set aerosol params to user_params data structure
     user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;

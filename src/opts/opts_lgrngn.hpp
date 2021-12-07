@@ -100,9 +100,6 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
 
-  std::cout << "sd_const_multi: " << rt_params.cloudph_opts_init.sd_const_multi <<std::endl;
-  std::cout << "vm[sd_const_multi]: " << vm["sd_const_multi"].as<double>() <<std::endl;
-
   std::string adve_scheme_str = vm["adve_scheme"].as<std::string>();
   if (adve_scheme_str == "euler") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
   else if (adve_scheme_str == "implicit") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
@@ -266,6 +263,7 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sd_conc_large_tail = vm["sd_conc_large_tail"].as<bool>();
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
+  rt_params.cloudph_opts_init.rng_seed_init = user_params.rng_seed_init;
 
   // coalescence kernel choice
   if(!vm["turb_coal"].as<bool>())

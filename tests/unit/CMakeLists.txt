@@ -5,8 +5,8 @@ endif()
 add_executable(api_test api_test.cpp)
 target_compile_features(api_test PRIVATE cxx_std_11)
 
-add_test(api_test_iles api_test ${CMAKE_BINARY_DIR})
-add_test(api_test_smg  api_test ${CMAKE_BINARY_DIR} " --sgs=1 ")
+add_test(api_test_iles api_test ${CMAKE_BINARY_DIR} 1)
+add_test(api_test_smg  api_test ${CMAKE_BINARY_DIR} 0 " --sgs=1 ")
 
 add_test(api_test_iles_diff bash -c " 
   cd ${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/ && find ./* -maxdepth 1 -type d -print0 |            
