@@ -33,7 +33,7 @@ jobs:
         path: libcloudphxx
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@v0.2-beta
+      uses: igfuw/libcloudphxx_build@v0.2
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
