@@ -44,14 +44,14 @@ jobs:
         cxx: ${{ matrix.cxx }}
 
     # tar build dir before upload as artifact to retain permission and case-sensitive names
-    - name: Compress libcloudph++ build
-      run: tar -cvf build.tar libcloudphxx/build
+    - name: Compress libcloudph++ dir
+      run: tar -cvf libcloudphxx.tar libcloudphxx
 
-    - name: Upload libcloudph++ build
+    - name: Upload libcloudph++ dir
       uses: actions/upload-artifact@v2
       with:
-        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
-        path: build.tar
+        name: libcloud_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        path: libcloudphxx.tar
 
   unit:
     needs: build_libcloudphxx
@@ -68,13 +68,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Download libcloudph++ build
+    - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        name: libcloud_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
 
-    - name: Decompress libcloudph++ build
-      run: tar -xvf build.tar
+    - name: Decompress libcloudph++ dir
+      run: tar -xvf libcloudphxx.tar
 
     - name: Install libcloudph++
       working-directory: ${{ github.workspace }}/libcloudphxx
