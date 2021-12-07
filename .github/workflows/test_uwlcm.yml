@@ -1,0 +1,109 @@
+name: Test UWLCM
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build_libcloudphxx:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        name: ["no_CUDA"]
+        build_type: ["RelWithDebInfo"]
+        mpi: ["none", "mvapich2"]
+        include:
+        - name: "no_CUDA"
+          disable_cuda: true
+          threads: 4
+        - mpi: "none"
+          tag: "ubuntu_20_04_cuda_11_4"
+          cxx: "g++"
+        - mpi: "mvapich2"
+          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          cxx: "mpic++"
+
+    steps:
+    - name: checkout libcloudph++ repo
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/libcloudphxx
+        path: libcloudphxx
+
+    - name: build libcloudph++
+      uses: igfuw/libcloudphxx_build@v0.2-beta
+      with:
+        disable_cuda: ${{matrix.disable_cuda}}
+        build_type: ${{matrix.build_type}}
+        threads: ${{matrix.threads}}
+        path: ${{ github.workspace }}/libcloudphxx
+        install_prefix: ${{ github.workspace }}/installed
+        tag: ${{ matrix.tag }}
+        cxx: ${{ matrix.cxx }}
+
+    # tar build dir before upload as artifact to retain permission and case-sensitive names
+    - name: Compress libcloudph++ build
+      run: tar -cvf build.tar libcloudphxx/build
+
+    - name: Upload libcloudph++ build
+      uses: actions/upload-artifact@v2
+      with:
+        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        path: build.tar
+
+  unit:
+    needs: build_libcloudphxx
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build_type: ["RelWithDebInfo"]
+        mpi: ["none"]
+        sgs: ["iles", "smg"]
+        include:
+        - mpi: "none"
+          tag: "ubuntu_20_04_cuda_11_4"
+          cxx: "g++"
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download libcloudph++ build
+      uses: actions/download-artifact@v2
+      with:
+        name: libcloud_build_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+
+    - name: Decompress libcloudph++ build
+      run: tar -xvf build.tar
+
+    - name: Install libcloudph++
+      run: sudo cmake --install build
+
+    - name: checkout libmpdata++ repo
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/libmpdataxx
+        path: libmpdataxx
+
+    - name: Install libmpdata++
+      uses: igfuw/libmpdataxx_install@v0.4
+      with:
+        build_type: ${{matrix.build_type}}
+        threads: 4
+        path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        install_prefix: ${{ github.workspace }}/installed
+        tag: ${{ matrix.tag }}
+        cxx: ${{ matrix.cxx }}
+
+    - run: mkdir ${{ github.workspace }}/build
+
+    - name: configure and make UWLCM
+      working-directory: ${{ github.workspace }}/build
+      run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c "cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} && cmake --build build --config ${{matrix.build_type}} -j4"
+
+# Alternative command, but it does not run tests. Need to specify --test-command, but to what?
+#    - name: configure,make and run unit tests #all in one call, because singularity always creates a sandbox, what takes ca. 1 min. TODO: fix this (newer singularity from apt?)
+#      working-directory: ${{ github.workspace }}/tests/unit/build
+#      run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI ctest --build-and-test .. . --build-generator "Unix Makefiles"  -LE SlowWithMpi --build-options  "-DCMAKE_CXX_COMPILER=${{matrix.cxx}}" "-DCMAKE_BUILD_TYPE=${{matrix.build_type}}" || cat Testing/Temporary/LastTest.log /
+
+
