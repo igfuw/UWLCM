@@ -77,7 +77,7 @@ jobs:
       run: tar -xvf build.tar
 
     - name: Install libcloudph++
-      working-directory: ${{ github.workspace }}/libcloudphxx/build
+      working-directory: ${{ github.workspace }}/libcloudphxx
       run: sudo cmake --install build
 
     - name: checkout libmpdata++ repo
