@@ -7,6 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
+  # TODO: cache built libcloudphxx? Use libcloudphxx git revision as name?
   build_libcloudphxx:
     runs-on: ubuntu-20.04
     strategy:
@@ -67,8 +68,10 @@ jobs:
           cxx: "g++"
         - sgs: "iles"
           cmake_flags: "-DUWLCM_DISABLE='SGS'"
+          ctests: "api_test_iles"
         - sgs: "smg"
           cmake_flags: "-DUWLCM_DISABLE='ILES'"
+          ctests: "api_test_smg"
     steps:
     - uses: actions/checkout@v2
 
@@ -109,5 +112,14 @@ jobs:
            cmake --build build --config ${{matrix.build_type}} -j2 &&
            cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++ ${{matrix.cmake_flags}} -DUWLCM_TIMING=1 && 
            cmake --build build --config ${{matrix.build_type}} -j2;
+           "
+
+    - name: configure make and run unit tests
+      working-directory: ${{ github.workspace }}
+      run: VERBOSE=1 OMP_NUM_THREADS=1 singularity exec $SI bash -c "
+           cd ../tests && mkdir build &&
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} &&
+           cmake --build build --config ${{matrix.build_type}} -j2 &&
+           cd unit && ctest -R ${{matrix.ctests}} || cat Testing/Temporary/LastTest.log /
            "
 
