@@ -65,6 +65,10 @@ jobs:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
           cxx: "g++"
+        - sgs: "iles"
+          cmake_flags: "-DUWLCM_DISABLE='SGS'"
+        - sgs: "smg"
+          cmake_flags: "-DUWLCM_DISABLE='ILES'"
     steps:
     - uses: actions/checkout@v2
 
@@ -100,5 +104,10 @@ jobs:
 
     - name: configure and make UWLCM
       working-directory: ${{ github.workspace }}
-      run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c "cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++  && cmake --build build --config ${{matrix.build_type}} -j4"
+      run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c ";
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++ ${{matrix.cmake_flags}} && 
+           cmake --build build --config ${{matrix.build_type}} -j2 &&
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++ ${{matrix.cmake_flags}} -DUWLCM_TIMING=1 && 
+           cmake --build build --config ${{matrix.build_type}} -j2;
+           "
 
