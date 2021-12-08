@@ -45,7 +45,7 @@ jobs:
 
     # tar build dir before upload as artifact to retain permission and case-sensitive names
     - name: Compress libcloudph++ dir
-      run: tar -cvf libcloudphxx.tar libcloudphxx
+      run: tar -cvf libcloudphxx.tar libcloudphxx/build libcloudphxx/include
 
     - name: Upload libcloudph++ dir
       uses: actions/upload-artifact@v2
