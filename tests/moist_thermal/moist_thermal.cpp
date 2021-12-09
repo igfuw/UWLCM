@@ -23,6 +23,6 @@ int main(int ac, char** av)
     notice_macro("about to call: " << cmd.str())
 
     if (EXIT_SUCCESS != system(cmd.str().c_str()))
-      error_macro("model run failed: " << cmd.str())
+      error_macro("model run failed: " << cmd.str() << " Make sure that UWLCM is built with the ABS libmpdata++ option, otherwise the test is most likely to fail")
   }
 }
