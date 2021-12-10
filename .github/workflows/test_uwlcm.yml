@@ -10,7 +10,7 @@ jobs:
   print_ref:
     runs-on: ubuntu-20.04
     steps:
-    - run: echo ${{events.github.ref}}
+    - run: echo ${{github.ref}}
 #  call_test_uwlcm_hlpr:
 #    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{events.github.ref}}
 #      with:
