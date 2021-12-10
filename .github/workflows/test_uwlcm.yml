@@ -188,23 +188,23 @@ jobs:
         repository: igfuw/UWLCM_plotting
         path: UWLCM_plotting
 
-    - name: configure and make drawbicyc
-      working-directory: ${{ github.workspace }}/UWLCM_plotting/drawbicyc
+    - name: configure and make UWLCM_plotters
+      working-directory: ${{ github.workspace }}/UWLCM_plotting/UWLCM_plotters
       run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c "
            mkdir build &&
            cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -DUWLCM_DIR=${{ github.workspace }}/installed/share/UWLCM  -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed && 
            cmake --build build --config ${{matrix.build_type}} -j2
            "
 
-    - name: Install drawbicyc
-      working-directory: ${{ github.workspace }}/UWLCM_plotting/drawbicyc
+    - name: Install UWLCM_plotters
+      working-directory: ${{ github.workspace }}/UWLCM_plotting/UWLCM_plotters
       run: sudo cmake --install build
 
     - name: configure make and run moist thermal test
       working-directory: ${{ github.workspace }}
       run: VERBOSE=1 OMP_NUM_THREADS=6 singularity exec $SI bash -c "
            cd tests && mkdir build &&
-           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Ddrawbicyc_DIR=${{ github.workspace }}/installed/share/drawbicyc &&
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -DUWLCM_plotters_DIR=${{ github.workspace }}/installed/share/UWLCM_plotters &&
            cmake --build build --config ${{matrix.build_type}} -j2 &&
            ctest -R moist_thermal || cat Testing/Temporary/LastTest.log /
            "
