@@ -38,8 +38,8 @@ jobs:
     - run: echo ${{github.event.pull_request.head.repo.full_name}}
     - run: echo ${{github.event.pull_request.head.repo.full_name}}/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}} # call workflow file from the head of the PR
 
-#  call_test_uwlcm_hlpr:
-#    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.ref}}
+  call_test_uwlcm_hlpr:
+    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
 #    uses:  ${{github.event.pull_request.head.repo.full_name}}/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}} # call workflow file from the head of the PR
 #      with:
 #        UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
