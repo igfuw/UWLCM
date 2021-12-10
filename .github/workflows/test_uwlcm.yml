@@ -7,8 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  runs-on: ubuntu-20.04
   print_ref:
+    runs-on: ubuntu-20.04
     steps:
     - run: echo ${{events.github.ref}}
 #  call_test_uwlcm_hlpr:
