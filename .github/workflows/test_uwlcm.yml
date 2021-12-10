@@ -7,13 +7,13 @@ on:
     branches: [ master ]
 
 jobs:
-  print_ref:
-    runs-on: ubuntu-20.04
-    steps:
-    - run: echo ${{github.ref}}
-#  call_test_uwlcm_hlpr:
-#    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{events.github.ref}}
-#      with:
-#        UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
-#        libcloudphxx_sha: git rev-parse https://github.com/igfuw/libcloudphxx
-#        libmpdataxx_sha: git rev-parse https://github.com/igfuw/libmpdataxx
+#  print_ref:
+#    runs-on: ubuntu-20.04
+#    steps:
+#    - run: echo ${{github.ref}}
+  call_test_uwlcm_hlpr:
+    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.ref}}
+      with:
+        UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
+        libcloudphxx_sha: git rev-parse https://github.com/igfuw/libcloudphxx
+        libmpdataxx_sha: git rev-parse https://github.com/igfuw/libmpdataxx
