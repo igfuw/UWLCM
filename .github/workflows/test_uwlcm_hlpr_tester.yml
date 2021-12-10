@@ -1,0 +1,44 @@
+name: Test UWLCM helper
+
+on:
+  workflow_call:
+    inputs:
+      libcloudphxx_sha:
+        required: true
+        type: string
+      libmpdataxx_sha:
+        required: true
+        type: string
+      UWLCM_sha:
+        required: true
+        type: string
+
+jobs:
+  # TODO: cache built libcloudphxx? Use libcloudphxx git revision as name?
+  build_libcloudphxx:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        name: ["no_CUDA"]
+        build_type: ["RelWithDebInfo"]
+        mpi: ["none", "mvapich2"]
+        include:
+        - name: "no_CUDA"
+          disable_cuda: true
+          threads: 4
+        - mpi: "none"
+          tag: "ubuntu_20_04_cuda_11_4"
+          cxx: "g++"
+        - mpi: "mvapich2"
+          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          cxx: "mpic++"
+
+    steps:
+    - name: echo libcloud sha
+      run: echo ${{input.libcloudphxx_sha}}
+
+    - name: echo libmpdata sha
+      run: echo ${{input.libmpdataxx_sha}}
+
+    - name: echo uwlcm sha
+      run: echo ${{input.uwlcm_sha}}
