@@ -6,8 +6,8 @@
 #include <sstream> // std::ostringstream
 
 #include "common.hpp"
-#include <drawbicyc/PlotterMicro.hpp>
-#include <drawbicyc/common_filters.hpp>
+#include <UWLCM_plotters/PlotterMicro.hpp>
+#include <UWLCM_plotters/common_filters.hpp>
 
 using barr1d = blitz::Array<double, 1>;
 

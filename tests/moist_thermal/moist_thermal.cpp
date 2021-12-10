@@ -6,7 +6,7 @@
 #include <cstdlib> // system()
 #include <sstream> // std::ostringstream
 
-#include <drawbicyc/notice_macros.hpp>
+#include <UWLCM_plotters/notice_macros.hpp>
 #include "common.hpp"
 
 using std::ostringstream;

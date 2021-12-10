@@ -1,5 +1,6 @@
 add_executable(moist_thermal moist_thermal.cpp)
 target_compile_features(moist_thermal PRIVATE cxx_std_11)
+target_link_libraries(moist_thermal PRIVATE UWLCM_plotters)
 
 if(USE_MPI)
   add_test(NAME moist_thermal COMMAND moist_thermal "${libmpdataxx_MPIRUN} -np 2 ${CMAKE_BINARY_DIR}") 
@@ -18,5 +19,7 @@ endif()
 target_link_libraries(moist_thermal_diff PRIVATE ${HDF5_LIBRARIES})
 target_include_directories(moist_thermal_diff PUBLIC ${HDF5_INCLUDE_DIRS})
 target_compile_features(moist_thermal_diff PRIVATE cxx_std_11)
+
+target_link_libraries(moist_thermal_diff PRIVATE UWLCM_plotters)
 
 add_test(moist_thermal_diff moist_thermal_diff)
