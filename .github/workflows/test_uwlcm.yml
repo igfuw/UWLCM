@@ -32,10 +32,10 @@ jobs:
     steps:
     - run: echo ${{github.repository_owner}}
 
-  print_all:
+  print_repo_fn:
     runs-on: ubuntu-20.04
     steps:
-    - run: echo ${{github}}
+    - run: echo ${{github.event.pull_request.head.repo.full_name}}
 
 #  call_test_uwlcm_hlpr:
 #    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.ref}}
