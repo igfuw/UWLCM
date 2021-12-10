@@ -23,9 +23,17 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - run: echo ${{github.sha}}
+  print_repository:
+    runs-on: ubuntu-20.04
+    steps:
+    - run: echo ${{github.repository}}
+  print_repository_owner:
+    runs-on: ubuntu-20.04
+    steps:
+    - run: echo ${{github.repository_owner}}
 #  call_test_uwlcm_hlpr:
 #    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.ref}}
-#    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@GA
+#    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}}
 #      with:
 #        UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
 #        libcloudphxx_sha: git rev-parse https://github.com/igfuw/libcloudphxx
