@@ -40,8 +40,8 @@ jobs:
 
   call_test_uwlcm_hlpr:
     uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr_tester.yml@master
-      with:
-        UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
+#      with:
+#        UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
 #        libcloudphxx_sha: "master" 
 #        libmpdataxx_sha:  "master"
 
