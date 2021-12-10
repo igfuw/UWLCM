@@ -12,8 +12,9 @@ jobs:
 #    steps:
 #    - run: echo ${{github.ref}}
   call_test_uwlcm_hlpr:
-    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.ref}}
-      with:
-        UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
-        libcloudphxx_sha: git rev-parse https://github.com/igfuw/libcloudphxx
-        libmpdataxx_sha: git rev-parse https://github.com/igfuw/libmpdataxx
+#    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.ref}}
+    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@refs/pull/132/merge
+#      with:
+#        UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
+#        libcloudphxx_sha: git rev-parse https://github.com/igfuw/libcloudphxx
+#        libmpdataxx_sha: git rev-parse https://github.com/igfuw/libmpdataxx
