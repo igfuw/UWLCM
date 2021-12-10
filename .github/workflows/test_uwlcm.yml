@@ -8,7 +8,7 @@ on:
 
 jobs:
   call_test_uwlcm_hlpr:
-    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml
+    uses: test_uwlcm_hlpr.yml
       with:
         UWLCM_sha: ${{ events.github.sha }} # merge PR SHA
         libcloudphxx_sha: git rev-parse https://github.com/igfuw/libcloudphxx
