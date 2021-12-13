@@ -1,3 +1,21 @@
+############################################################################################
+# MPI - detecting if the C++ compiler is actually an MPI wrapper
+
+set(msg "Detecting if the compiler is an MPI wrapper...")
+message(STATUS "${msg}")
+execute_process(COMMAND ${CMAKE_CXX_COMPILER} "-show" RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_QUIET)
+if (status EQUAL 0 AND output MATCHES "mpi")
+  set(USE_MPI TRUE)
+else()
+  set(USE_MPI FALSE)
+endif()
+message(STATUS "${msg} - ${USE_MPI}")
+unset(msg)
+unset(status)
+unset(output)
+
+############################################################################################
+
 add_executable(moist_thermal moist_thermal.cpp)
 target_compile_features(moist_thermal PRIVATE cxx_std_11)
 target_link_libraries(moist_thermal PRIVATE UWLCM_plotters)
