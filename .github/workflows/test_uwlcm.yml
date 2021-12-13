@@ -39,8 +39,14 @@ jobs:
 #    - run: echo ${{github.event.pull_request.head.repo.full_name}}/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}} # call workflow file from the head of the PR
 
   call_test_uwlcm_hlpr:
-#    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
-    uses: ${{ github.event.pull_request.head.repo.full_name }}/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}}
+####################
+#  use the reusable workflow version from the PR code, doesn't work
+#  TODO: fix this so that changes to the workflow proposed by a PR are tested...
+#    uses: ${{ github.event.pull_request.head.repo.full_name }}/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}}
+####################
+#  temp: we use the workflow from the master branch of the igfuw/uwlcm repo
+    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
+####################
     with:
       UWLCM_sha: ${{ github.sha }} # merge PR SHA
       libcloudphxx_sha: "master" 
