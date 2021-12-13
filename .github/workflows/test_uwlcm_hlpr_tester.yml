@@ -34,11 +34,11 @@ jobs:
     #      cxx: "mpic++"
 
     steps:
-    - name: echo libcloud sha
-      run: echo ${{input.libcloudphxx_sha}}
-
-    - name: echo libmpdata sha
-      run: echo ${{input.libmpdataxx_sha}}
-
-    - name: echo uwlcm sha
-      run: echo ${{input.uwlcm_sha}}
+      - name: echo libcloud sha
+        run: echo ${{inputs.libcloudphxx_sha}}
+  
+      - name: echo libmpdata sha
+        run: echo ${{inputs.libmpdataxx_sha}}
+  
+      - name: echo uwlcm sha
+        run: echo ${{inputs.uwlcm_sha}}
