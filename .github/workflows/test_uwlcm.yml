@@ -7,41 +7,10 @@ on:
     branches: [ master ]
 
 jobs:
-#  print_head_ref:
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - run: echo ${{github.head_ref}}
-#  print_ref:
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - run: echo ${{github.ref}}
-#  print_ref_name:
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - run: echo ${{github.ref_name}}
-#  print_sha:
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - run: echo ${{github.sha}}
-#  print_repository:
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - run: echo ${{github.repository}}
-#  print_repository_owner:
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - run: echo ${{github.repository_owner}}
-#
-#  print_repo_fn:
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - run: echo ${{github.event.pull_request.head.repo.full_name}}
-#    - run: echo ${{github.event.pull_request.head.repo.full_name}}/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}} # call workflow file from the head of the PR
-
   call_test_uwlcm_hlpr:
 ####################
 #  use the reusable workflow version from the PR code, doesn't work
-#  TODO: fix this so that changes to the workflow proposed by a PR are tested...
+#  TODO: fix this so that changes to test_uwlcm_hlpr.yml proposed by a PR are tested...
 #    uses: ${{ github.event.pull_request.head.repo.full_name }}/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}}
 ####################
 #  temp: we use the workflow from the master branch of the igfuw/uwlcm repo
@@ -51,7 +20,3 @@ jobs:
       UWLCM_sha: ${{ github.sha }} # merge PR SHA
       libcloudphxx_sha: "master" 
       libmpdataxx_sha: "master"
-
-       # libcloudphxx_sha: git rev-parse https://github.com/igfuw/libcloudphxx
-       # libmpdataxx_sha: git rev-parse https://github.com/igfuw/libmpdataxx
-#
