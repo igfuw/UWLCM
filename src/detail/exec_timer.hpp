@@ -54,7 +54,11 @@ class exec_timer : public solver_t
     parent_t::hook_ante_loop(nt);
     this->mem->barrier();
     if (this->rank == 0) 
+    {
       tbeg_loop = parent_t::clock::now();
+      trecord_all = parent_t::timer::zero(); // reset to 0, because we only want record all done in loop, not the one in ante_loop 
+      tbeg_step = parent_t::clock::now(); // init tbeg_step, TODO: better to do it in the first call to get_step_time
+    }
     this->mem->barrier();
   }
 
