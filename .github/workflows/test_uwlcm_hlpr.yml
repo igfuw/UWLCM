@@ -59,7 +59,7 @@ jobs:
     - name: Upload libcloudph++ dir
       uses: actions/upload-artifact@v2
       with:
-        name: libcloud_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_tar
         path: libcloudphxx.tar
 
   unit:
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        build_type: ["RelWithDebInfoPortable"]
+        build_type: ["RelWithDebInfo"]
         mpi: ["none"]
         sgs: ["iles", "smg"]
         disable_cuda: ["true"]
@@ -109,7 +109,7 @@ jobs:
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_tar
 
     - name: Decompress libcloudph++ dir
       run: tar -xvf libcloudphxx.tar
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        build_type: ["RelWithDebInfoPortable"]
+        build_type: ["RelWithDebInfo"]
         mpi: ["none", "mvapich2"]
         disable_cuda: ["true"]
         include:
@@ -199,7 +199,7 @@ jobs:
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_tar
 
     - name: Decompress libcloudph++ dir
       run: tar -xvf libcloudphxx.tar
