@@ -67,10 +67,11 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        name: ["no_CUDA"]
         build_type: ["RelWithDebInfo"]
         mpi: ["none"]
         sgs: ["iles", "smg"]
+        disable_cuda: ["true"]
+        threads: 4
         include:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
@@ -81,9 +82,6 @@ jobs:
         - sgs: "smg"
           cmake_flags: "-DUWLCM_DISABLE='ILES'"
           ctests: "api_test_smg"
-        - name: "no_CUDA"
-          disable_cuda: true
-          threads: 4
     steps:
     - name: checkout UWLCM 
       uses: actions/checkout@v2
@@ -132,7 +130,7 @@ jobs:
       uses: igfuw/libmpdataxx_install@v0.4
       with:
         build_type: ${{matrix.build_type}}
-        threads: 4
+        threads: ${{ matrix.threads}}
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
@@ -163,9 +161,10 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        name: ["no_CUDA"]
         build_type: ["RelWithDebInfo"]
         mpi: ["none", "mvapich2"]
+        disable_cuda: ["true"]
+        threads: 4
         include:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
@@ -173,9 +172,6 @@ jobs:
         - mpi: "mvapich2"
           tag: "ubuntu_20_04_cuda_11_4_mvapich2"
           cxx: "mpic++"
-        - name: "no_CUDA"
-          disable_cuda: true
-          threads: 4
 
     steps:
     - name: checkout UWLCM 
@@ -225,7 +221,7 @@ jobs:
       uses: igfuw/libmpdataxx_install@v0.4
       with:
         build_type: ${{matrix.build_type}}
-        threads: 4
+        threads: ${{matrix.threads}}
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
