@@ -149,9 +149,9 @@ jobs:
       working-directory: ${{ github.workspace }}
       run: VERBOSE=1 OMP_NUM_THREADS=1 singularity exec $SI bash -c "
            cd tests && mkdir build &&
-           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} &&
-           cmake --build build --config ${{matrix.build_type}} -j2 &&
-           cd unit && ctest -R ${{matrix.ctests}} || cat Testing/Temporary/LastTest.log /
+           cmake -B build -DCMAKE_CXX_COMPILER=${{matrix.cxx}} &&
+           cmake --build build -j2 &&
+           cd build && ctest -R ${{matrix.ctests}} || cat Testing/Temporary/LastTest.log /
            "
 
   moist_thermal:
