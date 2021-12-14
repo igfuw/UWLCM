@@ -71,7 +71,6 @@ jobs:
         mpi: ["none"]
         sgs: ["iles", "smg"]
         disable_cuda: ["true"]
-        threads: 4
         include:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
@@ -101,7 +100,7 @@ jobs:
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
-        threads: ${{matrix.threads}}
+        threads: 4
         path: ${{ github.workspace }}/libcloudphxx
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
@@ -130,7 +129,7 @@ jobs:
       uses: igfuw/libmpdataxx_install@v0.4
       with:
         build_type: ${{matrix.build_type}}
-        threads: ${{ matrix.threads}}
+        threads: 4
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
@@ -164,7 +163,6 @@ jobs:
         build_type: ["RelWithDebInfo"]
         mpi: ["none", "mvapich2"]
         disable_cuda: ["true"]
-        threads: 4
         include:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
@@ -192,7 +190,7 @@ jobs:
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
-        threads: ${{matrix.threads}}
+        threads: 4
         path: ${{ github.workspace }}/libcloudphxx
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
@@ -221,7 +219,7 @@ jobs:
       uses: igfuw/libmpdataxx_install@v0.4
       with:
         build_type: ${{matrix.build_type}}
-        threads: ${{matrix.threads}}
+        threads: 4
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
