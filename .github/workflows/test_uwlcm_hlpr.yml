@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         name: ["no_CUDA"]
-        build_type: ["RelWithDebInfo"]
+        build_type: ["RelWithDebInfoPortable"]
         mpi: ["none", "mvapich2"]
         include:
         - name: "no_CUDA"
@@ -59,7 +59,7 @@ jobs:
     - name: Upload libcloudph++ dir
       uses: actions/upload-artifact@v2
       with:
-        name: libcloud_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_tar
         path: libcloudphxx.tar
 
   unit:
@@ -70,6 +70,7 @@ jobs:
         build_type: ["RelWithDebInfo"]
         mpi: ["none"]
         sgs: ["iles", "smg"]
+        disable_cuda: ["true"]
         include:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
@@ -87,10 +88,28 @@ jobs:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
 
+#    - name: checkout libcloudph++ 
+#      uses: actions/checkout@v2
+#      with:
+#        repository: igfuw/libcloudphxx
+#        ref: ${{ inputs.libcloudphxx_sha }}
+#        path: libcloudphxx
+#
+#    - name: build libcloudph++
+#      uses: igfuw/libcloudphxx_build@v0.2
+#      with:
+#        disable_cuda: ${{matrix.disable_cuda}}
+#        build_type: ${{matrix.build_type}}
+#        threads: 4
+#        path: ${{ github.workspace }}/libcloudphxx
+#        install_prefix: ${{ github.workspace }}/installed
+#        tag: ${{ matrix.tag }}
+#        cxx: ${{ matrix.cxx }}
+
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_tar
 
     - name: Decompress libcloudph++ dir
       run: tar -xvf libcloudphxx.tar
@@ -143,6 +162,7 @@ jobs:
       matrix:
         build_type: ["RelWithDebInfo"]
         mpi: ["none", "mvapich2"]
+        disable_cuda: ["true"]
         include:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
@@ -158,10 +178,28 @@ jobs:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
 
+#    - name: checkout libcloudph++ 
+#      uses: actions/checkout@v2
+#      with:
+#        repository: igfuw/libcloudphxx
+#        ref: ${{ inputs.libcloudphxx_sha }}
+#        path: libcloudphxx
+#
+#    - name: build libcloudph++
+#      uses: igfuw/libcloudphxx_build@v0.2
+#      with:
+#        disable_cuda: ${{matrix.disable_cuda}}
+#        build_type: ${{matrix.build_type}}
+#        threads: 4
+#        path: ${{ github.workspace }}/libcloudphxx
+#        install_prefix: ${{ github.workspace }}/installed
+#        tag: ${{ matrix.tag }}
+#        cxx: ${{ matrix.cxx }}
+
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_${{matrix.build_type}}_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_tar
 
     - name: Decompress libcloudph++ dir
       run: tar -xvf libcloudphxx.tar
