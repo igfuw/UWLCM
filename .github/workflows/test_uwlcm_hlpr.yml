@@ -165,10 +165,10 @@ jobs:
         mpi: ["mvapich2"]
         disable_cuda: ["true"]
         include:
-        - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
-          cxx: "g++"
-          omp_threads: 6
+#        - mpi: "none"
+#          tag: "ubuntu_20_04_cuda_11_4"
+#          cxx: "g++"
+#          omp_threads: 6
         - mpi: "mvapich2"
           tag: "ubuntu_20_04_cuda_11_4_mvapich2"
           cxx: "mpic++"
