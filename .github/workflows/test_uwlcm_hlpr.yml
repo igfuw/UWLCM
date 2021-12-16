@@ -161,7 +161,8 @@ jobs:
     strategy:
       matrix:
         build_type: ["RelWithDebInfo"]
-        mpi: ["none", "mvapich2"]
+        #mpi: ["none", "mvapich2"]
+        mpi: ["mvapich2"]
         disable_cuda: ["true"]
         include:
         - mpi: "none"
