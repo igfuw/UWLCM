@@ -30,18 +30,23 @@ else()
   add_test(moist_thermal moist_thermal ${CMAKE_BINARY_DIR})
 endif()
 
-add_executable(moist_thermal_diff moist_thermal_diff.cpp)
 find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
-if(TARGET Boost::system AND TARGET Boost::program_options AND TARGET Boost::filesystem)
-  target_link_libraries(moist_thermal_diff PRIVATE Boost::program_options Boost::filesystem Boost::system)
-else()
-  # we dont link using targets, because they are not set if there is some discrepancy between cmake and boost version
-  target_link_libraries(moist_thermal_diff PRIVATE ${Boost_LIBRARIES})
-endif()
-target_link_libraries(moist_thermal_diff PRIVATE ${HDF5_LIBRARIES})
-target_include_directories(moist_thermal_diff PUBLIC ${HDF5_INCLUDE_DIRS})
-target_compile_features(moist_thermal_diff PRIVATE cxx_std_11)
 
-target_link_libraries(moist_thermal_diff PRIVATE UWLCM_plotters)
+foreach(exe moist_thermal_diff moist_thermal_create_refdata)
+  add_executable(${exe} ${exe}.cpp)
+  if(TARGET Boost::system AND TARGET Boost::program_options AND TARGET Boost::filesystem)
+    target_link_libraries(${exe} PRIVATE Boost::program_options Boost::filesystem Boost::system)
+  else()
+    # we dont link using targets, because they are not set if there is some discrepancy between cmake and boost version
+    target_link_libraries(${exe} PRIVATE ${Boost_LIBRARIES})
+  endif()
+  target_link_libraries(${exe} PRIVATE ${HDF5_LIBRARIES})
+  target_include_directories(${exe} PUBLIC ${HDF5_INCLUDE_DIRS})
+  target_compile_features(${exe} PRIVATE cxx_std_11)
+  
+  target_link_libraries(${exe} PRIVATE UWLCM_plotters)
+endforeach()
 
 add_test(moist_thermal_diff moist_thermal_diff)
+
+
