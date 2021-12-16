@@ -15,5 +15,5 @@ const string opts_common =
   "--outfreq=60 --nt=600 --spinup=0 --dt=1 --nx=181 --nz=121 --case=moist_thermal";
 const unordered_map<string, string> opts_micro({
   {"blk_1m", "--micro=blk_1m --outdir="+outdir.at("blk_1m")+" --cond=true --cevp=true --revp=false --conv=false --accr=false --sedi=false"},
-  {"lgrngn", "--micro=lgrngn --outdir="+outdir.at("lgrngn")+" --cond=true --adve=true --sedi=false --coal=false --backend=OpenMP --sd_conc=16 --rng_seed=44"}
+  {"lgrngn", "--micro=lgrngn --outdir="+outdir.at("lgrngn")+" --cond=true --adve=true --sedi=false --coal=false --backend=OpenMP --sd_conc=16"}
 });
