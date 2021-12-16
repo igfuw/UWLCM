@@ -16,7 +16,8 @@ bool errcheck(barr1d result, barr1d expected_result, barr1d epsilon)
   barr1d rel_err(result.shape());
   rel_err = where(expected_result > 0, abs(result - expected_result) / expected_result - epsilon, 0);
     std::cerr << "expected result: " << expected_result;
-    std::cerr << "relative error minus precision: " << rel_err;
+    std::cerr << "error tolerance: " << epsilon;
+    std::cerr << "relative error minus tolerance: " << rel_err;
   if(any(rel_err > 0.))
   {
     std::cerr << "ERROR" << std::endl;
