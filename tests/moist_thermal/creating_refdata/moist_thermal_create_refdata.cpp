@@ -5,13 +5,11 @@
 
 #include <sstream> // std::ostringstream
 
-#include "common.hpp"
+#include "../common.hpp"
 #include <UWLCM_plotters/PlotterMicro.hpp>
 #include <UWLCM_plotters/common_filters.hpp>
 
 using arr1d = blitz::Array<double, 1>;
-
-const vector<string> stat_names{"com_z", "rc_avg", "rc_std_dev", "actconc_avg", "actconc_std_dev", "supersat_avg", "sdconc_avg", "sdconc_std_dev", "meanr_avg", "stddevr_avg", "clfrac"}; 
 
 int main(int ac, char** av)
 {
@@ -87,11 +85,18 @@ int main(int ac, char** av)
 
   arr1d stat_mean(nt),
         stat_std_dev(nt);
+
   // calculate mean and std dev of stats from the ensemble
+  // and store in a file
+  // note: it is assumed that the micro/stats/etc. order does not change
+  ofstream outf("stats.txt");
+
   for(auto &stat_name: stat_names)
   {
+    outf << stat_name << endl;
     for (auto &opts_m : opts_micro)
     {
+      outf << opts_m.first << endl;
       stat_mean=0;
       for (char **a = av+1; a != av+ac ; a++) 
       {
@@ -99,7 +104,7 @@ int main(int ac, char** av)
         stat_mean += micro_stat_dir_data_map[opts_m.first][stat_name][dirname];
       }
       stat_mean /= ensemble_size;
-      cerr << opts_m.first << " : " << stat_name << " mean " << stat_mean;
+      outf << stat_mean;
 
       stat_std_dev=0;
       for (char **a = av+1; a != av+ac ; a++) 
@@ -108,7 +113,7 @@ int main(int ac, char** av)
         stat_std_dev = blitz::pow(micro_stat_dir_data_map[opts_m.first][stat_name][dirname] - stat_mean, 2.);
       }
       stat_std_dev = blitz::sqrt(stat_std_dev/ensemble_size);
-      cerr << opts_m.first << " : " << stat_name << " std dev " << stat_std_dev << endl;
+      outf << stat_std_dev;
     }
   }
 }

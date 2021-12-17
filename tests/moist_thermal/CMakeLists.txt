@@ -32,7 +32,7 @@ endif()
 
 find_package(Boost COMPONENTS program_options filesystem system REQUIRED)
 
-foreach(exe moist_thermal_diff moist_thermal_create_refdata)
+function(mt_result_analyzer exe)
   add_executable(${exe} ${exe}.cpp)
   if(TARGET Boost::system AND TARGET Boost::program_options AND TARGET Boost::filesystem)
     target_link_libraries(${exe} PRIVATE Boost::program_options Boost::filesystem Boost::system)
@@ -45,8 +45,10 @@ foreach(exe moist_thermal_diff moist_thermal_create_refdata)
   target_compile_features(${exe} PRIVATE cxx_std_11)
   
   target_link_libraries(${exe} PRIVATE UWLCM_plotters)
-endforeach()
+endfunction()
+
+mt_result_analyzer(moist_thermal_diff)
 
 add_test(moist_thermal_diff moist_thermal_diff)
 
-
+add_subdirectory(creating_refdata)
