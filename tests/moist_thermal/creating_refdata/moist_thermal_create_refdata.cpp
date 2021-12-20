@@ -110,7 +110,7 @@ int main(int ac, char** av)
       for (char **a = av+1; a != av+ac ; a++) 
       {
         const string dirname = *a;
-        stat_std_dev = blitz::pow(micro_stat_dir_data_map[opts_m.first][stat_name][dirname] - stat_mean, 2.);
+        stat_std_dev += blitz::pow(micro_stat_dir_data_map[opts_m.first][stat_name][dirname] - stat_mean, 2.);
       }
       stat_std_dev = blitz::sqrt(stat_std_dev/ensemble_size);
       outf << stat_std_dev;

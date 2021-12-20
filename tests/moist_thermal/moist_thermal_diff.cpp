@@ -12,16 +12,23 @@
 using barr1d = blitz::Array<double, 1>;
 using namespace std;
 
-bool errcheck(barr1d result, barr1d expected_result, barr1d epsilon)
+const int tolerance = 3; // throw an error if the result is outside of: expected_value +/- tolerance * standard_deviation
+
+bool errcheck(barr1d result, barr1d mean, barr1d std_dev)
 {
-  barr1d rel_err(result.shape());
-  rel_err = where(expected_result > 0, abs(result - expected_result) / expected_result - epsilon, 0);
-    std::cerr << "expected result: " << expected_result;
-    std::cerr << "error tolerance: " << epsilon;
-    std::cerr << "relative error minus tolerance: " << rel_err;
-  if(any(rel_err > 0.))
+  cout << "result: " << result;
+  cout << "reference mean: " << mean;
+  cout << "reference standard deviation: " << std_dev;
+  cout << "reference relative standard deviation [%]: " << barr1d(where(mean > 0, std_dev / mean * 100., 0));
+  barr1d diff(result.shape());
+  diff = result - mean;
+  cout << "(result - mean) / mean [%]: " << barr1d(where(mean > 0, diff / mean * 100., 0));
+  cout << "abs(result - mean) / std_dev: " << barr1d(where(std_dev > 0, abs(diff) / std_dev, 0));
+  diff = (abs(diff) - tolerance * std_dev) / std_dev;
+
+  if(any(diff > 0.))
   {
-    std::cerr << "ERROR" << std::endl;
+    cerr << "error flag: " << diff;
     return 1;
   }
   else
@@ -80,7 +87,7 @@ int main(int ac, char** av)
       }
 
       // output the result
-      cout << stat_name<< " : " << result;
+      cout << stat_name<< endl;
 
       // read reference data
       std::ifstream fref("../../moist_thermal/refdata/stats.txt");
@@ -98,14 +105,13 @@ int main(int ac, char** av)
           for(int i=0; i<2; ++i) // done twice: two type of micro
           {
             fref >> micro;
+            fref >> mean;
+            getline(fref, line); // blitz reading arrays doesnt move to the next line, need to do it manually here
+            fref >> std_dev;
+            getline(fref, line); // blitz reading arrays doesnt move to the next line, need to do it manually here
+            found=1;
             if(micro == opts_m.first)
-            {
-              fref >> mean;
-              getline(fref, line); // blitz reading arrays doesnt move to the next line, need to do it manually here
-              fref >> std_dev;
-              getline(fref, line); // blitz reading arrays doesnt move to the next line, need to do it manually here
-              found=1;
-            }
+              break;
           }
           break;
         }
@@ -114,10 +120,7 @@ int main(int ac, char** av)
         throw runtime_error("One of the stats not found in the refrence data file.");
 
       // check if there is an agreement
-      cerr << result;
-      cerr << mean;
-      cerr << std_dev;
-//      err_flag = errcheck(result, test.mean[opts_m.first], test.std_dev[opts_m.first]) || err_flag;
+      err_flag = errcheck(result, mean, std_dev) || err_flag;
     }
   }
 
