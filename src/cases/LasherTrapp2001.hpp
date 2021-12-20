@@ -164,7 +164,7 @@ namespace setup
         std::vector<real_t> pres_s, temp_s, RH_s, z_s;
         for(std::string line : LasherTrapp2001_sounding_file)
         {
-          real_t pres, temp, RH, z;
+          float pres, temp, RH, z;
           sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
           pres_s.push_back(pres * 100); 
           temp_s.push_back(temp + 273.16);  // TODO: use libcloud's T_0 

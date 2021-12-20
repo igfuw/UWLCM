@@ -1,0 +1,274 @@
+name: Test UWLCM helper
+
+on:
+  workflow_call:
+    inputs:
+      libcloudphxx_sha:
+        required: true
+        type: string
+      libmpdataxx_sha:
+        required: true
+        type: string
+      UWLCM_sha:
+        required: true
+        type: string
+
+jobs:
+  # TODO: cache built libcloudphxx? Use libcloudphxx git revision as name?
+  build_libcloudphxx:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        name: ["no_CUDA"]
+        build_type: ["RelWithDebInfoPortable"]
+        mpi: ["none", "mvapich2"]
+        include:
+        - name: "no_CUDA"
+          disable_cuda: true
+          threads: 4
+        - mpi: "none"
+          tag: "ubuntu_20_04_cuda_11_4"
+          cxx: "g++"
+        - mpi: "mvapich2"
+          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          cxx: "mpic++"
+
+    steps:
+    - name: checkout libcloudph++ 
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/libcloudphxx
+        ref: ${{ inputs.libcloudphxx_sha }}
+        path: libcloudphxx
+
+    - name: build libcloudph++
+      uses: igfuw/libcloudphxx_build@v0.2
+      with:
+        disable_cuda: ${{matrix.disable_cuda}}
+        build_type: ${{matrix.build_type}}
+        threads: ${{matrix.threads}}
+        path: ${{ github.workspace }}/libcloudphxx
+        install_prefix: ${{ github.workspace }}/installed
+        tag: ${{ matrix.tag }}
+        cxx: ${{ matrix.cxx }}
+
+    # tar build dir before upload as artifact to retain permission and case-sensitive names
+    - name: Compress libcloudph++ dir
+      run: tar -cvf libcloudphxx.tar libcloudphxx/build libcloudphxx/include
+
+    - name: Upload libcloudph++ dir
+      uses: actions/upload-artifact@v2
+      with:
+        name: libcloud_mpi_${{matrix.mpi}}_tar
+        path: libcloudphxx.tar
+
+  unit:
+    needs: build_libcloudphxx
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build_type: ["RelWithDebInfo"]
+        mpi: ["none"]
+        sgs: ["iles", "smg"]
+        disable_cuda: ["true"]
+        include:
+        - mpi: "none"
+          tag: "ubuntu_20_04_cuda_11_4"
+          cxx: "g++"
+        - sgs: "iles"
+          cmake_flags: "-DUWLCM_DISABLE='SGS'"
+          ctests: "api_test_iles"
+        - sgs: "smg"
+          cmake_flags: "-DUWLCM_DISABLE='ILES'"
+          ctests: "api_test_smg"
+    steps:
+    - name: checkout UWLCM 
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/UWLCM
+        ref: ${{ inputs.UWLCM_sha }}
+
+#    - name: checkout libcloudph++ 
+#      uses: actions/checkout@v2
+#      with:
+#        repository: igfuw/libcloudphxx
+#        ref: ${{ inputs.libcloudphxx_sha }}
+#        path: libcloudphxx
+#
+#    - name: build libcloudph++
+#      uses: igfuw/libcloudphxx_build@v0.2
+#      with:
+#        disable_cuda: ${{matrix.disable_cuda}}
+#        build_type: ${{matrix.build_type}}
+#        threads: 4
+#        path: ${{ github.workspace }}/libcloudphxx
+#        install_prefix: ${{ github.workspace }}/installed
+#        tag: ${{ matrix.tag }}
+#        cxx: ${{ matrix.cxx }}
+
+    - name: Download libcloudph++ dir
+      uses: actions/download-artifact@v2
+      with:
+        name: libcloud_mpi_${{matrix.mpi}}_tar
+
+    - name: Decompress libcloudph++ dir
+      run: tar -xvf libcloudphxx.tar
+
+    - name: Install libcloudph++
+      working-directory: ${{ github.workspace }}/libcloudphxx
+      run: sudo cmake --install build
+
+    - name: checkout libmpdata++
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/libmpdataxx
+        ref: ${{ inputs.libmpdataxx_sha }}
+        path: libmpdataxx
+
+    - name: Install libmpdata++
+      uses: igfuw/libmpdataxx_install@v0.4
+      with:
+        build_type: ${{matrix.build_type}}
+        threads: 4
+        path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        install_prefix: ${{ github.workspace }}/installed
+        tag: ${{ matrix.tag }}
+        cxx: ${{ matrix.cxx }}
+
+    - run: mkdir ${{ github.workspace }}/build
+
+    - name: configure and make UWLCM
+      working-directory: ${{ github.workspace }}
+      run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c "
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++ ${{matrix.cmake_flags}} && 
+           cmake --build build --config ${{matrix.build_type}} -j2 &&
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++ ${{matrix.cmake_flags}} -DUWLCM_TIMING=1 && 
+           cmake --build build --config ${{matrix.build_type}} -j2;
+           "
+
+    - name: configure make and run unit tests
+      working-directory: ${{ github.workspace }}
+      run: VERBOSE=1 OMP_NUM_THREADS=1 singularity exec $SI bash -c "
+           cd tests && mkdir build &&
+           cmake -B build -DCMAKE_CXX_COMPILER=${{matrix.cxx}} &&
+           cmake --build build -j2 &&
+           cd build && ctest -R ${{matrix.ctests}} || cat Testing/Temporary/LastTest.log /
+           "
+
+  moist_thermal:
+    needs: build_libcloudphxx
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build_type: ["RelWithDebInfo"]
+        #mpi: ["none", "mvapich2"]
+        mpi: ["mvapich2"]
+        disable_cuda: ["true"]
+        include:
+#        - mpi: "none"
+#          tag: "ubuntu_20_04_cuda_11_4"
+#          cxx: "g++"
+#          omp_threads: 6
+        - mpi: "mvapich2"
+          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          cxx: "mpic++"
+          omp_threads: 3
+
+    steps:
+    - name: checkout UWLCM 
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/UWLCM
+        ref: ${{ inputs.UWLCM_sha }}
+
+#    - name: checkout libcloudph++ 
+#      uses: actions/checkout@v2
+#      with:
+#        repository: igfuw/libcloudphxx
+#        ref: ${{ inputs.libcloudphxx_sha }}
+#        path: libcloudphxx
+#
+#    - name: build libcloudph++
+#      uses: igfuw/libcloudphxx_build@v0.2
+#      with:
+#        disable_cuda: ${{matrix.disable_cuda}}
+#        build_type: ${{matrix.build_type}}
+#        threads: 4
+#        path: ${{ github.workspace }}/libcloudphxx
+#        install_prefix: ${{ github.workspace }}/installed
+#        tag: ${{ matrix.tag }}
+#        cxx: ${{ matrix.cxx }}
+
+    - name: Download libcloudph++ dir
+      uses: actions/download-artifact@v2
+      with:
+        name: libcloud_mpi_${{matrix.mpi}}_tar
+
+    - name: Decompress libcloudph++ dir
+      run: tar -xvf libcloudphxx.tar
+
+    - name: Install libcloudph++
+      working-directory: ${{ github.workspace }}/libcloudphxx
+      run: sudo cmake --install build
+
+    - name: checkout libmpdata++
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/libmpdataxx
+        ref: ${{ inputs.libmpdataxx_sha }}
+        path: libmpdataxx
+
+    - name: Install libmpdata++
+      uses: igfuw/libmpdataxx_install@v0.4
+      with:
+        build_type: ${{matrix.build_type}}
+        threads: 4
+        path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        install_prefix: ${{ github.workspace }}/installed
+        tag: ${{ matrix.tag }}
+        cxx: ${{ matrix.cxx }}
+
+    - run: mkdir ${{ github.workspace }}/build
+
+    - name: configure and make UWLCM
+      working-directory: ${{ github.workspace }}
+      run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c "
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++  -DUWLCM_DISABLE='3D_LGRNGN;3D_BLK_1M;3D_BLK_2M;PIGGYBACKER;SGS' -DMPDATA_OPTS='ABS' -DUWLCM_TIMING=1 -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed && 
+           cmake --build build --config ${{matrix.build_type}} -j2
+           "
+
+    - name: Install UWLCM
+      working-directory: ${{ github.workspace }}
+      run: sudo cmake --install build
+
+    - name: checkout UWLCM_plotting repo
+      uses: actions/checkout@v2
+      with:
+        repository: igfuw/UWLCM_plotting
+        path: UWLCM_plotting
+
+    - name: configure and make UWLCM_plotters
+      working-directory: ${{ github.workspace }}/UWLCM_plotting/UWLCM_plotters
+      run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c "
+           mkdir build &&
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -DUWLCM_DIR=${{ github.workspace }}/installed/share/UWLCM  -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed -Dblitz_DIR=/usr/lib/x86_64-linux-gnu/cmake/ && 
+           cmake --build build --config ${{matrix.build_type}} -j2
+           "
+
+    - name: Install UWLCM_plotters
+      working-directory: ${{ github.workspace }}/UWLCM_plotting/UWLCM_plotters
+      run: sudo cmake --install build
+
+    - name: configure make and run moist thermal test
+      working-directory: ${{ github.workspace }}
+      run: VERBOSE=1 OMP_NUM_THREADS=${{ matrix.omp_threads }} singularity exec $SI bash -c "
+           cd tests && mkdir build &&
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -DUWLCM_plotters_DIR=${{ github.workspace }}/installed/share/UWLCM_plotters &&
+           cmake --build build --config ${{matrix.build_type}} -j2 &&
+           cd build/moist_thermal && make test || cat Testing/Temporary/LastTest.log /
+           "
+
+    - name: print test wall time
+      working-directory: ${{ github.workspace }}/tests/build/moist_thermal
+      run: cat Testing/Temporary/LastTest.log
+
