@@ -84,12 +84,14 @@ int main(int ac, char** av)
   }
 
   arr1d stat_mean(nt),
-        stat_std_dev(nt);
+        stat_std_dev(nt),
+        stat_min(nt),
+        stat_max(nt);
 
-  // calculate mean and std dev of stats from the ensemble
+  // calculate min/max, mean and std dev of stats from the ensemble
   // and store in a file
   // note: it is assumed that the micro/stats/etc. order does not change
-  ofstream outf("stats.txt");
+  ofstream outf("stats_ens_"+to_string(ensemble_size)+".txt");
 
   for(auto &stat_name: stat_names)
   {
@@ -97,23 +99,29 @@ int main(int ac, char** av)
     for (auto &opts_m : opts_micro)
     {
       outf << opts_m.first << endl;
+
       stat_mean=0;
       for (char **a = av+1; a != av+ac ; a++) 
-      {
-        const string dirname = *a;
-        stat_mean += micro_stat_dir_data_map[opts_m.first][stat_name][dirname];
-      }
+        stat_mean += micro_stat_dir_data_map[opts_m.first][stat_name][string(*a)];
       stat_mean /= ensemble_size;
       outf << stat_mean;
 
       stat_std_dev=0;
       for (char **a = av+1; a != av+ac ; a++) 
-      {
-        const string dirname = *a;
-        stat_std_dev += blitz::pow(micro_stat_dir_data_map[opts_m.first][stat_name][dirname] - stat_mean, 2.);
-      }
+        stat_std_dev += blitz::pow(micro_stat_dir_data_map[opts_m.first][stat_name][string(*a)] - stat_mean, 2.);
       stat_std_dev = blitz::sqrt(stat_std_dev/ensemble_size);
       outf << stat_std_dev;
+      
+      stat_min =  1e20; // crap
+      for (char **a = av+1; a != av+ac ; a++) 
+        stat_min = blitz::where(micro_stat_dir_data_map[opts_m.first][stat_name][string(*a)] < stat_min, micro_stat_dir_data_map[opts_m.first][stat_name][string(*a)], stat_min);
+      outf << stat_min;
+      
+      stat_max =  -1e20; // crap
+      for (char **a = av+1; a != av+ac ; a++) 
+        stat_max = blitz::where(micro_stat_dir_data_map[opts_m.first][stat_name][string(*a)] > stat_max, micro_stat_dir_data_map[opts_m.first][stat_name][string(*a)], stat_max);
+      outf << stat_max;
+
     }
   }
 }
