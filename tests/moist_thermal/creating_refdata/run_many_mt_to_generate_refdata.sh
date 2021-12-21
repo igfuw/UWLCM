@@ -1,4 +1,4 @@
-for i in {1..40}
+for i in {1..1000}
 do
   mkdir -p $i
   cd $i

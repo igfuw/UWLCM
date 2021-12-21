@@ -4,6 +4,7 @@
 // second one takes long...
 
 #include <sstream> // std::ostringstream
+#include <cmath>
 
 #include "common.hpp"
 #include <UWLCM_plotters/PlotterMicro.hpp>
@@ -12,19 +13,49 @@
 using barr1d = blitz::Array<double, 1>;
 using namespace std;
 
-const int tolerance = 3; // throw an error if the result is outside of: expected_value +/- tolerance * standard_deviation
 
-bool errcheck(barr1d result, barr1d mean, barr1d std_dev)
+// https://stackoverflow.com/questions/17333/what-is-the-most-effective-way-for-float-and-double-comparison?page=1&tab=votes#tab-top
+//const double dbl_epsilon = 1000*std::numeric_limits<double>::epsilon();
+const double dbl_epsilon = 1e-5; 
+bool less_than(double a, double b)
 {
-  cout << "result: " << result;
-  cout << "reference mean: " << mean;
-  cout << "reference standard deviation: " << std_dev;
-  cout << "reference relative standard deviation [%]: " << barr1d(where(mean > 0, std_dev / mean * 100., 0));
+  return (b - a) > ( (std::abs(a) < std::abs(b) ? std::abs(b) : std::abs(a)) * dbl_epsilon);
+}
+bool greater_than(double a, double b)
+{
+  return (a - b) > ( (std::abs(a) < std::abs(b) ? std::abs(b) : std::abs(a)) * dbl_epsilon);
+}
+BZ_DECLARE_FUNCTION2_RET(less_than, bool);
+BZ_DECLARE_FUNCTION2_RET(greater_than, bool);
+
+// check if modeled result is within [min,max] range from 1000 test runs
+// note: there is no randomness with blk_1m microphysics
+// note2: plenty of precision lost when storing refdata in files, so a relative precision of 1e-5 is required
+bool errcheck_minmax(barr1d result, barr1d min, barr1d max)
+{
+  barr1d err_flag(result.shape());
+  err_flag = where(
+    less_than(result,min), 
+      1,
+      where(greater_than(result, max), 1 , 0)
+  ); 
+
+  if(any(err_flag > 0.))
+  {
+    cerr << "error flag: " << err_flag;
+    return 1;
+  }
+  else
+    return 0;
+}
+
+// check if the result is within mean +/- tolerance * std_dev, where mean and std_dev come from 1000 test runs
+// note: currently not used
+bool errcheck_stddev(barr1d result, barr1d mean, barr1d std_dev)
+{
+  const int tolerance = 3;
   barr1d diff(result.shape());
-  diff = result - mean;
-  cout << "(result - mean) / mean [%]: " << barr1d(where(mean > 0, diff / mean * 100., 0));
-  cout << "abs(result - mean) / std_dev: " << barr1d(where(std_dev > 0, abs(diff) / std_dev, 0));
-  diff = (abs(diff) - tolerance * std_dev) / std_dev;
+  diff = (abs(diff) - tolerance * std_dev);
 
   if(any(diff > 0.))
   {
@@ -87,13 +118,13 @@ int main(int ac, char** av)
       }
 
       // output the result
-      cout << stat_name<< endl;
+      cout << "checking " << stat_name << endl;
 
       // read reference data
-      std::ifstream fref("../../moist_thermal/refdata/stats.txt");
+      std::ifstream fref("../../moist_thermal/refdata/stats_ens_1000.txt");
 
       std::string micro;
-      barr1d mean, std_dev;
+      barr1d mean, std_dev, min, max;
       // find the line with the stat
       bool found=0;
       std::string line;
@@ -108,7 +139,11 @@ int main(int ac, char** av)
             fref >> mean;
             getline(fref, line); // blitz reading arrays doesnt move to the next line, need to do it manually here
             fref >> std_dev;
-            getline(fref, line); // blitz reading arrays doesnt move to the next line, need to do it manually here
+            getline(fref, line); 
+            fref >> min;
+            getline(fref, line); 
+            fref >> max;
+            getline(fref, line); 
             found=1;
             if(micro == opts_m.first)
               break;
@@ -120,7 +155,8 @@ int main(int ac, char** av)
         throw runtime_error("One of the stats not found in the refrence data file.");
 
       // check if there is an agreement
-      err_flag = errcheck(result, mean, std_dev) || err_flag;
+//      err_flag = (errcheck_stddev(result, mean, std_dev) && errcheck_minmax(result, min, max)) || err_flag;
+      err_flag = errcheck_minmax(result, min, max) || err_flag;
     }
   }
 
