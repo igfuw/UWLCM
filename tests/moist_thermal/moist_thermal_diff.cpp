@@ -42,6 +42,9 @@ bool errcheck_minmax(barr1d result, barr1d min, barr1d max)
 
   if(any(err_flag > 0.))
   {
+    cerr << "min: " << min;
+    cerr << "result: " << result;
+    cerr << "max: " << max;
     cerr << "error flag: " << err_flag;
     return 1;
   }
