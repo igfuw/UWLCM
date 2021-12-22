@@ -88,24 +88,6 @@ jobs:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
 
-#    - name: checkout libcloudph++ 
-#      uses: actions/checkout@v2
-#      with:
-#        repository: igfuw/libcloudphxx
-#        ref: ${{ inputs.libcloudphxx_sha }}
-#        path: libcloudphxx
-#
-#    - name: build libcloudph++
-#      uses: igfuw/libcloudphxx_build@v0.2
-#      with:
-#        disable_cuda: ${{matrix.disable_cuda}}
-#        build_type: ${{matrix.build_type}}
-#        threads: 4
-#        path: ${{ github.workspace }}/libcloudphxx
-#        install_prefix: ${{ github.workspace }}/installed
-#        tag: ${{ matrix.tag }}
-#        cxx: ${{ matrix.cxx }}
-
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
@@ -161,14 +143,13 @@ jobs:
     strategy:
       matrix:
         build_type: ["RelWithDebInfo"]
-        #mpi: ["none", "mvapich2"]
-        mpi: ["mvapich2"]
+        mpi: ["none", "mvapich2"]
         disable_cuda: ["true"]
         include:
-#        - mpi: "none"
-#          tag: "ubuntu_20_04_cuda_11_4"
-#          cxx: "g++"
-#          omp_threads: 6
+        - mpi: "none"
+          tag: "ubuntu_20_04_cuda_11_4"
+          cxx: "g++"
+          omp_threads: 6
         - mpi: "mvapich2"
           tag: "ubuntu_20_04_cuda_11_4_mvapich2"
           cxx: "mpic++"
@@ -180,24 +161,6 @@ jobs:
       with:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
-
-#    - name: checkout libcloudph++ 
-#      uses: actions/checkout@v2
-#      with:
-#        repository: igfuw/libcloudphxx
-#        ref: ${{ inputs.libcloudphxx_sha }}
-#        path: libcloudphxx
-#
-#    - name: build libcloudph++
-#      uses: igfuw/libcloudphxx_build@v0.2
-#      with:
-#        disable_cuda: ${{matrix.disable_cuda}}
-#        build_type: ${{matrix.build_type}}
-#        threads: 4
-#        path: ${{ github.workspace }}/libcloudphxx
-#        install_prefix: ${{ github.workspace }}/installed
-#        tag: ${{ matrix.tag }}
-#        cxx: ${{ matrix.cxx }}
 
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
