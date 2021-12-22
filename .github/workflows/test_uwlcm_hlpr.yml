@@ -88,24 +88,6 @@ jobs:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
 
-#    - name: checkout libcloudph++ 
-#      uses: actions/checkout@v2
-#      with:
-#        repository: igfuw/libcloudphxx
-#        ref: ${{ inputs.libcloudphxx_sha }}
-#        path: libcloudphxx
-#
-#    - name: build libcloudph++
-#      uses: igfuw/libcloudphxx_build@v0.2
-#      with:
-#        disable_cuda: ${{matrix.disable_cuda}}
-#        build_type: ${{matrix.build_type}}
-#        threads: 4
-#        path: ${{ github.workspace }}/libcloudphxx
-#        install_prefix: ${{ github.workspace }}/installed
-#        tag: ${{ matrix.tag }}
-#        cxx: ${{ matrix.cxx }}
-
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
@@ -167,9 +149,11 @@ jobs:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
           cxx: "g++"
+          omp_threads: 6
         - mpi: "mvapich2"
           tag: "ubuntu_20_04_cuda_11_4_mvapich2"
           cxx: "mpic++"
+          omp_threads: 3
 
     steps:
     - name: checkout UWLCM 
@@ -177,24 +161,6 @@ jobs:
       with:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
-
-#    - name: checkout libcloudph++ 
-#      uses: actions/checkout@v2
-#      with:
-#        repository: igfuw/libcloudphxx
-#        ref: ${{ inputs.libcloudphxx_sha }}
-#        path: libcloudphxx
-#
-#    - name: build libcloudph++
-#      uses: igfuw/libcloudphxx_build@v0.2
-#      with:
-#        disable_cuda: ${{matrix.disable_cuda}}
-#        build_type: ${{matrix.build_type}}
-#        threads: 4
-#        path: ${{ github.workspace }}/libcloudphxx
-#        install_prefix: ${{ github.workspace }}/installed
-#        tag: ${{ matrix.tag }}
-#        cxx: ${{ matrix.cxx }}
 
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
@@ -258,7 +224,7 @@ jobs:
 
     - name: configure make and run moist thermal test
       working-directory: ${{ github.workspace }}
-      run: VERBOSE=1 OMP_NUM_THREADS=6 singularity exec $SI bash -c "
+      run: VERBOSE=1 OMP_NUM_THREADS=${{ matrix.omp_threads }} singularity exec $SI bash -c "
            cd tests && mkdir build &&
            cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -DUWLCM_plotters_DIR=${{ github.workspace }}/installed/share/UWLCM_plotters &&
            cmake --build build --config ${{matrix.build_type}} -j2 &&
