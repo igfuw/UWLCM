@@ -124,7 +124,10 @@ int main(int ac, char** av)
       cout << "checking " << stat_name << endl;
 
       // read reference data
-      std::ifstream fref("../../moist_thermal/refdata/stats_ens_1000.txt");
+      if(opts_m.first == "lgrngn")
+        std::ifstream fref("../../moist_thermal/refdata/stats_ens_1000.txt");
+      else if(opts_m.first == "blk_1m")
+        std::ifstream fref("../../moist_thermal/refdata/stats_ens_2.txt");
 
       std::string micro;
       barr1d mean, std_dev, min, max;
