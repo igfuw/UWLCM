@@ -164,6 +164,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("rv_LS", params.rv_LS->data()); 
       this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
       this->record_prof_const("mix_len", params.mix_len->data());
+      this->record_prof_const("nudging_coeff", params.nudging_coeff->data()); 
       if(parent_t::n_dims==3)
       {
         this->record_prof_const("u_geostr", params.geostr[0]->data()); 
