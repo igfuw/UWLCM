@@ -171,5 +171,5 @@ int main(int ac, char** av)
   }
 
   if(err_flag)
-    error_macro("error in one of the statistics");    
+    error_macro("Error in one of the statistics. Make sure that libcloudph++ and UWLCM are compiled with the same flags as in the moist_thermal job in https://github.com/igfuw/UWLCM/blob/master/.github/workflows/test_uwlcm_hlpr.yml");
 }
