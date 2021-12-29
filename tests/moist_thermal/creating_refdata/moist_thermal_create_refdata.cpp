@@ -4,6 +4,7 @@
 // second one takes long...
 
 #include <sstream> // std::ostringstream
+#include <fstream>
 
 #include "../common.hpp"
 #include <UWLCM_plotters/PlotterMicro.hpp>

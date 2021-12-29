@@ -4,6 +4,7 @@
 // second one takes long...
 
 #include <sstream> // std::ostringstream
+#include <fstream>
 #include <cmath>
 
 #include "common.hpp"
