@@ -137,6 +137,10 @@ jobs:
            cd build && ctest -R ${{matrix.ctests}} || cat Testing/Temporary/LastTest.log /
            "
 
+  # moist_thermal done with libcloudph++ from the build_libcloudphxx job gives slightly different results, what causes the test to fail
+  # possibly caused by different build configs: RelWithDebInfo vs RelWithDebInfoPortable (but they only differ in march=native ...)
+  # therefore we build libcloudph++ in the job
+  # TODO: generate refdata using RelWithDebInfoPortable ?
   moist_thermal:
 #    needs: build_libcloudphxx
     runs-on: ubuntu-20.04
