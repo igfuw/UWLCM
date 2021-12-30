@@ -78,7 +78,7 @@ int main(int ac, char** av)
 
   for (auto &opts_m : opts_micro)
   {
-    // instantiate plotter to read in output
+    // instantiate plotter to read output
     using Plotter_t = PlotterMicro_t<2>;
     Plotter_t plotter(outdir.at(opts_m.first), opts_m.first);
     auto& n = plotter.map;
@@ -121,17 +121,12 @@ int main(int ac, char** av)
         }
       }
 
-      // output the result
-      cout << "checking " << stat_name << endl;
+      //different reference file for bulk micro compiled with MPI, see refdata/readme.md for details
+      string reffile_name = opts_m.first == "lgrngn" || !map["MPI_compiler"] ? "../../moist_thermal/refdata/stats_ens_1000.txt" :  // lgrngn or bulk without mpi
+        "../../moist_thermal/refdata/stats_mpi_blk_ens_1.txt.txt"; // bulk with mpi
 
-      std::ifstream fref;
-      // read reference data
-//      if(opts_m.first == "lgrngn")
-      fref.open("../../moist_thermal/refdata/stats_ens_1000.txt");
-  //    else if(opts_m.first == "blk_1m")
-    //    fref.open("../../moist_thermal/refdata/stats_ens_2.txt");
-   //   else
-     //   throw runtime_error("Unrecognized microphysics");
+      cout << "checking " << stat_name << " reference file: " << reffile_name << endl;
+      std::ifstream fref(reffile_name);
 
       std::string micro;
       barr1d mean, std_dev, min, max;
