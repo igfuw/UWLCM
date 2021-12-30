@@ -26,6 +26,7 @@ namespace setup
     const quantity<si::length, real_t> X[] = {/*2D*/12000 * si::metres, /*3D*/10000 * si::metres};
     const quantity<si::length, real_t> 
       z_0  = 0     * si::metres,
+      //Y    = 1 * si::metres,
       Y    = 10000 * si::metres,
       Z    = 10000  * si::metres; 
     const real_t z_abs = Z / si::metres - 1000;
@@ -162,7 +163,7 @@ namespace setup
         std::vector<real_t> pres_s, temp_s, RH_s, z_s;
         for(std::string line :ICMW2020_cumulus_congestus_sounding_file)
         {
-          real_t pres, temp, RH, z;
+          float pres, temp, RH, z;
           sscanf(line.c_str(), "%*f %f %f %*f %f %*f %*f %*f %*f %*f %*f %*f %*f %*f %f %*f %*f %*f %*f %*f %*f", &pres, &temp, &RH, &z);
           pres_s.push_back(pres * 100); 
           temp_s.push_back(temp + 273.16);  // TODO: use libcloud's T_0 
@@ -292,11 +293,17 @@ namespace setup
         this->sdev_rd1 = real_t(1.28),
         this->sdev_rd2 = real_t(1.75);
 	/// FOR NAx4
-       	this->n1_stp = real_t(4*90e6) / si::cubic_metres,  
-        this->n2_stp = real_t(4*15e6) / si::cubic_metres;
+       	//this->n1_stp = real_t(4*90e6) / si::cubic_metres,  
+        //this->n2_stp = real_t(4*15e6) / si::cubic_metres;
+	/// FOR NAx2
+       	//this->n1_stp = real_t(2*90e6) / si::cubic_metres,  
+        //this->n2_stp = real_t(2*15e6) / si::cubic_metres;
         /// FOR normal run
-	//this->n1_stp = real_t(11*90e6) / si::cubic_metres, 
-        //this->n2_stp = real_t(11*15e6) / si::cubic_metres;
+	this->n1_stp = real_t(11*90e6) / si::cubic_metres, 
+        this->n2_stp = real_t(11*15e6) / si::cubic_metres;
+        /// FOR NAx1
+        //this->n1_stp = real_t(1*90e6) / si::cubic_metres, 
+        //this->n2_stp = real_t(1*15e6) / si::cubic_metres;
         this->Z = Z;
         this->z_rlx = z_rlx;
       }
