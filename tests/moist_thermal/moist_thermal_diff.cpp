@@ -122,8 +122,10 @@ int main(int ac, char** av)
       }
 
       //different reference file for bulk micro compiled with MPI, see refdata/readme.md for details
-      string reffile_name = opts_m.first == "lgrngn" || !plotter.map["MPI_compiler"] ? "../../moist_thermal/refdata/stats_ens_1000.txt" :  // lgrngn or bulk without mpi
-        "../../moist_thermal/refdata/stats_mpi_blk_ens_1.txt.txt"; // bulk with mpi
+      string reffile_name = 
+        opts_m.first == "lgrngn" ? "../../moist_thermal/refdata/stats_lgrngn_ens_1000.txt" :  // lgrngn 
+          plotter.map["MPI_compiler"] ? "../../moist_thermal/refdata/stats_mpi_blk_ens_1.txt": // bulk with mpi
+            "../../moist_thermal/refdata/stats_blk_ens_1.txt"; // bulk without mpi
 
       cout << "checking " << stat_name << " reference file: " << reffile_name << endl;
       std::ifstream fref(reffile_name);
