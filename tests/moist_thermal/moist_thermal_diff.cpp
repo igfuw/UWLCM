@@ -126,12 +126,12 @@ int main(int ac, char** av)
 
       std::ifstream fref;
       // read reference data
-      if(opts_m.first == "lgrngn")
-        fref.open("../../moist_thermal/refdata/stats_ens_1000.txt");
-      else if(opts_m.first == "blk_1m")
-        fref.open("../../moist_thermal/refdata/stats_ens_2.txt");
-      else
-        throw runtime_error("Unrecognized microphysics");
+//      if(opts_m.first == "lgrngn")
+      fref.open("../../moist_thermal/refdata/stats_ens_1000.txt");
+  //    else if(opts_m.first == "blk_1m")
+    //    fref.open("../../moist_thermal/refdata/stats_ens_2.txt");
+   //   else
+     //   throw runtime_error("Unrecognized microphysics");
 
       std::string micro;
       barr1d mean, std_dev, min, max;
@@ -171,5 +171,5 @@ int main(int ac, char** av)
   }
 
   if(err_flag)
-    error_macro("error in one of the statistics");    
+    error_macro("Error in one of the statistics. Make sure that libcloudph++ and UWLCM are compiled with the same flags as in the moist_thermal job in https://github.com/igfuw/UWLCM/blob/master/.github/workflows/test_uwlcm_hlpr.yml");
 }
