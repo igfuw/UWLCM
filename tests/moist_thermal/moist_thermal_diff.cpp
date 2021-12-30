@@ -126,12 +126,12 @@ int main(int ac, char** av)
 
       std::ifstream fref;
       // read reference data
-      if(opts_m.first == "lgrngn")
-        fref.open("../../moist_thermal/refdata/stats_ens_1000.txt");
-      else if(opts_m.first == "blk_1m")
-        fref.open("../../moist_thermal/refdata/stats_ens_2.txt");
-      else
-        throw runtime_error("Unrecognized microphysics");
+//      if(opts_m.first == "lgrngn")
+      fref.open("../../moist_thermal/refdata/stats_ens_1000.txt");
+  //    else if(opts_m.first == "blk_1m")
+    //    fref.open("../../moist_thermal/refdata/stats_ens_2.txt");
+   //   else
+     //   throw runtime_error("Unrecognized microphysics");
 
       std::string micro;
       barr1d mean, std_dev, min, max;
