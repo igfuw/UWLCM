@@ -19,4 +19,4 @@ jobs:
     with:
       UWLCM_sha: ${{ github.sha }} # merge PR SHA
       libcloudphxx_sha: "master" 
-      libmpdataxx_sha: "sharedmem_3d_y_blitz_storage_order_mpi_by_two_threads"
+      libmpdataxx_sha: "master"
