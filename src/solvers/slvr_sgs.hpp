@@ -11,6 +11,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   public:
   using real_t = typename ct_params_t::real_t;
   using ix = typename ct_params_t::ix;
+  using parent_t::timer;
 
   protected:
 
