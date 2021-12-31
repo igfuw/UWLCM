@@ -12,7 +12,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   using real_t = typename ct_params_t::real_t;
   using ix = typename ct_params_t::ix;
 #if defined(UWLCM_TIMING)
-  using parent_t::timer;
+  using timer = typename parent_t::timer;
 #endif
 
   protected:
