@@ -30,6 +30,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   timer tsync, tsync_gpu, tsync_wait, tasync, tasync_gpu, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
 #else
   using timer = void; 
+  using clock = void; 
 #endif
 
   int spinup; // number of timesteps
