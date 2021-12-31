@@ -145,6 +145,7 @@ jobs:
 #    needs: build_libcloudphxx
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         build_type: ["RelWithDebInfo"]
         mpi: ["none", "mvapich2"]
