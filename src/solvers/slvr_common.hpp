@@ -25,12 +25,11 @@ class slvr_common : public slvr_dim<ct_params_t>
   protected:
 
 #if defined(UWLCM_TIMING)
-
   using clock = std::chrono::system_clock; 
   using timer = std::chrono::milliseconds; 
   timer tsync, tsync_gpu, tsync_wait, tasync, tasync_gpu, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
-
-  protected:
+#else
+  using timer = void; 
 #endif
 
   int spinup; // number of timesteps
