@@ -67,7 +67,7 @@ void setopts_micro(
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
     // 
-    ("out_dry", po::value<std::string>()->default_value(""),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_dry", po::value<std::string>()->default_value(""),  "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("gccn", po::value<setup::real_t>()->default_value(0) , "concentration of giant aerosols = gccn * VOCALS observations")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
@@ -78,7 +78,7 @@ void setopts_micro(
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
-
+    ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -92,8 +92,6 @@ void setopts_micro(
 
   rt_params.async = vm["async"].as<bool>();
   rt_params.gccn = vm["gccn"].as<setup::real_t>();
-  rt_params.out_wet_spec = vm["out_wet_spec"].as<bool>();
-  rt_params.out_dry_spec = vm["out_dry_spec"].as<bool>();
 //  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
@@ -175,7 +173,7 @@ void setopts_micro(
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
 
     // CCN relaxation stuff
-    if(user_params.ccn_relax)
+    if(vm["relax_ccn"].as<bool>())
     {
       rt_params.cloudph_opts_init.rlx_switch = 1;
       rt_params.cloudph_opts_init.rlx_bins = 100;
@@ -336,7 +334,7 @@ void setopts_micro(
       );
 
       // GCCN relaxation stuff
-      if(user_params.ccn_relax)
+      if(vm["relax_ccn"].as<bool>())
       {
         rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
           1.28, // kappa
@@ -484,32 +482,36 @@ void setopts_micro(
     }
   } 
 
-  if(rt_params.out_wet_spec)
+  for (auto &opt : std::set<std::string>({"out_dry_spec", "out_wet_spec"}))
   {
-    auto left_edges = bins_wet();
-    for (int i = 0; i < left_edges.size()-1; ++i)
+    if(vm[opt].as<bool>())
     {
-      rt_params.out_wet.push_back(outmom_t<thrust_real_t>::value_type(
-        outmom_t<thrust_real_t>::value_type::first_type(
-          left_edges.at(i),
-          left_edges.at(i+1)
-        ), 
-        outmom_t<setup::real_t>::value_type::second_type(1, 0)
-      ));
+      auto left_edges = opt == "out_dry_spec" ? bins_dry() : bins_wet();
+      auto &out = opt == "out_dry_spec" ? rt_params.out_dry : rt_params.out_wet;
+      for (int i = 0; i < left_edges.size()-1; ++i)
+      {
+        out.push_back(outmom_t<thrust_real_t>::value_type(
+          outmom_t<thrust_real_t>::value_type::first_type(
+            left_edges.at(i),
+            left_edges.at(i+1)
+          ), 
+          outmom_t<setup::real_t>::value_type::second_type{0} // 0-th moment only, e.g. {0,1,3} would store 0-th, 1-st and 3-rd moments
+        ));
+      }
     }
   }
-  if(rt_params.out_dry_spec)
-  {
-    auto left_edges = bins_dry();
-    for (int i = 0; i < left_edges.size()-1; ++i)
-    {
-      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
-        outmom_t<thrust_real_t>::value_type::first_type(
-          left_edges.at(i),
-          left_edges.at(i+1)
-        ), 
-        outmom_t<setup::real_t>::value_type::second_type(1, 0)
-      ));
-    }
-  }
+//  if(vm["out_dry_spec"].as<bool>())
+//  {
+//    auto left_edges = bins_dry();
+//    for (int i = 0; i < left_edges.size()-1; ++i)
+//    {
+//      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
+//        outmom_t<thrust_real_t>::value_type::first_type(
+//          left_edges.at(i),
+//          left_edges.at(i+1)
+//        ), 
+//        outmom_t<setup::real_t>::value_type::second_type{0}
+//      ));
+//    }
+//  }
 }

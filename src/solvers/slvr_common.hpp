@@ -123,18 +123,20 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("user_params spinup", params.user_params.spinup);  
       this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);  
       this->record_aux_const("user_params rng_seed_init", params.user_params.rng_seed_init);  
-      this->record_aux_const("user_params th_src", params.user_params.th_src);  
-      this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
-      this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
-      this->record_aux_const("user_params w_src", params.user_params.w_src);  
-      this->record_aux_const("user_params ccn_relax", params.user_params.ccn_relax);  
+      this->record_aux_const("user_params sgs_delta", params.user_params.sgs_delta);  
+//      this->record_aux_const("user_params th_src", params.user_params.th_src);  
+//      this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
+//      this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
+//      this->record_aux_const("user_params w_src", params.user_params.w_src);  
+//      this->record_aux_const("user_params ccn_relax", params.user_params.ccn_relax);  
+      this->record_aux_const("user_params relax_th_rv", params.user_params.relax_th_rv);  
       this->record_aux_const("user_params case_n_stp_multiplier", params.user_params.case_n_stp_multiplier);  
 
-      this->record_aux_const("rt_params th_src", params.th_src);  
-      this->record_aux_const("rt_params rv_src", params.rv_src);  
-      this->record_aux_const("rt_params uv_src", params.uv_src);  
-      this->record_aux_const("rt_params w_src", params.w_src);  
-      this->record_aux_const("rt_params spinup", params.spinup);  
+//      this->record_aux_const("rt_params th_src", params.th_src);  
+//      this->record_aux_const("rt_params rv_src", params.rv_src);  
+//      this->record_aux_const("rt_params uv_src", params.uv_src);  
+//      this->record_aux_const("rt_params w_src", params.w_src);  
+//      this->record_aux_const("rt_params spinup", params.spinup);  
       this->record_aux_const("rt_params subsidence", params.subsidence);  
       this->record_aux_const("rt_params vel_subsidence", params.vel_subsidence);  
       this->record_aux_const("rt_params coriolis", params.coriolis);  
@@ -171,7 +173,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("rv_LS", params.rv_LS->data()); 
       this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
       this->record_prof_const("mix_len", params.mix_len->data());
-      this->record_prof_const("nudging_coeff", params.nudging_coeff->data()); 
+      this->record_prof_const("relax_th_rv_coeff", params.relax_th_rv_coeff->data()); 
       if(parent_t::n_dims==3)
       {
         this->record_prof_const("u_geostr", params.geostr[0]->data()); 
@@ -259,7 +261,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void subsidence(const int&);
   void coriolis(const int&);
-  void nudging(const int&);
+  void relax_th_rv(const int&);
 
   void update_rhs(
     arrvec_t<typename parent_t::arr_t> &rhs,
@@ -284,7 +286,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
 
         // calculate mean th and rv at each level, needed for nudging of the horizontal mean
-        if(params.nudging)
+        if(params.relax_th_rv)
         {
           this->hrzntl_mean(this->state(ix::rv), rv_mean_prof);
           this->hrzntl_mean(this->state(ix::th), th_mean_prof);
@@ -511,16 +513,16 @@ class slvr_common : public slvr_dim<ct_params_t>
   // note dual inheritance to get profile pointers
   struct rt_params_t : parent_t::rt_params_t, setup::profile_ptrs_t
   {
-    int spinup = 0, // number of timesteps during which autoconversion is to be turned off
-        nt;         // total number of timesteps
+//    int spinup = 0, // number of timesteps during which autoconversion is to be turned off
+//        nt;         // total number of timesteps
     bool rv_src, th_src, uv_src, w_src, subsidence, coriolis, friction, buoyancy_wet, radiation;
     bool vel_subsidence = true; // should subsidence be also applied to velocitiy fields - False eg. in RICO
     bool rc_src, rr_src; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
     bool nc_src, nr_src; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
-    bool nudging = false; // nudging of mean th and rv per level
+    bool relax_th_rv = false; // nudging of mean th and rv per level
     typename ct_params_t::real_t dz; // vertical grid size
     setup::ForceParameters_t ForceParameters;
-    user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
+    user_params_t user_params; // copy od user_params
 
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;

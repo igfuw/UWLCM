@@ -187,6 +187,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("src_sd_conc", params.cloudph_opts_init.src_sd_conc);  
     this->record_aux_const("src_z1", params.cloudph_opts_init.src_z1);
     this->record_aux_const("rlx_bins", params.cloudph_opts_init.rlx_bins);  
+    this->record_aux_const("rlx_sd_per_bin", params.cloudph_opts_init.rlx_sd_per_bin);  
+    this->record_aux_const("rlx_timescale", params.cloudph_opts_init.rlx_timescale);  
   }
   this->mem->barrier();
 }

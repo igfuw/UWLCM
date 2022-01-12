@@ -20,7 +20,7 @@ namespace setup
     const real_t z_abs = 1250;
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
-    const quantity<si::length, real_t> gccn_max_height = 460 * si::metres; // below inversion
+    const quantity<si::length, real_t> gccn_max_height = 460 * si::metres; // below cloud
     const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
 
     // liquid water potential temperature at height z
@@ -44,7 +44,7 @@ namespace setup
       return z < z_i[RF - 1] ? rt_below : rt_above;
     }
   
-    template<class case_ct_params_t, int RF, int n_dims, bool nudging>
+    template<class case_ct_params_t, int RF, int n_dims>
     class DycomsCommon : public Anelastic<case_ct_params_t, n_dims>
     {
       static_assert(RF == 1 || RF == 2,
@@ -159,13 +159,12 @@ namespace setup
         params.nr_src = user_params.nr_src;
         params.dt = user_params.dt;
         params.nt = user_params.nt;
+        params.relax_th_rv = user_params.relax_th_rv;
         params.buoyancy_wet = true;
         params.subsidence = true;
         params.friction = true;
         params.coriolis = true;
         params.radiation = true;
-        if(nudging)
-          params.nudging = true;
 
         this->setopts_sgs(params);
       }
@@ -231,12 +230,11 @@ namespace setup
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
 
-        //nudging
-        if(nudging) // Zhou et al. 2018
-          profs.nudging_coeff = where(k * dz >= 800, 
-            1. / 180.,  // 180s time scale at and above 800m
-            1. / 7200. * pow(sin(3.1419 / 2. * (k * dz) / 800.), 2) // 7200s time scale below 800m + sinusoidal factor = 0 at ground
-            );
+        //nudging, Zhou et al. 2018
+        profs.relax_th_rv_coeff = where(k * dz >= 800, 
+          1. / 180.,  // 180s time scale at and above 800m
+          1. / 7200. * pow(sin(3.1419 / 2. * (k * dz) / 800.), 2) // 7200s time scale below 800m + sinusoidal factor = 0 at ground
+          );
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -299,13 +297,13 @@ namespace setup
       }
     };
     
-    template<class case_ct_params_t, int RF, int n_dims, bool nudging>
+    template<class case_ct_params_t, int RF, int n_dims>
     class Dycoms;
 
-    template<class case_ct_params_t, int RF, bool nudging>
-    class Dycoms<case_ct_params_t, RF, 2, nudging> : public DycomsCommon<case_ct_params_t, RF, 2, nudging>
+    template<class case_ct_params_t, int RF>
+    class Dycoms<case_ct_params_t, RF, 2> : public DycomsCommon<case_ct_params_t, RF, 2>
     {
-      using parent_t = DycomsCommon<case_ct_params_t, RF, 2, nudging>;
+      using parent_t = DycomsCommon<case_ct_params_t, RF, 2>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -331,10 +329,10 @@ namespace setup
       }
     };
 
-    template<class case_ct_params_t, int RF, bool nudging>
-    class Dycoms<case_ct_params_t, RF, 3, nudging> : public DycomsCommon<case_ct_params_t, RF, 3, nudging>
+    template<class case_ct_params_t, int RF>
+    class Dycoms<case_ct_params_t, RF, 3> : public DycomsCommon<case_ct_params_t, RF, 3>
     {
-      using parent_t = DycomsCommon<case_ct_params_t, RF, 3, nudging>;
+      using parent_t = DycomsCommon<case_ct_params_t, RF, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
       // southerly wind

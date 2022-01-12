@@ -6,7 +6,7 @@
 #include "../../forcings/coriolis.hpp"
 #include "../../forcings/radiation.hpp"
 #include "../../forcings/subsidence.hpp"
-#include "../../forcings/nudging.hpp"
+#include "../../forcings/relax_th_rv.hpp"
 #include "../../forcings/surface_fluxes.hpp"
 
 // common forcing functions
@@ -29,7 +29,7 @@ void slvr_common<ct_params_t>::rv_src()
     alpha(ijk).reindex(this->zero) += (*params.rv_LS)(this->vert_idx);
 
     // per-level nudging of the mean
-    nudging(ix::rv);
+    relax_th_rv(ix::rv);
     alpha(ijk) += F(ijk);
   }
   else
@@ -76,7 +76,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     alpha(ijk).reindex(this->zero) += (*params.th_LS)(this->vert_idx);
 
     // per-level nudging of the mean
-    nudging(ix::th);
+    relax_th_rv(ix::th);
     alpha(ijk) += F(ijk);
   }
   else
