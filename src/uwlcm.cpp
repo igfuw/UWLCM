@@ -63,8 +63,8 @@ int main(int argc, char** argv)
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal, 0 for 2D simulation")
       ("nz", po::value<int>()->required() , "grid cell count in vertical")
       ("nt", po::value<int>()->required() , "timestep count")
-      ("rng_seed", po::value<int>()->default_value(0) , "rng seed, 0 for random")
-      ("rng_seed_init", po::value<int>()->default_value(0) , "rng seed for initial conditions, 0 for the same as rng_seed")
+      ("rng_seed", po::value<int>()->default_value(0) , "rng seed for randomness post initialization (currently only in Lagrangian microphysics), 0 for random")
+      ("rng_seed_init", po::value<int>()->default_value(0) , "rng seed for initial conditions (perturbations of th and rv and initialization of Lagrangian microphysics), 0 for rng_seed_init=rng_seed")
       ("dt", po::value<setup::real_t>()->required() , "timestep length [s]")
       ("outdir", po::value<std::string>()->required(), "output directory name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>()->required(), "output rate (timestep interval)")
@@ -84,7 +84,6 @@ int main(int argc, char** argv)
       ("help", "produce a help message (see also --micro X --help)")
       ("relax_th_rv", po::value<bool>()->default_value(false) , "relax per-level mean theta and rv to a desired (case-specific) profile")
 
-
       // aerosol distribution params
       // default values are realistic params, except n1_stp=n2_stp=-1
       // if n1_stp<0 and n2_stp<0, the case-default aerosols distribution is used,
@@ -98,12 +97,12 @@ int main(int argc, char** argv)
       ("n2_stp", po::value<setup::real_t>()->default_value(-1.0) , "aerosol distirbution lognormal mode 2: concentration at STP [1/m^3] (lgrngn and blk_2m microphysics only). If n1_stp<0 and n2_stp<0, case-specific aerosol distribution is used.")
       ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "aerosol distirbution lognormal mode 2: hygroscopicity parameter (lgrngn and blk_2m microphysics only)")
       ("case_n_stp_multiplier", po::value<setup::real_t>()->default_value(1.0) , "if case-specific aerosol distribution is used, multiply the case-default aerosols concentration by this value.")
-      ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
+//      ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
 
-    // hendling the "help" option
+    // handling the "help" option
     if (ac == 1 || (vm.count("help") && !vm.count("micro")))
     {
       std::cout << opts_main;
@@ -159,7 +158,7 @@ int main(int argc, char** argv)
 //    user_params.uv_src = vm["uv_src"].as<bool>();
 //    user_params.w_src = vm["w_src"].as<bool>();
 
-    user_params.relax_ccn = vm["relax_ccn"].as<bool>();
+//    user_params.relax_ccn = vm["relax_ccn"].as<bool>();
     user_params.relax_th_rv = vm["relax_th_rv"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();

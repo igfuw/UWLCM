@@ -110,19 +110,17 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     if(this->rank==0)
     {
       this->record_aux_const("single-moment bulk microphysics", -44);  
-      this->record_aux_const("cond", params.cloudph_opts.cond);  
-      this->record_aux_const("cevp", params.cloudph_opts.cevp);  
-      this->record_aux_const("revp", params.cloudph_opts.revp);  
-      this->record_aux_const("conv", params.flag_conv);  
-      this->record_aux_const("accr", params.cloudph_opts.accr);  
-      this->record_aux_const("sedi", params.cloudph_opts.sedi);  
-      this->record_aux_const("r_c0", params.cloudph_opts.r_c0);  
-      this->record_aux_const("k_acnv", params.cloudph_opts.k_acnv);  
-      this->record_aux_const("r_eps", params.cloudph_opts.r_eps);  
-      this->record_aux_const("user_params rc_src", params.user_params.rc_src);  
-      this->record_aux_const("user_params rr_src", params.user_params.rr_src);  
-      this->record_aux_const("rt_params rc_src", params.rc_src);  
-      this->record_aux_const("rt_params rr_src", params.rr_src);  
+      this->record_aux_const("cond",   "blk_1m", params.cloudph_opts.cond);  
+      this->record_aux_const("cevp",   "blk_1m", params.cloudph_opts.cevp);  
+      this->record_aux_const("revp",   "blk_1m", params.cloudph_opts.revp);  
+      this->record_aux_const("conv",   "blk_1m", params.flag_conv);  
+      this->record_aux_const("accr",   "blk_1m", params.cloudph_opts.accr);  
+      this->record_aux_const("sedi",   "blk_1m", params.cloudph_opts.sedi);  
+      this->record_aux_const("r_c0",   "blk_1m", params.cloudph_opts.r_c0);  
+      this->record_aux_const("k_acnv", "blk_1m", params.cloudph_opts.k_acnv);  
+      this->record_aux_const("r_eps",  "blk_1m", params.cloudph_opts.r_eps);  
+      this->record_aux_const("rc_src", "rt_params", params.rc_src);  
+      this->record_aux_const("rr_src", "rt_params", params.rr_src);  
     }
     this->mem->barrier();
   }

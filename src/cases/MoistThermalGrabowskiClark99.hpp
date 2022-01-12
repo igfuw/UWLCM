@@ -147,9 +147,6 @@ namespace setup
     
       void setopts_hlpr(rt_params_t &params, const user_params_t &user_params)
       {
-        params.outdir = user_params.outdir;
-        params.outfreq = user_params.outfreq;
-        params.spinup = user_params.spinup;
         params.w_src = true;
         params.uv_src = false;
         params.th_src = false;
@@ -158,10 +155,9 @@ namespace setup
         params.rr_src = false;
         params.nc_src = false;
         params.nr_src = false;
-        params.dt = user_params.dt;
-        params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
+        params.vel_subsidence = false;
         params.friction = false;
         params.coriolis = false;
         params.radiation = false;

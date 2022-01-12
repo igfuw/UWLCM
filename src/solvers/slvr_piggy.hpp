@@ -48,8 +48,8 @@ class slvr_piggy<
           throw std::runtime_error("error opening velocity output file '{outdir}/velocity_out.dat'");
         }
       }
-      this->record_aux_const("save_vel", save_vel);  
-      this->record_aux_const("rt_params prs_tol", prs_tol);  
+      this->record_aux_const("save_vel", "piggy", save_vel);  
+      this->record_aux_const("rt_params prs_tol", "piggy", prs_tol);  
     }
     this->mem->barrier();
   }
@@ -77,10 +77,10 @@ class slvr_piggy<
     {
       po::options_description opts("Driver options"); 
       opts.add_options()
-        ("save_vel", po::value<bool>()->default_value(false), "should velocity field be stored for piggybacking")
+        ("save_vel", po::value<bool>()->default_value(false), "should velocity field be stored (for future piggybacking)")
       ;
       opts.add_options()
-        ("prs_tol", po::value<setup::real_t>()->default_value(1e-6) , "pressure solver tolerance");
+        ("prs_tol", po::value<setup::real_t>()->default_value(1e-6) , "pressure solver tolerance"); // not really related to piggybacking, but convenient to put here as it is the first solver to inherit from libmpdata++
       po::variables_map vm;
       handle_opts(opts, vm);
           
@@ -133,7 +133,7 @@ class slvr_piggy<
     {
       po::options_description opts("Piggybacker options"); 
       opts.add_options()
-        ("vel_in", po::value<std::string>()->required(), "file with input velocities")
+        ("vel_in", po::value<std::string>()->required(), "file with input velocities (for piggybacking)")
       ;
       po::variables_map vm;
       handle_opts(opts, vm);
@@ -152,7 +152,7 @@ class slvr_piggy<
         throw std::runtime_error("error opening velocities input file defined by --vel_in");
       }
       this->record_aux_const("piggybacking", -44); // dummy -44 
-      this->record_aux_const(std::string("vel_in : ") + vel_in, -44);  // dummy -44
+      this->record_aux_const(std::string("vel_in : ") + vel_in, "piggy", -44);  // dummy -44
     }
     this->mem->barrier();
   }

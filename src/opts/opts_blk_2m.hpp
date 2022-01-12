@@ -26,11 +26,11 @@ void setopts_micro(
 
   po::options_description opts("Double-moment bulk microphysics options");
   opts.add_options()
-    ("acti", po::value<bool>()->default_value(rt_params.cloudph_opts.acti) , "TODO (on/off)")
-    ("cond", po::value<bool>()->default_value(rt_params.cloudph_opts.cond) , "TODO (on/off)")
-    ("accr", po::value<bool>()->default_value(rt_params.cloudph_opts.accr) , "TODO (on/off)")
-    ("acnv", po::value<bool>()->default_value(rt_params.cloudph_opts.acnv) , "TODO (on/off)")
-    ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "TODO (on/off)")
+    ("acti", po::value<bool>()->default_value(rt_params.cloudph_opts.acti) , "activation (on/off)")
+    ("cond", po::value<bool>()->default_value(rt_params.cloudph_opts.cond) , "condensation (on/off)")
+    ("accr", po::value<bool>()->default_value(rt_params.cloudph_opts.accr) , "accretion (on/off)")
+    ("acnv", po::value<bool>()->default_value(rt_params.cloudph_opts.acnv) , "autoconversion (on/off)")
+    ("sedi", po::value<bool>()->default_value(rt_params.cloudph_opts.sedi) , "sedimentation (on/off)")
     ("acnv_A", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_A), "parameter in autoconversion rate formulae")
     ("acnv_b", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_b), "parameter in autoconversion rate formulae")
     ("acnv_c", po::value<typename solver_t::real_t>()->default_value(rt_params.cloudph_opts.acnv_c), "parameter in autoconversion rate formulae")

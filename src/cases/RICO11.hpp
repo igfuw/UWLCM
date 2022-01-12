@@ -175,19 +175,6 @@ namespace setup
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
       {
-        params.outdir = user_params.outdir;
-        params.outfreq = user_params.outfreq;
-        params.spinup = user_params.spinup;
-        params.w_src = user_params.w_src;
-        params.uv_src = user_params.uv_src;
-        params.th_src = user_params.th_src;
-        params.rv_src = user_params.rv_src;
-        params.rc_src = user_params.rc_src;
-        params.rr_src = user_params.rr_src;
-        params.nc_src = user_params.nc_src;
-        params.nr_src = user_params.nr_src;
-        params.dt = user_params.dt;
-        params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = true;
         params.vel_subsidence = false;
