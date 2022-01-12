@@ -18,4 +18,6 @@ struct user_params_t
   quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t> n1_stp, n2_stp;		
   quantity<si::dimensionless, setup::real_t> kappa1, kappa2;
   quantity<si::dimensionless, setup::real_t> case_n_stp_multiplier;
+
+  bool relax_ccn = false; // relevant only for lgrngn micro, hence needs a default value as otherwise it might be undefined in blk_1m/blk_2m
 };

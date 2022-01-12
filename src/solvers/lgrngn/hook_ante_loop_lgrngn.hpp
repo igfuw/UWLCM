@@ -189,6 +189,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("rlx_bins", "lgrngn", params.cloudph_opts_init.rlx_bins);  
     this->record_aux_const("rlx_sd_per_bin", "lgrngn", params.cloudph_opts_init.rlx_sd_per_bin);  
     this->record_aux_const("rlx_timescale", "lgrngn", params.cloudph_opts_init.rlx_timescale);  
+    this->record_aux_const("relax_ccn", "user_params", params.cloudph_opts_init.rlx_timescale);  
   }
   this->mem->barrier();
 }

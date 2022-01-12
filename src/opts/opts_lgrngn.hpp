@@ -173,7 +173,8 @@ void setopts_micro(
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
 
     // CCN relaxation stuff
-    if(vm["relax_ccn"].as<bool>())
+    rt_params.user_params.relax_ccn = vm["relax_ccn"].as<bool>();
+    if(rt_params.user_params.relax_ccn)
     {
       rt_params.cloudph_opts_init.rlx_switch = 1;
       rt_params.cloudph_opts_init.rlx_bins = 100;
@@ -334,7 +335,7 @@ void setopts_micro(
       );
 
       // GCCN relaxation stuff
-      if(vm["relax_ccn"].as<bool>())
+      if(rt_params.user_params.relax_ccn)
       {
         rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
           1.28, // kappa
