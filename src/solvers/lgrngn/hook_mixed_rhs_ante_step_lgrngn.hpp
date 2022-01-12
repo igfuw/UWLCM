@@ -63,7 +63,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       // turn off aerosol src, because it was only used to initialize gccn below some height
       params.cloudph_opts.src = false;
       // if relaxation is to be done, turn it on after gccn were created by src
-      if(params.user_params.ccn_relax)
+      if(params.user_params.relax_ccn)
         params.cloudph_opts.rlx = true;
     }
 

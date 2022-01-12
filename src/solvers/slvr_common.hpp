@@ -33,7 +33,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   using clock = void; 
 #endif
 
-  int spinup; // number of timesteps
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
 
   // array with index of inversion
@@ -83,7 +82,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_loop(int nt)
   {
-    if (spinup > 0)
+    if (params.user_params.spinup > 0)
     {
       set_rain(false);
     }
@@ -106,7 +105,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 #else
       static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
-      this->record_aux_const(std::string("run command: ") + av[0], "-44");  
+      this->record_aux_const(std::string("run command: ") + std::string(av[0]), -44);  
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
       this->record_aux_const("MPI compiler (true/false)", "MPI details", 
 #ifdef USE_MPI
@@ -133,6 +132,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rv_src", "rt_params", params.rv_src);  
       this->record_aux_const("uv_src", "rt_params", params.uv_src);  
       this->record_aux_const("w_src",  "rt_params", params.w_src);  
+      this->record_aux_const("outfreq", "rt_params", params.outfreq);  
+      this->record_aux_const(std::string("outdir : ") +  params.outdir, "rt_params", -44);
 
       this->record_aux_const("subsidence", "rt_params", params.subsidence);  
       this->record_aux_const("vel_subsidence", "rt_params", params.vel_subsidence);  
@@ -151,14 +152,14 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("coriolis_parameter", "ForceParameters", params.ForceParameters.coriolis_parameter);  
 
       // TODO: need to update ref files in tests to include this in output
-      this->record_aux_const("mean_rd1", "aerosol_dist_params", "user_params", params.user_params.mean_rd1 / si::metres);  
-      this->record_aux_const("sdev_rd1", "aerosol_dist_params", "user_params", params.user_params.sdev_rd1);
-      this->record_aux_const("n1_stp", "aerosol_dist_params", "user_params", params.user_params.n1_stp * si::cubic_metres);
-      this->record_aux_const("kappa1", "aerosol_dist_params", "user_params", params.user_params.kappa1);
-      this->record_aux_const("mean_rd2", "aerosol_dist_params", "user_params", params.user_params.mean_rd2 / si::metres);  
-      this->record_aux_const("sdev_rd2", "aerosol_dist_params", "user_params", params.user_params.sdev_rd2);
-      this->record_aux_const("n2_stp", "aerosol_dist_params", "user_params", params.user_params.n2_stp * si::cubic_metres);
-      this->record_aux_const("kappa2", "aerosol_dist_params", "user_params", params.user_params.kappa2);
+      this->record_aux_const("mean_rd1", "user_params", params.user_params.mean_rd1 / si::metres);  
+      this->record_aux_const("sdev_rd1", "user_params", params.user_params.sdev_rd1);
+      this->record_aux_const("n1_stp", "user_params", params.user_params.n1_stp * si::cubic_metres);
+      this->record_aux_const("kappa1", "user_params", params.user_params.kappa1);
+      this->record_aux_const("mean_rd2", "user_params", params.user_params.mean_rd2 / si::metres);  
+      this->record_aux_const("sdev_rd2", "user_params", params.user_params.sdev_rd2);
+      this->record_aux_const("n2_stp", "user_params", params.user_params.n2_stp * si::cubic_metres);
+      this->record_aux_const("kappa2", "user_params", params.user_params.kappa2);
 
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
@@ -216,7 +217,7 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_step()
   {
-    if (spinup != 0 && spinup == this->timestep)
+    if (params.user_params.spinup != 0 && params.user_params.spinup == this->timestep)
     {
       // turn autoconversion on only after spinup (if spinup was specified)
       set_rain(true);
@@ -285,7 +286,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
 
         // calculate mean th and rv at each level, needed for nudging of the horizontal mean
-        if(params.relax_th_rv)
+        if(params.user_params.relax_th_rv)
         {
           this->hrzntl_mean(this->state(ix::rv), rv_mean_prof);
           this->hrzntl_mean(this->state(ix::th), th_mean_prof);
@@ -540,7 +541,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   ) :
     parent_t(args, p),
     params(p),
-    spinup(p.spinup),
     tmp1(args.mem->tmp[__FILE__][0][0]),
     r_l(args.mem->tmp[__FILE__][0][1]),
     F(args.mem->tmp[__FILE__][0][2]),
