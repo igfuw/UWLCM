@@ -116,8 +116,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
   // record microphysics options
   // TODO: divide them into groups
   // TODO: add recording of dry_distros, src_dry_distros, dry_sizes, kernel_parameters
-  // TODO: record meaningful names of kernel, adve_scheme, terminal_velocity, backend
-  // TODO: add git revisions of libmpdata, libcloud and uwlcm
   if (this->rank == 0) 
   {
     this->record_aux_const("super-droplet microphysics", -44);  
@@ -139,7 +137,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("sd_conc_large_tail", "lgrngn", params.cloudph_opts_init.sd_conc_large_tail);  
     this->record_aux_const("sd_const_multi", "lgrngn", params.cloudph_opts_init.sd_const_multi);  
     this->record_aux_const("n_sd_max", "lgrngn", params.cloudph_opts_init.n_sd_max);  
-    this->record_aux_const("adve_scheme", "lgrngn", params.cloudph_opts_init.adve_scheme);  
     this->record_aux_const("dev_count", "lgrngn", params.cloudph_opts_init.dev_count);  
     this->record_aux_const("dev_id", "lgrngn", params.cloudph_opts_init.dev_id);  
     this->record_aux_const("sstp_cond", "lgrngn", params.cloudph_opts_init.sstp_cond);  
@@ -149,10 +146,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("diag_incloud_time", "lgrngn", params.cloudph_opts_init.diag_incloud_time);  
     this->record_aux_const("rng_seed", "lgrngn", params.cloudph_opts_init.rng_seed);  
     this->record_aux_const("rng_seed_init", "lgrngn", params.cloudph_opts_init.rng_seed_init);  
-    this->record_aux_const("kernel", "lgrngn", params.cloudph_opts_init.kernel);  
-    this->record_aux_const("terminal_velocity", "lgrngn", params.cloudph_opts_init.terminal_velocity);  
-    this->record_aux_const("RH_formula", "lgrngn", params.cloudph_opts_init.RH_formula);  
-    this->record_aux_const("backend", "lgrngn", params.backend);  
     this->record_aux_const("async", "lgrngn", params.async);  
     this->record_aux_const("adve", "lgrngn", params.cloudph_opts.adve);  
     this->record_aux_const("sedi", "lgrngn", params.cloudph_opts.sedi);  
@@ -172,7 +165,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("coal_switch", "lgrngn", params.cloudph_opts_init.coal_switch);  
     this->record_aux_const("sedi_switch", "lgrngn", params.cloudph_opts_init.sedi_switch);  
     this->record_aux_const("subs_switch", "lgrngn", params.cloudph_opts_init.subs_switch);  
-    this->record_aux_const("src_switch", "lgrngn", params.cloudph_opts_init.src_switch);  
     this->record_aux_const("rlx_switch", "lgrngn", params.cloudph_opts_init.rlx_switch);  
     this->record_aux_const("turb_adve_switch", "lgrngn", params.cloudph_opts_init.turb_adve_switch);  
     this->record_aux_const("turb_cond_switch", "lgrngn", params.cloudph_opts_init.turb_cond_switch);  
@@ -190,6 +182,12 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("rlx_sd_per_bin", "lgrngn", params.cloudph_opts_init.rlx_sd_per_bin);  
     this->record_aux_const("rlx_timescale", "lgrngn", params.cloudph_opts_init.rlx_timescale);  
     this->record_aux_const("relax_ccn", "user_params", params.cloudph_opts_init.rlx_timescale);  
+    this->record_aux_const(std::string("adve_scheme: ") + libcloudphxx::lgrngn::as_name.at(params.cloudph_opts_init.adve_scheme), "lgrngn", -44);  
+    this->record_aux_const(std::string("backend: ") + libcloudphxx::lgrngn::backend_name.at(params.backend), "lgrngn", -44);  
+    this->record_aux_const(std::string("kernel: ") + libcloudphxx::lgrngn::kernel_name.at(params.cloudph_opts_init.kernel), "lgrngn", -44);  
+    this->record_aux_const(std::string("src_type: ") + libcloudphxx::lgrngn::src_name.at(params.cloudph_opts_init.src_type), "lgrngn", -44);  
+    this->record_aux_const(std::string("terminal_velocity: ") + libcloudphxx::lgrngn::vt_name.at(params.cloudph_opts_init.terminal_velocity), "lgrngn", -44);  
+    this->record_aux_const(std::string("RH_formula: ") + libcloudphxx::lgrngn::RH_formula_name.at(params.cloudph_opts_init.RH_formula), "lgrngn", -44);  
   }
   this->mem->barrier();
 }

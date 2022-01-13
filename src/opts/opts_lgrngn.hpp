@@ -17,6 +17,7 @@
 #include <libcloudph++/lgrngn/kernel.hpp>
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/RH_formula.hpp>
+#include <libcloudph++/lgrngn/ccn_source.hpp>
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
@@ -267,7 +268,7 @@ void setopts_micro(
     // GCCNs following Jensen and Nugent, JAS 2016
     if(rt_params.gccn > setup::real_t(0))
     {
-      rt_params.cloudph_opts_init.src_switch = 1;
+      rt_params.cloudph_opts_init.src_type = libcloudphxx::lgrngn::src_t::simple;
       rt_params.cloudph_opts_init.src_x0 = 0;
       rt_params.cloudph_opts_init.src_x1 = case_ptr->X / si::meters;
       rt_params.cloudph_opts_init.src_y0 = 0;
