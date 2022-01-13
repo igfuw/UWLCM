@@ -6,6 +6,7 @@
 #include <libcloudph++/git_revision.h>
 #include <libcloudph++/common/output.hpp>
 #include "../detail/get_uwlcm_git_revision.hpp"
+#include "../detail/ForceParameters.hpp"
 
 struct smg_tag  {};
 struct iles_tag {};
@@ -512,7 +513,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   public:
   // case-specific parameters
   // note dual inheritance to get profile pointers
-  struct rt_params_t : parent_t::rt_params_t, setup::profile_ptrs_t
+  struct rt_params_t : parent_t::rt_params_t, detail::profile_ptrs_t
   {
     bool rv_src = true, th_src = true, uv_src = true, w_src = true;
     bool subsidence = false,
@@ -524,7 +525,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     bool rc_src = true, rr_src = true; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
     bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
-    setup::ForceParameters_t ForceParameters;
+    detail::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params
 
     // functions for updating surface fluxes per timestep
