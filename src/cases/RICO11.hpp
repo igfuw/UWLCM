@@ -7,7 +7,7 @@
 #include "Anelastic.hpp"
 #include "detail/formulas.hpp"
 
-namespace setup 
+namespace cases 
 {
   namespace rico
   {

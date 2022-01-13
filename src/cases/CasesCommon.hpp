@@ -16,11 +16,14 @@
 #include "../detail/ForceParameters.hpp"
 #include "../detail/profiles.hpp"
 
-namespace setup
+namespace cases
 {
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
+
+  using real_t = setup::real_t;
+  using arr_1D_t = setup::arr_1D_t;
 
   template<class case_ct_params_t, int n_dims>
   class CasesCommon

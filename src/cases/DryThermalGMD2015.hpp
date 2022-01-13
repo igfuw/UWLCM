@@ -6,7 +6,7 @@
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
 
-namespace setup 
+namespace cases 
 {
   namespace dry_thermal
   {

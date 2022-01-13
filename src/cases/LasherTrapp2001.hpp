@@ -4,7 +4,7 @@
 #include "Anelastic.hpp"
 #include "LasherTrapp2001_sounding/x7221545.adjdec2.hpp"
 
-namespace setup 
+namespace cases 
 {
   namespace LasherTrapp
   {

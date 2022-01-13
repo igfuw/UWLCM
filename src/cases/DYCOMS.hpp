@@ -2,7 +2,7 @@
 #include <random>
 #include "Anelastic.hpp"
 
-namespace setup 
+namespace cases 
 {
   namespace dycoms
   {

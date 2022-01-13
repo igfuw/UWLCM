@@ -3,7 +3,7 @@
 #pragma once
 #include "CasesCommon.hpp"
 
-namespace setup 
+namespace cases 
 {
   template<class case_ct_params_t, int n_dims>
   class Anelastic : public CasesCommon<case_ct_params_t, n_dims>

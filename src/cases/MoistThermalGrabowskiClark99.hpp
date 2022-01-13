@@ -14,7 +14,7 @@ namespace detail
   };
 };
 
-namespace setup 
+namespace cases 
 {
   namespace moist_thermal
   {
