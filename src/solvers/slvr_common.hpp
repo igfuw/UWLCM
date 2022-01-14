@@ -106,7 +106,10 @@ class slvr_common : public slvr_dim<ct_params_t>
 #else
       static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
-      this->record_aux_const(std::string("run command: ") + std::string(av[0]), -44);  
+      std::string run_command;
+      for(int i=0; i<ac; ++i)
+        run_command += std::string(av[i]) + std::string(" ");
+      this->record_aux_const(std::string("run command: ") + run_command, -44);  
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
       this->record_aux_const("MPI compiler (true/false)", "MPI details", 
 #ifdef USE_MPI
