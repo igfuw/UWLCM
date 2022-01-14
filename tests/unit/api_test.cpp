@@ -26,13 +26,17 @@ int main(int ac, char** av)
   vector<string> opts_micro({
     "--micro=blk_1m"  ,
     "--micro=blk_2m"  ,
-    "--async=false --micro=lgrngn --backend=serial --sd_conc=8" 
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --relax_ccn=1",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1 --relax_ccn=1"
   });
   vector<string> opts_case({
     "--case=moist_thermal_api_test",
     "--case=dry_thermal_api_test --cond=0 --coal=0",
     "--case=dycoms_rf02_api_test",
-    "--case=dycoms_rf02_api_test --gccn=1 --out_dry_spec=1 --out_wet_spec=1",
+    "--case=dycoms_rf02_api_test --out_dry_spec=1 --out_wet_spec=1",
+    "--case=dycoms_rf02_api_test --relax_th_rv=1",
     "--case=rico11_api_test",
     "--case=dycoms_rf01_api_test",
     "--case=lasher_trapp_api_test"
