@@ -170,7 +170,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
-    int backend = -1;
+    libcloudphxx::lgrngn::backend_t backend = libcloudphxx::lgrngn::undefined;
     bool async = true;
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;

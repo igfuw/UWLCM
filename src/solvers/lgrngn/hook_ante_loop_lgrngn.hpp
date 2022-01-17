@@ -10,7 +10,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
   this->mem->barrier();
   if (this->rank == 0) 
   {
-    assert(params.backend != -1);
+    assert(params.backend != libcloudphxx::lgrngn::undefined);
     assert(params.dt != 0); 
 
     if(params.gccn > 0)
@@ -45,7 +45,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     int n_sd_from_src_dry_distros = params.cloudph_opts_init.src_sd_conc * params.cloudph_opts_init.src_z1 / params.cloudph_opts_init.z1 + 0.5;
       
     const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes + n_sd_from_src_dry_distros;
-    // TODO: add some space if relax_ccn is on?
 
     if(parent_t::n_dims == 2) // 2D
     {
@@ -62,7 +61,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
           params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell;
       }
       else
-        params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // hardcoded N_a=100/cm^3 !!
+        params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * 1.e8 * params.cloudph_opts_init.dx * params.cloudph_opts_init.dz / params.cloudph_opts_init.sd_const_multi; // NOTE: hardcoded N_a=100/cm^3 !!
         
       if(params.backend == libcloudphxx::lgrngn::multi_CUDA || this->mem->distmem.size()>1)
         params.cloudph_opts_init.n_sd_max *= 1.4; // more space for copied SDs
@@ -94,6 +93,10 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     }
 
     params.cloudph_opts_init.rlx_sd_per_bin /= this->mem->distmem.size();
+
+    // space for SD created via relaxation, impossible to know exactly how many will be added, because it depends on washout of SD...
+    int n_sd_from_rlx_dry_distros = params.cloudph_opts_init.rlx_sd_per_bin * params.cloudph_opts_init.rlx_bins * params.cloudph_opts_init.nz * 100; // room for 100 rounds of full relaxation... 
+    params.cloudph_opts_init.n_sd_max += n_sd_from_rlx_dry_distros;
 
     prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
       (libcloudphxx::lgrngn::backend_t)params.backend, 
