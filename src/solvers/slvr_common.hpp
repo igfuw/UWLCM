@@ -109,7 +109,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       std::string run_command;
       for(int i=0; i<ac; ++i)
         run_command += std::string(av[i]) + std::string(" ");
-      this->record_aux_const("run command", run_command);  
+      this->record_aux_const("run command", "misc", run_command);  
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
       this->record_aux_const("MPI compiler (true/false)", "MPI details", 
 #ifdef USE_MPI
