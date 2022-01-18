@@ -162,8 +162,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("rcyc", "lgrngn", params.cloudph_opts.rcyc);  
     this->record_aux_const("src", "lgrngn", params.cloudph_opts.src);  
     this->record_aux_const("rlx", "lgrngn", params.cloudph_opts.rlx);  
-    this->record_aux_const("out_dry_spec", "lgrngn", params.out_dry_spec);  
-    this->record_aux_const("out_wet_spec", "lgrngn", params.out_wet_spec);  
     this->record_aux_const("gccn", "lgrngn", params.gccn);  
     this->record_aux_const("turb_adve", "lgrngn", params.cloudph_opts.turb_adve);  
     this->record_aux_const("turb_cond", "lgrngn", params.cloudph_opts.turb_cond);  
