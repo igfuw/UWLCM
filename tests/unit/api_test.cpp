@@ -18,7 +18,7 @@ int main(int ac, char** av)
   bool run_piggy = std::stoi(av[2]);
 
   string opts_common = 
-    "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44"; 
+    "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --case_n_stp_multiplier=1e-8"; 
   vector<string> opts_dim({
     "--nx=4 --nz=4",
     "--nx=4 --ny=4 --nz=4"
@@ -32,14 +32,14 @@ int main(int ac, char** av)
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1 --relax_ccn=1"
   });
   vector<string> opts_case({
-    "--case=moist_thermal_api_test",
-    "--case=dry_thermal_api_test --cond=0 --coal=0",
-    "--case=dycoms_rf02_api_test",
-    "--case=dycoms_rf02_api_test --out_dry_spec=1 --out_wet_spec=1",
-    "--case=dycoms_rf02_api_test --relax_th_rv=1",
-    "--case=rico11_api_test",
-    "--case=dycoms_rf01_api_test",
-    "--case=lasher_trapp_api_test"
+    "--case=moist_thermal",
+    "--case=dry_thermal --cond=0 --coal=0",
+    "--case=dycoms_rf02",
+    "--case=dycoms_rf02 --out_dry_spec=1 --out_wet_spec=1",
+    "--case=dycoms_rf02 --relax_th_rv=1",
+    "--case=rico11",
+    "--case=dycoms_rf01",
+    "--case=lasher_trapp"
   });
   vector<string> opts_piggy({
     "--piggy=0",
@@ -64,9 +64,9 @@ int main(int ac, char** av)
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue;
           }
-          if((opts_c == opts_case[1]) && opts_m == opts_micro[1])
+          if((opts_c == opts_case[1]) && opts_m != opts_micro[0])
           {
-            std::cout << "skipping dry thermal tests with Lagrangian microphysics" << std::endl;
+            std::cout << "skipping dry thermal tests with microphysics other than blk_1m" << std::endl;
             continue; 
           }
 
