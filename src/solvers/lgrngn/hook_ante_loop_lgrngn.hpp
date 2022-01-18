@@ -125,7 +125,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
   // TODO: add recording of dry_distros, src_dry_distros, dry_sizes, kernel_parameters
   if (this->rank == 0) 
   {
-    this->record_aux_const("super-droplet microphysics", -44);  
+    this->record_aux_const("microphysics", "super-droplets");  
     this->record_aux_const("nx", "lgrngn", params.cloudph_opts_init.nx);  
     this->record_aux_const("ny", "lgrngn", params.cloudph_opts_init.ny);  
     this->record_aux_const("nz", "lgrngn", params.cloudph_opts_init.nz);  
@@ -188,13 +188,13 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("rlx_bins", "lgrngn", params.cloudph_opts_init.rlx_bins);  
     this->record_aux_const("rlx_sd_per_bin", "lgrngn", params.cloudph_opts_init.rlx_sd_per_bin);  
     this->record_aux_const("rlx_timescale", "lgrngn", params.cloudph_opts_init.rlx_timescale);  
-    this->record_aux_const("relax_ccn", "user_params", params.cloudph_opts_init.rlx_timescale);  
-    this->record_aux_const(std::string("adve_scheme: ") + libcloudphxx::lgrngn::as_name.at(params.cloudph_opts_init.adve_scheme), "lgrngn", -44);  
-    this->record_aux_const(std::string("backend: ") + libcloudphxx::lgrngn::backend_name.at(params.backend), "lgrngn", -44);  
-    this->record_aux_const(std::string("kernel: ") + libcloudphxx::lgrngn::kernel_name.at(params.cloudph_opts_init.kernel), "lgrngn", -44);  
-    this->record_aux_const(std::string("src_type: ") + libcloudphxx::lgrngn::src_name.at(params.cloudph_opts_init.src_type), "lgrngn", -44);  
-    this->record_aux_const(std::string("terminal_velocity: ") + libcloudphxx::lgrngn::vt_name.at(params.cloudph_opts_init.terminal_velocity), "lgrngn", -44);  
-    this->record_aux_const(std::string("RH_formula: ") + libcloudphxx::lgrngn::RH_formula_name.at(params.cloudph_opts_init.RH_formula), "lgrngn", -44);  
+    this->record_aux_const("adve_scheme", "lgrngn", libcloudphxx::lgrngn::as_name.at(params.cloudph_opts_init.adve_scheme));  
+    this->record_aux_const("backend", "lgrngn", libcloudphxx::lgrngn::backend_name.at(params.backend));  
+    this->record_aux_const("kernel", "lgrngn", libcloudphxx::lgrngn::kernel_name.at(params.cloudph_opts_init.kernel));  
+    this->record_aux_const("src_type", "lgrngn", libcloudphxx::lgrngn::src_name.at(params.cloudph_opts_init.src_type));  
+    this->record_aux_const("terminal_velocity", "lgrngn", libcloudphxx::lgrngn::vt_name.at(params.cloudph_opts_init.terminal_velocity));  
+    this->record_aux_const("RH_formula", "lgrngn", libcloudphxx::lgrngn::RH_formula_name.at(params.cloudph_opts_init.RH_formula));  
+    this->record_aux_const("relax_ccn", "user_params", params.user_params.relax_ccn);  
   }
   this->mem->barrier();
 }

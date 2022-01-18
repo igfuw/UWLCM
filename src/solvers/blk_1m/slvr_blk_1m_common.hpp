@@ -109,7 +109,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     // recording parameters
     if(this->rank==0)
     {
-      this->record_aux_const("single-moment bulk microphysics", -44);  
+      this->record_aux_const("microphysics", "single-moment bulk");  
       this->record_aux_const("cond",   "blk_1m", params.cloudph_opts.cond);  
       this->record_aux_const("cevp",   "blk_1m", params.cloudph_opts.cevp);  
       this->record_aux_const("revp",   "blk_1m", params.cloudph_opts.revp);  

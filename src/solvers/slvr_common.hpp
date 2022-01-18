@@ -95,21 +95,21 @@ class slvr_common : public slvr_dim<ct_params_t>
     // record user_params and profiles
     if(this->rank==0)
     {
-      this->record_aux_const(std::string("UWLCM git_revision : ") + get_uwlcm_git_revision(), "git_revisions", -44);  
+      this->record_aux_const("UWLCM git_revision", "git_revisions", get_uwlcm_git_revision());  
 #ifdef LIBMPDATAXX_GIT_REVISION
-      this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, "git_revisions", -44);  
+      this->record_aux_const("LIBMPDATAXX git_revision", "git_revisions", LIBMPDATAXX_GIT_REVISION);  
 #else
       static_assert(false, "LIBMPDATAXX_GIT_REVISION is not defined, update your libmpdata++ library");
 #endif
 #ifdef LIBCLOUDPHXX_GIT_REVISION
-      this->record_aux_const(std::string("LIBCLOUDPHXX git_revision : ") + LIBCLOUDPHXX_GIT_REVISION, "git_revisions", -44);  
+      this->record_aux_const("LIBCLOUDPHXX git_revision", "git_revisions", LIBCLOUDPHXX_GIT_REVISION);  
 #else
       static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
       std::string run_command;
       for(int i=0; i<ac; ++i)
         run_command += std::string(av[i]) + std::string(" ");
-      this->record_aux_const(std::string("run command: ") + run_command, -44);  
+      this->record_aux_const("run command", run_command);  
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
       this->record_aux_const("MPI compiler (true/false)", "MPI details", 
 #ifdef USE_MPI
@@ -120,11 +120,11 @@ class slvr_common : public slvr_dim<ct_params_t>
         );
       this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());
 
-      this->record_aux_const(std::string("case : ") + params.user_params.model_case, "user_params", -44);
+      this->record_aux_const("case", "user_params", params.user_params.model_case);
       this->record_aux_const("nt", "user_params", params.user_params.nt);
       this->record_aux_const("dt", "user_params", params.user_params.dt);  
       this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
-      this->record_aux_const(std::string("outdir : ") +  params.user_params.outdir, "user_params", -44);
+      this->record_aux_const("outdir", "user_params", params.user_params.outdir);
       this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
       this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
       this->record_aux_const("rng_seed_init", "user_params", params.user_params.rng_seed_init);  
@@ -137,7 +137,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("uv_src", "rt_params", params.uv_src);  
       this->record_aux_const("w_src",  "rt_params", params.w_src);  
       this->record_aux_const("outfreq", "rt_params", params.outfreq);  
-      this->record_aux_const(std::string("outdir : ") +  params.outdir, "rt_params", -44);
+      this->record_aux_const("outdir", "rt_params", params.outdir);
 
       this->record_aux_const("subsidence", "rt_params", params.subsidence);  
       this->record_aux_const("vel_subsidence", "rt_params", params.vel_subsidence);  

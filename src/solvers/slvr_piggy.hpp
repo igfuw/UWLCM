@@ -151,8 +151,8 @@ class slvr_piggy<
       {
         throw std::runtime_error("error opening velocities input file defined by --vel_in");
       }
-      this->record_aux_const("piggybacking", -44); // dummy -44 
-      this->record_aux_const(std::string("vel_in : ") + vel_in, "piggy", -44);  // dummy -44
+      this->record_aux_const("piggybacking", "piggy", "true");
+      this->record_aux_const("vel_in", "piggy", vel_in); 
     }
     this->mem->barrier();
   }
