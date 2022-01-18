@@ -10,7 +10,6 @@
 #include "detail/ct_params.hpp"
 #include "detail/panic.hpp"
 
-#include "cases/detail/api_test.hpp"
 #include "cases/DYCOMS.hpp"
 #include "cases/RICO11.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
@@ -99,19 +98,6 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
   else if (user_params.model_case == "rico11")
     case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>());
-  // special versions for api test - they have much lower aerosol concentrations to avoid multiplicity overflow
-  else if (user_params.model_case == "moist_thermal_api_test")
-    case_ptr.reset(new cases::api_test<cases::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>>()); 
-  else if (user_params.model_case == "dry_thermal_api_test")
-    case_ptr.reset(new cases::api_test<cases::dry_thermal::DryThermal<case_ct_params_t, n_dims>>()); 
-  else if (user_params.model_case == "dycoms_rf01_api_test")
-    case_ptr.reset(new cases::api_test<cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>>()); 
-  else if (user_params.model_case == "dycoms_rf02_api_test")
-    case_ptr.reset(new cases::api_test<cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>>()); 
-  else if (user_params.model_case == "lasher_trapp_api_test")
-    case_ptr.reset(new cases::api_test<cases::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>>());
-  else if (user_params.model_case == "rico11_api_test")
-    case_ptr.reset(new cases::api_test<cases::rico::Rico11<case_ct_params_t, n_dims>>());
   else
     throw std::runtime_error("wrong case choice");
 
@@ -168,11 +154,11 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // solver instantiation
   std::unique_ptr<concurr_any_t> concurr;
 
-  if(user_params.model_case == "dry_thermal" || user_params.model_case == "dry_thermal_api_test")
+  if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
   }
-  else if(user_params.model_case == "lasher_trapp" || user_params.model_case == "lasher_trapp_api_test")
+  else if(user_params.model_case == "lasher_trapp")
   {
     //concurr.reset(new concurr_openmp_rigid_gndsky_t(p));     // rigid horizontal boundaries
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case
