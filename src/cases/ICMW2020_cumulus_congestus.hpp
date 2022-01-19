@@ -4,7 +4,7 @@
 #include "Anelastic.hpp"
 #include "ICMW2020_cumulus_congestus_sounding/x7221545.adjdec2.hpp"
 
-namespace setup 
+namespace cases
 {
   namespace ICMW2020_cc
   {
@@ -64,17 +64,6 @@ namespace setup
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
       {
-        params.outdir = user_params.outdir;
-        params.outfreq = user_params.outfreq;
-        params.spinup = user_params.spinup;
-        params.w_src = user_params.w_src;
-        params.uv_src = user_params.uv_src;
-        params.th_src = user_params.th_src;
-        params.rv_src = user_params.rv_src;
-        params.rc_src = user_params.rc_src;
-        params.rr_src = user_params.rr_src;
-        params.dt = user_params.dt;
-        params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
         params.vel_subsidence = false;
@@ -92,25 +81,25 @@ namespace setup
       }
   
       template <class index_t>
-      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
         // we assume here that set_profs was called already, so that *_env profiles are initialized
-        int nz = solver.advectee().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
-        solver.advectee(ix::rv) = rv_env(index); 
-        solver.advectee(ix::th) = th_std_env(index); 
+        concurr.advectee(ix::rv) = rv_env(index); 
+        concurr.advectee(ix::th) = th_std_env(index); 
   
-        solver.advectee(ix::u) = 0;
-        solver.advectee(ix::w) = 0;  
+        concurr.advectee(ix::u) = 0;
+        concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
-        solver.vab_relaxed_state(0) = solver.advectee(ix::u);
-        solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
+        concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
   
         // density profile
-        solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
+        concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
   
         // randomly prtrb tht and rv in the lowest 1km
         // NOTE: all processes do this, but ultimately only perturbation calculated by MPI rank 0 is used
@@ -119,35 +108,35 @@ namespace setup
           std::uniform_real_distribution<> dis(-0.1, 0.1);
           auto rand = std::bind(dis, gen);
   
-          auto th_global = solver.advectee_global(ix::th);
-          decltype(solver.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
+          auto th_global = concurr.advectee_global(ix::th);
+          decltype(concurr.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
 
           prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
           th_global += prtrb;
           this->make_cyclic(th_global);
-          solver.advectee_global_set(th_global, ix::th);
+          concurr.advectee_global_set(th_global, ix::th);
         }
         {
           std::mt19937 gen(rng_seed+1); // different seed than in th. NOTE: if the same instance of gen is used in th and rv, for some reason it gives the same sequence in rv as in th despite being advanced in th prtrb
           std::uniform_real_distribution<> dis(-0.025e-3, 0.025e-3);
           auto rand = std::bind(dis, gen);
   
-          auto rv_global = solver.advectee_global(ix::rv);
-          decltype(solver.advectee(ix::rv)) prtrb(rv_global.shape()); // array to store perturbation
+          auto rv_global = concurr.advectee_global(ix::rv);
+          decltype(concurr.advectee(ix::rv)) prtrb(rv_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
 
           prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
           rv_global += prtrb;
           this->make_cyclic(rv_global);
-          solver.advectee_global_set(rv_global, ix::rv);
+          concurr.advectee_global_set(rv_global, ix::rv);
         }
       }
   
   
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -316,11 +305,11 @@ namespace setup
         params.dz = params.dj;
       }
 
-      void intcond(typename parent_t::concurr_any_t &solver,
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
-        this->intcond_hlpr(solver, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, rng_seed, k);
       }
 
       public:
@@ -346,17 +335,17 @@ namespace setup
         params.dz = params.dk;
       }
 
-      void intcond(typename parent_t::concurr_any_t &solver,
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
-        this->intcond_hlpr(solver, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, rng_seed, k);
   
-        int nz = solver.advectee().extent(ix::w);
+        int nz = concurr.advectee_global().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
   
-        solver.advectee(ix::v)= 0;
-        solver.vab_relaxed_state(1) = solver.advectee(ix::v);
+        concurr.advectee(ix::v)= 0;
+        concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
       public:
