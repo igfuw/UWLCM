@@ -14,7 +14,7 @@ namespace detail
   };
 };
 
-namespace setup 
+namespace cases 
 {
   namespace moist_thermal
   {
@@ -147,9 +147,6 @@ namespace setup
     
       void setopts_hlpr(rt_params_t &params, const user_params_t &user_params)
       {
-        params.outdir = user_params.outdir;
-        params.outfreq = user_params.outfreq;
-        params.spinup = user_params.spinup;
         params.w_src = true;
         params.uv_src = false;
         params.th_src = false;
@@ -158,10 +155,9 @@ namespace setup
         params.rr_src = false;
         params.nc_src = false;
         params.nr_src = false;
-        params.dt = user_params.dt;
-        params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
+        params.vel_subsidence = false;
         params.friction = false;
         params.coriolis = false;
         params.radiation = false;
@@ -171,32 +167,32 @@ namespace setup
       }
     
       template <class index_t>
-      void intcond_hlpr(typename parent_t::concurr_any_t &solver,
+      void intcond_hlpr(typename parent_t::concurr_any_t &concurr,
                         arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
       {
-        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
     
-        solver.advectee(ix::u) = 0;
-        solver.advectee(ix::w) = 0;  
+        concurr.advectee(ix::u) = 0;
+        concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
-        solver.vab_relaxed_state(0) = 0;
-        solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_relaxed_state(0) = 0;
+        concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
     
         // density profile
-        solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
+        concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
     
         // initial potential temperature
-        solver.advectee(ix::th) = th_e(index); 
+        concurr.advectee(ix::th) = th_e(index); 
       }
     
     
       public:
       // calculate the initial environmental theta and rv profiles as Wojtek does it
       // i.e. for stable virtual standard potential temperature
-      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
       // pre_ref - total pressure
       // th_e - dry potential temp
       // th_ref - dry potential temp refrence profsile
@@ -330,7 +326,7 @@ namespace setup
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
-      // function expecting a libmpdata solver parameters struct as argument
+      // function expecting a libmpdata concurr parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -339,21 +335,21 @@ namespace setup
         params.dz = params.dj;
       }
 
-      // function expecting a libmpdata++ solver as argument
-      void intcond(typename parent_t::concurr_any_t &solver,
+      // function expecting a libmpdata++ concurr as argument
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
-        this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, th_e, rv_e, rl_e, rng_seed, k);
 
 //        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
-        int nz = solver.advectee_global().extent(ix::w); 
+        int nz = concurr.advectee_global().extent(ix::w); 
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee_global().extent(0); 
+        int nx = concurr.advectee_global().extent(0); 
         real_t dx = (X / si::metres) / (nx-1); 
-        solver.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
+        concurr.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
           sqrt(
             pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
             pow(blitz::tensor::j * dz - (z_prtrb / si::metres), 2)
@@ -377,7 +373,7 @@ namespace setup
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
-      // function expecting a libmpdata solver parameters struct as argument
+      // function expecting a libmpdata concurr parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -387,23 +383,23 @@ namespace setup
         params.dz = params.dk;
       }
 
-      // function expecting a libmpdata++ solver as argument
-      void intcond(typename parent_t::concurr_any_t &solver,
+      // function expecting a libmpdata++ concurr as argument
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
-        this->intcond_hlpr(solver, rhod, th_e, rv_e, rl_e, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, th_e, rv_e, rl_e, rng_seed, k);
 
 //        arr_1D_t p_d_e(p_e - detail::calc_p_v()(p_e, rv_e));
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
-        int nz = solver.advectee_global().extent(2); 
+        int nz = concurr.advectee_global().extent(2); 
         real_t dz = (Z / si::metres) / (nz-1); 
-        int nx = solver.advectee_global().extent(0); 
+        int nx = concurr.advectee_global().extent(0); 
         real_t dx = (X / si::metres) / (nx-1); 
-        int ny = solver.advectee_global().extent(1); 
+        int ny = concurr.advectee_global().extent(1); 
         real_t dy = (Y / si::metres) / (ny-1); 
-        solver.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
+        concurr.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
           sqrt(
             pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
             pow(blitz::tensor::j * dy - (Y / si::metres / 2.), 2) + 
@@ -412,8 +408,8 @@ namespace setup
           blitz::tensor::k * dz
         );
     
-        solver.advectee(ix::v) = 0;
-        solver.vab_relaxed_state(1) = 0;
+        concurr.advectee(ix::v) = 0;
+        concurr.vab_relaxed_state(1) = 0;
       }
 
       public:

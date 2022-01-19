@@ -10,7 +10,6 @@
 #include "detail/ct_params.hpp"
 #include "detail/panic.hpp"
 
-#include "cases/detail/api_test.hpp"
 #include "cases/DYCOMS.hpp"
 #include "cases/RICO11.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
@@ -77,7 +76,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     enum {enable_sgs = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
   };
 
-  using case_t = setup::CasesCommon<
+  using case_t = cases::CasesCommon<
     case_ct_params_t, n_dims
   >;
 
@@ -89,32 +88,19 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new setup::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>()); 
+    case_ptr.reset(new cases::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>()); 
+    case_ptr.reset(new cases::dry_thermal::DryThermal<case_ct_params_t, n_dims>()); 
   else if (user_params.model_case == "dycoms_rf01")
-    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>()); 
+    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>()); 
   else if (user_params.model_case == "dycoms_rf02")
-    case_ptr.reset(new setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
+    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "lasher_trapp")
     case_ptr.reset(new setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>());
   else if (user_params.model_case == "ICMW2020_cc")
     case_ptr.reset(new setup::ICMW2020_cc::ICMW2020_cumulus_congestus<case_ct_params_t, n_dims>());
   else if (user_params.model_case == "rico11")
-    case_ptr.reset(new setup::rico::Rico11<case_ct_params_t, n_dims>());
-  // special versions for api test - they have much lower aerosol concentrations to avoid multiplicity overflow
-  else if (user_params.model_case == "moist_thermal_api_test")
-    case_ptr.reset(new setup::api_test<setup::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>>()); 
-  else if (user_params.model_case == "dry_thermal_api_test")
-    case_ptr.reset(new setup::api_test<setup::dry_thermal::DryThermal<case_ct_params_t, n_dims>>()); 
-  else if (user_params.model_case == "dycoms_rf01_api_test")
-    case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 1, n_dims>>()); 
-  else if (user_params.model_case == "dycoms_rf02_api_test")
-    case_ptr.reset(new setup::api_test<setup::dycoms::Dycoms<case_ct_params_t, 2, n_dims>>()); 
-  else if (user_params.model_case == "lasher_trapp_api_test")
-    case_ptr.reset(new setup::api_test<setup::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>>());
-  else if (user_params.model_case == "rico11_api_test")
-    case_ptr.reset(new setup::api_test<setup::rico::Rico11<case_ct_params_t, n_dims>>());
+    case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>());
   else
     throw std::runtime_error("wrong case choice");
 
@@ -129,8 +115,13 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   p.update_surf_flux_lat  = std::bind(&case_t::update_surf_flux_lat,  case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8);
   p.update_surf_flux_uv   = std::bind(&case_t::update_surf_flux_uv,   case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8);
 
-  // copy user_params for output
+  // copy user_params
   p.user_params = user_params;
+
+  // some runtime parameters defined in libmpdata++ are passed via user_params
+  p.outdir = user_params.outdir;
+  p.outfreq = user_params.outfreq;
+  p.dt = user_params.dt;
 
   // output and simulation parameters
   for (int d = 0; d < n_dims; ++d)
@@ -141,13 +132,13 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   case_ptr->setopts(p, nps, user_params);
 
   // reference profiles shared among threads
-  setup::profiles_t profs(nz); 
+  detail::profiles_t profs(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
   case_ptr->set_profs(profs, nz, user_params);
   // pass them to rt_params
-  setup::copy_profiles(profs, p);
+  detail::copy_profiles(profs, p);
 
   // set micro-specific options, needs to be done after copy_profiles
   setopts_micro<solver_t>(p, user_params, case_ptr);
@@ -166,11 +157,11 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // solver instantiation
   std::unique_ptr<concurr_any_t> concurr;
 
-  if(user_params.model_case == "dry_thermal" || user_params.model_case == "dry_thermal_api_test")
+  if(user_params.model_case == "dry_thermal")
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
   }
-  else if(user_params.model_case == "lasher_trapp" || user_params.model_case == "lasher_trapp_api_test")
+  else if(user_params.model_case == "lasher_trapp")
   {
     //concurr.reset(new concurr_openmp_rigid_gndsky_t(p));     // rigid horizontal boundaries
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case

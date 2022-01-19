@@ -2,7 +2,7 @@
 #include <random>
 #include "Anelastic.hpp"
 
-namespace setup 
+namespace cases 
 {
   namespace dycoms
   {
@@ -20,6 +20,7 @@ namespace setup
     const real_t z_abs = 1250;
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
+    const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud
     const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
 
     // liquid water potential temperature at height z
@@ -145,21 +146,23 @@ namespace setup
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
       {
-        params.outdir = user_params.outdir;
-        params.outfreq = user_params.outfreq;
-        params.spinup = user_params.spinup;
-        params.w_src = user_params.w_src;
-        params.uv_src = user_params.uv_src;
-        params.th_src = user_params.th_src;
-        params.rv_src = user_params.rv_src;
-        params.rc_src = user_params.rc_src;
-        params.rr_src = user_params.rr_src;
-        params.nc_src = user_params.nc_src;
-        params.nr_src = user_params.nr_src;
-        params.dt = user_params.dt;
-        params.nt = user_params.nt;
+//        params.outdir = user_params.outdir;
+//        params.outfreq = user_params.outfreq;
+//        params.spinup = user_params.spinup;
+//        params.w_src = user_params.w_src;
+//        params.uv_src = user_params.uv_src;
+//        params.th_src = user_params.th_src;
+//        params.rv_src = user_params.rv_src;
+//        params.rc_src = user_params.rc_src;
+//        params.rr_src = user_params.rr_src;
+//        params.nc_src = user_params.nc_src;
+//        params.nr_src = user_params.nr_src;
+//        params.dt = user_params.dt;
+//        params.nt = user_params.nt;
+//        params.relax_th_rv = user_params.relax_th_rv;
         params.buoyancy_wet = true;
         params.subsidence = true;
+        params.vel_subsidence = true;
         params.friction = true;
         params.coriolis = true;
         params.radiation = true;
@@ -168,25 +171,25 @@ namespace setup
       }
   
       template <class index_t>
-      void intcond_hlpr(typename parent_t::concurr_any_t &solver, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        int nz = solver.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (Z / si::metres) / (nz-1); 
   
-        solver.advectee(ix::rv) = r_t_fctr{}(index * dz); 
-        solver.advectee(ix::u)= u{}(index * dz);
-        solver.advectee(ix::w) = 0;  
+        concurr.advectee(ix::rv) = r_t_fctr{}(index * dz); 
+        concurr.advectee(ix::u)= u{}(index * dz);
+        concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        solver.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
-        solver.vab_relaxed_state(0) = solver.advectee(ix::u);
-        solver.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
+        concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
   
         // density profile
-        solver.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
+        concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
   
         // initial potential temperature
-        solver.advectee(ix::th) = th_std_fctr()(index * dz); 
+        concurr.advectee(ix::th) = th_std_fctr()(index * dz); 
 
         // randomly prtrb tht
         // NOTE: all processes do this, but ultimately only perturbation calculated by MPI rank 0 is used
@@ -195,12 +198,12 @@ namespace setup
           std::uniform_real_distribution<> dis(-0.1, 0.1);
           auto rand = std::bind(dis, gen);
   
-          auto th_global = solver.advectee_global(ix::th);
-          decltype(solver.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
+          auto th_global = concurr.advectee_global(ix::th);
+          decltype(concurr.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
           th_global += prtrb;
           this->make_cyclic(th_global);
-          solver.advectee_global_set(th_global, ix::th);
+          concurr.advectee_global_set(th_global, ix::th);
         }
       }
   
@@ -208,7 +211,7 @@ namespace setup
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params) override
+      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params) override
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -227,6 +230,12 @@ namespace setup
         profs.w_LS = w_LS_fctr()(k * dz);
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
+
+        //nudging, Zhou et al. 2018
+        profs.relax_th_rv_coeff = where(k * dz >= 800, 
+          1. / 180.,  // 180s time scale at and above 800m
+          1. / 7200. * pow(sin(3.1419 / 2. * (k * dz) / 800.), 2) // 7200s time scale below 800m + sinusoidal factor = 0 at ground
+          );
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -285,6 +294,7 @@ namespace setup
         this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
         this->Z = Z;
         this->z_rlx = z_rlx;
+        this->gccn_max_height = gccn_max_height;
       }
     };
     
@@ -306,11 +316,11 @@ namespace setup
         params.dz = params.dj;
       }
 
-      void intcond(typename parent_t::concurr_any_t &solver,
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
-        this->intcond_hlpr(solver, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, rng_seed, k);
       };
 
       public:
@@ -345,20 +355,20 @@ namespace setup
         params.dz = params.dk;
       }
 
-      void intcond(typename parent_t::concurr_any_t &solver,
+      void intcond(typename parent_t::concurr_any_t &concurr,
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
-        this->intcond_hlpr(solver, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, rng_seed, k);
   
-        int nz = solver.advectee_global().extent(ix::w);
+        int nz = concurr.advectee_global().extent(ix::w);
         real_t dz = (Z / si::metres) / (nz-1); 
   
-        solver.advectee(ix::v)= v()(k * dz);
-        solver.vab_relaxed_state(1) = solver.advectee(ix::v);
+        concurr.advectee(ix::v)= v()(k * dz);
+        concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
-      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
       {
         parent_t::set_profs(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile

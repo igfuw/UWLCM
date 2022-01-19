@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         name: ["no_CUDA"]
-        build_type: ["RelWithDebInfoPortable"]
+        build_type: ["RelWithDebInfoPortable", "Debug"]
         mpi: ["none", "mvapich2"]
         include:
         - name: "no_CUDA"
@@ -32,6 +32,10 @@ jobs:
         - mpi: "mvapich2"
           tag: "ubuntu_20_04_cuda_11_4_mvapich2"
           cxx: "mpic++"
+        - build_type: "RelWithDebInfoPortable"
+          tar_name: "RelDbgPort"
+        - build_type: "Debug"
+          tar_name: "Dbg"
 
     steps:
     - name: checkout libcloudph++ 
@@ -59,7 +63,7 @@ jobs:
     - name: Upload libcloudph++ dir
       uses: actions/upload-artifact@v2
       with:
-        name: libcloud_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
         path: libcloudphxx.tar
 
   unit:
@@ -67,7 +71,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        build_type: ["RelWithDebInfo"]
+        build_type: ["RelWithDebInfo", "Debug"]
         mpi: ["none"]
         sgs: ["iles", "smg"]
         disable_cuda: ["true"]
@@ -81,6 +85,10 @@ jobs:
         - sgs: "smg"
           cmake_flags: "-DUWLCM_DISABLE='ILES'"
           ctests: "api_test_smg"
+        - build_type: "RelWithDebInfo"
+          tar_name: "RelDbgPort"
+        - build_type: "Debug"
+          tar_name: "Dbg"
     steps:
     - name: checkout UWLCM 
       uses: actions/checkout@v2
@@ -91,7 +99,7 @@ jobs:
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
 
     - name: Decompress libcloudph++ dir
       run: tar -xvf libcloudphxx.tar

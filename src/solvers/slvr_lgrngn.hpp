@@ -134,7 +134,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   } 
 
 #if defined(STD_FUTURE_WORKS)
-  std::future<typename parent_t::timer> ftr;
+  #if defined(UWLCM_TIMING)
+    std::future<typename parent_t::timer> ftr;
+  #else
+    std::future<void> ftr;
+  #endif
 #endif
   
   void record_all()
@@ -166,14 +170,13 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
-    int backend = -1;
+    libcloudphxx::lgrngn::backend_t backend = libcloudphxx::lgrngn::undefined;
     bool async = true;
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
     outmom_t<real_t> out_dry, out_wet;
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
-    bool out_wet_spec, out_dry_spec;
   };
 
   private:
