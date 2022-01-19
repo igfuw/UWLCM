@@ -57,6 +57,16 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     } else assert(!ftr.valid()); 
 #endif
 
+    // change src and rlx flags after the first step. needs to be done after async finished, because async uses opts reference
+    if(this->timestep == 1)
+    {
+      // turn off aerosol src, because it was only used to initialize gccn below some height
+      params.cloudph_opts.src = false;
+      // if relaxation is to be done, turn it on after gccn were created by src
+      if(params.user_params.relax_ccn)
+        params.cloudph_opts.rlx = true;
+    }
+
     // start synchronous stuff timer
 #if defined(UWLCM_TIMING)
     tbeg = parent_t::clock::now();
@@ -86,7 +96,11 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     {
       assert(!ftr.valid());
       if(params.backend == CUDA)
+  #if defined(UWLCM_TIMING)
         ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
+  #else
+        ftr = std::async(std::launch::async,
+  #endif
           &particles_t<real_t, CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
           params.cloudph_opts,
@@ -95,7 +109,11 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
           std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
         );
       else if(params.backend == multi_CUDA)
+  #if defined(UWLCM_TIMING)
         ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
+  #else
+        ftr = std::async(std::launch::async,
+  #endif
           &particles_t<real_t, multi_CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
           params.cloudph_opts,

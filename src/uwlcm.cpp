@@ -59,44 +59,50 @@ int main(int argc, char** argv)
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
       ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, lasher_trapp")
-      ("nx", po::value<int>()->default_value(76) , "grid cell count in horizontal")
-      ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal")
-      ("nz", po::value<int>()->default_value(76) , "grid cell count in vertical")
-      ("nt", po::value<int>()->default_value(3600) , "timestep count")
-      ("rng_seed", po::value<int>()->default_value(0) , "rng seed, 0 for random")
-      ("rng_seed_init", po::value<int>()->default_value(0) , "rng seed for initial conditions, 0 for the same as rng_seed")
-      ("dt", po::value<setup::real_t>()->required() , "timestep length")
-      ("outdir", po::value<std::string>(), "output file name (netCDF-compatible HDF5)")
-      ("outfreq", po::value<int>(), "output rate (timestep interval)")
-      ("spinup", po::value<int>()->default_value(2400) , "number of initial timesteps during which rain formation is to be turned off")
-      ("serial", po::value<bool>()->default_value(false), "force advection and microphysics to be computed on single thread")
-      ("th_src", po::value<bool>()->default_value(true) , "temp src")
-      ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
-      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1/2m)")
-      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1/2m)")
-      ("nc_src", po::value<bool>()->default_value(true) , "cloud water concentration source (in blk_2m)")
-      ("nr_src", po::value<bool>()->default_value(true) , "rain water concentration source (in blk_2m)")
-      ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
-      ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
-      ("piggy", po::value<bool>()->default_value(false) , "is it a piggybacking run")
-      ("sgs", po::value<bool>()->default_value(false) , "is subgrid-scale turbulence model on")
-      ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model delta")
+      ("nx", po::value<int>()->required() , "grid cell count in horizontal")
+      ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal, 0 for 2D simulation")
+      ("nz", po::value<int>()->required() , "grid cell count in vertical")
+      ("nt", po::value<int>()->required() , "timestep count")
+      ("rng_seed", po::value<int>()->default_value(0) , "rng seed for randomness post initialization (currently only in Lagrangian microphysics), 0 for random")
+      ("rng_seed_init", po::value<int>()->default_value(0) , "rng seed for initial conditions (perturbations of th and rv and initialization of Lagrangian microphysics), 0 for rng_seed_init=rng_seed")
+      ("dt", po::value<setup::real_t>()->required() , "timestep length [s]")
+      ("outdir", po::value<std::string>()->required(), "output directory name (netCDF-compatible HDF5)")
+      ("outfreq", po::value<int>()->required(), "output rate (timestep interval)")
+      ("spinup", po::value<int>()->default_value(0) , "number of initial timesteps during which rain formation is to be turned off")
+      ("serial", po::value<bool>()->default_value(false), "force CPU component of the model (dynamics and bulk microphysics) to be computed on single thread")
+//      ("th_src", po::value<bool>()->default_value(true) , "temp src")
+//      ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
+//      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1/2m)")
+//      ("rr_src", po::value<bool>()->default_value(true) , "rain water source (in blk_1/2m)")
+//      ("nc_src", po::value<bool>()->default_value(true) , "cloud water concentration source (in blk_2m)")
+//      ("nr_src", po::value<bool>()->default_value(true) , "rain water concentration source (in blk_2m)")
+//      ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
+//      ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
+      ("piggy", po::value<bool>()->default_value(false) , "do piggybacking from a velocity field stored on a disk")
+      ("sgs", po::value<bool>()->default_value(false) , "turn Eulerian SGS model on/off")
+      ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model length scale [m]. If negative, sgs_delta = dz")
       ("help", "produce a help message (see also --micro X --help)")
-      // add aerosol distribution params options
+      ("relax_th_rv", po::value<bool>()->default_value(false) , "relax per-level mean theta and rv to a desired (case-specific) profile")
+
+      // aerosol distribution params
       // default values are realistic params, except n1_stp=n2_stp=-1
-      ("mean_rd1", po::value<setup::real_t>()->default_value(1.0e-6) , "mean_rd1")
-      ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd1")
-      ("n1_stp", po::value<setup::real_t>()->default_value(-1.0) , "n1_stp")
-      ("kappa1", po::value<setup::real_t>()->default_value(0.61) , "kappa1")
-      ("mean_rd2", po::value<setup::real_t>()->default_value(1.0e-6) , "mean_rd2")
-      ("sdev_rd2", po::value<setup::real_t>()->default_value(1.2) , "sdev_rd2")
-      ("n2_stp", po::value<setup::real_t>()->default_value(-1.0) , "n2_stp")
-      ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "kappa2")
+      // if n1_stp<0 and n2_stp<0, the case-default aerosols distribution is used,
+      // concentration of this case-default distribution can be changed by setting the case_n_stp_multiplier
+      ("mean_rd1", po::value<setup::real_t>()->default_value(1.0e-6) , "aerosol distirbution lognormal mode 1: mean radius [m] (lgrngn and blk_2m microphysics only)")
+      ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "aerosol distirbution lognormal mode 1: geometric standard deviation (lgrngn and blk_2m microphysics only)")
+      ("n1_stp", po::value<setup::real_t>()->default_value(-1.0) , "aerosol distirbution lognormal mode 1: concentration at STP [1/m^3] (lgrngn and blk_2m microphysics only). If n1_stp<0 and n2_stp<0, case-specific aerosol distribution is used.")
+      ("kappa1", po::value<setup::real_t>()->default_value(0.61) , "aerosol distirbution lognormal mode 1: hygroscopicity parameter (lgrngn and blk_2m microphysics only)")
+      ("mean_rd2", po::value<setup::real_t>()->default_value(1.0e-6) , "aerosol distirbution lognormal mode 2: mean radius [m] (lgrngn and blk_2m microphysics only)")
+      ("sdev_rd2", po::value<setup::real_t>()->default_value(1.2) , "aerosol distirbution lognormal mode 2: geometric standard deviation (lgrngn and blk_2m microphysics only)")
+      ("n2_stp", po::value<setup::real_t>()->default_value(-1.0) , "aerosol distirbution lognormal mode 2: concentration at STP [1/m^3] (lgrngn and blk_2m microphysics only). If n1_stp<0 and n2_stp<0, case-specific aerosol distribution is used.")
+      ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "aerosol distirbution lognormal mode 2: hygroscopicity parameter (lgrngn and blk_2m microphysics only)")
+      ("case_n_stp_multiplier", po::value<setup::real_t>()->default_value(1.0) , "if case-specific aerosol distribution is used, multiply the case-default aerosols concentration by this value.")
+//      ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
 
-    // hendling the "help" option
+    // handling the "help" option
     if (ac == 1 || (vm.count("help") && !vm.count("micro")))
     {
       std::cout << opts_main;
@@ -143,14 +149,17 @@ int main(int argc, char** argv)
     if(vm["serial"].as<bool>()) setenv("OMP_NUM_THREADS", "1", 1);
 
     // handling sources flags
-    user_params.th_src = vm["th_src"].as<bool>();
-    user_params.rv_src = vm["rv_src"].as<bool>();
-    user_params.rc_src = vm["rc_src"].as<bool>();
-    user_params.rr_src = vm["rr_src"].as<bool>();
-    user_params.nc_src = vm["nc_src"].as<bool>();
-    user_params.nr_src = vm["nr_src"].as<bool>();
-    user_params.uv_src = vm["uv_src"].as<bool>();
-    user_params.w_src = vm["w_src"].as<bool>();
+//    user_params.th_src = vm["th_src"].as<bool>();
+//    user_params.rv_src = vm["rv_src"].as<bool>();
+//    user_params.rc_src = vm["rc_src"].as<bool>();
+//    user_params.rr_src = vm["rr_src"].as<bool>();
+//    user_params.nc_src = vm["nc_src"].as<bool>();
+//    user_params.nr_src = vm["nr_src"].as<bool>();
+//    user_params.uv_src = vm["uv_src"].as<bool>();
+//    user_params.w_src = vm["w_src"].as<bool>();
+
+//    user_params.relax_ccn = vm["relax_ccn"].as<bool>();
+    user_params.relax_th_rv = vm["relax_th_rv"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();
@@ -181,6 +190,8 @@ int main(int argc, char** argv)
     user_params.sdev_rd2 = vm["sdev_rd2"].as<setup::real_t>();
     user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
+
+    user_params.case_n_stp_multiplier = vm["case_n_stp_multiplier"].as<setup::real_t>();
 
     // handling the "micro" option
     std::string micro = vm["micro"].as<std::string>();

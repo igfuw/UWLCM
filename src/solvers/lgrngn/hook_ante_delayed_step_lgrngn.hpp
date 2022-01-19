@@ -87,6 +87,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
       } else 
 #endif
         prtcls->step_async(params.cloudph_opts);
+
 #if defined(UWLCM_TIMING)
       tend = parent_t::clock::now();
       parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );

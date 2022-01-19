@@ -156,6 +156,6 @@ class exec_timer : public solver_t
     const typename parent_t::rt_params_t &p
   ) : 
     parent_t(args, p),
-    nt(p.nt)
+    nt(p.user_params.nt)
   {}  
 };

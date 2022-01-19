@@ -3,7 +3,7 @@
 #pragma once
 #include "CasesCommon.hpp"
 
-namespace setup 
+namespace cases 
 {
   template<class case_ct_params_t, int n_dims>
   class Anelastic : public CasesCommon<case_ct_params_t, n_dims>
@@ -22,7 +22,7 @@ namespace setup
 
     // calculate the initial environmental theta and rv profiles
     // like in Wojtek's BabyEulag
-    void env_prof(profiles_t &profs, int nz)
+    void env_prof(detail::profiles_t &profs, int nz)
     {
       using libcloudphxx::common::moist_air::R_d_over_c_pd;
       using libcloudphxx::common::moist_air::c_pd;
@@ -83,7 +83,7 @@ namespace setup
 
     // calculate the initial reference theta and rv profiles
     // like in Wojtek's BabyEulag
-    void ref_prof(profiles_t &profs, int nz)
+    void ref_prof(detail::profiles_t &profs, int nz)
     {
       using libcloudphxx::common::moist_air::R_d_over_c_pd;
       using libcloudphxx::common::moist_air::c_pd;
