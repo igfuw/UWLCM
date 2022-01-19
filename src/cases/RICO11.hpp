@@ -24,9 +24,9 @@ namespace cases
       T_SST = real_t(299.8) * si::kelvins;
     const quantity<si::length, real_t> 
       z_0  = 0    * si::metres,
-      Z    = 4000 * si::metres, 
-      X    = 12800 * si::metres, 
-      Y    = 12800 * si::metres; 
+      Z_def    = 4000 * si::metres, 
+      X_def    = 12800 * si::metres, 
+      Y_def    = 12800 * si::metres; 
     const real_t z_abs = 3000;
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
@@ -191,14 +191,14 @@ namespace cases
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
         int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::rv) = r_t_fctr{}(index * dz); 
         concurr.advectee(ix::u)= u{}(index * dz);
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 1020 * (index * dz - z_abs) / (Z / si::metres - z_abs), 0);
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 1020 * (index * dz - z_abs) / (this->Z / si::metres - z_abs), 0);
         concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
         concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
   
@@ -306,8 +306,6 @@ namespace cases
         this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
-        this->X = X;
-        this->Z = Z;
         this->z_rlx = z_rlx;
         this->gccn_max_height = gccn_max_height;
       }
@@ -326,8 +324,8 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
-        params.dj = (Z / si::metres) / (nps[1]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
 
@@ -346,9 +344,10 @@ namespace cases
       }
 
       public:
-      Rico11()
+      Rico11(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X;
+        this->X = _X < 0 ? X_def : _X * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
 
@@ -372,9 +371,9 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
-        params.dj = (Y / si::metres) / (nps[1]-1);
-        params.dk = (Z / si::metres) / (nps[2]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Y / si::metres) / (nps[1]-1);
+        params.dk = (this->Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
@@ -392,7 +391,7 @@ namespace cases
         concurr.advectee_global_set(rv_global, ix::rv);
   
         int nz = concurr.advectee_global().extent(ix::w);
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::v)= v()(k * dz);
         concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
@@ -404,16 +403,17 @@ namespace cases
         // geostrophic wind equal to the initial velocity profile
         blitz::firstIndex k;
         typename parent_t::u u;
-        real_t dz = (Z / si::metres) / (nz-1);
+        real_t dz = (this->Z / si::metres) / (nz-1);
         profs.geostr[0] = u(k * dz);
         profs.geostr[1] = v()(k * dz);
       }
 
       public:
-      Rico11()
+      Rico11(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X;
-        this->Y = Y;
+        this->X = _X < 0 ? X_def : _X * si::meters;
+        this->Y = _Y < 0 ? Y_def : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
   };
