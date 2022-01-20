@@ -6,7 +6,7 @@
 
 namespace cases 
 {
-  namespace CumulusCongestus
+  namespace cumuluscongestus
   {
     namespace moist_air = libcloudphxx::common::moist_air;
     namespace const_cp = libcloudphxx::common::const_cp;
