@@ -232,7 +232,7 @@ namespace cases
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_sens.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
+          surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * this->Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
           else if(surf_flux_sens.rank() == 2)
             surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
         }
@@ -250,7 +250,7 @@ namespace cases
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_lat.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
+          surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * this->Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
           else if(surf_flux_lat.rank() == 2)
             surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
         }
@@ -314,7 +314,8 @@ namespace cases
       public:
       CumulusCongestus(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X[0];
+        this->X = _X < 0 ? X_def[0] : _X * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
 
