@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
-      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, lasher_trapp")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, cumulus_congestus")
       ("X", po::value<setup::real_t>()->default_value(-1) , "domain size in X [m] (set negative for case default)")
       ("Y", po::value<setup::real_t>()->default_value(-1) , "domain size in Y [m] (set negative for case default)")
       ("Z", po::value<setup::real_t>()->default_value(-1) , "domain size in Z [m] (set negative for case default)")
