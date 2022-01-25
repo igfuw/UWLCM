@@ -21,7 +21,9 @@ int main(int ac, char** av)
     "--outfreq=1000 --nt=2 --spinup=1 --dt=1 --serial=true --prs_tol=1e-3 --rng_seed=44 --case_n_stp_multiplier=1e-8"; 
   vector<string> opts_dim({
     "--nx=4 --nz=4",
-    "--nx=4 --ny=4 --nz=4"
+    "--nx=4 --nz=4 --X=1000 --Z=-1",
+    "--nx=4 --ny=4 --nz=4",
+    "--nx=4 --ny=4 --nz=4 --X=1000 --Y=1000 --Z=-1"
   });
   vector<string> opts_micro({
     "--micro=blk_1m"  ,
@@ -59,7 +61,7 @@ int main(int ac, char** av)
       for (auto &opts_c : opts_case)
         for (auto &opts_p : opts_piggy) // piggy has to be last to prevent overwriting of vel_out
         {
-          if((opts_c == opts_case[1]) && opts_d == opts_dim[1])
+          if((opts_c == opts_case[1]) && (opts_d == opts_dim[2] || opts_d == opts_dim[3]))
           {
             std::cout << "skipping 3d dry thermal tests" << std::endl;
             continue;

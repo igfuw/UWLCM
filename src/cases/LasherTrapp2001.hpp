@@ -23,12 +23,12 @@ namespace cases
 
     const quantity<si::pressure, real_t> 
       p_0 = 101800 * si::pascals;
-    const quantity<si::length, real_t> X[] = {/*2D*/12000 * si::metres, /*3D*/10000 * si::metres};
+    const quantity<si::length, real_t> X_def[] = {/*2D*/12000 * si::metres, /*3D*/10000 * si::metres};
     const quantity<si::length, real_t> 
-      z_0  = 0     * si::metres,
-      Y    = 10000 * si::metres,
-      Z    = 10000  * si::metres; 
-    const real_t z_abs = Z / si::metres - 1000;
+      z_0   = 0     * si::metres,
+      Y_def = 10000 * si::metres,
+      Z_def = 10000  * si::metres; 
+    const real_t z_abs = Z_def / si::metres - 1000;
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
     template<class case_ct_params_t, int n_dims>
@@ -85,7 +85,7 @@ namespace cases
       {
         // we assume here that set_profs was called already, so that *_env profiles are initialized
         int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
         concurr.advectee(ix::rv) = rv_env(index); 
         concurr.advectee(ix::th) = th_std_env(index); 
@@ -94,7 +94,7 @@ namespace cases
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->Z / si::metres - z_abs)), 2), 0);
         concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
         concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
   
@@ -159,7 +159,7 @@ namespace cases
           z_s.push_back(z); 
         }
 
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
 
         // interpolate soundings to centers of cells 
         std::vector<real_t> pres_si(nz), temp_si(nz), RH_si(nz);
@@ -232,9 +232,9 @@ namespace cases
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_sens.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[1] / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * this->Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
           else if(surf_flux_sens.rank() == 2)
-            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[0] / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
+            surf_flux_sens = .3 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0);
         }
       }
       
@@ -250,9 +250,9 @@ namespace cases
         else if(int((3600. / dt) + 0.5) == timestep)
         {
           if(surf_flux_lat.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[1] / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * this->Y / si::metres, 2) ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
           else if(surf_flux_lat.rank() == 2)
-            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * X[0] / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
+            surf_flux_lat = 1.2e-4 * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2)  ) / (1700. * 1700.) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
         }
       }
 
@@ -282,7 +282,6 @@ namespace cases
         this->sdev_rd2 = real_t(1.75);
         this->n1_stp = real_t(11*90e6) / si::cubic_metres, 
         this->n2_stp = real_t(11*15e6) / si::cubic_metres;
-        this->Z = Z;
         this->z_rlx = z_rlx;
       }
     };
@@ -300,8 +299,8 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X[0] / si::metres) / (nps[0]-1); 
-        params.dj = (Z / si::metres) / (nps[1]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
 
@@ -313,9 +312,10 @@ namespace cases
       }
 
       public:
-      LasherTrapp2001()
+      LasherTrapp2001(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X[0];
+        this->X = _X < 0 ? X_def[0] : _X * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
 
@@ -329,9 +329,9 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X[1] / si::metres) / (nps[0]-1); 
-        params.dj = (Y / si::metres) / (nps[1]-1);
-        params.dk = (Z / si::metres) / (nps[2]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Y / si::metres) / (nps[1]-1);
+        params.dk = (this->Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
@@ -342,17 +342,18 @@ namespace cases
         this->intcond_hlpr(concurr, rhod, rng_seed, k);
   
         int nz = concurr.advectee_global().extent(ix::w);
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::v)= 0;
         concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
       public:
-      LasherTrapp2001()
+      LasherTrapp2001(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X[1];
-        this->Y = Y;
+        this->X = _X < 0 ? X_def[1] : _X * si::meters;
+        this->Y = _Y < 0 ? Y_def : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
   };

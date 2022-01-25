@@ -13,10 +13,10 @@ namespace cases
 
     const quantity<si::pressure, real_t> p_0 = 101780 * si::pascals;
     const quantity<si::length, real_t> 
-      z_0  = 0    * si::metres,
-      Z    = 1500 * si::metres;
-    const quantity<si::length, real_t> X[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
-    const quantity<si::length, real_t> Y[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
+      z_0   = 0    * si::metres,
+      Z_def = 1500 * si::metres;
+    const quantity<si::length, real_t> X_def[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
+    const quantity<si::length, real_t> Y_def[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
     const real_t z_abs = 1250;
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
@@ -174,14 +174,14 @@ namespace cases
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
         int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::rv) = r_t_fctr{}(index * dz); 
         concurr.advectee(ix::u)= u{}(index * dz);
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->Z / si::metres - z_abs)), 2), 0);
         concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
         concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
   
@@ -292,7 +292,6 @@ namespace cases
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
         this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
-        this->Z = Z;
         this->z_rlx = z_rlx;
         this->gccn_max_height = gccn_max_height;
       }
@@ -311,8 +310,8 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X[RF - 1] / si::metres) / (nps[0]-1); 
-        params.dj = (Z / si::metres) / (nps[1]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
 
@@ -324,9 +323,10 @@ namespace cases
       };
 
       public:
-      Dycoms()
+      Dycoms(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X[RF-1];
+        this->X = _X < 0 ? X_def[RF-1] : _X * si::meters;
+        this->Z = _Z < 0 ? Z_def       : _Z * si::meters;
       }
     };
 
@@ -349,9 +349,9 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X[RF - 1] / si::metres) / (nps[0]-1); 
-        params.dj = (Y[RF - 1] / si::metres) / (nps[1]-1);
-        params.dk = (Z / si::metres) / (nps[2]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Y / si::metres) / (nps[1]-1);
+        params.dk = (this->Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
@@ -362,7 +362,7 @@ namespace cases
         this->intcond_hlpr(concurr, rhod, rng_seed, k);
   
         int nz = concurr.advectee_global().extent(ix::w);
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::v)= v()(k * dz);
         concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
@@ -374,16 +374,17 @@ namespace cases
         // geostrophic wind equal to the initial velocity profile
         blitz::firstIndex k;
         typename parent_t::u u;
-        real_t dz = (Z / si::metres) / (nz-1);
+        real_t dz = (this->Z / si::metres) / (nz-1);
         profs.geostr[0] = u(k * dz); 
         profs.geostr[1] = v()(k * dz); 
       }
 
       public:
-      Dycoms()
+      Dycoms(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X[RF-1];
-        this->Y = Y[RF-1];
+        this->X = _X < 0 ? X_def[RF-1] : _X * si::meters;
+        this->Y = _Y < 0 ? Y_def[RF-1] : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def       : _Z * si::meters;
       }
     };
   };

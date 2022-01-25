@@ -68,9 +68,9 @@ namespace cases
     const quantity<si::dimensionless, real_t> rv_0 = RH_T_p_to_rv(env_RH, T_0, p_0);
     const quantity<si::dimensionless, real_t> qv_0 = rv_0 / (1. + rv_0); // specific humidity at surface
     const quantity<si::length, real_t> 
-     Z    ( 2400 * si::metres), 
-     X    ( 3600 * si::metres), 
-     Y    ( 3600 * si::metres), 
+     Z_def    ( 2400 * si::metres), 
+     X_def    ( 3600 * si::metres), 
+     Y_def    ( 3600 * si::metres), 
      z_prtrb ( 800 * si::metres);
     const setup::real_t rhod_surf = theta_std::rhod(p_0, th_std_0, rv_0) * si::cubic_metres / si::kilograms;
     const setup::real_t cs = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared) / (c_pd<setup::real_t>() / si::joules * si::kilograms * si::kelvins) / stab / (T_0 / si::kelvins);
@@ -171,13 +171,13 @@ namespace cases
                         arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
       {
         int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
     
         concurr.advectee(ix::u) = 0;
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->Z / si::metres - z_abs)), 2), 0);
         concurr.vab_relaxed_state(0) = 0;
         concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
     
@@ -208,7 +208,7 @@ namespace cases
 
         parent_t::set_profs(profs, nz, user_params);
 
-        real_t dz = (Z / si::metres) / (nz-1);
+        real_t dz = (this->Z / si::metres) / (nz-1);
         blitz::firstIndex k;
         // temperature and total pressure profiles
         arr_1D_t T(nz), pre_ref(nz);
@@ -311,7 +311,6 @@ namespace cases
       MoistThermalGrabowskiClark99Common()
       {
         this->kappa = 1.28; // NaCl aerosol
-        this->Z = Z;
       }
     };
 
@@ -330,8 +329,8 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
-        params.dj = (Z / si::metres) / (nps[1]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
 
@@ -346,12 +345,12 @@ namespace cases
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
         int nz = concurr.advectee_global().extent(ix::w); 
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
         int nx = concurr.advectee_global().extent(0); 
-        real_t dx = (X / si::metres) / (nx-1); 
+        real_t dx = (this->X / si::metres) / (nx-1); 
         concurr.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
           sqrt(
-            pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
+            pow(blitz::tensor::i * dx - (this->X / si::metres / 2.), 2) + 
             pow(blitz::tensor::j * dz - (z_prtrb / si::metres), 2)
           ),
           blitz::tensor::j * dz
@@ -360,9 +359,10 @@ namespace cases
       }
 
       public:
-      MoistThermalGrabowskiClark99()
+      MoistThermalGrabowskiClark99(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X;
+        this->X = _X < 0 ? X_def : _X * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
 
@@ -377,9 +377,9 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
-        params.dj = (Y / si::metres) / (nps[1]-1);
-        params.dk = (Z / si::metres) / (nps[2]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Y / si::metres) / (nps[1]-1);
+        params.dk = (this->Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
@@ -394,15 +394,15 @@ namespace cases
         arr_1D_t T(th_e * pow(p_e / 1.e5, R_d_over_c_pd<setup::real_t>()));
 
         int nz = concurr.advectee_global().extent(2); 
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
         int nx = concurr.advectee_global().extent(0); 
-        real_t dx = (X / si::metres) / (nx-1); 
+        real_t dx = (this->X / si::metres) / (nx-1); 
         int ny = concurr.advectee_global().extent(1); 
-        real_t dy = (Y / si::metres) / (ny-1); 
+        real_t dy = (this->Y / si::metres) / (ny-1); 
         concurr.advectee(ix::rv) = prtrb_rv(T, p_e, dz)(
           sqrt(
-            pow(blitz::tensor::i * dx - (X / si::metres / 2.), 2) + 
-            pow(blitz::tensor::j * dy - (Y / si::metres / 2.), 2) + 
+            pow(blitz::tensor::i * dx - (this->X / si::metres / 2.), 2) + 
+            pow(blitz::tensor::j * dy - (this->Y / si::metres / 2.), 2) + 
             pow(blitz::tensor::k * dz - (z_prtrb / si::metres), 2)
           ),
           blitz::tensor::k * dz
@@ -413,10 +413,11 @@ namespace cases
       }
 
       public:
-      MoistThermalGrabowskiClark99()
+      MoistThermalGrabowskiClark99(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X;
-        this->Y = Y;
+        this->X = _X < 0 ? X_def : _X * si::meters;
+        this->Y = _Y < 0 ? Y_def : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
   };

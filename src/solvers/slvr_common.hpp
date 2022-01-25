@@ -123,6 +123,9 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("case", "user_params", params.user_params.model_case);
       this->record_aux_const("nt", "user_params", params.user_params.nt);
       this->record_aux_const("dt", "user_params", params.user_params.dt);  
+      this->record_aux_const("X", "user_params", params.user_params.X);  
+      this->record_aux_const("Y", "user_params", params.user_params.Y);  
+      this->record_aux_const("Z", "user_params", params.user_params.Z);  
       this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
       this->record_aux_const("outdir", "user_params", params.user_params.outdir);
       this->record_aux_const("spinup", "user_params", params.user_params.spinup);  

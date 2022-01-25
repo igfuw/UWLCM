@@ -9,7 +9,7 @@ struct user_params_t
 {
   int nt, outfreq, spinup, rng_seed, rng_seed_init;
   bool relax_th_rv;
-  setup::real_t dt;
+  setup::real_t X, Y, Z, dt;
   std::string outdir, model_case;
 //  bool th_src, rv_src, rc_src, rr_src, nc_src, nr_src, uv_src, w_src, relax_ccn, relax_th_rv;
   setup::real_t sgs_delta;
