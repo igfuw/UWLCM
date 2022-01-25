@@ -11,9 +11,9 @@ namespace cases
   namespace dry_thermal
   {
     const quantity<si::length, real_t> 
-      Z    = 2000 * si::metres,
-      Y    = 2000 * si::metres,
-      X    = 2000 * si::metres;
+      Z_def    = 2000 * si::metres,
+      Y_def    = 2000 * si::metres,
+      X_def    = 2000 * si::metres;
   
     const real_t z_abs = 100000; // no absorber
 
@@ -50,16 +50,16 @@ namespace cases
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
         int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dz = (Z / si::metres) / (nz-1); 
+        real_t dz = (this->Z / si::metres) / (nz-1); 
         int nx = concurr.advectee_global().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dx = (X / si::metres) / (nx-1); 
+        real_t dx = (this->X / si::metres) / (nx-1); 
     
     //    concurr.advectee(ix::rv) = r_t()(index * dz); 
         concurr.advectee(ix::u)= 0;// setup::u()(index * dz);
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
-        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (Z / si::metres - z_abs)), 2), 0);
+        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->Z / si::metres - z_abs)), 2), 0);
         concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
         concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
     
@@ -117,12 +117,6 @@ namespace cases
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
       }
-
-      public:
-      DryThermalCommon()
-      {
-        this->Z = Z;
-      }
     };
     
     // 2d/3d children
@@ -140,8 +134,8 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
-        params.dj = (Z / si::metres) / (nps[1]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
       }
   
@@ -154,9 +148,10 @@ namespace cases
       }
 
       public:
-      DryThermal()
+      DryThermal(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        this->X = X;
+        this->X = _X < 0 ? X_def : _X * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
 
@@ -170,9 +165,9 @@ namespace cases
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
-        params.di = (X / si::metres) / (nps[0]-1); 
-        params.dj = (Y / si::metres) / (nps[1]-1);
-        params.dk = (Z / si::metres) / (nps[2]-1);
+        params.di = (this->X / si::metres) / (nps[0]-1); 
+        params.dj = (this->Y / si::metres) / (nps[1]-1);
+        params.dk = (this->Z / si::metres) / (nps[2]-1);
         params.dz = params.dk;
       }
 
@@ -189,7 +184,7 @@ namespace cases
 
       public:
       // TODO: make it work in 3d?
-      DryThermal()
+      DryThermal(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
         throw std::runtime_error("Dry Thermal doesn't work in 3d yet");
       }

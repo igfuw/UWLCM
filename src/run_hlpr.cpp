@@ -87,17 +87,17 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   // setup choice
   if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new cases::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>()); 
+    case_ptr.reset(new cases::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
   else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new cases::dry_thermal::DryThermal<case_ct_params_t, n_dims>()); 
+    case_ptr.reset(new cases::dry_thermal::DryThermal<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
   else if (user_params.model_case == "dycoms_rf01")
-    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>()); 
+    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
   else if (user_params.model_case == "dycoms_rf02")
     case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>()); 
   else if (user_params.model_case == "cumulus_congestus")
     case_ptr.reset(new cases::cumuluscongestus::CumulusCongestus<case_ct_params_t, n_dims>());
   else if (user_params.model_case == "rico11")
-    case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>());
+    case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else
     throw std::runtime_error("wrong case choice");
 

@@ -59,6 +59,9 @@ int main(int argc, char** argv)
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
       ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, cumulus_congestus")
+      ("X", po::value<setup::real_t>()->default_value(-1) , "domain size in X [m] (set negative for case default)")
+      ("Y", po::value<setup::real_t>()->default_value(-1) , "domain size in Y [m] (set negative for case default)")
+      ("Z", po::value<setup::real_t>()->default_value(-1) , "domain size in Z [m] (set negative for case default)")
       ("nx", po::value<int>()->required() , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal, 0 for 2D simulation")
       ("nz", po::value<int>()->required() , "grid cell count in vertical")
@@ -142,8 +145,10 @@ int main(int argc, char** argv)
     if(user_params.rng_seed_init == 0) 
       user_params.rng_seed_init = user_params.rng_seed;
 
-    //handling timestep length
     user_params.dt = vm["dt"].as<setup::real_t>();
+    user_params.X = vm["X"].as<setup::real_t>();
+    user_params.Y = vm["Y"].as<setup::real_t>();
+    user_params.Z = vm["Z"].as<setup::real_t>();
 
     // handling serial-advection-forcing flag
     if(vm["serial"].as<bool>()) setenv("OMP_NUM_THREADS", "1", 1);
