@@ -14,7 +14,7 @@
 #include "cases/RICO11.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
-#include "cases/LasherTrapp2001.hpp"
+#include "cases/CumulusCongestus.hpp"
 
 #include "opts/opts_common.hpp"
 #include "solvers/common/calc_forces_common.hpp"
@@ -94,8 +94,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
   else if (user_params.model_case == "dycoms_rf02")
     case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
-  else if (user_params.model_case == "lasher_trapp")
-    case_ptr.reset(new cases::LasherTrapp::LasherTrapp2001<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
+  else if (user_params.model_case == "cumulus_congestus")
+    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else if (user_params.model_case == "rico11")
     case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else
@@ -158,7 +158,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   {
     concurr.reset(new concurr_openmp_cyclic_t(p));
   }
-  else if(user_params.model_case == "lasher_trapp")
+  else if(user_params.model_case == "cumulus_congestus")
   {
     //concurr.reset(new concurr_openmp_rigid_gndsky_t(p));     // rigid horizontal boundaries
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case
