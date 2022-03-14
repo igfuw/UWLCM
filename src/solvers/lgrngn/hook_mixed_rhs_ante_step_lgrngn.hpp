@@ -27,11 +27,15 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     nancheck(Cy, "Cy after copying from mpdata");
     nancheck(Cz, "Cz after copying from mpdata");
 
-    // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
+    // ... and now dividing them by density
     {
       Cx.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
       Cy.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
-      Cz.reindex(this->zero) /= (*params.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
+      Cz.reindex(this->zero) /= (*params.rhod_vctr)(this->vert_idx); 
+      // NOTE: rhod_vctr is calculated by linear interpolation (extrapolation at the edges) of rhod;
+      //       in libmpdata++, mem->GC (courant * rhod) is linearly interpolated, hence
+      //       courant numbers themselves are not linearly interpolated, because
+      //       mem->GC != rhod_vctr * C_interp, where C_interp is a linearly interpolated courant number
     }
 
     // assuring previous async step finished ...

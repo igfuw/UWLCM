@@ -122,6 +122,14 @@ namespace cases
       profs.rhod = rho_surf * exp(- st_avg * k * dz) * pow(
                1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
 
+      // rhod profile at vector field positions (midway between rhod)
+      // linear interpolation (extrapolation at the edges) from rhod
+      for(int i=1; i<nz; ++i)
+      {
+        profs.rhod_vctr(i) = (profs.rhod(i-1) + profs.rhod(i)) / 2.;
+      }
+      profs.rhod_vctr(0) = profs.rhod(0) - (profs.rhod(1) - profs.rhod(0)) / 2.;
+      profs.rhod_vctr(nz) = profs.rhod(nz-1) + (profs.rhod(nz-1) - profs.rhod(nz-2)) / 2.;
 
       // theta_std env prof to theta_dry_e
 //      for(int k=1; k<nz; ++k)
