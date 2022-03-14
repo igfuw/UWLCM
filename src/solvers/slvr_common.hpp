@@ -175,7 +175,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("rl_e", params.rl_e->data()); 
       this->record_prof_const("th_ref", params.th_ref->data()); 
       this->record_prof_const("rhod", params.rhod->data()); 
-      this->record_prof_const("rhod_vctr", params.rhod_vctr->data()); 
+      this->record_prof_vctr_const("rhod_vctr", params.rhod_vctr->data()); 
       this->record_prof_const("w_LS", params.w_LS->data()); 
       this->record_prof_const("th_LS", params.th_LS->data()); 
       this->record_prof_const("rv_LS", params.rv_LS->data()); 
