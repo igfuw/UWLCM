@@ -268,6 +268,7 @@ void setopts_micro(
     // GCCNs following Jensen and Nugent, JAS 2016
     if(rt_params.gccn > setup::real_t(0))
     {
+      // TODO: src_x0, src_x1, src_y0 and src_y1 should exclude half of outside cells, like x0, x1, y0, y1?
       rt_params.cloudph_opts_init.src_type = libcloudphxx::lgrngn::src_t::simple;
       rt_params.cloudph_opts_init.src_x0 = 0;
       rt_params.cloudph_opts_init.src_x1 = case_ptr->X / si::meters;
