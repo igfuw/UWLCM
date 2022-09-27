@@ -8,7 +8,7 @@
 #pragma once
 
 #include <libmpdata++/opts.hpp>
-#include <libmpdata++/solvers/mpdata_rhs_vip_prs.hpp>
+#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs_fra.hpp>
 
 // libmpdata++'s compile-time parameters
 struct ct_params_common : libmpdataxx::ct_params_default_t
@@ -39,7 +39,7 @@ struct ct_params_2D_lgrngn : ct_params_common
     u, w, th, rv, 
     vip_i=u, vip_j=w, vip_den=-1
   }; };
-  enum { delayed_step = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) };
+  enum { delayed_step  = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) };
 };
 
 struct ct_params_3D_lgrngn : ct_params_common
@@ -50,7 +50,8 @@ struct ct_params_3D_lgrngn : ct_params_common
     u, v, w, th, rv, 
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
-  enum { delayed_step = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) };
+  enum { delayed_step  = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) };
+  enum { fractal_recon = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) };
 };
 
 struct ct_params_2D_blk_2m : ct_params_common
