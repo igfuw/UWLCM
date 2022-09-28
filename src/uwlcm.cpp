@@ -101,6 +101,7 @@ int main(int argc, char** argv)
       ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "aerosol distirbution lognormal mode 2: hygroscopicity parameter (lgrngn and blk_2m microphysics only)")
       ("case_n_stp_multiplier", po::value<setup::real_t>()->default_value(1.0) , "if case-specific aerosol distribution is used, multiply the case-default aerosols concentration by this value.")
 //      ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
+      ("n_fra_iter", po::value<int>()->default_value(1) , "number of iterations of fractal grid refinement")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
@@ -133,6 +134,7 @@ int main(int argc, char** argv)
 
     user_params.nt = vm["nt"].as<int>(),
     user_params.spinup = vm["spinup"].as<int>();
+    user_params.n_fra_iter = vm["n_fra_iter"].as<int>(),
 
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();

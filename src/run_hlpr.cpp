@@ -119,6 +119,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   p.outdir = user_params.outdir;
   p.outfreq = user_params.outfreq;
   p.dt = user_params.dt;
+  p.n_fra_iter = user_params.n_fra_iter;
 
   // output and simulation parameters
   for (int d = 0; d < n_dims; ++d)

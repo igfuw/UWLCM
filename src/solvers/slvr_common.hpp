@@ -134,6 +134,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("sgs_delta", "user_params", params.user_params.sgs_delta);  
       this->record_aux_const("relax_th_rv", "user_params", params.user_params.relax_th_rv);  
       this->record_aux_const("case_n_stp_multiplier", "user_params", params.user_params.case_n_stp_multiplier);  
+      this->record_aux_const("n_fra_iter", "user_params", params.user_params.n_fra_iter);  
 
       this->record_aux_const("th_src", "rt_params", params.th_src);  
       this->record_aux_const("rv_src", "rt_params", params.rv_src);  
@@ -484,6 +485,14 @@ class slvr_common : public slvr_dim<ct_params_t>
     negcheck2(this->mem->advectee(ix::rv)(this->ijk), this->rhs.at(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs (+ output of rv rhs)");
   }
 
+  // called before record_all() but by all openmp ranks
+  void hook_ante_record_all() override
+  {
+    parent_t::hook_ante_record_all();
+    this->reconstruct_refinee(ix::th);
+    this->reconstruct_refinee(ix::rv);
+  }
+
   virtual void diag()
   {
     assert(this->rank == 0);
@@ -503,6 +512,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       real_t sum = this->mem->distmem.sum(puddle.at(static_cast<cmn::output_t>(i)));
       this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", sum);
     }
+    this->record_aux_dsc_refined("refined th", this->mem->refinee(this->ix_r2r.at(ix::th)));
+    this->record_aux_dsc_refined("refined rv", this->mem->refinee(this->ix_r2r.at(ix::rv)));
   } 
 
   void record_all()

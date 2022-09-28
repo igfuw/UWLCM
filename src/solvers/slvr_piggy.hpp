@@ -9,7 +9,7 @@ class slvr_piggy
 
 using namespace libmpdataxx; // TODO: get rid of it?
 
-constexpr int minhalo = 1; 
+constexpr int minhalo = 2; 
 
 // driver
 template <class ct_params_t>
