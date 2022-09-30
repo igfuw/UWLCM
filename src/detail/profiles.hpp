@@ -10,15 +10,13 @@ namespace detail
   // TODO: store profiles in mem (add an alloc 1d function to libmpdata?) and not in params
   struct profiles_t
   {
-    setup::arr_1D_t th_e, p_e, p_e_ref, rv_e, rl_e, th_reference, rhod, rhod_ref, w_LS, hgt_fctr, th_LS, rv_LS, mix_len, relax_th_rv_coeff;
-    // _ref      = refined
-    // _refrence = reference
+    setup::arr_1D_t th_e, p_e, rv_e, rl_e, th_reference, rhod, w_LS, hgt_fctr, th_LS, rv_LS, mix_len, relax_th_rv_coeff;
     std::array<setup::arr_1D_t, 2> geostr;
   
     profiles_t(int nz, int nz_ref) :
     // rhod needs to be bigger, cause it divides vertical courant number
     // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-      th_e(nz), p_e(nz), p_e_ref(nz_ref), rv_e(nz), rl_e(nz), th_reference(nz), rhod(nz+1), rhod_ref(nz+1), w_LS(nz), hgt_fctr(nz), th_LS(nz), rv_LS(nz), mix_len(nz), relax_th_rv_coeff(nz)
+      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_reference(nz), rhod(nz+1), w_LS(nz), hgt_fctr(nz), th_LS(nz), rv_LS(nz), mix_len(nz), relax_th_rv_coeff(nz)
     {
       geostr[0].resize(nz);
       geostr[1].resize(nz);
@@ -32,11 +30,14 @@ namespace detail
     }
   };
   
+  /*
   struct profile_ptrs_t
   {
-    setup::arr_1D_t *th_e, *p_e, *p_e_ref, *rv_e, *rl_e, *th_reference, *rhod, *rhod_ref, *w_LS, *hgt_fctr, *geostr[2], *th_LS, *rv_LS, *mix_len, *relax_th_rv_coeff;
+    setup::arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_reference, *rhod, *w_LS, *hgt_fctr, *geostr[2], *th_LS, *rv_LS, *mix_len, *relax_th_rv_coeff;
   };
+  */
   
+  /*
   // copy external profiles into rt_parameters
   // TODO: more elegant way
   template<class params_t>
@@ -46,12 +47,10 @@ namespace detail
       {p.hgt_fctr      , profs.hgt_fctr      },
       {p.th_e          , profs.th_e          },
       {p.p_e           , profs.p_e           },
-      {p.p_e_ref       , profs.p_e_ref       },
       {p.rv_e          , profs.rv_e          },
       {p.rl_e          , profs.rl_e          },
       {p.th_reference  , profs.th_reference  },
       {p.rhod          , profs.rhod          },
-      {p.rhod_ref      , profs.rhod_ref      },
       {p.w_LS          , profs.w_LS          },
       {p.th_LS         , profs.th_LS         },
       {p.rv_LS         , profs.rv_LS         },
@@ -66,4 +65,5 @@ namespace detail
       dst_src.first.get() = new setup::arr_1D_t(dst_src.second.get().dataFirst(), dst_src.second.get().shape(), blitz::neverDeleteData);
     }
   }
+  */
 };

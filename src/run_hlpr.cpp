@@ -53,7 +53,8 @@
 template <class solver_t, int n_dims>
 void run(const int (&nps)[n_dims], const user_params_t &user_params)
 {
-  auto nz = nps[n_dims - 1];
+  const int nz = nps[n_dims - 1],
+            nz_ref = (nz - 1) * pow(2, user_params.n_ref_iter) + 1; // TODO: use grid_size_ref or refine_grid_size from libmpdata++
   
   using concurr_any_t = libmpdataxx::concurr::any<
     typename solver_t::real_t, 
@@ -129,14 +130,18 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   case_ptr->setopts(p, nps, user_params);
 
-  // reference profiles shared among threads
-  detail::profiles_t profs(nz); 
+  // reference profiles (on normal and refined grids) shared among threads
+  detail::profiles_t profs(nz), profs_ref(nz_ref); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
 
   // assign their values
   case_ptr->set_profs(profs, nz, user_params);
+  case_ptr->set_profs(profs_ref, nz_ref, user_params);
   // pass them to rt_params
-  detail::copy_profiles(profs, p);
+  p.profs     = profs;
+  p.profs_ref = profs_ref;
+//  detail::copy_profiles(profs, p.profs);
+//  detail::copy_profiles(profs_ref, p);
 
   // set micro-specific options, needs to be done after copy_profiles
   setopts_micro<solver_t>(p, user_params, case_ptr);

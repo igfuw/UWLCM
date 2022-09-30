@@ -99,12 +99,12 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     ));
 
     // temporary array of densities - prtcls cant be init'd with 1D profile
-    typename parent_t::arr_t rhod(this->mem->refinee(this->ix_r2r.at(ix::th)).shape()); // TODO: replace all rhod arrays with this->mem->G
-    rhod = (*params.rhod)(this->vert_idx);
+    typename parent_t::arr_t rhod_ref(this->mem->refinee(this->ix_r2r.at(ix::th)).shape()); // TODO: replace all rhod arrays with this->mem->G
+    rhod_ref = (*params_ref.rhod)(this->vert_idx);
 
     // temporary array of pressure - prtcls cant be init'd with 1D profile
-    typename parent_t::arr_t p_e(this->mem->refinee(this->ix_r2r.at(ix::th)).shape());  
-    p_e = (*params.p_e)(this->vert_idx);
+    typename parent_t::arr_t p_e_ref(this->mem->refinee(this->ix_r2r.at(ix::th)).shape());  
+    p_e_ref = (*params_ref.p_e)(this->vert_idx);
 
 
     this->reconstruct_refinee(ix::th);
@@ -113,8 +113,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     prtcls->init(
       make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::th))),
       make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::rv))),
-      make_arrinfo(rhod)
-      ,make_arrinfo(p_e)
+      make_arrinfo(rhod_ref)
+      ,make_arrinfo(p_e_ref)
     ); 
   }
   this->mem->barrier();

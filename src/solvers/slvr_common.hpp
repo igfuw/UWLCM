@@ -530,7 +530,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   public:
   // case-specific parameters
   // note dual inheritance to get profile pointers
-  struct rt_params_t : parent_t::rt_params_t, detail::profile_ptrs_t
+  struct rt_params_t : parent_t::rt_params_t//, detail::profile_ptrs_t
   {
     bool rv_src = true, th_src = true, uv_src = true, w_src = true;
     bool subsidence = false,
@@ -544,6 +544,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename ct_params_t::real_t dz; // vertical grid size
     detail::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params
+    detail::profiles_t profs, profs_ref;
 
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;
