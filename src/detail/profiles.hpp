@@ -13,7 +13,7 @@ namespace detail
     setup::arr_1D_t th_e, p_e, rv_e, rl_e, th_reference, rhod, w_LS, hgt_fctr, th_LS, rv_LS, mix_len, relax_th_rv_coeff;
     std::array<setup::arr_1D_t, 2> geostr;
   
-    profiles_t(int nz, int nz_ref) :
+    profiles_t(int nz=0, int nz_ref=0) :
     // rhod needs to be bigger, cause it divides vertical courant number
     // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
       th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_reference(nz), rhod(nz+1), w_LS(nz), hgt_fctr(nz), th_LS(nz), rv_LS(nz), mix_len(nz), relax_th_rv_coeff(nz)
