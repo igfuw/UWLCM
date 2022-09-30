@@ -40,6 +40,7 @@ class slvr_dim<
   protected:
   // inject dimension-independent ranges
   idx_t<2> domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
+  idx_t<2> domain_ref = idx_t<2>({this->mem->grid_size_ref[0], this->mem->grid_size_ref[1]});
   rng_t hrzntl_domain = this->mem->grid_size[0];
   rng_t hrzntl_subdomain = this->i;
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]}); // libcloudphxx requires courants with a halo of 2 in the x direction
@@ -147,6 +148,7 @@ class slvr_dim<
   protected:
   // inject dimension-independent ranges
   idx_t<3> domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]});
+  idx_t<3> domain_ref = idx_t<3>({this->mem->grid_size_ref[0], this->mem->grid_size_ref[1], this->mem->grid_size_ref[2]});
   idx_t<2> hrzntl_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]});
   idx_t<2> hrzntl_subdomain = idx_t<2>({this->i, this->j});
   idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^h, this->mem->grid_size[1], this->mem->grid_size[2]});

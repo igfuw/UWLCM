@@ -10,8 +10,11 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 {
   negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of mixed_rhs_ante_step");
 
-  rv_pre_cond(this->ijk) = this->state(ix::rv)(this->ijk); 
-  th_pre_cond(this->ijk) = this->state(ix::th)(this->ijk); 
+  this->reconstruct_refinee(ix::th);
+  this->reconstruct_refinee(ix::rv);
+
+  rv_pre_cond(this->ijk_ref) = this->mem->refinee(this->ix_r2r.at(ix::th))(this->ijk_ref); 
+  th_pre_cond(this->ijk_ref) = this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref); 
 
   this->mem->barrier();
 
@@ -76,6 +79,11 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     using libcloudphxx::lgrngn::CUDA;
     using libcloudphxx::lgrngn::multi_CUDA;
 
+    C[0] = 0;
+    C[1] = 0;
+    C[2] = 0;
+
+/*
     prtcls->sync_in(
       make_arrinfo(this->mem->advectee(ix::th)),
       make_arrinfo(this->mem->advectee(ix::rv)),
@@ -86,6 +94,21 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       (ct_params_t::sgs_scheme == libmpdataxx::solvers::iles) || (!params.cloudph_opts.turb_cond && !params.cloudph_opts.turb_adve && !params.cloudph_opts.turb_coal) ?
                                   libcloudphxx::lgrngn::arrinfo_t<real_t>() :
                                   make_arrinfo(this->diss_rate(this->domain).reindex(this->zero))
+    );
+    */
+
+    prtcls->sync_in(
+      make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::th))),
+      make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::rv))),
+      libcloudphxx::lgrngn::arrinfo_t<real_t>(),
+      make_arrinfo(C[0]),
+      this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(C[1]),
+      make_arrinfo(C[2])
+      /*,
+      (ct_params_t::sgs_scheme == libmpdataxx::solvers::iles) || (!params.cloudph_opts.turb_cond && !params.cloudph_opts.turb_adve && !params.cloudph_opts.turb_coal) ?
+                                  libcloudphxx::lgrngn::arrinfo_t<real_t>() :
+                                  make_arrinfo(this->diss_rate(this->domain).reindex(this->zero))
+                                  */
     );
 
     // start sync/async run of step_cond
@@ -104,8 +127,8 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
           &particles_t<real_t, CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
           params.cloudph_opts,
-          make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-          make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
+          make_arrinfo(th_post_cond(this->domain_ref).reindex(this->zero)),
+          make_arrinfo(rv_post_cond(this->domain_ref).reindex(this->zero)),
           std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
         );
       else if(params.backend == multi_CUDA)
@@ -117,8 +140,8 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
           &particles_t<real_t, multi_CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
           params.cloudph_opts,
-          make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-          make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
+          make_arrinfo(th_post_cond(this->domain_ref).reindex(this->zero)),
+          make_arrinfo(rv_post_cond(this->domain_ref).reindex(this->zero)),
           std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
         );
       assert(ftr.valid());
@@ -127,8 +150,8 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     {
       prtcls->step_cond(
         params.cloudph_opts,
-        make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero))
+        make_arrinfo(th_post_cond(this->domain_ref).reindex(this->zero)),
+        make_arrinfo(rv_post_cond(this->domain_ref).reindex(this->zero))
       );
     }
 

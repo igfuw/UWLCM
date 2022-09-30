@@ -38,11 +38,14 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
   if(params.cloudph_opts.cond)
   {
     // with cyclic bcond, th and rv in corresponding edge cells needs to change by the same amount
+    // TODO
+    /*
     this->avg_edge_sclr(rv_post_cond, this->ijk);
     this->avg_edge_sclr(th_post_cond, this->ijk);
 
     this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
     this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
+    */
     // microphysics could have led to rv < 0 ?
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");

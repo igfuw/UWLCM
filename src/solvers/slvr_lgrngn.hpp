@@ -40,7 +40,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
                            &th_post_cond,
                            &r_c;  // temp storate for r_c to be used in SMG, separate storage for it allows more concurrency (like r_l)
 
-  typename parent_t::arrvec_t<parent_t::arr_t> C; // courant number on the refined grid
+  libmpdataxx::arrvec_t<typename parent_t::arr_t> C; // courant number on the refined grid
 
   void diag_rl()
   {
@@ -200,7 +200,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     rv_post_cond(args.mem->tmp[__FILE__][0][1]),
     th_pre_cond(args.mem->tmp[__FILE__][0][2]),
     th_post_cond(args.mem->tmp[__FILE__][0][3]),
-    r_c(args.mem->tmp[__FILE__][1][0])
+    r_c(args.mem->tmp[__FILE__][1][0]),
     C(args.mem->tmp[__FILE__][2])
   {
     r_c = 0.;
@@ -210,7 +210,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 4);
+    parent_t::alloc_tmp_sclr_ref(mem, __FILE__, 4); // th and rv pre and post cond
     parent_t::alloc_tmp_sclr(mem, __FILE__, 1);
     parent_t::alloc_tmp_vctr(mem, __FILE__, mem->grid_size_ref); // courants (refined)
   }

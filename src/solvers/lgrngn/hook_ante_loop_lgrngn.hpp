@@ -99,16 +99,20 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     ));
 
     // temporary array of densities - prtcls cant be init'd with 1D profile
-    typename parent_t::arr_t rhod(this->mem->advectee(ix::th).shape()); // TODO: replace all rhod arrays with this->mem->G
+    typename parent_t::arr_t rhod(this->mem->refinee(this->ix_r2r.at(ix::th)).shape()); // TODO: replace all rhod arrays with this->mem->G
     rhod = (*params.rhod)(this->vert_idx);
 
     // temporary array of pressure - prtcls cant be init'd with 1D profile
-    typename parent_t::arr_t p_e(this->mem->advectee(ix::th).shape()); 
+    typename parent_t::arr_t p_e(this->mem->refinee(this->ix_r2r.at(ix::th)).shape());  
     p_e = (*params.p_e)(this->vert_idx);
 
+
+    this->reconstruct_refinee(ix::th);
+    this->reconstruct_refinee(ix::rv);
+
     prtcls->init(
-      make_arrinfo(this->mem->advectee(ix::th)),
-      make_arrinfo(this->mem->advectee(ix::rv)),
+      make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::th))),
+      make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::rv))),
       make_arrinfo(rhod)
       ,make_arrinfo(p_e)
     ); 
