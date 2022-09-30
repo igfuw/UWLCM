@@ -20,7 +20,7 @@ apt-get update -qq \
         curl \
         language-pack-en-base \
         gdb \
-	xterm \
+        xterm \
         gfortran \
         libnetcdf-dev \
         libnetcdff-dev \
