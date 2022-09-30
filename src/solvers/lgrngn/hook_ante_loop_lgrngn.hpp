@@ -23,18 +23,12 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
 
     params.cloudph_opts_init.dt = params.dt; // advection timestep = microphysics timestep
 
-    params.cloudph_opts_init.nx = this->mem->grid_size[0].length();
-    params.cloudph_opts_init.dx = this->di;
+    // NOTE: this assumes that refinement is done! TODO: what if there is no refinement? i.e. n_ref_iter==0?
+    params.cloudph_opts_init.nx = this->mem->grid_size_ref[0].length();
+    params.cloudph_opts_init.dx = this->di / this->mem->n_ref;
 
-    if(this->mem->distmem.rank() == 0)
-      params.cloudph_opts_init.x0 = this->di / 2;
-    else
-      params.cloudph_opts_init.x0 = 0.;
-
-    if(this->mem->distmem.rank() == this->mem->distmem.size()-1)
-      params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
-    else
-      params.cloudph_opts_init.x1 =  params.cloudph_opts_init.nx       * this->di;
+    params.cloudph_opts_init.x0 = params.cloudph_opts_init.dx / 2;
+    params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
 
     int n_sd_from_dry_sizes = 0;
     for (auto const& krcm : params.cloudph_opts_init.dry_sizes)
@@ -48,10 +42,10 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
 
     if(parent_t::n_dims == 2) // 2D
     {
-      params.cloudph_opts_init.nz = this->mem->grid_size[1].length();
-      params.cloudph_opts_init.dz = this->dj;
-      params.cloudph_opts_init.z0 = this->dj / 2;
-      params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * this->dj;
+      params.cloudph_opts_init.nz = this->mem->grid_size_ref[1].length();
+      params.cloudph_opts_init.dz = this->dj / this->mem->n_ref;
+      params.cloudph_opts_init.z0 = params.cloudph_opts_init.dz / 2;
+      params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * params.cloudph_opts_init.dz;
 
       if(params.cloudph_opts_init.sd_conc)
       {
@@ -68,15 +62,15 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     }
     else // 3D
     {
-      params.cloudph_opts_init.ny = this->mem->grid_size[1].length();
-      params.cloudph_opts_init.dy = this->dj;
-      params.cloudph_opts_init.y0 = this->dj / 2;
-      params.cloudph_opts_init.y1 = (params.cloudph_opts_init.ny - .5) * this->dj;
+      params.cloudph_opts_init.ny = this->mem->grid_size_ref[1].length();
+      params.cloudph_opts_init.dy = this->dj / this->mem->n_ref;
+      params.cloudph_opts_init.y0 = params.cloudph_opts_init.dy / 2;
+      params.cloudph_opts_init.y1 = (params.cloudph_opts_init.ny - .5) * params.cloudph_opts_init.dy;
 
-      params.cloudph_opts_init.nz = this->mem->grid_size[2].length();
-      params.cloudph_opts_init.dz = this->dk;
-      params.cloudph_opts_init.z0 = this->dk / 2;
-      params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * this->dk;
+      params.cloudph_opts_init.nz = this->mem->grid_size_ref[2].length();
+      params.cloudph_opts_init.dz = this->dk / this->mem->n_ref;
+      params.cloudph_opts_init.z0 = params.cloudph_opts_init.dz / 2;
+      params.cloudph_opts_init.z1 = (params.cloudph_opts_init.nz - .5) * params.cloudph_opts_init.dz;
 
       if(params.cloudph_opts_init.sd_conc)
       {
