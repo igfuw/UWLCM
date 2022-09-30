@@ -21,7 +21,7 @@ void slvr_blk_1m_common<ct_params_t>::rc_src()
 
   this->beta(ijk) = 0.;
   // nudging, todo: use some other coeff than vab_coeff
-//  this->alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
+//  this->alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.profs.rv_e)(this->vert_idx); // TODO: its a constant, cache it
 //  this->beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
@@ -42,6 +42,6 @@ void slvr_blk_1m_common<ct_params_t>::rr_src()
 
   this->beta(ijk) = 0.;
   // nudging, todo: use some other coeff than vab_coeff
-//  this->alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.rv_e)(this->vert_idx); // TODO: its a constant, cache it
+//  this->alpha(ijk).reindex(this->zero) += (*this->mem->vab_coeff)(ijk).reindex(this->zero) * (*params.profs.rv_e)(this->vert_idx); // TODO: its a constant, cache it
 //  this->beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }

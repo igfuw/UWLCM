@@ -170,22 +170,22 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("kappa2", "user_params", params.user_params.kappa2);
 
       // recording profiles
-      this->record_prof_const("th_e", params.th_e->data()); 
-      this->record_prof_const("p_e", params.p_e->data()); 
-      this->record_prof_const("rv_e", params.rv_e->data()); 
-      this->record_prof_const("rl_e", params.rl_e->data()); 
-      this->record_prof_const("th_reference", params.th_reference->data()); 
-      this->record_prof_const("rhod", params.rhod->data()); 
-      this->record_prof_const("w_LS", params.w_LS->data()); 
-      this->record_prof_const("th_LS", params.th_LS->data()); 
-      this->record_prof_const("rv_LS", params.rv_LS->data()); 
-      this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
-      this->record_prof_const("mix_len", params.mix_len->data());
-      this->record_prof_const("relax_th_rv_coeff", params.relax_th_rv_coeff->data()); 
+      this->record_prof_const("th_e", params.profs.th_e->data()); 
+      this->record_prof_const("p_e", params.profs.p_e->data()); 
+      this->record_prof_const("rv_e", params.profs.rv_e->data()); 
+      this->record_prof_const("rl_e", params.profs.rl_e->data()); 
+      this->record_prof_const("th_reference", params.profs.th_reference->data()); 
+      this->record_prof_const("rhod", params.profs.rhod->data()); 
+      this->record_prof_const("w_LS", params.profs.w_LS->data()); 
+      this->record_prof_const("th_LS", params.profs.th_LS->data()); 
+      this->record_prof_const("rv_LS", params.profs.rv_LS->data()); 
+      this->record_prof_const("hgt_fctr", params.profs.hgt_fctr->data()); 
+      this->record_prof_const("mix_len", params.profs.mix_len->data());
+      this->record_prof_const("relax_th_rv_coeff", params.profs.relax_th_rv_coeff->data()); 
       if(parent_t::n_dims==3)
       {
-        this->record_prof_const("u_geostr", params.geostr[0]->data()); 
-        this->record_prof_const("v_geostr", params.geostr[1]->data()); 
+        this->record_prof_const("u_geostr", params.profs.geostr[0]->data()); 
+        this->record_prof_const("v_geostr", params.profs.geostr[1]->data()); 
       }
     }
     
@@ -432,7 +432,7 @@ class slvr_common : public slvr_dim<ct_params_t>
           -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
+          (*params.profs.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
         );
     }
 

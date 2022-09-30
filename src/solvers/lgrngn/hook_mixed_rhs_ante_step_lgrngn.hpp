@@ -32,9 +32,9 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 
     // ... and now dividing them by this->rhod (TODO: z=0 is located at k=1/2)
     {
-      Cx.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
-      Cy.reindex(this->zero) /= (*params.rhod)(this->vert_idx);
-      Cz.reindex(this->zero) /= (*params.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
+      Cx.reindex(this->zero) /= (*params.profs.rhod)(this->vert_idx);
+      Cy.reindex(this->zero) /= (*params.profs.rhod)(this->vert_idx);
+      Cz.reindex(this->zero) /= (*params.profs.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
     }
 
     // assuring previous async step finished ...

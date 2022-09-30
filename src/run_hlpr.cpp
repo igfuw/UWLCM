@@ -54,7 +54,7 @@ template <class solver_t, int n_dims>
 void run(const int (&nps)[n_dims], const user_params_t &user_params)
 {
   const int nz = nps[n_dims - 1],
-            nz_ref = (nz - 1) * pow(2, user_params.n_ref_iter) + 1; // TODO: use grid_size_ref or refine_grid_size from libmpdata++
+            nz_ref = (nz - 1) * pow(2, user_params.n_fra_iter) + 1; // TODO: use grid_size_ref or refine_grid_size from libmpdata++
   
   using concurr_any_t = libmpdataxx::concurr::any<
     typename solver_t::real_t, 

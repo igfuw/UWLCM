@@ -90,7 +90,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->state(ix::nr)(this->ijk) = 0;
 
     // init the p_e array
-    p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
+    p_e(this->ijk).reindex(this->zero) = (*params.profs.p_e)(this->vert_idx);
 
     parent_t::hook_ante_loop(nt); // forcings after adjustments
 
