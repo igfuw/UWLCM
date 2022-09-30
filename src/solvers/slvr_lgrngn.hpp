@@ -209,6 +209,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 4);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 1);
+    parent_t::alloc_tmp_vctr(mem, __FILE__, mem->grid_size_ref); // courants (refined)
   }
 
 };
