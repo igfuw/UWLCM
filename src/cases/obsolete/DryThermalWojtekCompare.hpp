@@ -326,10 +326,10 @@ namespace setup
 
   // calculate the initial environmental theta and rv profiles as Wojtek does it
   template<class user_params_t>
-  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_reference, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   // pre_ref - total pressure
   // th_e - dry potential temp
-  // th_ref - dry potential temp refrence profile
+  // th_reference - dry potential temp refrence profile
   // rhod - dry density profile
   {
     setup::real_t dz = (Z / si::metres) / (nz-1);
@@ -412,14 +412,14 @@ namespace setup
 
     }
 
-    th_ref = th_std_fctr()(k * dz);
+    th_reference = th_std_fctr()(k * dz);
 //    rhod = rho_fctr(rhod_surfW)(k * dz); // this way rhod is total density profile, not dry
     rhod = rho_fctr(rhod_surf)(k * dz); // rhod is dry density profile?
 
     std::cout << "th_v_e: " << th_e << std::endl;
     std::cout << "rv_e: " << rv_e << std::endl;
     std::cout << "T_e: " << T << std::endl;
-    std::cout << "th ref: " << th_ref << std::endl;
+    std::cout << "th ref: " << th_reference << std::endl;
     std::cout << "rho_ref: " << rhod << std::endl;
 
     // turn virtual potential temperature env profile into env profile of standard potential temp
@@ -445,7 +445,7 @@ namespace setup
     }
     std::cout << "th_e_dry: " << th_e << std::endl;
 
- //   th_ref = 300.;
+ //   th_reference = 300.;
  //   th_e = 300.;
 //    rhod=1.;
 //    rv_e = 0.;
@@ -461,16 +461,16 @@ namespace setup
   // calculate the initial environmental theta and rv profiles
    /*
   template<class user_params_t>
-  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_ref, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
+  void env_prof(arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &th_reference, arr_1D_t &pre_ref, arr_1D_t &rhod, arr_1D_t &w_LS, arr_1D_t &hgt_fctr_vctr, arr_1D_t &hgt_fctr_sclr, int nz, const user_params_t &user_params)
   {
     setup::real_t dz = (Z / si::metres) / (nz-1);
     blitz::firstIndex k;
-    th_ref = th_std_fctr()(k * dz);
-    th_e = th_ref;
+    th_reference = th_std_fctr()(k * dz);
+    th_e = th_reference;
     rv_e = env_rv()(k * dz);
     rhod = rho_fctr()(k * dz);
 
-    std::cout << "th ref: " << th_ref << std::endl;
+    std::cout << "th ref: " << th_reference << std::endl;
     std::cout << "th e: " << th_e << std::endl;
     std::cout << "rv e: " << rv_e << std::endl;
     std::cout << "rho_ref: " << rhod << std::endl;

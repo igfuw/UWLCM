@@ -195,7 +195,7 @@ namespace cases
       void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
       // pre_ref - total pressure
       // th_e - dry potential temp
-      // th_ref - dry potential temp refrence profsile
+      // th_reference - dry potential temp refrence profsile
       // rhod - dry density profsile
       {
 
@@ -285,7 +285,7 @@ namespace cases
           profs.p_e(k) = pre_ref(k);
         }
     
-        //th_ref = th_std_fctr(th_std_0 / si::kelvins)(k * dz);
+        //th_reference = th_std_fctr(th_std_0 / si::kelvins)(k * dz);
         profs.rhod = rho_fctr(rhod_surf)(k * dz); // rhod is dry density profsile?
     
         // turn virtual potential temperature env profsile into env profsile of standard potential temp
@@ -300,7 +300,7 @@ namespace cases
           real_t p_d = pre_ref(k) - libcloudphxx::common::moist_air::p_v<real_t>(pre_ref(k) * si::pascals, rv_e(k))  / si::pascals;
         }
 */
-        profs.th_ref = profs.th_e;//th_std_fctr(th_std_0 / si::kelvins)(k * dz);
+        profs.th_reference = profs.th_e;//th_std_fctr(th_std_0 / si::kelvins)(k * dz);
 
         profs.w_LS = 0.; // no subsidence
         profs.th_LS = 0.; // no large-scale horizontal advection

@@ -49,12 +49,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
     // TODO: loops are bad, very bad !
     for (int k = this->vert_rng.first(); k <= this->vert_rng.last() - 1; ++k)
     {
-      const auto th_ref_kph = 0.5 * ((*this->params.th_ref)(k + 1) + (*this->params.th_ref)(k));
+      const auto th_reference_kph = 0.5 * ((*this->params.th_reference)(k + 1) + (*this->params.th_reference)(k));
       const auto dthtdz_kph = (this->hrzntl_slice(tht, k + 1) - this->hrzntl_slice(tht, k)) / dz;
       const auto rv_kph = 0.5 * (this->hrzntl_slice(rv, k + 1) + this->hrzntl_slice(rv, k));
       const auto drvdz_kph = (this->hrzntl_slice(rv, k + 1) - this->hrzntl_slice(rv, k)) / dz;
       
-      const auto N2unsat = g * (dthtdz_kph / th_ref_kph + cf1 / (1 + cf1 * rv_kph) * drvdz_kph);
+      const auto N2unsat = g * (dthtdz_kph / th_reference_kph + cf1 / (1 + cf1 * rv_kph) * drvdz_kph);
      
       const auto T_kp1 = this->hrzntl_slice(tht, k + 1) * exner((*this->params.p_e)(k + 1) * si::pascals);
       const auto T_k = this->hrzntl_slice(tht, k) * exner((*this->params.p_e)(k) * si::pascals);
@@ -64,7 +64,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
       const auto gamma = (1 + cf2 * rv_kph / T_kph) / (1 + cf4 * rv_kph / (T_kph * T_kph));
       
-      const auto N2sat = g * (gamma * (dthtdz_kph / th_ref_kph + cf3 * drvdz_kph / T_kph) - drwdz_kph);
+      const auto N2sat = g * (gamma * (dthtdz_kph / th_reference_kph + cf3 * drvdz_kph / T_kph) - drwdz_kph);
       
       const auto rc_kph = 0.5 * (this->hrzntl_slice(rc, k + 1) + this->hrzntl_slice(rc, k));
 
