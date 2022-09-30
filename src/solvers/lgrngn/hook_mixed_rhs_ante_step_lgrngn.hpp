@@ -21,7 +21,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     // temporarily Cx & Cz are multiplied by this->rhod ...
     auto 
       Cx = this->mem->GC[0](this->Cx_domain).copy(),
-      Cy = this->mem->GC[1](this->Cy_domain).copy(),
+      Cy = this->mem->GC[1](this->Cy_domain).copy(), // TODO: no need to copy in 2D
       Cz = this->mem->GC[ix::w](this->Cz_domain).copy(); 
     nancheck(Cx, "Cx after copying from mpdata");
     nancheck(Cy, "Cy after copying from mpdata");
