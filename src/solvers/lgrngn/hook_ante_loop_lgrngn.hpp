@@ -24,6 +24,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     params.cloudph_opts_init.dt = params.dt; // advection timestep = microphysics timestep
 
     // NOTE: this assumes that refinement is done! TODO: what if there is no refinement? i.e. n_ref_iter==0?
+    // TODO: DRY
     params.cloudph_opts_init.nx = this->mem->grid_size_ref[0].length();
     params.cloudph_opts_init.dx = this->di / this->mem->n_ref;
 
