@@ -170,22 +170,40 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("kappa2", "user_params", params.user_params.kappa2);
 
       // recording profiles
-      this->record_prof_const("th_e", params.profs.th_e->data()); 
-      this->record_prof_const("p_e", params.profs.p_e->data()); 
-      this->record_prof_const("rv_e", params.profs.rv_e->data()); 
-      this->record_prof_const("rl_e", params.profs.rl_e->data()); 
-      this->record_prof_const("th_reference", params.profs.th_reference->data()); 
-      this->record_prof_const("rhod", params.profs.rhod->data()); 
-      this->record_prof_const("w_LS", params.profs.w_LS->data()); 
-      this->record_prof_const("th_LS", params.profs.th_LS->data()); 
-      this->record_prof_const("rv_LS", params.profs.rv_LS->data()); 
-      this->record_prof_const("hgt_fctr", params.profs.hgt_fctr->data()); 
-      this->record_prof_const("mix_len", params.profs.mix_len->data());
-      this->record_prof_const("relax_th_rv_coeff", params.profs.relax_th_rv_coeff->data()); 
+      this->record_prof_const("th_e", params.profs.th_e.data()); 
+      this->record_prof_const("p_e", params.profs.p_e.data()); 
+      this->record_prof_const("rv_e", params.profs.rv_e.data()); 
+      this->record_prof_const("rl_e", params.profs.rl_e.data()); 
+      this->record_prof_const("th_reference", params.profs.th_reference.data()); 
+      this->record_prof_const("rhod", params.profs.rhod.data()); 
+      this->record_prof_const("w_LS", params.profs.w_LS.data()); 
+      this->record_prof_const("th_LS", params.profs.th_LS.data()); 
+      this->record_prof_const("rv_LS", params.profs.rv_LS.data()); 
+      this->record_prof_const("hgt_fctr", params.profs.hgt_fctr.data()); 
+      this->record_prof_const("mix_len", params.profs.mix_len.data());
+      this->record_prof_const("relax_th_rv_coeff", params.profs.relax_th_rv_coeff.data()); 
       if(parent_t::n_dims==3)
       {
-        this->record_prof_const("u_geostr", params.profs.geostr[0]->data()); 
-        this->record_prof_const("v_geostr", params.profs.geostr[1]->data()); 
+        this->record_prof_const("u_geostr", params.profs.geostr[0].data()); 
+        this->record_prof_const("v_geostr", params.profs.geostr[1].data()); 
+      }
+
+      this->record_prof_const("refined th_e", params.profs_ref.th_e.data()); 
+      this->record_prof_const("refined p_e", params.profs_ref.p_e.data()); 
+      this->record_prof_const("refined rv_e", params.profs_ref.rv_e.data()); 
+      this->record_prof_const("refined rl_e", params.profs_ref.rl_e.data()); 
+      this->record_prof_const("refined th_reference", params.profs_ref.th_reference.data()); 
+      this->record_prof_const("refined rhod", params.profs_ref.rhod.data()); 
+      this->record_prof_const("refined w_LS", params.profs_ref.w_LS.data()); 
+      this->record_prof_const("refined th_LS", params.profs_ref.th_LS.data()); 
+      this->record_prof_const("refined rv_LS", params.profs_ref.rv_LS.data()); 
+      this->record_prof_const("refined hgt_fctr", params.profs_ref.hgt_fctr.data()); 
+      this->record_prof_const("refined mix_len", params.profs_ref.mix_len.data());
+      this->record_prof_const("refined relax_th_rv_coeff", params.profs_ref.relax_th_rv_coeff.data()); 
+      if(parent_t::n_dims==3)
+      {
+        this->record_prof_const("refined u_geostr", params.profs_ref.geostr[0].data()); 
+        this->record_prof_const("refined v_geostr", params.profs_ref.geostr[1].data()); 
       }
     }
     

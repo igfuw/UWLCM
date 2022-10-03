@@ -26,7 +26,7 @@ void slvr_common<ct_params_t>::rv_src()
     alpha(ijk) += F(ijk);
 
     // large-scale horizontal advection
-    alpha(ijk).reindex(this->zero) += (*params.profs.rv_LS)(this->vert_idx);
+    alpha(ijk).reindex(this->zero) += (params.profs.rv_LS)(this->vert_idx);
 
     // per-level nudging of the mean
     relax_th_rv(ix::rv);
@@ -56,9 +56,9 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     nancheck(alpha(ijk), "sum of th flux");
     
     // change of theta[K/s] = heating[W/m^3] / exner / c_p[J/K/kg] / this->rhod[kg/m^3]
-    alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.profs.p_e)(this->vert_idx)) *
+    alpha(ijk).reindex(this->zero) /=  calc_exner()((params.profs.p_e)(this->vert_idx)) *
       calc_c_p()(rv(ijk).reindex(this->zero)) *
-      (*params.profs.rhod)(this->vert_idx);
+      (params.profs.rhod)(this->vert_idx);
     nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
 
     // surf flux = d/dz mean(theta*w) [K/s]
@@ -73,7 +73,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     nancheck(alpha(ijk), "alpha in th_src");
 
     // large-scale horizontal advection
-    alpha(ijk).reindex(this->zero) += (*params.profs.th_LS)(this->vert_idx);
+    alpha(ijk).reindex(this->zero) += (params.profs.th_LS)(this->vert_idx);
 
     // per-level nudging of the mean
     relax_th_rv(ix::th);

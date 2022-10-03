@@ -114,7 +114,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
     // TODO: no need to xchng in horizontal, which potentially causes MPI communication
     this->xchng_sclr(tmp1, this->ijk, this->halo);
     this->vert_grad_cnt(tmp1, F, params.dz);
-    F(ijk).reindex(this->zero) *= - (*params.profs.w_LS)(this->vert_idx);
+    F(ijk).reindex(this->zero) *= - (params.profs.w_LS)(this->vert_idx);
     r_l(ijk) += F(ijk) * this->dt;
 
     tmp1(ijk) = r_c(ijk);
@@ -122,7 +122,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
     // TODO: no need to xchng in horizontal, which potentially causes MPI communication
     this->xchng_sclr(tmp1, this->ijk, this->halo);
     this->vert_grad_cnt(tmp1, F, params.dz);
-    F(ijk).reindex(this->zero) *= - (*params.profs.w_LS)(this->vert_idx);
+    F(ijk).reindex(this->zero) *= - (params.profs.w_LS)(this->vert_idx);
     r_c(ijk) += F(ijk) * this->dt;
   }
 
