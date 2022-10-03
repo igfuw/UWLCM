@@ -450,7 +450,7 @@ class slvr_common : public slvr_dim<ct_params_t>
           -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.profs.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
+          (params.profs.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
         );
     }
 

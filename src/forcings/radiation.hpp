@@ -24,7 +24,7 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     // calc sum of r_l above certain level and store it in tmp1
     tmp1(ijk) = r_l(ijk);
   
-    tmp1(ijk).reindex(this->zero) *= -params.dz * params.ForceParameters.heating_kappa * (*params.profs.rhod)(this->vert_idx);
+    tmp1(ijk).reindex(this->zero) *= -params.dz * params.ForceParameters.heating_kappa * (params.profs.rhod)(this->vert_idx);
   
     for(int z = nz-2 ; z >= 0; --z)
       tmp1(idxperm::pi<perm_no>(z, this->hrzntl_subdomain)) += tmp1(idxperm::pi<perm_no>(z+1, this->hrzntl_subdomain));
@@ -38,7 +38,7 @@ void slvr_common<ct_params_t>::radiation(typename parent_t::arr_t &rv)
     // calc sum of r_l below certain level and store it in tmp1
     tmp1(ijk) = r_l(ijk);
   
-    tmp1(ijk).reindex(this->zero) *= - params.dz * params.ForceParameters.heating_kappa * (*params.profs.rhod)(this->vert_idx);
+    tmp1(ijk).reindex(this->zero) *= - params.dz * params.ForceParameters.heating_kappa * (params.profs.rhod)(this->vert_idx);
   
     // copy one cell upwards
     for(int z = nz-1 ; z >= 1; --z)
