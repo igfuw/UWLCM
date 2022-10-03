@@ -6,8 +6,11 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
 {
   params.flag_coal = params.cloudph_opts.coal;
 
-  // TODO: barrier?
   this->mem->barrier();
+
+  this->reconstruct_refinee(ix::th);
+  this->reconstruct_refinee(ix::rv);
+
   if (this->rank == 0) 
   {
     assert(params.backend != libcloudphxx::lgrngn::undefined);
@@ -105,10 +108,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     // temporary array of pressure - prtcls cant be init'd with 1D profile
     typename parent_t::arr_t p_e_ref(this->mem->refinee(this->ix_r2r.at(ix::th)).shape());  
     p_e_ref = (params.profs_ref.p_e)(this->vert_idx);
-
-
-    this->reconstruct_refinee(ix::th);
-    this->reconstruct_refinee(ix::rv);
 
     prtcls->init(
       make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::th))),

@@ -131,15 +131,13 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   case_ptr->setopts(p, nps, user_params);
 
   // reference profiles (on normal and refined grids) shared among threads
-  detail::profiles_t profs(nz), profs_ref(nz_ref); 
-  // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-
-  // assign their values
-  case_ptr->set_profs(profs, nz, user_params);
-  case_ptr->set_profs(profs_ref, nz_ref, user_params);
+  p.profs.init(nz);
+  p.profs_ref.init(nz_ref);
+  case_ptr->set_profs(p.profs, nz, user_params);
+  case_ptr->set_profs(p.profs_ref, nz_ref, user_params);
   // pass them to rt_params
-  p.profs     = profs;
-  p.profs_ref = profs_ref;
+//  p.profs     = profs;
+//  p.profs_ref = profs_ref;
 //  detail::copy_profiles(profs, p.profs);
 //  detail::copy_profiles(profs_ref, p);
 
@@ -174,7 +172,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p));
   }
   
-  case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed_init);
+  case_ptr->intcond(*concurr.get(), p.profs.rhod, p.profs.th_e, p.profs.rv_e, p.profs.rl_e, p.profs.p_e, user_params.rng_seed_init);
 
   // setup panic pointer and the signal handler
   panic = concurr->panic_ptr();
