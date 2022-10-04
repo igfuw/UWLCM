@@ -21,7 +21,7 @@ namespace cases
     virtual quantity<si::dimensionless, real_t> r_t(const real_t &z) {throw std::runtime_error("base Anelastic class r_t called");}
 
     // calculate the initial environmental theta and rv profiles
-    // like in Wojtek's BabyEulag
+    // adapted from Wojtek Grabowski's BabyEulag
     void env_prof(detail::profiles_t &profs, int nz)
     {
       using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -52,33 +52,57 @@ namespace cases
       real_t d = l_tri<real_t>() / si::joules * si::kilograms / rv;
       real_t f = R_d_over_c_pd<real_t>(); 
 
-      real_t lwp_env = 0;
-
+//      real_t lwp_env = 0;
+//
       for(int k=1; k<nz; ++k)
       {
-        real_t bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * profs.rv_e(k-1)); // (p / rho) of moist air at k-1
-        real_t rho1 = profs.p_e(k-1) / bottom; // rho at k-1
-        profs.p_e(k) = profs.p_e(k-1) - rho1 * 9.81 * dz; // estimate of pre at k (dp = -g * rho * dz)
-        real_t thetme = pow(p_1000<real_t>() / si::pascals / profs.p_e(k), f); // 1/Exner
-        real_t thi = 1. / (th_l(k * dz) / si::kelvins); // 1/theta_std
-        real_t y = b * thetme * tt0 * thi; 
-        real_t ees = ee0 * exp(b-y); // saturation vapor pressure (Tetens equation or what?)
-        real_t qvs = a * ees / (profs.p_e(k) - ees);  // saturation vapor mixing ratio = R_d / R_v * ees / p_d
-        // calculate linearized condensation rate
-        real_t cf1 = thetme*thetme*thi*thi;  // T^{-2}
-        cf1 *= c * d * profs.p_e(k) / (profs.p_e(k) - ees); // = l_tri^2 / (C_pd * R_v * T^2) * p/p_d
-        real_t delta = (r_t(k*dz) - qvs) / (1 + qvs * cf1); // how much supersaturated is the air (divided by sth)
-        if(delta < 0.) delta = 0.;
-        profs.rv_e(k) = r_t(k*dz) - delta;
-        profs.rl_e(k) = delta;
-        profs.th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
-        T(k) = profs.th_e(k) * pow(profs.p_e(k) / (p_1000<real_t>() / si::pascals),  f);
+        /// estimate of pressure at k assuming constant pressure (dp = -g * rho * dz) (like in babyEulag)
+        /*
+        real_t Rd_Tv_m1 = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k-1) * (1 + 0.61 * profs.rv(k-1));
+        real_t rho_m1 = profs.p_e(k-1) / Rd_Tv_m1; // rho at k-1
+        profs.p_e(k) = profs.p_e(k-1) - rho1 * 9.81 * dz; 
+        */
 
-        bottom = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k) * (1 + 0.61 * profs.rv_e(k)); // (p / rho) of moist air at k-1
-        rho1 = profs.p_e(k) / bottom; // rho at k-1
-        lwp_env  += delta * rho1;
+        real_t T_midlvl = T(k-1); // pressure calculating assuming constant temperature between levels, this is the first estimate of this constant temp
+        real_t rv_midlvl = profs.rv_e(k-1); // same for water vapor
+        real_t rl_midlvl = 0; // same for liquid water
+
+        for(int i=0; i<100; ++i) // TODO: why 100 iterations?
+        {
+          // pressure profile assuming constant temperature between levels
+          real_t Rd_Tv = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T_midlvl * (1 + 0.61 * rv_midlvl - rl_midlvl);
+          profs.p_e(k) = profs.p_e(k-1) * exp(-9.81 * dz / Rd_Tv ); // estimate of pre at k assuming constant temperature
+
+          // adjust for supersaturation
+          real_t thetme = pow(p_1000<real_t>() / si::pascals / profs.p_e(k), f); // 1/Exner
+          real_t thi = 1. / (th_l(k * dz) / si::kelvins); // 1/theta_std
+          real_t y = b * thetme * tt0 * thi; 
+          real_t ees = ee0 * exp(b-y); // saturation vapor pressure (Tetens equation or what?)
+          real_t qvs = a * ees / (profs.p_e(k) - ees);  // saturation vapor mixing ratio = R_d / R_v * ees / p_d
+          // calculate linearized condensation rate
+          real_t cf1 = thetme*thetme*thi*thi;  // T^{-2}
+          cf1 *= c * d * profs.p_e(k) / (profs.p_e(k) - ees); // = l_tri^2 / (C_pd * R_v * T^2) * p/p_d
+          real_t delta = (r_t(k*dz) - qvs) / (1 + qvs * cf1); // how much supersaturated is the air (divided by sth)
+          if(delta < 0.) delta = 0.;
+          profs.rv_e(k) = r_t(k*dz) - delta;
+          profs.rl_e(k) = delta;
+          profs.th_e(k) = th_l(k*dz) / si::kelvins + c * thetme * delta;
+          T(k) = profs.th_e(k) * pow(profs.p_e(k) / (p_1000<real_t>() / si::pascals),  f);
+
+          // linear interpolation between levels for the next iteration
+          T_midlvl = (T(k) + T(k-1)) / 2.;
+          rv_midlvl = (profs.rv_e(k) + profs.rv_e(k-1)) / 2.;
+          rl_midlvl = (profs.rl_e(k) + profs.rl_e(k-1)) / 2.;
+        }
+
+        /*
+        Rd_Tv = R_d<real_t>() / si::joules * si::kelvins * si::kilograms * T(k) * (1 + 0.61 * profs.rv_e(k)); // (p / rho) of moist air at k
+        rho_m1 = profs.p_e(k) / Rd_Tv; // rho at k
+        lwp_env  += delta * rho_m1;
+        */
       }
-      lwp_env = lwp_env * 5  * 1e3;
+    //  lwp_env = lwp_env * 5  * 1e3;
+    //
     }
 
     // calculate the initial reference theta and rv profiles
