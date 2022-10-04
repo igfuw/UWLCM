@@ -133,6 +133,9 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // reference profiles (on normal and refined grids) shared among threads
   p.profs.init(nz);
   p.profs_ref.init(nz_ref);
+  // NOTE for Anelastic: env profiles on both grids agree very well
+  //                     reference profiles differ a little, e.g. for rico11 nz=51 there's up to 0.02% difference in rhod for n_fra_iter=1 (and 0.03% for n_fra_iter=2)
+  //                     but thats acceptable (?) (rhod doesnt affect RH)
   case_ptr->set_profs(p.profs, nz, user_params);
   case_ptr->set_profs(p.profs_ref, nz_ref, user_params);
   // pass them to rt_params
