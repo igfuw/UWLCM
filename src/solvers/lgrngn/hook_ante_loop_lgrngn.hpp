@@ -32,7 +32,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     params.cloudph_opts_init.dx = this->di / this->mem->n_ref;
 
     params.cloudph_opts_init.x0 = params.cloudph_opts_init.dx / 2;
-    params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) * this->di;
+    params.cloudph_opts_init.x1 = (params.cloudph_opts_init.nx - .5) *  params.cloudph_opts_init.dx;
 
     int n_sd_from_dry_sizes = 0;
     for (auto const& krcm : params.cloudph_opts_init.dry_sizes)
