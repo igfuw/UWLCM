@@ -42,7 +42,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
                            &drv,
                            &r_c;  // temp storate for r_c to be used in SMG, separate storage for it allows more concurrency (like r_l)
 
-  libmpdataxx::arrvec_t<typename parent_t::arr_t> C; // courant number on the refined grid
+  libmpdataxx::arrvec_t<typename parent_t::arr_t> courants, // courant number on the refined grid
+                                                  uvw_ref;
 
   void diag_rl()
   {
@@ -205,9 +206,12 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     r_c(args.mem->tmp[__FILE__][1][0]),
     dth(args.mem->tmp[__FILE__][2][0]),
     drv(args.mem->tmp[__FILE__][2][1]),
-    C(args.mem->tmp[__FILE__][3])
+    courants(args.mem->tmp[__FILE__][3])
   {
     r_c = 0.;
+    uvw_ref.push_back(&this->mem->psi_ref.at(this->ix_r2r.at(ix::u)));
+    uvw_ref.push_back(&this->mem->psi_ref.at(this->ix_r2r.at(ix::v)));
+    uvw_ref.push_back(&this->mem->psi_ref.at(this->ix_r2r.at(ix::w)));
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
 
@@ -217,7 +221,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     parent_t::alloc_tmp_sclr_ref(mem, __FILE__, 4); // th and rv pre and post cond
     parent_t::alloc_tmp_sclr(mem, __FILE__, 1);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 2);
-    parent_t::alloc_tmp_vctr(mem, __FILE__, mem->grid_size_ref); // courants (refined)
+    parent_t::alloc_tmp_vctr_ref(mem, __FILE__); // courants (refined)
   }
 
 };

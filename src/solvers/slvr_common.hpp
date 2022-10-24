@@ -530,10 +530,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       real_t sum = this->mem->distmem.sum(puddle.at(static_cast<cmn::output_t>(i)));
       this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", sum);
     }
-    /*
     this->record_aux_dsc_refined("refined th", this->mem->refinee(this->ix_r2r.at(ix::th)));
     this->record_aux_dsc_refined("refined rv", this->mem->refinee(this->ix_r2r.at(ix::rv)));
-    */
   } 
 
   void record_all()

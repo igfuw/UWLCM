@@ -8,6 +8,35 @@
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 {
+  courants[0] = NAN;
+  courants[1] = NAN;
+  courants[2] = NAN;
+
+  this->mem->barrier();
+
+  courants[0](this->ijk_ref) = 0;
+  courants[1](this->ijk_ref) = 0;
+  courants[2](this->ijk_ref) = 0;
+
+  this->mem->barrier();
+
+  this->interpolate_refinee(ix::u);
+  this->interpolate_refinee(ix::v);
+  this->interpolate_refinee(ix::w);
+
+  this->interpolate_refined_courants(courants, this->uvw_ref);
+
+  //this->xchng_ref(ix::u);
+  //this->xchng_ref(ix::v);
+  //this->xchng_ref(ix::w);
+
+//  courants[0](this->ijkm_ref) = this->mem->psi_ref.at(this->ix_r2r.at(ix::u))(this->ijkm_ref);
+//  courants[0](this->ijkm_ref) = this->mem->refinee(this->ix_r2r.at(ix::u))(this->ijkm_ref) * this->dt / this->di;
+//  courants[1](this->ijkm_ref) = this->mem->refinee(this->ix_r2r.at(ix::v))(this->ijkm_ref) * this->dt / this->dj;
+//  courants[2](this->ijkm_ref) = this->mem->refinee(this->ix_r2r.at(ix::w))(this->ijkm_ref) * this->dt / this->dk;
+
+
+
   negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of mixed_rhs_ante_step");
 
   this->reconstruct_refinee(ix::th);
@@ -79,10 +108,6 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     using libcloudphxx::lgrngn::CUDA;
     using libcloudphxx::lgrngn::multi_CUDA;
 
-    C[0] = 0;
-    C[1] = 0;
-    C[2] = 0;
-
 /*
     prtcls->sync_in(
       make_arrinfo(this->mem->advectee(ix::th)),
@@ -97,13 +122,32 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     );
     */
 
+    std::cerr << "Cx: " << Cx << std::endl;
+    std::cerr << "Cy: " << Cy << std::endl;
+    std::cerr << "Cz: " << Cz << std::endl;
+
+    std::cerr << "curants[0]: " << courants[0] << std::endl;
+    std::cerr << "curants[1]: " << courants[1] << std::endl;
+    std::cerr << "curants[2]: " << courants[2] << std::endl;
+
+    // TODO: make courants have the desired sizes (?)
+    auto 
+      Cx_ref = courants[0].copy(),
+      Cy_ref = courants[1].copy(),
+      Cz_ref = courants[2].copy();
+
+
+    std::cerr << "Cx_ref: " << Cx_ref << std::endl;
+    std::cerr << "Cy_ref: " << Cy_ref << std::endl;
+    std::cerr << "Cz_ref: " << Cz_ref << std::endl;
+
     prtcls->sync_in(
       make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::th))),
       make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::rv))),
       libcloudphxx::lgrngn::arrinfo_t<real_t>(),
-      make_arrinfo(C[0]),
-      this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(C[1]),
-      make_arrinfo(C[2])
+      make_arrinfo(courants[0]),
+      this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(courants[1]),
+      make_arrinfo(courants[2])
       /*,
       (ct_params_t::sgs_scheme == libmpdataxx::solvers::iles) || (!params.cloudph_opts.turb_cond && !params.cloudph_opts.turb_adve && !params.cloudph_opts.turb_coal) ?
                                   libcloudphxx::lgrngn::arrinfo_t<real_t>() :

@@ -154,6 +154,9 @@ class slvr_dim<
   idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^h, this->mem->grid_size[1], this->mem->grid_size[2]});
   idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1]^h, this->mem->grid_size[2]});
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
+  idx_t<3> Cx_ref_domain = idx_t<3>({this->mem->grid_size_ref[0]^h, this->mem->grid_size_ref[1], this->mem->grid_size_ref[2]});
+  idx_t<3> Cy_ref_domain = idx_t<3>({this->mem->grid_size_ref[0], this->mem->grid_size_ref[1]^h, this->mem->grid_size_ref[2]});
+  idx_t<3> Cz_ref_domain = idx_t<3>({this->mem->grid_size_ref[0], this->mem->grid_size_ref[1], this->mem->grid_size_ref[2]^h});
   const int n_cell_per_level = this->mem->distmem.grid_size[0] * this->mem->distmem.grid_size[1];
 
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
