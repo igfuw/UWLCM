@@ -8,9 +8,14 @@
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 {
+/*
   courants[0] = NAN;
   courants[1] = NAN;
   courants[2] = NAN;
+
+  courants[0] = 0;
+  courants[1] = 0;
+  courants[2] = 0;
 
   this->mem->barrier();
 
@@ -19,6 +24,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
   courants[2](this->ijk_ref) = 0;
 
   this->mem->barrier();
+  */
 
   this->interpolate_refinee(ix::u);
   this->interpolate_refinee(ix::v);
@@ -50,7 +56,13 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
   // pass Eulerian fields to microphysics 
   if (this->rank == 0) 
   {
+
+    nancheck(courants[0], "courants[0] after interpolation from refined velocities");
+    nancheck(courants[1], "courants[1] after interpolation from refined velocities");
+    nancheck(courants[2], "courants[2] after interpolation from refined velocities");
+
     // temporarily Cx & Cz are multiplied by this->rhod ...
+    /*
     auto 
       Cx = this->mem->GC[0](this->Cx_domain).copy(),
       Cy = this->mem->GC[1](this->Cy_domain).copy(), // TODO: no need to copy in 2D
@@ -65,6 +77,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       Cy.reindex(this->zero) /= (params.profs.rhod)(this->vert_idx);
       Cz.reindex(this->zero) /= (params.profs.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
     }
+    */
 
     // assuring previous async step finished ...
 #if defined(STD_FUTURE_WORKS)
@@ -122,6 +135,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     );
     */
 
+/*
     std::cerr << "Cx: " << Cx << std::endl;
     std::cerr << "Cy: " << Cy << std::endl;
     std::cerr << "Cz: " << Cz << std::endl;
@@ -140,6 +154,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     std::cerr << "Cx_ref: " << Cx_ref << std::endl;
     std::cerr << "Cy_ref: " << Cy_ref << std::endl;
     std::cerr << "Cz_ref: " << Cz_ref << std::endl;
+    */
 
     prtcls->sync_in(
       make_arrinfo(this->mem->refinee(this->ix_r2r.at(ix::th))),

@@ -209,9 +209,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     courants(args.mem->tmp[__FILE__][3])
   {
     r_c = 0.;
-    uvw_ref.push_back(&this->mem->psi_ref.at(this->ix_r2r.at(ix::u)));
-    uvw_ref.push_back(&this->mem->psi_ref.at(this->ix_r2r.at(ix::v)));
-    uvw_ref.push_back(&this->mem->psi_ref.at(this->ix_r2r.at(ix::w)));
+    uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::u))));
+    uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::v))));
+    uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::w))));
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
 
