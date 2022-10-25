@@ -48,6 +48,8 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
   this->reconstruct_refinee(ix::th);
   this->reconstruct_refinee(ix::rv);
 
+  negtozero(this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref), "refined rv at start of mixed_rhs_ante_step");
+
   rv_pre_cond(this->ijk_ref) = this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref); 
   th_pre_cond(this->ijk_ref) = this->mem->refinee(this->ix_r2r.at(ix::th))(this->ijk_ref); 
 
