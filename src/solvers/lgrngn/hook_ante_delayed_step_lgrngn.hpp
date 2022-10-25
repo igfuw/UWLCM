@@ -40,15 +40,25 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
   {
     // calculate th and rv changes as averages from the refined grid
 
+//    std::cerr << "rv post cond: " << rv_post_cond(this->ijk_ref) << std::endl;
+//    std::cerr << "th post cond: " << th_post_cond(this->ijk_ref) << std::endl;
+
     // refined drv and dth stored in _post_cond
     rv_post_cond(this->ijk_ref) = rv_post_cond(this->ijk_ref) - rv_pre_cond(this->ijk_ref); 
     th_post_cond(this->ijk_ref) = th_post_cond(this->ijk_ref) - th_pre_cond(this->ijk_ref); 
 
+//    std::cerr << "rv diff cond: " << rv_post_cond(this->ijk_ref) << std::endl;
+//    std::cerr << "th diff cond: " << th_post_cond(this->ijk_ref) << std::endl;
+
+    this->mem->barrier();
     libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(th_post_cond, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
     libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(rv_post_cond, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
 
     dth(this->ijk) = th_post_cond(this->ijk_r2r);
     drv(this->ijk) = rv_post_cond(this->ijk_r2r);
+
+ //   std::cerr << "dth: " << dth(this->ijk) << std::endl;
+ //   std::cerr << "drv: " << drv(this->ijk) << std::endl;
 
     // with cyclic bcond, th and rv in corresponding edge cells needs to change by the same amount
     this->avg_edge_sclr(dth, this->ijk);
