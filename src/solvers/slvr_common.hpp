@@ -52,7 +52,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                                          surf_flux_v,
                                          surf_flux_tmp,
                                          surf_flux_zero, // zero-filled array, find a way to avoid this
-                                         U_ground; 
+                                         U_ground;
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -596,6 +596,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     k_i.resize(this->shape(this->hrzntl_subdomain)); 
     k_i.reindexSelf(this->base(this->hrzntl_subdomain));
+    tmp_domain_ref.resize(this->shape(this->domain_ref));
     r_l = 0.;
     surf_flux_zero = 0.;
     th_mean_prof.resize(this->vert_rng.length());
