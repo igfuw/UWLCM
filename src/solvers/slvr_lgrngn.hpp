@@ -75,12 +75,20 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     {
       prtcls->diag_wet_mom(3);
 //      auto rc = r_c(this->domain);
-      rx_ref = typename parent_t::arr_t(prtcls->outbuf(), this->shape(this->domain_ref), blitz::neverDeleteData);
+      rx_ref(this->domain_ref) = typename parent_t::arr_t(prtcls->outbuf(), this->shape(this->domain_ref), blitz::neverDeleteData);
+      std::cerr << "rx_ref(this->domain_ref) after copy from libcloud: " << rx_ref(this->domain_ref) << std::endl;
+      std::cerr << "rx_ref after copy from libcloud: " << rx_ref << std::endl;
     }
     this->mem->barrier();
 
+
+    this->xchng_ref(rx_ref, this->ijk_ref);
+    std::cerr << "rx_ref(ijk_ref) after xchng_ref: " << rx_ref(this->ijk_ref) << std::endl;
+    std::cerr << "rx_ref after xchng_ref: " << rx_ref << std::endl;
     libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(rx_ref, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
+    std::cerr << "rx_ref(ijk_ref) after spatial average: " << rx_ref(this->ijk_ref) << std::endl;
     rx(this->ijk) = rx_ref(this->ijk_r2r);
+    std::cerr << "rx(ijk) after copy from refined: " << rx(this->ijk) << std::endl;
 
     nancheck(rx(this->ijk), "r_c after copying from diag_wet_mom(3) in diag_rc");
     rx(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]

@@ -596,7 +596,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     k_i.resize(this->shape(this->hrzntl_subdomain)); 
     k_i.reindexSelf(this->base(this->hrzntl_subdomain));
-    tmp_domain_ref.resize(this->shape(this->domain_ref));
     r_l = 0.;
     surf_flux_zero = 0.;
     th_mean_prof.resize(this->vert_rng.length());
