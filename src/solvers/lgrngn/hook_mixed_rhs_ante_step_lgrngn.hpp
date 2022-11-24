@@ -45,6 +45,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 
   negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of mixed_rhs_ante_step");
 
+  this->generate_stretching_parameters(std::random_device{}());
   this->reconstruct_refinee(ix::th);
   this->reconstruct_refinee(ix::rv);
 
