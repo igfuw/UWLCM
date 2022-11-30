@@ -514,7 +514,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   virtual void diag()
   {
     assert(this->rank == 0);
-    this->record_aux_dsc("radiative_flux", radiative_flux); 
+//    this->record_aux_dsc("radiative_flux", radiative_flux); 
 
     auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
     surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
