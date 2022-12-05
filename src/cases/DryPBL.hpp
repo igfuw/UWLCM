@@ -29,7 +29,7 @@ namespace cases
     const real_t z_abs = 1000; //[m]
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
-    const real_t mixed_length = 800; // [m]
+    const real_t mixed_length = 500; // [m]
     const quantity<si::dimensionless, real_t> st = 1e-5;
 
     inline quantity<si::temperature, real_t> th_l_pbl(const real_t &z)
