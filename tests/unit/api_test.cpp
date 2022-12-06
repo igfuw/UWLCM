@@ -41,6 +41,7 @@ int main(int ac, char** av)
     "--case=dycoms_rf02 --relax_th_rv=1",
     "--case=rico11",
     "--case=dycoms_rf01",
+    "--case=dry_pbl",
     "--case=cumulus_congestus"
   });
   vector<string> opts_piggy({
