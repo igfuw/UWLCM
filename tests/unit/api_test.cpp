@@ -26,6 +26,7 @@ int main(int ac, char** av)
     "--nx=4 --ny=4 --nz=4 --X=1000 --Y=1000 --Z=-1"
   });
   vector<string> opts_micro({
+    "--micro=none"  ,
     "--micro=blk_1m"  ,
     "--micro=blk_2m"  ,
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8",
