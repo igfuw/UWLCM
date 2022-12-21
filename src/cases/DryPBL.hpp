@@ -278,9 +278,9 @@ namespace cases
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean) override
       {
-        surf_flux_uv = - real_t(0.1) * U_ground * uv_ground * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
+        surf_flux_uv = - real_t(0.1) * U_ground * (uv_ground + uv_mean) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
       }
 
       // ctor

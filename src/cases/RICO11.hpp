@@ -94,7 +94,7 @@ namespace cases
       {
         real_t operator()(const real_t &z) const
         {
-          return -9.9 + 2e-3 * z; 
+          return -4. + 2e-3 * z;  // mean wind -5.9 m/s included in ForceParameters
         }
         BZ_DECLARE_FUNCTOR(u);
       };
@@ -287,12 +287,12 @@ namespace cases
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
       void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
-                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
-                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
+                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground (total, including mean)
+                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind (total, including mean)
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean) override
       {
-        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * uv_ground * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
+        surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * (uv_ground + uv_mean) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
       }
 
       // ctor
@@ -308,6 +308,8 @@ namespace cases
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
         this->z_rlx = z_rlx;
         this->gccn_max_height = gccn_max_height;
+        this->ForceParameters.uv_mean[0] = -5.9;
+        this->ForceParameters.uv_mean[1] = -3.8;
       }
     };
     
@@ -363,7 +365,8 @@ namespace cases
       {
         real_t operator()(const real_t &z) const
         {
-          return -3.8;
+          return 0; // mean wind -3.8 m/s included in ForceParameters
+//          return -3.8;
         }
         BZ_DECLARE_FUNCTOR(v);
       };
@@ -400,7 +403,7 @@ namespace cases
       void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
       {
         parent_t::set_profs(profs, nz, user_params);
-        // geostrophic wind equal to the initial velocity profile
+        // geostrophic wind equal to the initial velocity profile, doesnt include mean, because its only used in coriolis = u-geostr
         blitz::firstIndex k;
         typename parent_t::u u;
         real_t dz = (this->Z / si::metres) / (nz-1);

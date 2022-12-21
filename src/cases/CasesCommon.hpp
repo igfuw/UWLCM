@@ -146,7 +146,7 @@ namespace cases
                                      blitz::Array<real_t, n_dims> uv_ground,   
                                      blitz::Array<real_t, n_dims> U_ground,   
                                      const real_t &U_ground_z,
-                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0, const real_t &uv_mean = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
 
     // ctor
@@ -160,6 +160,8 @@ namespace cases
       ForceParameters.rho_i = 1.12; // kg/m^3
       ForceParameters.coriolis_parameter = 0.;
       ForceParameters.D = 0.; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
+      ForceParameters.uv_mean[0] = 0; // mean horizontal wind speed (for 'moving-window' simulations)
+      ForceParameters.uv_mean[1] = 0; // mean horizontal wind speed (for 'moving-window' simulations)
       X = 0 * si::metres;
       Y = 0 * si::metres;
       Z = 0 * si::metres;

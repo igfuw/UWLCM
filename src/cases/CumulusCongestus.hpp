@@ -262,11 +262,11 @@ namespace cases
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const real_t &U_ground_z,
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean)
       {
         surf_flux_uv = where(U_ground < 1e-4, 
-            - 0.0784 * uv_ground / real_t(1e-4) * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters), // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
-            - 0.0784 * uv_ground / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)
+            - 0.0784 * (uv_ground + uv_mean) / real_t(1e-4) * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters), // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
+            - 0.0784 * (uv_ground + uv_mean) / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)
           );
       }
 
