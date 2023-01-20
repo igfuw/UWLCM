@@ -3,17 +3,21 @@
 #include <string>
 #include "setup.hpp"
 
-// simulation parameters container
-// TODO: write them to rt_params directly in main()
+// user-defined simulation parameters container
+// note: description and default values are in uwlcm.cpp, all parameters have to be handled there
 struct user_params_t
 {
   int nt, outfreq, spinup, rng_seed, rng_seed_init;
-  setup::real_t dt;
+  bool relax_th_rv;
+  setup::real_t X, Y, Z, dt;
   std::string outdir, model_case;
-  bool th_src, rv_src, rc_src, rr_src, nc_src, nr_src, uv_src, w_src, rng_seed_init_switch;
+//  bool th_src, rv_src, rc_src, rr_src, nc_src, nr_src, uv_src, w_src, relax_ccn, relax_th_rv, rng_seed_init_switch;
   setup::real_t sgs_delta;
   quantity<si::length, setup::real_t> mean_rd1, mean_rd2;		
   quantity<si::dimensionless, setup::real_t> sdev_rd1, sdev_rd2;		
   quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t> n1_stp, n2_stp;		
   quantity<si::dimensionless, setup::real_t> kappa1, kappa2;
+  quantity<si::dimensionless, setup::real_t> case_n_stp_multiplier;
+
+  bool relax_ccn = false; // relevant only for lgrngn micro, hence needs a default value as otherwise it might be undefined in blk_1m/blk_2m
 };
