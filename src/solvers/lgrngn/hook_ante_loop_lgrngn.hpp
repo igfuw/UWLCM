@@ -131,6 +131,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("sd_conc", params.cloudph_opts_init.sd_conc);  
     this->record_aux_const("sd_conc_large_tail", params.cloudph_opts_init.sd_conc_large_tail);  
     this->record_aux_const("sd_const_multi", params.cloudph_opts_init.sd_const_multi);  
+    this->record_aux_const("rd_min", params.cloudph_opts_init.rd_min);  
+    this->record_aux_const("rd_max", params.cloudph_opts_init.rd_max);  
     this->record_aux_const("n_sd_max", params.cloudph_opts_init.n_sd_max);  
     this->record_aux_const("adve_scheme", params.cloudph_opts_init.adve_scheme);  
     this->record_aux_const("dev_count", params.cloudph_opts_init.dev_count);  
