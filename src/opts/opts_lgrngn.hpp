@@ -402,7 +402,7 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
   rt_params.cloudph_opts_init.rng_seed_init = user_params.rng_seed_init;
-  rt_params.cloudph_opts_init.rng_seed_init_switch = user_params.rng_seed_init_switch;
+  rt_params.cloudph_opts_init.rng_seed_init_switch = true;
 
   // coalescence kernel choice
   if(!vm["turb_coal"].as<bool>())
