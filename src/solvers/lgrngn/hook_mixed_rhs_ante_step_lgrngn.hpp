@@ -52,7 +52,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 #endif
 #if defined(UWLCM_TIMING)
       tend = setup::clock::now();
-      parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+      parent_t::tasync_wait += std::chrono::duration_cast<setup::timer>( tend - tbeg );
 #endif
     } else assert(!ftr.valid()); 
 #endif
@@ -126,7 +126,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 
 #if defined(UWLCM_TIMING)
     tend = setup::clock::now();
-    parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+    parent_t::tsync += std::chrono::duration_cast<setup::timer>( tend - tbeg );
 #endif
   }
   this->mem->barrier();

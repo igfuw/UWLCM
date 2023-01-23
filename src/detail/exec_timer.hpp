@@ -20,7 +20,7 @@ class exec_timer : public solver_t
     if (this->rank == 0) 
     {
       tend_step = setup::clock::now();
-      timer += std::chrono::duration_cast<std::chrono::milliseconds>( tend_step - tbeg_step );
+      timer += std::chrono::duration_cast<setup::timer>( tend_step - tbeg_step );
       tbeg_step = setup::clock::now();
     }
     this->mem->barrier();
@@ -42,7 +42,7 @@ class exec_timer : public solver_t
     if (this->rank == 0) 
     {
       tend_aux = setup::clock::now();
-      timer += std::chrono::duration_cast<std::chrono::milliseconds>( tend_aux - tbeg_aux );
+      timer += std::chrono::duration_cast<setup::timer>( tend_aux - tbeg_aux );
     }
     this->mem->barrier();
   }
@@ -87,7 +87,7 @@ class exec_timer : public solver_t
       if (this->rank == 0)
       {
         tend_loop = setup::clock::now();
-        tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend_loop - tbeg_loop );
+        tloop = std::chrono::duration_cast<setup::timer>( tend_loop - tbeg_loop );
 
         // calculate CPU/GPU times and concurrency, valid only for async runs and not taking into account diagnostics in record_all
         setup::timer  tsync_in = parent_t::tsync,
@@ -131,7 +131,7 @@ class exec_timer : public solver_t
     tbeg_aux = setup::clock::now();
     parent_t::record_all();
     tend_aux = setup::clock::now();
-    trecord_all = std::chrono::duration_cast<std::chrono::milliseconds>( tend_aux - tbeg_aux );
+    trecord_all = std::chrono::duration_cast<setup::timer>( tend_aux - tbeg_aux );
   }
 
   void hook_mixed_rhs_ante_step() override

@@ -27,7 +27,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 #endif
 #if defined(UWLCM_TIMING)
       tend = setup::clock::now();
-      parent_t::tsync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+      parent_t::tsync_wait += std::chrono::duration_cast<setup::timer>( tend - tbeg );
 #endif
     } else assert(!ftr.valid()); 
 #endif
@@ -89,7 +89,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 
 #if defined(UWLCM_TIMING)
       tend = setup::clock::now();
-      parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+      parent_t::tasync += std::chrono::duration_cast<setup::timer>( tend - tbeg );
 #endif
     }
   }
