@@ -49,22 +49,22 @@ class slvr_sgs : public slvr_common<ct_params_t>
     // TODO: loops are bad, very bad !
     for (int k = this->vert_rng.first(); k <= this->vert_rng.last() - 1; ++k)
     {
-      const auto th_ref_kph = 0.5 * ((*this->params.th_ref)(k + 1) + (*this->params.th_ref)(k));
+      const auto th_reference_kph = 0.5 * ((this->params.profs.th_reference)(k + 1) + (this->params.profs.th_reference)(k));
       const auto dthtdz_kph = (this->hrzntl_slice(tht, k + 1) - this->hrzntl_slice(tht, k)) / dz;
       const auto rv_kph = 0.5 * (this->hrzntl_slice(rv, k + 1) + this->hrzntl_slice(rv, k));
       const auto drvdz_kph = (this->hrzntl_slice(rv, k + 1) - this->hrzntl_slice(rv, k)) / dz;
       
-      const auto N2unsat = g * (dthtdz_kph / th_ref_kph + cf1 / (1 + cf1 * rv_kph) * drvdz_kph);
+      const auto N2unsat = g * (dthtdz_kph / th_reference_kph + cf1 / (1 + cf1 * rv_kph) * drvdz_kph);
      
-      const auto T_kp1 = this->hrzntl_slice(tht, k + 1) * exner((*this->params.p_e)(k + 1) * si::pascals);
-      const auto T_k = this->hrzntl_slice(tht, k) * exner((*this->params.p_e)(k) * si::pascals);
+      const auto T_kp1 = this->hrzntl_slice(tht, k + 1) * exner((this->params.profs.p_e)(k + 1) * si::pascals);
+      const auto T_k = this->hrzntl_slice(tht, k) * exner((this->params.profs.p_e)(k) * si::pascals);
       const auto T_kph = 0.5 * (T_kp1 + T_k);
       const auto drwdz_kph = ( this->hrzntl_slice(rv, k + 1) + this->hrzntl_slice(rc, k + 1) 
                              - this->hrzntl_slice(rv, k) - this->hrzntl_slice(rc, k)         ) / dz;
 
       const auto gamma = (1 + cf2 * rv_kph / T_kph) / (1 + cf4 * rv_kph / (T_kph * T_kph));
       
-      const auto N2sat = g * (gamma * (dthtdz_kph / th_ref_kph + cf3 * drvdz_kph / T_kph) - drwdz_kph);
+      const auto N2sat = g * (gamma * (dthtdz_kph / th_reference_kph + cf3 * drvdz_kph / T_kph) - drwdz_kph);
       
       const auto rc_kph = 0.5 * (this->hrzntl_slice(rc, k + 1) + this->hrzntl_slice(rc, k));
 
@@ -118,7 +118,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
     this->k_m(this->ijk).reindex(this->zero) = where(
                                  rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num < 1,
-                                   pow2(this->smg_c * (*this->params.mix_len)(this->vert_idx))
+                                   pow2(this->smg_c * (this->params.profs.mix_len)(this->vert_idx))
                                    * sqrt(tdef_sq(this->ijk).reindex(this->zero)
                                    * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
                                    0
@@ -132,8 +132,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
     // TODO: c_eps should be an adjustable parameter for different cases
     real_t c_eps = 0.845;
     this->diss_rate(this->ijk).reindex(this->zero) = c_eps *
-      pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
-      / (*this->params.mix_len)(this->vert_idx);
+      pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (this->params.profs.mix_len)(this->vert_idx)))
+      / (this->params.profs.mix_len)(this->vert_idx);
 
     formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, this->ijkm_sep);
 
@@ -183,7 +183,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   void calc_sgs_diag_fields()
   {
     tke(this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
-                                                  / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
+                                                  / (this->c_m * (this->params.profs.mix_len)(this->vert_idx)));
     calc_sgs_momenta_fluxes();
   }
 
@@ -264,7 +264,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                       this->ijk,
                                       this->dijk
                                     );
-        this->tmp1(this->ijk).reindex(this->zero) /= calc_exner()((*params.p_e)(this->vert_idx));
+        this->tmp1(this->ijk).reindex(this->zero) /= calc_exner()((params.profs.p_e)(this->vert_idx));
         this->rhs.at(s)(this->ijk) += this->tmp1(this->ijk); 
       }
       else
@@ -315,16 +315,16 @@ class slvr_sgs : public slvr_common<ct_params_t>
 //    //std::cout << "test tht6: " << this->k_m(0, 0) << std::endl;
 //    //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
 //    std::cout << "recording sgs" << std::endl;
-    this->record_aux_dsc("k_m", this->k_m);
-    this->record_aux_dsc("tke", tke);
-    this->record_aux_dsc("sgs_u_flux", sgs_momenta_fluxes[0]);
-    if (ct_params_t::n_dims > 2)
-    {
-      this->record_aux_dsc("sgs_v_flux", sgs_momenta_fluxes[1]);
-    }
-    this->record_aux_dsc("p", this->Phi);
-    this->record_aux_dsc("sgs_th_flux", sgs_th_flux);
-    this->record_aux_dsc("sgs_rv_flux", sgs_rv_flux);
+//    this->record_aux_dsc("k_m", this->k_m);
+//    this->record_aux_dsc("tke", tke);
+//    this->record_aux_dsc("sgs_u_flux", sgs_momenta_fluxes[0]);
+//    if (ct_params_t::n_dims > 2)
+//    {
+//      this->record_aux_dsc("sgs_v_flux", sgs_momenta_fluxes[1]);
+//    }
+//    this->record_aux_dsc("p", this->Phi);
+//    this->record_aux_dsc("sgs_th_flux", sgs_th_flux);
+//    this->record_aux_dsc("sgs_rv_flux", sgs_rv_flux);
   } 
 
   void hook_ante_loop(int nt) 

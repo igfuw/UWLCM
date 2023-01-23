@@ -4,6 +4,7 @@
 #  include <future>
 #endif
 #include "../../detail/func_time.hpp"
+#include <libmpdata++/formulae/refined_grid.hpp>
 
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
@@ -37,12 +38,35 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
   // add microphysics contribution to th and rv
   if(params.cloudph_opts.cond)
   {
-    // with cyclic bcond, th and rv in corresponding edge cells needs to change by the same amount
-    this->avg_edge_sclr(rv_post_cond, this->ijk);
-    this->avg_edge_sclr(th_post_cond, this->ijk);
+    // calculate th and rv changes as averages from the refined grid
 
-    this->state(ix::rv)(this->ijk) += rv_post_cond(this->ijk) - rv_pre_cond(this->ijk); 
-    this->state(ix::th)(this->ijk) += th_post_cond(this->ijk) - th_pre_cond(this->ijk); 
+//    std::cerr << "rv post cond: " << rv_post_cond(this->ijk_ref) << std::endl;
+//    std::cerr << "th post cond: " << th_post_cond(this->ijk_ref) << std::endl;
+
+    // refined drv and dth stored in _post_cond
+    rv_post_cond(this->ijk_ref) = rv_post_cond(this->ijk_ref) - rv_pre_cond(this->ijk_ref); 
+    th_post_cond(this->ijk_ref) = th_post_cond(this->ijk_ref) - th_pre_cond(this->ijk_ref); 
+
+//    std::cerr << "rv diff cond: " << rv_post_cond(this->ijk_ref) << std::endl;
+//    std::cerr << "th diff cond: " << th_post_cond(this->ijk_ref) << std::endl;
+
+    this->mem->barrier();
+    libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(th_post_cond, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
+    libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(rv_post_cond, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
+
+    dth(this->ijk) = th_post_cond(this->ijk_r2r);
+    drv(this->ijk) = rv_post_cond(this->ijk_r2r);
+
+ //   std::cerr << "dth: " << dth(this->ijk) << std::endl;
+ //   std::cerr << "drv: " << drv(this->ijk) << std::endl;
+
+    // with cyclic bcond, th and rv in corresponding edge cells needs to change by the same amount
+    this->avg_edge_sclr(dth, this->ijk);
+    this->avg_edge_sclr(drv, this->ijk);
+
+    this->state(ix::th)(this->ijk) += dth(this->ijk); 
+    this->state(ix::rv)(this->ijk) += drv(this->ijk); 
+
     // microphysics could have led to rv < 0 ?
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
@@ -111,7 +135,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
     // TODO: no need to xchng in horizontal, which potentially causes MPI communication
     this->xchng_sclr(tmp1, this->ijk, this->halo);
     this->vert_grad_cnt(tmp1, F, params.dz);
-    F(ijk).reindex(this->zero) *= - (*params.w_LS)(this->vert_idx);
+    F(ijk).reindex(this->zero) *= - (params.profs.w_LS)(this->vert_idx);
     r_l(ijk) += F(ijk) * this->dt;
 
     tmp1(ijk) = r_c(ijk);
@@ -119,7 +143,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
     // TODO: no need to xchng in horizontal, which potentially causes MPI communication
     this->xchng_sclr(tmp1, this->ijk, this->halo);
     this->vert_grad_cnt(tmp1, F, params.dz);
-    F(ijk).reindex(this->zero) *= - (*params.w_LS)(this->vert_idx);
+    F(ijk).reindex(this->zero) *= - (params.profs.w_LS)(this->vert_idx);
     r_c(ijk) += F(ijk) * this->dt;
   }
 

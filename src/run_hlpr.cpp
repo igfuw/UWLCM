@@ -59,7 +59,8 @@
 template <class solver_t, int n_dims>
 void run(const int (&nps)[n_dims], const user_params_t &user_params)
 {
-  auto nz = nps[n_dims - 1];
+  const int nz = nps[n_dims - 1],
+            nz_ref = (nz - 1) * pow(2, user_params.n_fra_iter) + 1; // TODO: use grid_size_ref or refine_grid_size from libmpdata++
   
   using concurr_any_t = libmpdataxx::concurr::any<
     typename solver_t::real_t, 
@@ -127,6 +128,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   p.outdir = user_params.outdir;
   p.outfreq = user_params.outfreq;
   p.dt = user_params.dt;
+  p.n_fra_iter = user_params.n_fra_iter;
 
   // output and simulation parameters
   for (int d = 0; d < n_dims; ++d)
@@ -136,14 +138,19 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   case_ptr->setopts(p, nps, user_params);
 
-  // reference profiles shared among threads
-  detail::profiles_t profs(nz); 
-  // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-
-  // assign their values
-  case_ptr->set_profs(profs, nz, user_params);
+  // reference profiles (on normal and refined grids) shared among threads
+  p.profs.init(nz);
+  p.profs_ref.init(nz_ref);
+  // NOTE for Anelastic: env profiles on both grids agree very well
+  //                     reference profiles differ a little, e.g. for rico11 nz=51 there's up to 0.02% difference in rhod for n_fra_iter=1 (and 0.03% for n_fra_iter=2)
+  //                     but thats acceptable (?) (rhod doesnt affect RH)
+  case_ptr->set_profs(p.profs, nz, user_params);
+  case_ptr->set_profs(p.profs_ref, nz_ref, user_params);
   // pass them to rt_params
-  detail::copy_profiles(profs, p);
+//  p.profs     = profs;
+//  p.profs_ref = profs_ref;
+//  detail::copy_profiles(profs, p.profs);
+//  detail::copy_profiles(profs_ref, p);
 
   // set micro-specific options, needs to be done after copy_profiles
   setopts_micro<solver_t>(p, user_params, case_ptr);
@@ -176,7 +183,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p));
   }
   
-  case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed_init);
+  case_ptr->intcond(*concurr.get(), p.profs.rhod, p.profs.th_e, p.profs.rv_e, p.profs.rl_e, p.profs.p_e, user_params.rng_seed_init);
 
   // setup panic pointer and the signal handler
   panic = concurr->panic_ptr();

@@ -52,7 +52,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                                          surf_flux_v,
                                          surf_flux_tmp,
                                          surf_flux_zero, // zero-filled array, find a way to avoid this
-                                         U_ground; 
+                                         U_ground;
 
   // global arrays, shared among threads, TODO: in fact no need to share them?
   typename parent_t::arr_t &tmp1,
@@ -134,6 +134,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("sgs_delta", "user_params", params.user_params.sgs_delta);  
       this->record_aux_const("relax_th_rv", "user_params", params.user_params.relax_th_rv);  
       this->record_aux_const("case_n_stp_multiplier", "user_params", params.user_params.case_n_stp_multiplier);  
+      this->record_aux_const("n_fra_iter", "user_params", params.user_params.n_fra_iter);  
 
       this->record_aux_const("th_src", "rt_params", params.th_src);  
       this->record_aux_const("rv_src", "rt_params", params.rv_src);  
@@ -171,22 +172,40 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("kappa2", "user_params", params.user_params.kappa2);
 
       // recording profiles
-      this->record_prof_const("th_e", params.th_e->data()); 
-      this->record_prof_const("p_e", params.p_e->data()); 
-      this->record_prof_const("rv_e", params.rv_e->data()); 
-      this->record_prof_const("rl_e", params.rl_e->data()); 
-      this->record_prof_const("th_ref", params.th_ref->data()); 
-      this->record_prof_const("rhod", params.rhod->data()); 
-      this->record_prof_const("w_LS", params.w_LS->data()); 
-      this->record_prof_const("th_LS", params.th_LS->data()); 
-      this->record_prof_const("rv_LS", params.rv_LS->data()); 
-      this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
-      this->record_prof_const("mix_len", params.mix_len->data());
-      this->record_prof_const("relax_th_rv_coeff", params.relax_th_rv_coeff->data()); 
+      this->record_prof_const("th_e", params.profs.th_e.data()); 
+      this->record_prof_const("p_e", params.profs.p_e.data()); 
+      this->record_prof_const("rv_e", params.profs.rv_e.data()); 
+      this->record_prof_const("rl_e", params.profs.rl_e.data()); 
+      this->record_prof_const("th_reference", params.profs.th_reference.data()); 
+      this->record_prof_const("rhod", params.profs.rhod.data()); 
+      this->record_prof_const("w_LS", params.profs.w_LS.data()); 
+      this->record_prof_const("th_LS", params.profs.th_LS.data()); 
+      this->record_prof_const("rv_LS", params.profs.rv_LS.data()); 
+      this->record_prof_const("hgt_fctr", params.profs.hgt_fctr.data()); 
+      this->record_prof_const("mix_len", params.profs.mix_len.data());
+      this->record_prof_const("relax_th_rv_coeff", params.profs.relax_th_rv_coeff.data()); 
       if(parent_t::n_dims==3)
       {
-        this->record_prof_const("u_geostr", params.geostr[0]->data()); 
-        this->record_prof_const("v_geostr", params.geostr[1]->data()); 
+        this->record_prof_const("u_geostr", params.profs.geostr[0].data()); 
+        this->record_prof_const("v_geostr", params.profs.geostr[1].data()); 
+      }
+
+      this->record_prof_const("refined th_e", params.profs_ref.th_e.data(), true); 
+      this->record_prof_const("refined p_e", params.profs_ref.p_e.data(), true); 
+      this->record_prof_const("refined rv_e", params.profs_ref.rv_e.data(), true); 
+      this->record_prof_const("refined rl_e", params.profs_ref.rl_e.data(), true); 
+      this->record_prof_const("refined th_reference", params.profs_ref.th_reference.data(), true); 
+      this->record_prof_const("refined rhod", params.profs_ref.rhod.data(), true); 
+      this->record_prof_const("refined w_LS", params.profs_ref.w_LS.data(), true); 
+      this->record_prof_const("refined th_LS", params.profs_ref.th_LS.data(), true); 
+      this->record_prof_const("refined rv_LS", params.profs_ref.rv_LS.data(), true); 
+      this->record_prof_const("refined hgt_fctr", params.profs_ref.hgt_fctr.data(), true); 
+      this->record_prof_const("refined mix_len", params.profs_ref.mix_len.data(), true);
+      this->record_prof_const("refined relax_th_rv_coeff", params.profs_ref.relax_th_rv_coeff.data(), true); 
+      if(parent_t::n_dims==3)
+      {
+        this->record_prof_const("refined u_geostr", params.profs_ref.geostr[0].data(), true); 
+        this->record_prof_const("refined v_geostr", params.profs_ref.geostr[1].data(), true); 
       }
     }
     
@@ -435,7 +454,7 @@ class slvr_common : public slvr_dim<ct_params_t>
           -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
+          (params.profs.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
         );
     }
 
@@ -488,10 +507,18 @@ class slvr_common : public slvr_dim<ct_params_t>
     negcheck2(this->mem->advectee(ix::rv)(this->ijk), this->rhs.at(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs (+ output of rv rhs)");
   }
 
+  // called before record_all() but by all openmp ranks
+  void hook_ante_record_all() override
+  {
+    parent_t::hook_ante_record_all();
+//    this->reconstruct_refinee(ix::th);
+//    this->reconstruct_refinee(ix::rv);
+  }
+
   virtual void diag()
   {
     assert(this->rank == 0);
-    this->record_aux_dsc("radiative_flux", radiative_flux); 
+//    this->record_aux_dsc("radiative_flux", radiative_flux); 
 
     auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
     surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
@@ -507,6 +534,9 @@ class slvr_common : public slvr_dim<ct_params_t>
       real_t sum = this->mem->distmem.sum(puddle.at(static_cast<cmn::output_t>(i)));
       this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", sum);
     }
+
+    this->record_aux_dsc_refined("refined th", this->mem->refinee(this->ix_r2r.at(ix::th)));
+    this->record_aux_dsc_refined("refined rv", this->mem->refinee(this->ix_r2r.at(ix::rv)));
   } 
 
   void record_all()
@@ -523,7 +553,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   public:
   // case-specific parameters
   // note dual inheritance to get profile pointers
-  struct rt_params_t : parent_t::rt_params_t, detail::profile_ptrs_t
+  struct rt_params_t : parent_t::rt_params_t//, detail::profile_ptrs_t
   {
     bool rv_src = true, th_src = true, uv_src = true, w_src = true;
     bool subsidence = false,
@@ -537,6 +567,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     typename ct_params_t::real_t dz; // vertical grid size
 //    detail::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params
+    detail::profiles_t profs, profs_ref;
 
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens, update_surf_flux_lat;
