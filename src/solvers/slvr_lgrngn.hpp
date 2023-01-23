@@ -37,7 +37,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   typename parent_t::arr_t &rv_pre_cond,
                            &rv_post_cond,
                            &th_pre_cond,
-                           &th_post_cond;
+                           &th_post_cond,
+                           &r_c;  // temp storate for r_c to be used in SMG, separate storage for it allows more concurrency (like r_l)
 
   void diag_rl()
   {
@@ -96,26 +97,28 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   };
   
   // very similar to diag_rl, TODO: unify
-  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t& tmp) final
+  void diag_rc()
   {
     // fill with rc values from superdroplets
     if(this->rank == 0) 
     {
       prtcls->diag_wet_rng(.5e-6, 25.e-6);
       prtcls->diag_wet_mom(3);
-      auto rc = tmp(this->domain);
+      auto rc = r_c(this->domain);
       rc = typename parent_t::arr_t(prtcls->outbuf(), rc.shape(), blitz::duplicateData);
     }
     this->mem->barrier();
 
-    nancheck(tmp(this->ijk), "tmp after copying from diag_wet_mom(3) in get_rc");
-    tmp(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+    nancheck(r_c(this->ijk), "r_c after copying from diag_wet_mom(3) in diag_rc");
+    r_c(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
     this->mem->barrier();
 
-    this->avg_edge_sclr(tmp, this->ijk); // in case of cyclic bcond, rc on edges needs to be the same
-
-    this->mem->barrier();
-    return tmp;
+    this->avg_edge_sclr(r_c, this->ijk); // in case of cyclic bcond, rc on edges needs to be the same
+  }
+  
+  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t& tmp) final
+  {
+    return r_c;
   }
 
   void hook_ante_loop(int nt);
@@ -126,6 +129,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   void hook_mixed_rhs_ante_loop()
   {
     diag_rl(); // init r_l
+    if(ct_params_t::sgs_scheme == libmpdataxx::solvers::smg)
+      diag_rc(); // ditto
   } 
 
 #if defined(STD_FUTURE_WORKS)
@@ -165,14 +170,13 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
-    int backend = -1;
+    libcloudphxx::lgrngn::backend_t backend = libcloudphxx::lgrngn::undefined;
     bool async = true;
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
     outmom_t<real_t> out_dry, out_wet;
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
-    bool out_wet_spec, out_dry_spec;
   };
 
   private:
@@ -193,9 +197,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     rv_pre_cond(args.mem->tmp[__FILE__][0][0]),
     rv_post_cond(args.mem->tmp[__FILE__][0][1]),
     th_pre_cond(args.mem->tmp[__FILE__][0][2]),
-    th_post_cond(args.mem->tmp[__FILE__][0][3])
+    th_post_cond(args.mem->tmp[__FILE__][0][3]),
+    r_c(args.mem->tmp[__FILE__][1][0])
   {
-
+    r_c = 0.;
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
 
@@ -203,6 +208,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   {
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 4);
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 1);
   }
 
 };

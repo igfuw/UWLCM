@@ -97,23 +97,19 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     // recording parameters
     if(this->rank==0)
     {
-      this->record_aux_const("double-moment bulk microphysics", -44);
-      this->record_aux_const("acti", params.cloudph_opts.acti);
-      this->record_aux_const("cond", params.cloudph_opts.cond);
-      this->record_aux_const("accr", params.cloudph_opts.accr);
-      this->record_aux_const("acnv", params.flag_acnv);
-      this->record_aux_const("sedi", params.cloudph_opts.sedi);
-      this->record_aux_const("acnv_A", params.cloudph_opts.acnv_A);
-      this->record_aux_const("acnv_b", params.cloudph_opts.acnv_b);
-      this->record_aux_const("acnv_c", params.cloudph_opts.acnv_c);
-      this->record_aux_const("user_params rc_src", params.user_params.rc_src);
-      this->record_aux_const("user_params rr_src", params.user_params.rr_src);
-      this->record_aux_const("user_params nc_src", params.user_params.nc_src);
-      this->record_aux_const("user_params nr_src", params.user_params.nr_src);
-      this->record_aux_const("rt_params rc_src", params.rc_src);
-      this->record_aux_const("rt_params rr_src", params.rr_src);
-      this->record_aux_const("rt_params nc_src", params.nc_src);
-      this->record_aux_const("rt_params nr_src", params.nr_src);
+      this->record_aux_const("microphysics", "double-moment bulk");
+      this->record_aux_const("acti", "blk_2m", params.cloudph_opts.acti);
+      this->record_aux_const("cond", "blk_2m", params.cloudph_opts.cond);
+      this->record_aux_const("accr", "blk_2m", params.cloudph_opts.accr);
+      this->record_aux_const("acnv", "blk_2m", params.flag_acnv);
+      this->record_aux_const("sedi", "blk_2m", params.cloudph_opts.sedi);
+      this->record_aux_const("acnv_A", "blk_2m", params.cloudph_opts.acnv_A);
+      this->record_aux_const("acnv_b", "blk_2m", params.cloudph_opts.acnv_b);
+      this->record_aux_const("acnv_c", "blk_2m", params.cloudph_opts.acnv_c);
+      this->record_aux_const("rc_src", "rt_params", params.rc_src);
+      this->record_aux_const("rr_src", "rt_params", params.rr_src);
+      this->record_aux_const("nc_src", "rt_params", params.nc_src);
+      this->record_aux_const("nr_src", "rt_params", params.nr_src);
     }
   }
 

@@ -1,5 +1,7 @@
 Use Singularity: https://sylabs.io/singularity/ to create image for UWLCM
 
+Built images are available at: https://cloud.sylabs.io/library/pdziekan/
+
 Build the image remotely here: https://cloud.sylabs.io/builder
 
 ```bash
