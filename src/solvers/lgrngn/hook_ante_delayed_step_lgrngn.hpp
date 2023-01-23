@@ -63,7 +63,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
       using libcloudphxx::lgrngn::particles_t;
       using libcloudphxx::lgrngn::CUDA;
       using libcloudphxx::lgrngn::multi_CUDA;
-      using timer = typename parent_t::timer;
 #if defined(UWLCM_TIMING)
       tbeg = setup::clock::now();
 #endif
