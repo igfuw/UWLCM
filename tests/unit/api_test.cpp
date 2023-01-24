@@ -26,6 +26,7 @@ int main(int ac, char** av)
     "--nx=4 --ny=4 --nz=4 --X=1000 --Y=1000 --Z=-1"
   });
   vector<string> opts_micro({
+    "--micro=none"  ,
     "--micro=blk_1m"  ,
     "--micro=blk_2m"  ,
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8",
@@ -35,7 +36,7 @@ int main(int ac, char** av)
   });
   vector<string> opts_case({
     "--case=moist_thermal",
-    "--case=dry_thermal --cond=0 --coal=0",
+    "--case=dry_thermal",
     "--case=dycoms_rf02",
     "--case=dycoms_rf02 --out_dry_spec=1 --out_wet_spec=1",
     "--case=dycoms_rf02 --relax_th_rv=1",
@@ -69,7 +70,12 @@ int main(int ac, char** av)
           }
           if((opts_c == opts_case[1]) && opts_m != opts_micro[0])
           {
-            std::cout << "skipping dry thermal tests with microphysics other than blk_1m" << std::endl;
+            std::cout << "skipping dry thermal tests with microphysics other than 'none'" << std::endl;
+            continue; 
+          }
+          if((opts_c == opts_case[7]) && opts_m != opts_micro[0])
+          {
+            std::cout << "skipping dry pbl tests with microphysics other than 'none'" << std::endl;
             continue; 
           }
 

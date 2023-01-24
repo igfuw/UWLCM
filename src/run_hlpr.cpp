@@ -48,6 +48,11 @@
   #include "solvers/blk_2m/update_rhs_blk_2m_common.hpp"
 #endif
 
+#if !defined(UWLCM_DISABLE_2D_NONE) || !defined(UWLCM_DISABLE_3D_NONE)
+  #include "opts/opts_dry.hpp"
+  #include "solvers/slvr_dry.hpp"
+#endif
+
 #include "run_hlpr.hpp"
 
 // dimension-independent model run logic - the same for any microphysics
