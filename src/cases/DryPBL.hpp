@@ -20,8 +20,6 @@ namespace cases
   
     const quantity<si::pressure, real_t> 
       p_0 = 101540 * si::pascals;
-    const quantity<si::temperature, real_t> 
-      T_SST = real_t(299.8) * si::kelvins;
     const quantity<si::length, real_t> 
       Z_def    = 1500 * si::metres, 
       X_def    = 3200 * si::metres, 
