@@ -42,6 +42,10 @@
   #include "solvers/blk_2m/update_rhs_blk_2m_common.hpp"
 #endif
 
+#if !defined(UWLCM_DISABLE_2D_NONE) || !defined(UWLCM_DISABLE_3D_NONE)
+  #include "solvers/slvr_dry.hpp"
+#endif
+
 #include "solvers/common/calc_forces_common.hpp"
 
 #include <map>
@@ -57,8 +61,8 @@ int main(int argc, char** argv)
   {
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
-      ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn")
-      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms, cumulus_congestus")
+      ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn, none")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02, cumulus_congestus, rico11, dry_pbl")
       ("X", po::value<setup::real_t>()->default_value(-1) , "domain size in X [m] (set negative for case default)")
       ("Y", po::value<setup::real_t>()->default_value(-1) , "domain size in Y [m] (set negative for case default)")
       ("Z", po::value<setup::real_t>()->default_value(-1) , "domain size in Z [m] (set negative for case default)")
@@ -204,8 +208,11 @@ int main(int argc, char** argv)
     // handling the "case" option
     user_params.model_case = vm["case"].as<std::string>();
 
-    if(micro != "blk_1m" && user_params.model_case == "dry_thermal")
-      throw std::runtime_error("The DryThermal case needs micro set to blk_1m (although there's no microphysics done at all");
+    if(micro != "none" && user_params.model_case == "dry_thermal")
+      throw std::runtime_error("The dry_thermal case needs micro set to 'none'");
+
+    if(micro != "none" && user_params.model_case == "dry_pbl")
+      throw std::runtime_error("The dry_pbl case needs micro set to 'none'");
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
@@ -248,6 +255,20 @@ int main(int argc, char** argv)
       run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
       throw std::runtime_error("3D Bulk 2-moment option was disabled at compile time");
+#endif
+
+    else if (micro == "none" && ny == 0) // 2D two-moment
+#if !defined(UWLCM_DISABLE_2D_NONE)
+      run_hlpr<slvr_dry, ct_params_2D_dry>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D none micro option was disabled at compile time");
+#endif
+
+    else if (micro == "none" && ny > 0) // 3D two-moment
+#if !defined(UWLCM_DISABLE_3D_NONE)      
+      run_hlpr<slvr_dry, ct_params_3D_dry>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D none micro option was disabled at compile time");
 #endif
 
     // TODO: not only micro can be wrong
