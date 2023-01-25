@@ -43,7 +43,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     ) {
       assert(ftr.valid());
 #if defined(UWLCM_TIMING)
-      tbeg = parent_t::clock::now();
+      tbeg = setup::clock::now();
 #endif
 #if defined(UWLCM_TIMING)
       parent_t::tasync_gpu += ftr.get();
@@ -51,8 +51,8 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       ftr.get();
 #endif
 #if defined(UWLCM_TIMING)
-      tend = parent_t::clock::now();
-      parent_t::tasync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+      tend = setup::clock::now();
+      parent_t::tasync_wait += std::chrono::duration_cast<setup::timer>( tend - tbeg );
 #endif
     } else assert(!ftr.valid()); 
 #endif
@@ -69,7 +69,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 
     // start synchronous stuff timer
 #if defined(UWLCM_TIMING)
-    tbeg = parent_t::clock::now();
+    tbeg = setup::clock::now();
 #endif
 
     using libcloudphxx::lgrngn::particles_t;
@@ -96,11 +96,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     {
       assert(!ftr.valid());
       if(params.backend == CUDA)
-  #if defined(UWLCM_TIMING)
-        ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
-  #else
-        ftr = std::async(std::launch::async,
-  #endif
+        ftr = async_launcher(
           &particles_t<real_t, CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
           params.cloudph_opts,
@@ -109,11 +105,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
           std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
         );
       else if(params.backend == multi_CUDA)
-  #if defined(UWLCM_TIMING)
-        ftr = async_timing_launcher<typename parent_t::clock, typename parent_t::timer>(
-  #else
-        ftr = std::async(std::launch::async,
-  #endif
+        ftr = async_launcher(
           &particles_t<real_t, multi_CUDA>::step_cond, 
           dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
           params.cloudph_opts,
@@ -133,8 +125,8 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     }
 
 #if defined(UWLCM_TIMING)
-    tend = parent_t::clock::now();
-    parent_t::tsync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+    tend = setup::clock::now();
+    parent_t::tsync += std::chrono::duration_cast<setup::timer>( tend - tbeg );
 #endif
   }
   this->mem->barrier();

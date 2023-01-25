@@ -59,28 +59,35 @@ public:
 
 
 #if defined(UWLCM_TIMING)
-  template<class clock, class timer, class F, class ptr, typename... Args>
-  timer func_time(F func, ptr p, Args&&... args){
-    auto t1=clock::now();
+  template<class F, class ptr, typename... Args>
+  setup::timer func_time(F func, ptr p, Args&&... args){
+    auto t1=setup::clock::now();
     (p->*func)(std::forward<Args>(args)...);
-    return std::chrono::duration_cast<timer>(clock::now()-t1);
-  }
-#else
-  template<class clock, class timer, class F, class ptr, typename... Args>
-  timer func_time(F func, ptr p, Args&&... args){
-    (p->*func)(std::forward<Args>(args)...);
-    return timer();
+    return std::chrono::duration_cast<setup::timer>(setup::clock::now()-t1);
   }
 #endif
 
-template<class clock, class timer, class F, class ptr, typename... Args>
-std::future<timer> async_timing_launcher(F func, ptr p, Args&&... args) // func and p are pointers, so their copies are lightweight
-{
-  return std::async(
-           std::launch::async,
-           func_time<clock, timer, F, ptr, Args...>,
-           func, 
-           p,
-           async_forwarder<Args>(std::forward<Args>(args))... // ATTENTION! args are passed by reference to async
-         );
-}
+#if defined(UWLCM_TIMING)
+  template<class F, class ptr, typename... Args>
+  std::future<setup::timer> async_launcher(F func, ptr p, Args&&... args) // func and p are pointers, so their copies are lightweight
+  {
+    return std::async(
+             std::launch::async,
+             func_time<F, ptr, Args...>,
+             func, 
+             p,
+             async_forwarder<Args>(std::forward<Args>(args))... // ATTENTION! args are passed by reference to async
+           );
+  }
+#else
+  template<class F, class ptr, typename... Args>
+  std::future<void> async_launcher(F func, ptr p, Args&&... args) // func and p are pointers, so their copies are lightweight
+  {
+    return std::async(
+             std::launch::async,
+             func, 
+             p,
+             async_forwarder<Args>(std::forward<Args>(args))... // ATTENTION! args are passed by reference to async
+           );
+  }
+#endif
