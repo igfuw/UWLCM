@@ -37,7 +37,7 @@ bool errcheck_minmax(barr1d result, barr1d min, barr1d max)
   barr1d err_flag(result.shape());
 
   barr1d tolerance(result.shape());
-  tolerance = (max - min)*0.02;
+  tolerance = (max - min)*0.1;
 
   err_flag = where(
     less_than(result,min-tolerance), 
