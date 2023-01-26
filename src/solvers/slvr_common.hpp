@@ -507,8 +507,8 @@ class slvr_common : public slvr_dim<ct_params_t>
   void hook_ante_record_all() override
   {
     parent_t::hook_ante_record_all();
-//    this->reconstruct_refinee(ix::th);
-//    this->reconstruct_refinee(ix::rv);
+    this->reconstruct_refinee(ix::th);
+    this->reconstruct_refinee(ix::rv);
   }
 
   virtual void diag()
