@@ -9,8 +9,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
   this->mem->barrier();
 
   this->generate_stretching_parameters(std::random_device{}());
-//  this->reconstruct_refinee(ix::th);
-//  this->reconstruct_refinee(ix::rv);
+  this->reconstruct_refinee(ix::th);
+  this->reconstruct_refinee(ix::rv);
 
   if (this->rank == 0) 
   {
