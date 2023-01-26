@@ -65,6 +65,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     nancheck(courants[2], "courants[2] after interpolation from refined velocities");
 
     // temporarily Cx & Cz are multiplied by this->rhod ...
+    /*
     auto 
       Cx = this->mem->GC[0](this->Cx_domain).copy(),
       Cy = this->mem->GC[1](this->Cy_domain).copy(), // TODO: no need to copy in 2D
@@ -79,12 +80,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       Cy.reindex(this->zero) /= (params.profs.rhod)(this->vert_idx);
       Cz.reindex(this->zero) /= (params.profs.rhod)(this->vert_idx); // TODO: should be interpolated, since theres a shift between positions of rhod and Cz
     }
-
-    std::cerr << "courants[0]: " << courants[0] << std::endl;
-    std::cerr << "Cx: " << Cx << std::endl;
-
-    std::cerr << "this->mem->refinee(this->ix_r2r.at(ix::u)): " << this->mem->refinee(this->ix_r2r.at(ix::u)) << std::endl;
-    std::cerr << "this->mem->advectee(ix::u): " << this->mem->advectee(ix::u) << std::endl;
+    */
 
     // assuring previous async step finished ...
 #if defined(STD_FUTURE_WORKS)
