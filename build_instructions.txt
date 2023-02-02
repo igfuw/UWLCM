@@ -26,14 +26,14 @@ $ git clone https://github.com/igfuw/UWLCM.git
 - in the build direcory issue:
 $ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
 "cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
--DCMAKE_INSTALL_PREFIX={INSTALL_DIR}; make install"
+-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}; make install"
 
 9. Build and install libcloudph++ using the Singularity image:
 - create “build” directory: libcloudphxx/build
 - in the build direcory issue:
 $ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
 "cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
--DCMAKE_INSTALL_PREFIX={INSTALL_DIR} 
+-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} 
 -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True; make -j4 install"
 
 10. Build and install UWLCM using the Singularity image:
@@ -41,8 +41,8 @@ $ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c
 - in the build direcory issue:
 $ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
 "cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
--DCMAKE_INSTALL_PREFIX={INSTALL_DIR}
- -Dlibmpdata++_DIR={INSTALL_DIR}/share/libmpdata++ 
--Dlibcloudph++_DIR={INSTALL_DIR}/share/libcloudph++; make -j4 install"
+-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+ -Dlibmpdata++_DIR=${INSTALL_DIR}/share/libmpdata++ 
+-Dlibcloudph++_DIR=${INSTALL_DIR}/share/libcloudph++; make -j4 install"
 
 
