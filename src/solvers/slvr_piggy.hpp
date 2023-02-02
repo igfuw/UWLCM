@@ -2,6 +2,8 @@
 #include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
 #include <libmpdata++/output/hdf5_xdmf.hpp>
 #include "../detail/checknan.cpp"
+#include <H5Cpp.h>
+#include <libmpdata++/output/hdf5.hpp>
 
 template <class ct_params_t, class enableif = void>
 class slvr_piggy
@@ -29,8 +31,17 @@ class slvr_piggy<
   using parent_t = output::hdf5_xdmf<
     solvers::mpdata_rhs_vip_prs_sgs<ct_params_t, minhalo>
   >;  
-
+  std::unique_ptr<H5::H5File> hdfpu;
+  const std::string vel_out_name = "velocity_out.h5";
   std::ofstream f_vel_out; // file for velocity field
+  
+  const H5::FloatType
+	  flttype_output = H5::PredType::NATIVE_FLOAT;
+
+  hid_t fapl_id;
+  blitz::TinyVector<hsize_t, parent_t::n_dims> cshape, shape, chunk, srfcshape, srfcchunk, offst;
+  H5::DSetCreatPropList params;
+  H5::DataSpace sspace, cspace, srfcspace;
 
   void hook_ante_loop(int nt) 
   {
@@ -40,7 +51,20 @@ class slvr_piggy<
       // open file for out vel
       if(save_vel)
       {
-        try{
+	hdfpu.reset(new H5::H5File(this->outdir + "/" + vel_out_name, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id));
+        std::map<int, H5::DataSet> vars;
+       
+        for (int d = 0; d < parent_t::n_dims; ++d)
+        {
+          // creating the user-requested variables
+          vars[d] = (*hdfpu).createDataSet(
+            this->outvars[this->vip_ixs[d]].name,
+ 	    flttype_output,
+            sspace,
+            params
+          );
+	}
+	try{
           f_vel_out.open(this->outdir+"/velocity_out.dat"); 
         }
         catch(...)
@@ -63,7 +87,8 @@ class slvr_piggy<
     {
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
-        f_vel_out << this->state(this->vip_ixs[d]);
+	//vars.write(vars[d], this->state(this->vip_ixs[d]));
+	f_vel_out << this->state(this->vip_ixs[d]);
       }
     }
   }
