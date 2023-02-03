@@ -37,14 +37,16 @@ class slvr_piggy<
 
   const std::string vel_out_name = "velocity_out.h5";
   std::ofstream f_vel_out; // file for velocity field
+
+  // TODO: create record_halo_hlpr in libmpdata hdf5.hpp and move all the record stuff there
   
 //  const H5::FloatType
 //    flttype_output = H5::PredType::NATIVE_FLOAT;
 //
 //  hid_t fapl_id;
-//  blitz::TinyVector<hsize_t, parent_t::n_dims> cshape, shape, chunk, srfcshape, srfcchunk, offst;
-//  H5::DSetCreatPropList params;
-//  H5::DataSpace sspace, cspace, srfcspace;
+  blitz::TinyVector<hsize_t, parent_t::n_dims> shape_h, chunk_h, offst_h;
+  H5::DSetCreatPropList params_h;
+  H5::DataSpace sspace_h;
 
   void hook_ante_loop(int nt) 
   {
@@ -60,6 +62,17 @@ class slvr_piggy<
 #endif
         ));
 
+        for (int d = 0; d < parent_t::n_dims; ++d)
+          shape_h[d] = this->mem->distmem.grid_size[d] + 2*this->halo;
+
+
+        offst_h = 0;       // TODO: fix for MPI
+        chunk_h = shape_h; // TODO: this wont work for MPI
+        sspace_h = H5::DataSpace(parent_t::n_dims, shape_h.data());
+        params_h.setChunk(parent_t::n_dims, chunk_h.data());
+        // TODO: for MPI set deflate
+
+
        
         for (int d = 0; d < parent_t::n_dims; ++d)
         {
@@ -67,8 +80,8 @@ class slvr_piggy<
           vels[d] = (*hdfpu).createDataSet(
             this->outvars[this->vip_ixs[d]].name,
             this->flttype_output,
-            this->sspace,
-            this->params
+            sspace_h,
+            params_h
           );
         }
         try{
@@ -95,7 +108,12 @@ class slvr_piggy<
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
         //vars.write(vars[d], this->state(this->vip_ixs[d]));
-        this->record_dsc_helper(vels[d], this->state(this->vip_ixs[d]));
+        //this->record_dsc_helper(vels[d], this->state(this->vip_ixs[d]));
+
+        auto space = vels[d].getSpace();
+        space.selectHyperslab(H5S_SELECT_SET, shape_h.data(), offst_h.data());
+        vels[d].write(this->state(this->vip_ixs[d]).data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, shape_h.data()), space, this->dxpl_id);
+
 
         f_vel_out << this->state(this->vip_ixs[d]);
       }
