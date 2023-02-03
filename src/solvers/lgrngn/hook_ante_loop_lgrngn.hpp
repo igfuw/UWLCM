@@ -153,6 +153,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("diag_incloud_time", "lgrngn", params.cloudph_opts_init.diag_incloud_time);  
     this->record_aux_const("rng_seed", "lgrngn", params.cloudph_opts_init.rng_seed);  
     this->record_aux_const("rng_seed_init", "lgrngn", params.cloudph_opts_init.rng_seed_init);  
+    this->record_aux_const("rng_seed_init_switch", "lgrngn", params.cloudph_opts_init.rng_seed_init_switch);  
     this->record_aux_const("async", "lgrngn", params.async);  
     this->record_aux_const("adve", "lgrngn", params.cloudph_opts.adve);  
     this->record_aux_const("sedi", "lgrngn", params.cloudph_opts.sedi);  
@@ -192,6 +193,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("src_type", "lgrngn", libcloudphxx::lgrngn::src_name.at(params.cloudph_opts_init.src_type));  
     this->record_aux_const("terminal_velocity", "lgrngn", libcloudphxx::lgrngn::vt_name.at(params.cloudph_opts_init.terminal_velocity));  
     this->record_aux_const("RH_formula", "lgrngn", libcloudphxx::lgrngn::RH_formula_name.at(params.cloudph_opts_init.RH_formula));  
+    this->record_aux_const("rd_min", "lgrngn", params.cloudph_opts_init.rd_min);  
+    this->record_aux_const("rd_max", "lgrngn", params.cloudph_opts_init.rd_max);  
     this->record_aux_const("relax_ccn", "user_params", params.user_params.relax_ccn);  
   }
   this->mem->barrier();
