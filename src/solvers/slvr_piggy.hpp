@@ -47,6 +47,7 @@ class slvr_piggy<
   blitz::TinyVector<hsize_t, parent_t::n_dims> shape_h, chunk_h, offst_h;
   H5::DSetCreatPropList params_h;
   H5::DataSpace sspace_h;
+  
 
   std::string base_name()
   {
@@ -84,8 +85,7 @@ class slvr_piggy<
         // chunk_h[parent_t::n_dims] = 1;
         sspace_h = H5::DataSpace(parent_t::n_dims, shape_h.data());
         params_h.setChunk(parent_t::n_dims, chunk_h.data());
-
-
+        
         // TODO: for MPI set deflate      
         for (int d = 0; d < parent_t::n_dims; ++d)
         {
@@ -118,33 +118,33 @@ class slvr_piggy<
     // save velocity field
     if(this->rank==0 && save_vel)
     {
-//       hdfpu.reset(new H5::H5File(this->outdir + "/" + hdf_name(), H5F_ACC_TRUNC
-// #if defined(USE_MPI)
-//           , H5P_DEFAULT, this->fapl_id
-// #endif
-//         ));
+      hdfpu.reset(new H5::H5File(this->outdir + "/" + hdf_name(), H5F_ACC_TRUNC
+#if defined(USE_MPI)
+          , H5P_DEFAULT, this->fapl_id
+#endif
+        ));
 
-//         for (int d = 0; d < parent_t::n_dims; ++d)
-//           shape_h[d] = this->mem->distmem.grid_size[d] + 2*this->halo;
-//         shape_h[parent_t::n_dims] = 10;
+        for (int d = 0; d < parent_t::n_dims; ++d)
+          shape_h[d] = this->mem->distmem.grid_size[d] + 2*this->halo;
+        // shape_h[parent_t::n_dims] = 10;
 
-//         offst_h = 0;       // TODO: fix for MPI
-//         std::cout<<"shape_h size "<<shape_h;
-//         chunk_h = shape_h; // TODO: this wont work for MPI
-//         chunk_h[parent_t::n_dims] = 1;
-//         sspace_h = H5::DataSpace(parent_t::n_dims+1, shape_h.data());
-//         params_h.setChunk(parent_t::n_dims+1, chunk_h.data());
-//         // TODO: for MPI set deflate      
-//         for (int d = 0; d < parent_t::n_dims; ++d)
-//         {
-//           // creating the user-requested variables
-//           vels[d] = (*hdfpu).createDataSet(
-//             this->outvars[this->vip_ixs[d]].name,
-//             this->flttype_output,
-//             sspace_h,
-//             params_h
-//           );
-//         }
+        offst_h = 0;       // TODO: fix for MPI
+        std::cout<<"shape_h size "<<shape_h;
+        chunk_h = shape_h; // TODO: this wont work for MPI
+        // chunk_h[parent_t::n_dims] = 1;
+        sspace_h = H5::DataSpace(parent_t::n_dims, shape_h.data());
+        params_h.setChunk(parent_t::n_dims, chunk_h.data());
+        // TODO: for MPI set deflate      
+        for (int d = 0; d < parent_t::n_dims; ++d)
+        {
+          // creating the user-requested variables
+          vels[d] = (*hdfpu).createDataSet(
+            this->outvars[this->vip_ixs[d]].name,
+            this->flttype_output,
+            sspace_h,
+            params_h
+          );
+        }
 
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
