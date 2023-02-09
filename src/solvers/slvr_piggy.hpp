@@ -32,7 +32,7 @@ class slvr_piggy<
     solvers::mpdata_rhs_vip_prs_sgs<ct_params_t, minhalo>
   >;  
 
-  std::unique_ptr<H5::H5File> hdfpu;
+  std::unique_ptr<H5::H5File> hdfpu_vel;
   std::map<int, H5::DataSet> vels;
 
   const std::string vel_out_name = "velocity_out.h5";
@@ -44,22 +44,6 @@ class slvr_piggy<
 //    flttype_output = H5::PredType::NATIVE_FLOAT;
 //
 //  hid_t fapl_id;
-  blitz::TinyVector<hsize_t, parent_t::n_dims> shape_h, chunk_h, offst_h;
-  H5::DSetCreatPropList params_h;
-  H5::DataSpace sspace_h;
-
-  std::string base_name()
-  {
-    std::stringstream ss;
-    ss << "velocity_out" << std::setw(10) << std::setfill('0') << this->timestep;
-    return ss.str();
-  }
-
-  std::string hdf_name()
-  {
-    // TODO: add option of .nc extension for Paraview sake ?
-    return base_name() + ".h5";
-  }
 
   void hook_ante_loop(int nt) 
   {
@@ -91,38 +75,18 @@ class slvr_piggy<
     // save velocity field
     if(this->rank==0 && save_vel)
     {
-      hdfpu.reset(new H5::H5File(this->outdir + "/" + hdf_name(), H5F_ACC_TRUNC
+      hdfpu_vel.reset(new H5::H5File(this->outdir + "/" + this->hdf_name(this->base_name("timestep")), H5F_ACC_TRUNC
 #if defined(USE_MPI)
           , H5P_DEFAULT, this->fapl_id
 #endif
         ));
 
         for (int d = 0; d < parent_t::n_dims; ++d)
-          shape_h[d] = this->mem->distmem.grid_size[d] + 2*this->halo;
-
-        offst_h = 0;       // TODO: fix for MPI
-        chunk_h = shape_h; // TODO: this wont work for MPI
-        sspace_h = H5::DataSpace(parent_t::n_dims, shape_h.data());
-        params_h.setChunk(parent_t::n_dims, chunk_h.data());
-        // TODO: for MPI set deflate      
-        for (int d = 0; d < parent_t::n_dims; ++d)
-        {
-          // creating the user-requested variables
-          vels[d] = (*hdfpu).createDataSet(
+          this->record_aux_halo_hlpr(
             this->outvars[this->vip_ixs[d]].name,
-            this->flttype_output,
-            sspace_h,
-            params_h
+            this->state(this->vip_ixs[d]),
+            *hdfpu_vel
           );
-        }
-
-      for (int d = 0; d < parent_t::n_dims; ++d)
-      {
-        auto space = vels[d].getSpace();
-        space.selectHyperslab(H5S_SELECT_SET, shape_h.data(), offst_h.data());
-        vels[d].write(this->state(this->vip_ixs[d]).data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, shape_h.data()), space, this->dxpl_id);
-        f_vel_out << this->state(this->vip_ixs[d]);
-      }
     }
   }
 
@@ -181,21 +145,8 @@ class slvr_piggy<
   
   protected:
 
-  blitz::TinyVector<hsize_t, parent_t::n_dims> shape_h, chunk_h, offst_h;
   std::ifstream f_vel_in; // input velocity file
 
-    std::string base_name()
-  {
-    std::stringstream ss;
-    ss << "velocity_out" << std::setw(10) << std::setfill('0') << this->timestep;
-    return ss.str();
-  }
-
-  std::string hdf_name()
-  {
-    // TODO: add option of .nc extension for Paraview sake ?
-    return base_name() + ".h5";
-  }
 
   void hook_ante_loop(int nt) 
   {
@@ -237,7 +188,7 @@ class slvr_piggy<
     if(this->rank==0)
     {
       using ix = typename ct_params_t::ix;
-      H5::H5File h5f(vel_in+ "/" + hdf_name(), H5F_ACC_RDONLY);
+      H5::H5File h5f(vel_in+ "/" + this->hdf_name(this->base_name("timestep")), H5F_ACC_RDONLY);
       std::cout<<" timestep "<<this->timestep<< " ";
       
       for (int d = 0; d < parent_t::n_dims; ++d)
