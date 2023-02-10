@@ -61,7 +61,7 @@ class slvr_piggy<
       this->record_aux_const("save_vel", "piggy", save_vel_flag);  
       this->record_aux_const("rt_params prs_tol", "piggy", prs_tol);  
 
-      if (this->mem->distmem.rank() == 0)
+      if (this->mem->distmem.rank() == 0 && save_vel_flag)
       {
         // creating the directory for velocity output
         boost::filesystem::create_directory(this->outdir + "/velocities/");
@@ -130,6 +130,8 @@ class slvr_piggy<
 
   private:
   std::string vel_in;
+  blitz::TinyVector<hsize_t, parent_t::n_dims> read_shape_h, read_offst_h;
+
   
   protected:
 
@@ -138,17 +140,18 @@ class slvr_piggy<
     if(this->rank==0)
     {
       using ix = typename ct_params_t::ix;
-      H5::H5File h5f(vel_in+ "/velocities/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_RDONLY);
+      H5::H5File h5f(vel_in+ "/velocities/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_RDONLY
+#if defined(USE_MPI)
+        , H5P_DEFAULT, this->fapl_id
+#endif
+      );
       
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
         H5::DataSet dataset = h5f.openDataSet(this->outvars[this->vip_ixs[d]].name);
         H5::DataSpace dataspace = dataset.getSpace();
-        int rank = dataspace.getSimpleExtentNdims();
-        hsize_t dims[rank];
-        dataspace.getSimpleExtentDims(dims, NULL);
-
-        dataset.read(this->state(this->vip_ixs[d]).data(), this->flttype_output);
+        dataspace.selectHyperslab(H5S_SELECT_SET, read_shape_h.data(), read_offst_h.data());
+        dataset.read(this->state(this->vip_ixs[d]).data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, read_shape_h.data()) , dataspace, this->dxpl_id);
       }
     }
   }
@@ -156,6 +159,12 @@ class slvr_piggy<
   void hook_ante_loop(int nt) 
   {
     parent_t::hook_ante_loop(nt); 
+
+    for (int d = 0; d < parent_t::n_dims; ++d)
+      read_shape_h[d] = this->mem->grid_size[d].length() + 2 * this->halo;
+
+    read_offst_h = 0;
+    read_offst_h[0] = this->mem->grid_size[0].first();
 
     if(this->rank==0)
     {
