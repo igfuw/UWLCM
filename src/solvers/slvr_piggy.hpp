@@ -24,7 +24,7 @@ class slvr_piggy<
   >
 {
   private:
-  bool save_vel; // should velocity field be stored for piggybacking
+  bool save_vel_flag; // should velocity field be stored for piggybacking
   setup::real_t prs_tol; // store a copy for output purposes
 
   protected:
@@ -33,49 +33,13 @@ class slvr_piggy<
   >;  
 
   std::unique_ptr<H5::H5File> hdfpu_vel;
-  std::map<int, H5::DataSet> vels;
-
-  const std::string vel_out_name = "velocity_out.h5";
   std::ofstream f_vel_out; // file for velocity field
 
-  // TODO: create record_halo_hlpr in libmpdata hdf5.hpp and move all the record stuff there
-  
-//  const H5::FloatType
-//    flttype_output = H5::PredType::NATIVE_FLOAT;
-//
-//  hid_t fapl_id;
-
-  void hook_ante_loop(int nt) 
+  void save_vel()
   {
-    parent_t::hook_ante_loop(nt); 
-    if(this->rank==0)
+    if(this->rank==0 && save_vel_flag)
     {
-      // open file for out vel
-      if(save_vel)
-      {     
-      try
-        {
-          f_vel_out.open(this->outdir+"/velocity_out.dat"); 
-        }
-        catch(...)
-        {
-          throw std::runtime_error("error opening velocity output file '{outdir}/velocity_out.dat'");
-        }
-      }
-      this->record_aux_const("save_vel", "piggy", save_vel);  
-      this->record_aux_const("rt_params prs_tol", "piggy", prs_tol);  
-    }
-    this->mem->barrier();
-  }
-
-  void hook_post_step()
-  {
-    parent_t::hook_post_step(); // includes changes of velocity field due to vip_rhs_impl_fnlz()
-    this->mem->barrier();
-    // save velocity field
-    if(this->rank==0 && save_vel)
-    {
-      hdfpu_vel.reset(new H5::H5File(this->outdir + "/" + this->hdf_name(this->base_name("timestep")), H5F_ACC_TRUNC
+      hdfpu_vel.reset(new H5::H5File(this->outdir + "/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_TRUNC
 #if defined(USE_MPI)
           , H5P_DEFAULT, this->fapl_id
 #endif
@@ -90,9 +54,29 @@ class slvr_piggy<
     }
   }
 
+  void hook_ante_loop(int nt) 
+  {
+    parent_t::hook_ante_loop(nt); 
+    if(this->rank==0)
+    {
+      this->record_aux_const("save_vel", "piggy", save_vel_flag);  
+      this->record_aux_const("rt_params prs_tol", "piggy", prs_tol);  
+    }
+    this->mem->barrier();
+    save_vel();
+    this->mem->barrier();
+  }
+
+  void hook_post_step()
+  {
+    parent_t::hook_post_step(); // includes changes of velocity field due to vip_rhs_impl_fnlz()
+    this->mem->barrier();
+    save_vel();
+  }
+
   struct rt_params_t : parent_t::rt_params_t 
   {
-    bool save_vel;
+    bool save_vel_flag;
 
     // ctor
     rt_params_t()
@@ -106,7 +90,7 @@ class slvr_piggy<
       po::variables_map vm;
       handle_opts(opts, vm);
           
-      save_vel = vm["save_vel"].as<bool>();
+      save_vel_flag = vm["save_vel"].as<bool>();
       this->prs_tol = vm["prs_tol"].as<setup::real_t>();
     }
   };
@@ -117,7 +101,7 @@ class slvr_piggy<
     rt_params_t p
   ) :
     parent_t(args, p),
-    save_vel(p.save_vel),
+    save_vel_flag(p.save_vel_flag),
     prs_tol(p.prs_tol)
     {}
 };
@@ -188,7 +172,7 @@ class slvr_piggy<
     if(this->rank==0)
     {
       using ix = typename ct_params_t::ix;
-      H5::H5File h5f(vel_in+ "/" + this->hdf_name(this->base_name("timestep")), H5F_ACC_RDONLY);
+      H5::H5File h5f(vel_in+ "/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_RDONLY);
       std::cout<<" timestep "<<this->timestep<< " ";
       
       for (int d = 0; d < parent_t::n_dims; ++d)
