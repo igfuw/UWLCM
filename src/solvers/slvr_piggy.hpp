@@ -158,7 +158,7 @@ class slvr_piggy<
         // hence we read in kji and copy back to kij used in 3D UWLCM
         // TODO: all this kij - kji copying could probably be avoided by using a smart
         //       hyperslab when reading (especially important with MPI)
-        if(d == 2)
+        if(parent_t::n_dims == 3)
         {
           typename parent_t::arr_t kji_arr(read_shape_h);
           dataset.read(kji_arr.data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, read_shape_h.data()) , dataspace
