@@ -143,7 +143,8 @@ class slvr_piggy<
       H5::H5File h5f(vel_in+ "/velocities/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_RDONLY
 #if defined(USE_MPI)
         // set collective reading of velocity file, needs to be used together with dxpl_id. 
-        // Significantly slows down for few MPI tasks, starts to be beneficial for many tasks, hence disabled for now
+        // Significantly slows down for few MPI tasks, starts to be beneficial for many tasks
+        // , hence disabled for now
 //        , H5P_DEFAULT, this->fapl_id 
 #endif
       );
@@ -153,12 +154,15 @@ class slvr_piggy<
         H5::DataSet dataset = h5f.openDataSet(this->outvars[this->vip_ixs[d]].name);
         H5::DataSpace dataspace = dataset.getSpace();
         dataspace.selectHyperslab(H5S_SELECT_SET, read_shape_h.data(), read_offst_h.data());
-        dataset.read(this->state(this->vip_ixs[d]).data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, read_shape_h.data()) , dataspace
+        typename parent_t::arr_t kji_arr(read_shape_h);
+        dataset.read(kji_arr.data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, read_shape_h.data()) , dataspace
 #if defined(USE_MPI)
           // see above comments to h5f
-  //        , this->dxpl_id
+//          , this->dxpl_id
 #endif
         );
+
+        this->state(this->vip_ixs[d]) = kji_arr;
       }
     }
   }
