@@ -154,15 +154,30 @@ class slvr_piggy<
         H5::DataSet dataset = h5f.openDataSet(this->outvars[this->vip_ixs[d]].name);
         H5::DataSpace dataspace = dataset.getSpace();
         dataspace.selectHyperslab(H5S_SELECT_SET, read_shape_h.data(), read_offst_h.data());
-        typename parent_t::arr_t kji_arr(read_shape_h);
-        dataset.read(kji_arr.data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, read_shape_h.data()) , dataspace
+        // in 3D, velocities are transposed to kji order before saving in record_aux_halo
+        // hence we read in kji and copy back to kij used in 3D UWLCM
+        // TODO: all this kij - kji copying could probably be avoided by using a smart
+        //       hyperslab when reading (especially important with MPI)
+        if(d == 2)
+        {
+          typename parent_t::arr_t kji_arr(read_shape_h);
+          dataset.read(kji_arr.data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, read_shape_h.data()) , dataspace
 #if defined(USE_MPI)
-          // see above comments to h5f
-//          , this->dxpl_id
+            // see above comments to h5f
+  //          , this->dxpl_id
 #endif
-        );
-
-        this->state(this->vip_ixs[d]) = kji_arr;
+          );
+          this->state(this->vip_ixs[d]) = kji_arr;
+        }
+        else
+        {
+          dataset.read(this->state(this->vip_ixs[d]).data(), this->flttype_solver, H5::DataSpace(parent_t::n_dims, read_shape_h.data()) , dataspace
+#if defined(USE_MPI)
+            // see above comments to h5f
+  //          , this->dxpl_id
+#endif
+          );
+        }
       }
     }
   }
