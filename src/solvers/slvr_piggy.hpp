@@ -33,13 +33,12 @@ class slvr_piggy<
   >;  
 
   std::unique_ptr<H5::H5File> hdfpu_vel;
-  std::ofstream f_vel_out; // file for velocity field
 
   void save_vel()
   {
     if(this->rank==0 && save_vel_flag)
     {
-      hdfpu_vel.reset(new H5::H5File(this->outdir + "/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_TRUNC
+      hdfpu_vel.reset(new H5::H5File(this->outdir + "/velocities/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_TRUNC
 #if defined(USE_MPI)
           , H5P_DEFAULT, this->fapl_id
 #endif
@@ -61,6 +60,12 @@ class slvr_piggy<
     {
       this->record_aux_const("save_vel", "piggy", save_vel_flag);  
       this->record_aux_const("rt_params prs_tol", "piggy", prs_tol);  
+
+      if (this->mem->distmem.rank() == 0)
+      {
+        // creating the directory for velocity output
+        boost::filesystem::create_directory(this->outdir + "/velocities/");
+      }
     }
     this->mem->barrier();
     save_vel();
@@ -124,56 +129,16 @@ class slvr_piggy<
   >;  
 
   private:
-  typename parent_t::arr_t in_bfr; // input buffer for velocity
   std::string vel_in;
   
   protected:
 
-  std::ifstream f_vel_in; // input velocity file
-
-
-  void hook_ante_loop(int nt) 
+  void read_vel()
   {
-    parent_t::hook_ante_loop(nt); 
-
-    if(this->rank==0)
-    {
-      po::options_description opts("Piggybacker options"); 
-      opts.add_options()
-        ("vel_in", po::value<std::string>()->required(), "file with input velocities (for piggybacking)")
-      ;
-      po::variables_map vm;
-      handle_opts(opts, vm);
-          
-      vel_in = vm["vel_in"].as<std::string>();
-      std::cout << "piggybacking from: " << vel_in << std::endl;
-
-      in_bfr.resize(this->state(this->vip_ixs[0]).shape());
-      // open file for in vel
-      // TODO: somehow check dimensionality of the input arrays
-      try{
-        f_vel_in.open(vel_in); 
-      }
-      catch(...)
-      {
-        throw std::runtime_error("error opening velocities input file defined by --vel_in");
-      }
-      this->record_aux_const("piggybacking", "piggy", "true");
-      this->record_aux_const("vel_in", "piggy", vel_in); 
-    }
-    this->mem->barrier();
-  }
-
-  void hook_post_step() 
-  {
-    parent_t::hook_post_step(); // do whatever
-    this->mem->barrier(); //necessary?
-    // read velo, overwrite any vel rhs
     if(this->rank==0)
     {
       using ix = typename ct_params_t::ix;
-      H5::H5File h5f(vel_in+ "/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_RDONLY);
-      std::cout<<" timestep "<<this->timestep<< " ";
+      H5::H5File h5f(vel_in+ "/velocities/" + this->hdf_name(this->base_name("velocity")), H5F_ACC_RDONLY);
       
       for (int d = 0; d < parent_t::n_dims; ++d)
       {
@@ -183,11 +148,41 @@ class slvr_piggy<
         hsize_t dims[rank];
         dataspace.getSimpleExtentDims(dims, NULL);
 
-        dataset.read(this->state(this->vip_ixs[d]).data(), H5::PredType::NATIVE_FLOAT);
-        // f_vel_in >> in_bfr;
-        // this->state(this->vip_ixs[d]) = in_bfr;
+        dataset.read(this->state(this->vip_ixs[d]).data(), this->flttype_output);
       }
     }
+  }
+
+  void hook_ante_loop(int nt) 
+  {
+    parent_t::hook_ante_loop(nt); 
+
+    if(this->rank==0)
+    {
+      po::options_description opts("Piggybacker options"); 
+      opts.add_options()
+        ("vel_in", po::value<std::string>()->required(), "directory with the 'velocities' direcotry (for piggybacking)")
+      ;
+      po::variables_map vm;
+      handle_opts(opts, vm);
+          
+      vel_in = vm["vel_in"].as<std::string>();
+      std::cout << "piggybacking from: " << vel_in << std::endl;
+
+      this->record_aux_const("piggybacking", "piggy", "true");
+      this->record_aux_const("vel_in", "piggy", vel_in); 
+    }
+
+    read_vel();
+    this->mem->barrier();
+  }
+
+  void hook_post_step() 
+  {
+    parent_t::hook_post_step(); // do whatever
+    this->mem->barrier(); //necessary?
+    // read velo, overwrite any vel rhs
+    read_vel();
     this->mem->barrier();
   }
 
