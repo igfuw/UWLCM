@@ -1,0 +1,48 @@
+﻿1. UWLCM has multiple dependencies. We have an Singularity image with all of them and I will describe build instructions that use the container. Alternatively, you could install dependencies manually.
+Also, this instruction will probably not work for MPI runs (i.e. will only run on a single node).
+MPI is supported, but the MPI implementation on your cluster needs to be compatible with the MPI implementation in Singularity image (MVAPICH2).
+Ask your cluster administrator for help.
+You can also choose not to use the Singularity image for MPI runs, but install all dependencies manually on the cluster. Commands for installing dependencies can be found at:
+https://github.com/igfuw/UWLCM/blob/master/singularity/sng_ubuntu_20_04_cuda_11_4_mvapich2
+When building for MPI runs, tell CMake to use the MPI compiler instead of gcc, e.g.:
+-DCMAKE_CXX_COMPILER=mpic++
+
+2. You need to have Apptainer/Singularity. It is most probably already installed on the cluster.
+
+3. Download the UWLCM Singularity image ubuntu_20_04_cuda_11_4_mvapich2_v2 from:
+https://cloud.sylabs.io/library/pdziekan/test/uwlcm
+
+4. Download libmpdata++ library from github, e.g.:
+$ git clone https://github.com/igfuw/libmpdataxx.git
+
+5. Download libcloudph++ library from github, e.g.:
+$ git clone https://github.com/igfuw/libcloudphxx.git
+
+6. Download UWLCM from github, e.g.:
+$ git clone https://github.com/igfuw/UWLCM.git
+
+8. Install libmpdata++ using the Singularity image:
+- create “build” directory: libmpdataxx/libmpdata++/build
+- in the build direcory issue:
+$ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
+"cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
+-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} .. ; make install"
+
+9. Build and install libcloudph++ using the Singularity image:
+- create “build” directory: libcloudphxx/build
+- in the build direcory issue:
+$ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
+"cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
+-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} 
+-DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True .. ; make -j4 install"
+
+10. Build and install UWLCM using the Singularity image:
+- create “build” directory: UWLCM/build
+- in the build direcory issue:
+$ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
+"cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
+-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+ -Dlibmpdata++_DIR=${INSTALL_DIR}/share/libmpdata++ 
+-Dlibcloudph++_DIR=${INSTALL_DIR}/share/libcloudph++ .. ; make -j4 install"
+
+
