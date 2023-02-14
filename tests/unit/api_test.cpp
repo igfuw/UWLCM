@@ -56,7 +56,7 @@ int main(int ac, char** av)
   });
   // run the piggybacker, if required
   if(run_piggy)
-    opts_piggy.push_back("--piggy=1 --vel_in=velocity_out.dat");  // take vel file from blk, cause it's ran first
+    opts_piggy.push_back("--piggy=1 --vel_in=output");  // take vel file from blk, cause it's ran first
 
   system("mkdir output");
 
