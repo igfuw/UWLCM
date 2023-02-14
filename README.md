@@ -14,6 +14,8 @@ Key features:
 UWLCM is implemented using the libmpdata++ advection library and libcloudph++ microphysics library.
 https://github.com/igfuw/libmpdataxx
 https://github.com/igfuw/libcloudphxx
+
+Build instructions can be found in build_instructions.rtf.
  
 Visualization of a modeled stratocumulus cloud deck:
 https://youtu.be/EZf260ZKqq0
