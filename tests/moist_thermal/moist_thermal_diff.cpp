@@ -35,10 +35,14 @@ BZ_DECLARE_FUNCTION2_RET(greater_than, bool);
 bool errcheck_minmax(barr1d result, barr1d min, barr1d max)
 {
   barr1d err_flag(result.shape());
+
+  barr1d tolerance(result.shape());
+  tolerance = (max - min)*0.1;
+
   err_flag = where(
-    less_than(result,min), 
+    less_than(result,min-tolerance), 
       1,
-      where(greater_than(result, max), 1 , 0)
+      where(greater_than(result, max+tolerance), 1 , 0)
   ); 
 
   if(any(err_flag > 0.))

@@ -95,3 +95,23 @@ struct ct_params_3D_blk_1m : ct_params_common
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
 };
+
+struct ct_params_2D_dry : ct_params_common
+{
+  enum { n_dims = 2 };
+  enum { n_eqns = 4 };
+  struct ix { enum {
+    u, w, th, rv,
+    vip_i=u, vip_j=w, vip_den=-1
+  }; };
+};
+
+struct ct_params_3D_dry : ct_params_common
+{
+  enum { n_dims = 3 };
+  enum { n_eqns = 5 };
+  struct ix { enum {
+    u, v, w, th, rv,
+    vip_i=u, vip_j=v, vip_k=w, vip_den=-1
+  }; };
+};

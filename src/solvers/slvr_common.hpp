@@ -26,12 +26,9 @@ class slvr_common : public slvr_dim<ct_params_t>
   protected:
 
 #if defined(UWLCM_TIMING)
-  using clock = std::chrono::system_clock; 
-  using timer = std::chrono::milliseconds; 
-  timer tsync, tsync_gpu, tsync_wait, tasync, tasync_gpu, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
-#else
-  using timer = void; 
-  using clock = void; 
+  setup::timer tsync, tsync_gpu, tsync_wait, tasync, tasync_gpu, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
+
+  protected:
 #endif
 
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv

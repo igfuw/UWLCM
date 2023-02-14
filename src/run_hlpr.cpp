@@ -15,6 +15,7 @@
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/CumulusCongestus.hpp"
+#include "cases/DryPBL.hpp"
 
 #include "opts/opts_common.hpp"
 #include "solvers/common/calc_forces_common.hpp"
@@ -45,6 +46,11 @@
   #include "solvers/slvr_blk_2m.hpp"
   #include "solvers/blk_2m/calc_forces_blk_2m_common.hpp"
   #include "solvers/blk_2m/update_rhs_blk_2m_common.hpp"
+#endif
+
+#if !defined(UWLCM_DISABLE_2D_NONE) || !defined(UWLCM_DISABLE_3D_NONE)
+  #include "opts/opts_dry.hpp"
+  #include "solvers/slvr_dry.hpp"
 #endif
 
 #include "run_hlpr.hpp"
@@ -99,6 +105,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else if (user_params.model_case == "rico11")
     case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
+  else if (user_params.model_case == "dry_pbl")
+    case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else
     throw std::runtime_error("wrong case choice");
 
