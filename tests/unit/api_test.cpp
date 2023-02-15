@@ -56,18 +56,20 @@ int main(int ac, char** av)
   });
   // run the piggybacker, if required
   if(run_piggy)
-    opts_piggy.push_back("--piggy=1 --vel_in=output");  // take vel file from blk, cause it's ran first
+    opts_piggy.push_back("--piggy=1 --vel_in=output/");  // take vel file from blk, cause it's ran first
 
   system("mkdir output");
 
   // file with a dict translating hashed outdir into options
   std::ofstream ofdict("hash_dict"+opts_additional+".txt");
 
+  std::string vel_outdir; // name of the output directory with stored velocities
+
   for (auto &opts_d : opts_dim)
     for (auto &opts_m : opts_micro)
       for (auto &opts_c : opts_case)
         for (auto &opts_r : opts_rng)
-          for (auto &opts_p : opts_piggy) // piggy has to be last to prevent overwriting of vel_out
+          for (auto &opts_p : opts_piggy)
           {
             if((opts_c == opts_case[1]) && (opts_d == opts_dim[2] || opts_d == opts_dim[3]))
             {
@@ -86,11 +88,21 @@ int main(int ac, char** av)
             }
 
             ostringstream cmd, opts;
-            opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_r << " " << opts_p << " "<< opts_additional;
+            opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_r << " "<< opts_additional << " " << opts_p; // opts_p needs to be the last, because we will append old outdir to vel_in
+
             // we want outdir=opts.str(), but that gives a long outdir that h5diff has trouble with reading and gives error when comparing const.h5 with refdata
             // hence we hash opts to get outdir
             auto outdir = std::hash<std::string>{}(opts.str());
             ofdict << outdir << " : " << opts.str() << std::endl;
+
+            // outdir from run with save_vel=1 in run with piggy=1
+            if(run_piggy)
+            {
+              if(opts_p == opts_piggy[1])
+                vel_outdir = outdir;
+              else if(opts_p == opts_piggy[2])
+                opts << vel_outdir;
+            }
 
             cmd << av[1] <<  "/../../build/uwlcm " << opts.str() << " --outdir=\"output/" << outdir << "\"";
  
