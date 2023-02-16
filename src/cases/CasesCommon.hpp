@@ -149,6 +149,14 @@ namespace cases
                                      const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
 
+    virtual void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
+                              int timestep, real_t dt, real_t dz)
+    {};
+
+    virtual void update_th_LS(blitz::Array<real_t, 1> th_LS,
+                              int timestep, real_t dt, real_t dz)
+    {};
+
     // ctor
     // TODO: these are DYCOMS definitions, move them there
     CasesCommon()
