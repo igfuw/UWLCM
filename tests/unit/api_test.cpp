@@ -56,7 +56,7 @@ int main(int ac, char** av)
   });
   // run the piggybacker, if required
   if(run_piggy)
-    opts_piggy.push_back("--piggy=1 --vel_in=velocity_out.dat");  // take vel file from blk, cause it's ran first
+    opts_piggy.push_back("--piggy=1 --vel_in=.");  // take vel file from blk, cause it's ran first
 
   system("mkdir output");
 
@@ -67,7 +67,7 @@ int main(int ac, char** av)
     for (auto &opts_m : opts_micro)
       for (auto &opts_c : opts_case)
         for (auto &opts_r : opts_rng)
-          for (auto &opts_p : opts_piggy) // piggy has to be last to prevent overwriting of vel_out
+          for (auto &opts_p : opts_piggy) // piggy needs to be the last
           {
             if((opts_c == opts_case[1]) && (opts_d == opts_dim[2] || opts_d == opts_dim[3]))
             {
@@ -86,7 +86,8 @@ int main(int ac, char** av)
             }
 
             ostringstream cmd, opts;
-            opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_r << " " << opts_p << " "<< opts_additional;
+            opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_r << " " << opts_p << " " << opts_additional; 
+
             // we want outdir=opts.str(), but that gives a long outdir that h5diff has trouble with reading and gives error when comparing const.h5 with refdata
             // hence we hash opts to get outdir
             auto outdir = std::hash<std::string>{}(opts.str());
@@ -101,10 +102,10 @@ int main(int ac, char** av)
               error_macro("model run failed: " << cmd.str())
 
             // copy the stored velocity for the next run
-            if(opts_p == opts_piggy[1])
+            if(opts_p == opts_piggy[1] && run_piggy)
             {
               ostringstream cpcmd;
-              cpcmd << "cp \"output/" << outdir << "/velocity_out.dat\" .";
+              cpcmd << "cp -r \"output/" << outdir << "/velocities\" .";
               notice_macro("about to call: " << cpcmd.str())
               system(cpcmd.str().c_str());
             }
