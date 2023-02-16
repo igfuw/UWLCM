@@ -86,7 +86,7 @@ int main(int ac, char** av)
             }
 
             ostringstream cmd, opts;
-            opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_r << " "<< opts_additional << " " << opts_p; 
+            opts << opts_common << " " << opts_m << " " << opts_d << " " << opts_c << " " << opts_r << " " << opts_p << " " << opts_additional; 
 
             // we want outdir=opts.str(), but that gives a long outdir that h5diff has trouble with reading and gives error when comparing const.h5 with refdata
             // hence we hash opts to get outdir
