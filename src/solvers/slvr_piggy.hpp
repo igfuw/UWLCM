@@ -77,6 +77,7 @@ class slvr_piggy<
     parent_t::hook_post_step(); // includes changes of velocity field due to vip_rhs_impl_fnlz()
     this->mem->barrier();
     save_vel();
+    this->mem->barrier();
   }
 
   struct rt_params_t : parent_t::rt_params_t 
