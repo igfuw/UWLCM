@@ -267,6 +267,9 @@ class slvr_common : public slvr_dim<ct_params_t>
   void coriolis(const int&);
   void relax_th_rv(const int&);
 
+  void rv_LS();
+  void th_LS();
+
   void update_rhs(
     arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
@@ -494,6 +497,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
     this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
 
+    this->record_aux_prof("rv_LS", params.rv_LS->data());
+    this->record_aux_prof("th_LS", params.th_LS->data());
+
     get_puddle();
     for(int i=0; i < n_puddle_scalars; ++i)
     {
@@ -533,6 +539,10 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     // functions for updating surface fluxes per timestep
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;
+
+    // functions for updating large-scale forcings
+    std::function<void(typename setup::arr_1D_t, const int&, const real_t&, const real_t&)> update_rv_LS, update_th_LS;
+    
   };
 
   // per-thread copy of params
