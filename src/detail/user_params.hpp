@@ -8,10 +8,8 @@
 struct user_params_t
 {
   int nt, outfreq, spinup, rng_seed, rng_seed_init, n_fra_iter;
-  bool relax_th_rv;
   setup::real_t X, Y, Z, dt;
   std::string outdir, model_case;
-//  bool th_src, rv_src, rc_src, rr_src, nc_src, nr_src, uv_src, w_src, relax_ccn, relax_th_rv;
   setup::real_t sgs_delta;
   quantity<si::length, setup::real_t> mean_rd1, mean_rd2;		
   quantity<si::dimensionless, setup::real_t> sdev_rd1, sdev_rd2;		
@@ -19,5 +17,6 @@ struct user_params_t
   quantity<si::dimensionless, setup::real_t> kappa1, kappa2;
   quantity<si::dimensionless, setup::real_t> case_n_stp_multiplier;
 
-  bool relax_ccn = false; // relevant only for lgrngn micro, hence needs a default value as otherwise it might be undefined in blk_1m/blk_2m
+  bool relax_th_rv,
+       relax_ccn = false; // relevant only for lgrngn micro, hence needs a default value as otherwise it might be undefined in blk_1m/blk_2m
 };

@@ -79,6 +79,8 @@ void setopts_micro(
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
+    ("rd_min", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_min), "minimum dry radius of initialized droplets [m] (negative means automatic detection)")
+    ("rd_max", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_max), "maximum dry radius of initialized droplets [m] (negative means automatic detection); sd_conc_large_tail==true may result in initialization of even larger droplets")
     ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
     // TODO: MAC, HAC, vent_coef
   ;
@@ -98,6 +100,9 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
+
+  rt_params.cloudph_opts_init.rd_min = vm["rd_min"].as<setup::real_t>();
+  rt_params.cloudph_opts_init.rd_max = vm["rd_max"].as<setup::real_t>();
 
   std::string adve_scheme_str = vm["adve_scheme"].as<std::string>();
   if (adve_scheme_str == "euler") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
@@ -397,6 +402,7 @@ void setopts_micro(
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
   rt_params.cloudph_opts_init.rng_seed_init = user_params.rng_seed_init;
+  rt_params.cloudph_opts_init.rng_seed_init_switch = true;
 
   // coalescence kernel choice
   if(!vm["turb_coal"].as<bool>())

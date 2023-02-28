@@ -19,7 +19,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
     ) {
       assert(ftr.valid());
 #if defined(UWLCM_TIMING)
-      tbeg = parent_t::clock::now();
+      tbeg = setup::clock::now();
 #endif
 #if defined(UWLCM_TIMING)
       parent_t::tsync_gpu += ftr.get();
@@ -27,8 +27,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
       ftr.get();
 #endif
 #if defined(UWLCM_TIMING)
-      tend = parent_t::clock::now();
-      parent_t::tsync_wait += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+      tend = setup::clock::now();
+      parent_t::tsync_wait += std::chrono::duration_cast<setup::timer>( tend - tbeg );
 #endif
     } else assert(!ftr.valid()); 
 #endif
@@ -87,22 +87,21 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
       using libcloudphxx::lgrngn::particles_t;
       using libcloudphxx::lgrngn::CUDA;
       using libcloudphxx::lgrngn::multi_CUDA;
-      using timer = typename parent_t::timer;
 #if defined(UWLCM_TIMING)
-      tbeg = parent_t::clock::now();
+      tbeg = setup::clock::now();
 #endif
 #if defined(STD_FUTURE_WORKS)
       if (params.async)
       {
         assert(!ftr.valid());
         if(params.backend == CUDA)
-          ftr = async_timing_launcher<typename parent_t::clock, timer>(
+          ftr = async_launcher(
             &particles_t<real_t, CUDA>::step_async, 
             dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
             params.cloudph_opts
           );
         else if(params.backend == multi_CUDA)
-          ftr = async_timing_launcher<typename parent_t::clock, timer>(
+          ftr = async_launcher(
             &particles_t<real_t, multi_CUDA>::step_async, 
             dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
             params.cloudph_opts
@@ -113,8 +112,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
         prtcls->step_async(params.cloudph_opts);
 
 #if defined(UWLCM_TIMING)
-      tend = parent_t::clock::now();
-      parent_t::tasync += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
+      tend = setup::clock::now();
+      parent_t::tasync += std::chrono::duration_cast<setup::timer>( tend - tbeg );
 #endif
     }
   }
