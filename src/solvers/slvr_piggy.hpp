@@ -71,7 +71,6 @@ class slvr_piggy<
   struct rt_params_t : parent_t::rt_params_t 
   {
     bool save_vel;
-    detail::ForceParameters_t ForceParameters; // here becuse it's needed in slvr_dim for ground velocity calculation
 
     // ctor
     rt_params_t()
