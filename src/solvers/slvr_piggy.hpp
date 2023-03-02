@@ -25,7 +25,7 @@ class slvr_piggy<
 {
   private:
   bool save_vel_flag; // should velocity field be stored for piggybacking
-  setup::real_t prs_tol; // store a copy for output purposes
+//  setup::real_t prs_tol; // store a copy for output purposes
 
   protected:
   using parent_t = output::hdf5_xdmf<
@@ -59,7 +59,7 @@ class slvr_piggy<
     if(this->rank==0)
     {
       this->record_aux_const("save_vel", "piggy", save_vel_flag);  
-      this->record_aux_const("rt_params prs_tol", "piggy", prs_tol);  
+      this->record_aux_const("rt_params prs_tol", "piggy", this->prs_tol);  
 
       if (this->mem->distmem.rank() == 0 && save_vel_flag)
       {
@@ -109,8 +109,8 @@ class slvr_piggy<
     rt_params_t p
   ) :
     parent_t(args, p),
-    save_vel_flag(p.save_vel_flag),
-    prs_tol(p.prs_tol)
+    save_vel_flag(p.save_vel_flag)//,
+    //prs_tol(p.prs_tol)
     {}
 };
 
