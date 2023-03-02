@@ -100,7 +100,7 @@ namespace nancheck_hlprs
     {
       #pragma omp critical
       {
-        std::cerr << count(arr<=0.) " non-positive numbers detected in: " << name  << ". Minval: " << minval << " minindex: " << minIndex(arr) << std::endl;
+        std::cerr << count(arr<=0.) << " non-positive numbers detected in: " << name  << ". Minval: " << minval << " minindex: " << minIndex(arr) << std::endl;
         std::cerr << "CHEATING: turning non-positive values to small positive values (1e-10)" << std::endl;
       }
       arr = where(arr <= 0., 1e-10, arr);
