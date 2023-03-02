@@ -510,6 +510,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     parent_t::hook_ante_record_all();
     this->reconstruct_refinee(ix::th);
     this->reconstruct_refinee(ix::rv);
+    negtozero(this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref), "refined rv in hook_ante_record_all");
   }
 
   virtual void diag()

@@ -11,6 +11,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
   this->generate_stretching_parameters(std::random_device{}());
   this->reconstruct_refinee(ix::th);
   this->reconstruct_refinee(ix::rv);
+  negtozero(this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref), "refined rv in hook_ante_loop");
 
   if (this->rank == 0) 
   {
