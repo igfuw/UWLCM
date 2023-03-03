@@ -133,7 +133,7 @@ class slvr_dim<
   // ctor
   slvr_dim(
     typename parent_t::ctor_args_t args,
-    rt_params_t p
+    const rt_params_t &p
   ) :
     parent_t(args, p),
     params(p)
@@ -247,7 +247,7 @@ class slvr_dim<
   // ctor
   slvr_dim(
     typename parent_t::ctor_args_t args, 
-    rt_params_t p
+    const rt_params_t &p
   ) : 
     parent_t(args, p),
     params(p)

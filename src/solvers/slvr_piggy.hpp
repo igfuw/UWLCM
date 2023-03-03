@@ -95,7 +95,6 @@ class slvr_piggy<
         ("prs_tol", po::value<setup::real_t>()->default_value(1e-6) , "pressure solver tolerance"); // not really related to piggybacking, but convenient to put here as it is the first solver to inherit from libmpdata++
       po::variables_map vm;
       handle_opts(opts, vm);
-          
       save_vel_flag = vm["save_vel"].as<bool>();
       this->prs_tol = vm["prs_tol"].as<setup::real_t>();
     }
@@ -106,10 +105,11 @@ class slvr_piggy<
   // ctor
   slvr_piggy(
     typename parent_t::ctor_args_t args,
-    rt_params_t p
+    const rt_params_t &p
   ) :
     parent_t(args, p),
-    save_vel_flag(p.save_vel_flag)//,
+    save_vel_flag(p.save_vel_flag),
+    params(p)
     //prs_tol(p.prs_tol)
     {}
 };
