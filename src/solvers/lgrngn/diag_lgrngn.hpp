@@ -34,6 +34,10 @@ void slvr_lgrngn<ct_params_t>::diag()
                             ).copy().data()
                           );
 
+  this->record_aux_dsc_refined("refined u", this->mem->refinee(this->ix_r2r.at(ix::u)));
+  this->record_aux_dsc_refined("refined v", this->mem->refinee(this->ix_r2r.at(ix::v)));
+  this->record_aux_dsc_refined("refined w", this->mem->refinee(this->ix_r2r.at(ix::w)));
+
   // recording super-droplet concentration per grid cell 
   prtcls->diag_all();
   prtcls->diag_sd_conc();
