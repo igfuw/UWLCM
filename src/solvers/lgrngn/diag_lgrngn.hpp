@@ -8,12 +8,30 @@ void slvr_lgrngn<ct_params_t>::diag()
 
   // record interpolated refined courants;
   // we dont have a function for recording variables are at the edges, so we crop last courant and shift values to the center
+  // making a copy is not efficient, but this is just for debugging
+  // also wont work with MPI
   this->record_aux_refined("courants[0]", 
                             this->courants[0](
-                              this->mem->grid_size_ref[0]^(-h),
+                              rng_t(this->mem->grid_size_ref[0].first(), this->mem->grid_size_ref[0].last()-1),
                               blitz::Range::all(),
                               blitz::Range::all()
-                            )
+                            ).copy().data()
+                          );
+
+  this->record_aux_refined("courants[1]", 
+                            this->courants[1](
+                              blitz::Range::all(),
+                              rng_t(this->mem->grid_size_ref[1].first(), this->mem->grid_size_ref[1].last()-1),
+                              blitz::Range::all()
+                            ).copy().data()
+                          );
+
+  this->record_aux_refined("courants[2]", 
+                            this->courants[2](
+                              blitz::Range::all(),
+                              blitz::Range::all(),
+                              rng_t(this->mem->grid_size_ref[2].first(), this->mem->grid_size_ref[2].last()-1)
+                            ).copy().data()
                           );
 
   // recording super-droplet concentration per grid cell 
