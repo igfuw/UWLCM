@@ -6,7 +6,7 @@ void slvr_lgrngn<ct_params_t>::diag()
 {
   parent_t::diag();
 
-  // record interpolated refined courants;
+  // ---- DEBUGGING: record interpolated refined courants ----
   // we dont have a function for recording variables are at the edges, so we crop last courant and shift values to the center
   // making a copy is not efficient, but this is just for debugging
   // also wont work with MPI
@@ -29,14 +29,17 @@ void slvr_lgrngn<ct_params_t>::diag()
     contiguous_arr = this->courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1);
     this->record_aux_refined("courants[2]", contiguous_arr.data()); 
 
-    std::cerr << "courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1): " << this->courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1) << std::endl;
+//    std::cerr << "courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1): " << this->courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1) << std::endl;
   }
 
-  std::cerr << "courants[2]: " << this->courants[2] << std::endl;
+//  std::cerr << "courants[2]: " << this->courants[2] << std::endl;
 
   this->record_aux_dsc_refined("refined u", this->mem->refinee(this->ix_r2r.at(ix::u)));
   this->record_aux_dsc_refined("refined v", this->mem->refinee(this->ix_r2r.at(ix::v)));
   this->record_aux_dsc_refined("refined w", this->mem->refinee(this->ix_r2r.at(ix::w)));
+
+  // ---- END OF COURANT DEBUGGING ----
+
 
   // recording super-droplet concentration per grid cell 
   prtcls->diag_all();
