@@ -12,21 +12,24 @@ void slvr_lgrngn<ct_params_t>::diag()
   // also wont work with MPI
 
   {
-    rng_t rng_m1(this->mem->grid_size_ref[0].first(), this->mem->grid_size_ref[0].last()-1);
+    rng_t rng_m1(this->mem->grid_size_ref[0].first(), this->mem->grid_size_ref[0].last());
     typename parent_t::arr_t contiguous_arr(rng_m1, this->mem->grid_size_ref[1], this->mem->grid_size_ref[2]);
     contiguous_arr = this->courants[0](rng_m1, blitz::Range::all(), blitz::Range::all());
     this->record_aux_refined("courants[0]", contiguous_arr.data()); 
   }
-  {{
-    rng_t rng_m1(this->mem->grid_size_ref[1].first(), this->mem->grid_size_ref[1].last()-1);
+  {
+    rng_t rng_m1(this->mem->grid_size_ref[1].first(), this->mem->grid_size_ref[1].last());
     typename parent_t::arr_t contiguous_arr(this->mem->grid_size_ref[0], rng_m1, this->mem->grid_size_ref[2]);
     contiguous_arr = this->courants[1](blitz::Range::all(), rng_m1, blitz::Range::all());
     this->record_aux_refined("courants[1]", contiguous_arr.data()); 
   }
-    rng_t rng_m1(this->mem->grid_size_ref[2].first(), this->mem->grid_size_ref[2].last()-1);
+  {
+    rng_t rng_m1(this->mem->grid_size_ref[2].first(), this->mem->grid_size_ref[2].last());
     typename parent_t::arr_t contiguous_arr(this->mem->grid_size_ref[0], this->mem->grid_size_ref[1], rng_m1);
     contiguous_arr = this->courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1);
     this->record_aux_refined("courants[2]", contiguous_arr.data()); 
+
+    std::cerr << "courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1): " << this->courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1) << std::endl;
   }
 
   std::cerr << "courants[2]: " << this->courants[2] << std::endl;
