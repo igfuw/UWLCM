@@ -6,6 +6,16 @@ void slvr_lgrngn<ct_params_t>::diag()
 {
   parent_t::diag();
 
+  // record interpolated refined courants;
+  // we dont have a function for recording variables are at the edges, so we crop last courant and shift values to the center
+  this->record_aux_refined("courants[0]", 
+                            this->courants[0](
+                              this->mem->grid_size_ref[0]^(-h),
+                              blitz::Range::all(),
+                              blitz::Range::all()
+                            )
+                          );
+
   // recording super-droplet concentration per grid cell 
   prtcls->diag_all();
   prtcls->diag_sd_conc();
