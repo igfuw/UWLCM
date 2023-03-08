@@ -6,6 +6,41 @@ void slvr_lgrngn<ct_params_t>::diag()
 {
   parent_t::diag();
 
+  // ---- DEBUGGING: record interpolated refined courants ----
+  // we dont have a function for recording variables are at the edges, so we crop last courant and shift values to the center
+  // making a copy is not efficient, but this is just for debugging
+  // also wont work with MPI
+
+  {
+    rng_t rng_m1(this->mem->grid_size_ref[0].first(), this->mem->grid_size_ref[0].last());
+    typename parent_t::arr_t contiguous_arr(rng_m1, this->mem->grid_size_ref[1], this->mem->grid_size_ref[2]);
+    contiguous_arr = this->courants[0](rng_m1, blitz::Range::all(), blitz::Range::all());
+    this->record_aux_refined("courants[0]", contiguous_arr.data()); 
+  }
+  {
+    rng_t rng_m1(this->mem->grid_size_ref[1].first(), this->mem->grid_size_ref[1].last());
+    typename parent_t::arr_t contiguous_arr(this->mem->grid_size_ref[0], rng_m1, this->mem->grid_size_ref[2]);
+    contiguous_arr = this->courants[1](blitz::Range::all(), rng_m1, blitz::Range::all());
+    this->record_aux_refined("courants[1]", contiguous_arr.data()); 
+  }
+  {
+    rng_t rng_m1(this->mem->grid_size_ref[2].first(), this->mem->grid_size_ref[2].last());
+    typename parent_t::arr_t contiguous_arr(this->mem->grid_size_ref[0], this->mem->grid_size_ref[1], rng_m1);
+    contiguous_arr = this->courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1);
+    this->record_aux_refined("courants[2]", contiguous_arr.data()); 
+
+//    std::cerr << "courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1): " << this->courants[2](blitz::Range::all(), blitz::Range::all(), rng_m1) << std::endl;
+  }
+
+//  std::cerr << "courants[2]: " << this->courants[2] << std::endl;
+
+  this->record_aux_dsc_refined("refined u", this->mem->refinee(this->ix_r2r.at(ix::u)));
+  this->record_aux_dsc_refined("refined v", this->mem->refinee(this->ix_r2r.at(ix::v)));
+  this->record_aux_dsc_refined("refined w", this->mem->refinee(this->ix_r2r.at(ix::w)));
+
+  // ---- END OF COURANT DEBUGGING ----
+
+
   // recording super-droplet concentration per grid cell 
   prtcls->diag_all();
   prtcls->diag_sd_conc();
