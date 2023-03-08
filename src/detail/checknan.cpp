@@ -117,7 +117,7 @@ namespace nancheck_hlprs
 
   // as above but with printing of additional arrays
   template<class arr_t, class arrvec_t>
-  void negtozero_hlpr(arr_t arr, const std::string &name, const arrvec_t outarrs, const std::vector<std::string> &outnames)
+  void negtozero_hlpr(arr_t arr, const std::string &name, /*shuld be const*/ arrvec_t outarrs, const std::vector<std::string> &outnames)
   {
     assert(outarrs.size() == outnames.size());
 
@@ -130,7 +130,7 @@ namespace nancheck_hlprs
         std::cerr << count(arr<=0.) << " non-positive numbers detected in: " << name  << ". Minval: " << minVal << " minIndex: " << minIdx << std::endl;
 	for(int c=0; c<outarrs.size(); ++c)
 	{
-	  std::cerr << outnames.at(c) << "(minIndex): " << outarrs[c][minIdx] << std::endl;
+	  std::cerr << outnames.at(c) << "(minIndex): " << outarrs[c](minIdx) << std::endl;
 	}
         std::cerr << "CHEATING: turning non-positive values to small positive values (1e-10)" << std::endl;
       }

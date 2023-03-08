@@ -46,7 +46,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
                            &tmp_ref;
 
   libmpdataxx::arrvec_t<typename parent_t::arr_t> courants, // courant number on the refined grid
-                                                  uvw_ref;
+                                                  uvw_ref,
+						  negref_dbg_arrs; // arrays to be outputted when debugging negative values in refinement
+
+  const std::vector<std::string> negref_dbg_arr_names;
 
 //  void diag_rl()
 //  {
@@ -240,12 +243,19 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     r_c(args.mem->tmp[__FILE__][1][0]),
     dth(args.mem->tmp[__FILE__][2][0]),
     drv(args.mem->tmp[__FILE__][2][1]),
-    courants(args.mem->tmp[__FILE__][3])
+    courants(args.mem->tmp[__FILE__][3]),
+    negref_dbg_arr_names({"c_j", "d_j", "f_j", "rev"})
   {
     r_c = 0.;
     uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::u))));
     uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::v))));
     uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::w))));
+
+    negref_dbg_arrs.push_back(this->mem->never_delete(&this->c_j));
+    negref_dbg_arrs.push_back(this->mem->never_delete(&this->d_j));
+    negref_dbg_arrs.push_back(this->mem->never_delete(&this->f_j));
+    negref_dbg_arrs.push_back(this->mem->never_delete(&this->mem->psi.at(ix::rv)[0]));
+    
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
 
