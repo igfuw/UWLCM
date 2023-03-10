@@ -524,8 +524,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
     this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
 
-    this->record_aux_prof("rv_LS", params.rv_LS->data());
-    this->record_aux_prof("th_LS", params.th_LS->data());
+    this->record_aux_prof("rv_LS", params.profs.rv_LS.data());
+    this->record_aux_prof("th_LS", params.profs.th_LS.data());
 
     get_puddle();
     for(int i=0; i < n_puddle_scalars; ++i)
