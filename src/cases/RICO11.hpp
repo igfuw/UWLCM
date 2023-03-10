@@ -134,6 +134,37 @@ namespace cases
         }
         BZ_DECLARE_FUNCTOR(rv_LS_fctr);
       };
+
+
+      // examples of time-varying large-scale forcings
+      /*
+      // time-varying version
+      struct rv_LS_var_fctr
+      {
+        real_t t;
+
+        rv_LS_var_fctr(const real_t &t): t(t) {}
+
+        real_t operator()(const real_t &z) const // height in [m], time in [s]
+        {
+          return rv_LS_fctr()(z) + t * 1e-9;
+        }
+        BZ_DECLARE_FUNCTOR(rv_LS_var_fctr);
+      };
+      // time-varying version
+      struct th_LS_var_fctr
+      {
+        real_t t;
+
+        th_LS_var_fctr(const real_t &t): t(t) {}
+
+        real_t operator()(const real_t &z) const // height in [m], time in [s]
+        {
+          return th_LS_fctr()(z) + t * 1e-5;
+        }
+        BZ_DECLARE_FUNCTOR(th_LS_var_fctr);
+      };
+      */
     
       // density profile as a function of altitude
       // hydrostatic and assuming constant theta (not used now)
@@ -294,6 +325,22 @@ namespace cases
       {
         surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * (uv_ground + uv_mean) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
       }
+
+/*
+      void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
+                        int timestep, const real_t dt, real_t dz)
+      {
+        blitz::firstIndex k;
+        rv_LS = rv_LS_var_fctr(timestep * dt)(k * dz);
+      };
+
+      void update_th_LS(blitz::Array<real_t, 1> th_LS,
+                        int timestep, const real_t dt, real_t dz)
+      {
+        blitz::firstIndex k;
+        th_LS = th_LS_var_fctr(timestep * dt)(k * dz);
+      };
+      */
 
       // ctor
       Rico11Common()

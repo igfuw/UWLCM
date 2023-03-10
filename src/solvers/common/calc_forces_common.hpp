@@ -8,6 +8,7 @@
 #include "../../forcings/subsidence.hpp"
 #include "../../forcings/relax_th_rv.hpp"
 #include "../../forcings/surface_fluxes.hpp"
+#include "../../forcings/large_scales.hpp"
 
 // common forcing functions
 // TODO: make functions return blitz arrays to avoid unnecessary copies
@@ -26,7 +27,8 @@ void slvr_common<ct_params_t>::rv_src()
     alpha(ijk) += F(ijk);
 
     // large-scale horizontal advection
-    alpha(ijk).reindex(this->zero) += (params.profs.rv_LS)(this->vert_idx);
+    rv_LS();
+    alpha(ijk) += F(ijk);
 
     // per-level nudging of the mean
     relax_th_rv(ix::rv);
@@ -73,7 +75,8 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     nancheck(alpha(ijk), "alpha in th_src");
 
     // large-scale horizontal advection
-    alpha(ijk).reindex(this->zero) += (params.profs.th_LS)(this->vert_idx);
+    th_LS();
+    alpha(ijk) += F(ijk);
 
     // per-level nudging of the mean
     relax_th_rv(ix::th);
