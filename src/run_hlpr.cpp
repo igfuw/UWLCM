@@ -7,7 +7,6 @@
 
 #include "detail/setup.hpp"
 #include "detail/concurr_types.hpp"
-#include "detail/ct_params.hpp"
 #include "detail/panic.hpp"
 
 #include "cases/DYCOMS.hpp"
@@ -17,43 +16,28 @@
 #include "cases/CumulusCongestus.hpp"
 #include "cases/DryPBL.hpp"
 
-#include "opts/opts_common.hpp"
-#include "solvers/common/calc_forces_common.hpp"
-
 #if defined(UWLCM_TIMING)
   #include "detail/exec_timer.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_LGRNGN) || !defined(UWLCM_DISABLE_3D_LGRNGN)
   #include "opts/opts_lgrngn.hpp"
-  #include "solvers/slvr_lgrngn.hpp"
-  #include "solvers/lgrngn/diag_lgrngn.hpp" 
-  #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
-  #include "solvers/lgrngn/hook_ante_loop_lgrngn.hpp"
-  #include "solvers/lgrngn/hook_ante_step_lgrngn.hpp" 
-  #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)
   #include "opts/opts_blk_1m.hpp"
-  #include "solvers/slvr_blk_1m.hpp"
-  #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
-  #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_2M) || !defined(UWLCM_DISABLE_3D_BLK_2M)
   #include "opts/opts_blk_2m.hpp"
-  #include "solvers/slvr_blk_2m.hpp"
-  #include "solvers/blk_2m/calc_forces_blk_2m_common.hpp"
-  #include "solvers/blk_2m/update_rhs_blk_2m_common.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_NONE) || !defined(UWLCM_DISABLE_3D_NONE)
   #include "opts/opts_dry.hpp"
-  #include "solvers/slvr_dry.hpp"
 #endif
 
 #include "run_hlpr.hpp"
+#include "common_headers.hpp"
 
 // dimension-independent model run logic - the same for any microphysics
 template <class solver_t, int n_dims>
