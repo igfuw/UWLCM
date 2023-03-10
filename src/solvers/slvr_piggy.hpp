@@ -59,7 +59,7 @@ class slvr_piggy<
     if(this->rank==0)
     {
       this->record_aux_const("save_vel", "piggy", save_vel_flag);  
-      this->record_aux_const("rt_params prs_tol", "piggy", this->prs_tol);  
+//      this->record_aux_const("rt_params prs_tol", "piggy", this->prs_tol);  
 
       if (this->mem->distmem.rank() == 0 && save_vel_flag)
       {
