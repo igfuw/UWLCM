@@ -244,7 +244,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     dth(args.mem->tmp[__FILE__][2][0]),
     drv(args.mem->tmp[__FILE__][2][1]),
     courants(args.mem->tmp[__FILE__][3]),
-    negref_dbg_arr_names({"c_j", "d_j", "f_j")
+    negref_dbg_arr_names({"c_j", "d_j", "f_j"})
   {
     r_c = 0.;
     uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::u))));

@@ -36,7 +36,6 @@
   #include "opts/opts_dry.hpp"
 #endif
 
-#include "run_hlpr.hpp"
 #include "common_headers.hpp"
 
 // dimension-independent model run logic - the same for any microphysics

@@ -13,6 +13,9 @@
 
 #include "opts/opts_common.hpp"
 #include "detail/ct_params.hpp"
+
+#include "run_hlpr.hpp"
+
 #include "solvers/common/calc_forces_common.hpp"
 
 #if !defined(UWLCM_DISABLE_2D_LGRNGN) || !defined(UWLCM_DISABLE_3D_LGRNGN)
