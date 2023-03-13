@@ -358,6 +358,16 @@ namespace cases
         this->ForceParameters.uv_mean[0] = -5.9;
         this->ForceParameters.uv_mean[1] = -3.8;
       }
+
+      Rico11Common(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
+        Rico11Common()
+      {
+        this->X = _X < 0 ? X_def : _X * si::meters;
+        if(n_dims == 3)
+          this->Y = _Y < 0 ? Y_def : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
+        this->window = window;
+      }
     };
     
     template<class case_ct_params_t, int n_dims>
@@ -369,6 +379,7 @@ namespace cases
       using parent_t = Rico11Common<case_ct_params_t, 2>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+      using parent_t::parent_t;
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -391,13 +402,6 @@ namespace cases
         this->make_cyclic(rv_global);
         concurr.advectee_global_set(rv_global, ix::rv);
       }
-
-      public:
-      Rico11(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
-      {
-        this->X = _X < 0 ? X_def : _X * si::meters;
-        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
-      }
     };
 
     template<class case_ct_params_t>
@@ -406,6 +410,7 @@ namespace cases
       using parent_t = Rico11Common<case_ct_params_t, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+      using parent_t::parent_t;
 
       // southerly wind
       struct v
@@ -456,14 +461,6 @@ namespace cases
         real_t dz = (this->Z / si::metres) / (nz-1);
         profs.geostr[0] = u(k * dz);
         profs.geostr[1] = v()(k * dz);
-      }
-
-      public:
-      Rico11(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
-      {
-        this->X = _X < 0 ? X_def : _X * si::meters;
-        this->Y = _Y < 0 ? Y_def : _Y * si::meters;
-        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
   };
