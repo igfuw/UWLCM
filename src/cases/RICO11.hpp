@@ -318,7 +318,7 @@ namespace cases
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
       void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
-                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground (total, including mean)
+                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground (without mean)
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind (total, including mean)
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
                                const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean) override
