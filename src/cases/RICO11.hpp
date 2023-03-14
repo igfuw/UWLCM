@@ -361,6 +361,8 @@ namespace cases
         this->gccn_max_height = gccn_max_height;
       }
 
+      public:
+
       // ctor
       Rico11Common(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
         u(window)
@@ -377,7 +379,6 @@ namespace cases
           this->ForceParameters.uv_mean[0] = -5.9;
           this->ForceParameters.uv_mean[1] = -3.8;
         }
-        //this->window = window;
       }
     };
     
@@ -465,8 +466,9 @@ namespace cases
         profs.geostr[1] = v(k * dz);
       }
 
+      public:
       Rico11(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
-        parent_t(_X, _Y, _Z),
+        parent_t(_X, _Y, _Z, window),
         v(window)
         {}
     };
