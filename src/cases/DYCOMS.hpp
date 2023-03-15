@@ -86,15 +86,24 @@ namespace cases
       };
     
       // westerly wind
-      struct u
+      struct u_t
       {
+        const bool window;
+
         real_t operator()(const real_t &z) const
         {
-          return RF == 1 ? 7 : 3. + 4.3 * z / 1000.; 
+          return RF == 1 ? 
+            window ? 0 : 7                                            // 7 m/s mean wind
+            : 
+            window ? -3.225 + 4.3 * z / 1000. : 3. + 4.3 * z / 1000.; // 6.225 m/s mean wind
         }
-        BZ_DECLARE_FUNCTOR(u);
+
+        u_t(bool window): window(window) {}
+
+        BZ_DECLARE_FUNCTOR(u_t);
       };
-    
+
+      const u_t u;
     
       // large-scale vertical wind
       struct w_LS_fctr
@@ -177,7 +186,7 @@ namespace cases
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::rv) = r_t_fctr{}(index * dz); 
-        concurr.advectee(ix::u)= u{}(index * dz);
+        concurr.advectee(ix::u)= u(index * dz);
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
@@ -279,8 +288,7 @@ namespace cases
           );
       }
 
-      // ctor
-      DycomsCommon() 
+      void init() 
       {
         //aerosol bimodal lognormal dist. - DYCOMS
         this->p_0 = p_0;
@@ -294,6 +302,26 @@ namespace cases
         this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
         this->z_rlx = z_rlx;
         this->gccn_max_height = gccn_max_height;
+      }
+
+
+      public:
+      // ctor
+      DycomsCommon(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
+        u(window)
+      {
+        init();
+
+        this->X = _X < 0 ? X_def[RF-1] : _X * si::meters;
+        if(n_dims == 3)
+          this->Y = _Y < 0 ? Y_def[RF-1] : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
+
+        if(window)
+        {
+          this->ForceParameters.uv_mean[0] = -5.9;
+          this->ForceParameters.uv_mean[1] = -3.8;
+        }
       }
     };
     
@@ -336,15 +364,25 @@ namespace cases
       using parent_t = DycomsCommon<case_ct_params_t, RF, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       // southerly wind
-      struct v
+      struct v_t
       {
+        const bool window;
+
         real_t operator()(const real_t &z) const
         {
-          return RF == 1 ? -5.5 : -9. + 5.6 * z / 1000.; 
+          return RF == 1 ? 
+                   window ? 0 : -5.5                                            // -5.5 m/s mean wind
+                   : window ? -4.2 + 5.6 * z / 1000. : -9. + 5.6 * z / 1000.;   // -4.8 m/s mean wind 
         }
-        BZ_DECLARE_FUNCTOR(v);
+
+        v_t(bool window): window(window) {}
+
+        BZ_DECLARE_FUNCTOR(v_t);
       };
+
+      const v_t v;
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -364,7 +402,7 @@ namespace cases
         int nz = concurr.advectee_global().extent(ix::w);
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
-        concurr.advectee(ix::v)= v()(k * dz);
+        concurr.advectee(ix::v)= v(k * dz);
         concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
@@ -375,17 +413,15 @@ namespace cases
         blitz::firstIndex k;
         typename parent_t::u u;
         real_t dz = (this->Z / si::metres) / (nz-1);
-        profs.geostr[0] = u(k * dz); 
-        profs.geostr[1] = v()(k * dz); 
+        profs.geostr[0] = this->u(k * dz); 
+        profs.geostr[1] = v(k * dz); 
       }
 
       public:
-      Dycoms(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
-      {
-        this->X = _X < 0 ? X_def[RF-1] : _X * si::meters;
-        this->Y = _Y < 0 ? Y_def[RF-1] : _Y * si::meters;
-        this->Z = _Z < 0 ? Z_def       : _Z * si::meters;
-      }
+      Dycoms(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
+        parent_t(_X, _Y, _Z, window),
+        v(window)
+        {}
     };
   };
 };
