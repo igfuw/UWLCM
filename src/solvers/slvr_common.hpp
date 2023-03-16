@@ -578,7 +578,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
 
     // functions for updating large-scale forcings
-    std::function<void(typename setup::arr_1D_t, const int&, const real_t&, const real_t&)> update_rv_LS, update_th_LS;
+    std::function<void(const int)> update_rv_LS, update_th_LS;
   };
 
   // per-thread copy of params
