@@ -124,6 +124,9 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // NOTE for Anelastic: env profiles on both grids agree very well
   //                     reference profiles differ a little, e.g. for rico11 nz=51 there's up to 0.02% difference in rhod for n_fra_iter=1 (and 0.03% for n_fra_iter=2)
   //                     but thats acceptable (?) (rhod doesnt affect RH)
+  // TODO: initial large-scale forcings profiles th_LS and rv_LS are set here
+  //       but can also be updated during simulation by update_th/rv_LS()
+  //       unify this - use update_th/rv_LS at t=0 to set the initial profile
   case_ptr->set_profs(p.profs, nz, user_params);
   case_ptr->set_profs(p.profs_ref, nz_ref, user_params);
   // pass them to rt_params
