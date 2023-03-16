@@ -215,19 +215,19 @@ class slvr_common : public slvr_dim<ct_params_t>
       surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::th)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-      params.dz / 2, 0, this->dt, this->di, this->dj
+      0, this->dt
     );
     params.update_surf_flux_lat(
       surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::rv)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
-      params.dz / 2, 0, this->dt, this->di, this->dj
+      0, this->dt
     );
     params.update_surf_flux_uv(
       surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
-      params.dz / 2, 0, this->dt, this->di, this->dj,
+      0, this->dt,
       params.ForceParameters.uv_mean[0]
     );
     if(parent_t::n_dims==3)
@@ -236,7 +236,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
         this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
         U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-        params.dz / 2, 0, this->dt, this->di, this->dj,
+        0, this->dt,
         params.ForceParameters.uv_mean[1]
       );
     }
@@ -574,11 +574,14 @@ class slvr_common : public slvr_dim<ct_params_t>
     detail::profiles_t profs, profs_ref;
 
     // functions for updating surface fluxes per timestep
-    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens, update_surf_flux_lat;
-    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
+    std::function<void(typename parent_t::arr_t, const typename parent_t::arr_t&, const typename parent_t::arr_t&, const int, const real_t)> 
+      update_surf_flux_sens, update_surf_flux_lat;
+
+    std::function<void(typename parent_t::arr_t, const typename parent_t::arr_t&, const typename parent_t::arr_t&, const int, const real_t, const real_t)> 
+      update_surf_flux_uv;
 
     // functions for updating large-scale forcings
-    std::function<void(const int)> update_rv_LS, update_th_LS;
+    std::function<void(const int, const real_t)> update_rv_LS, update_th_LS;
   };
 
   // per-thread copy of params

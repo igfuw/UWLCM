@@ -291,25 +291,26 @@ namespace cases
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
         // large-scale horizontal advection
+	// TODO: instead of initializing it here, use the new update_th/rv_LS with t=0?
         profs.th_LS = th_LS_fctr()(k * dz);
         profs.rv_LS = rv_LS_fctr()(k * dz);
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
-                                 blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
-                                 blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
-                                 const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                 const blitz::Array<real_t, n_dims> &th_ground,   
+                                 const blitz::Array<real_t, n_dims> &U_ground,   
+                                 const int timestep, const real_t dt, 
+                                 const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
         surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                       blitz::Array<real_t, n_dims> rt_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                const blitz::Array<real_t, n_dims> &rt_ground,   
+                                const blitz::Array<real_t, n_dims> &U_ground,   
+                                const int timestep, const real_t dt, 
+                                const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
         surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * (this->rhod_0 / si::kilograms * si::cubic_meters); // [kg / (m^2 s)]
@@ -317,29 +318,30 @@ namespace cases
 
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
-      void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
-                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground (total, including mean)
-                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind (total, including mean)
-                               const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean) override
+      void update_surf_flux_uv  (blitz::Array<real_t, n_dims> surf_flux_uv,
+                                 const blitz::Array<real_t, n_dims> &uv_ground,   
+                                 const blitz::Array<real_t, n_dims> &U_ground,   
+                                 const int timestep, const real_t dt, 
+                                 const real_t dx, const real_t dy, const real_t U_ground_z, 
+                                 const real_t uv_mean = 0) override
       {
         surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * (uv_ground + uv_mean) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
       }
 
 /*
-      void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
-                        int timestep, const real_t dt, real_t dz)
-      {
-        blitz::firstIndex k;
-        rv_LS = rv_LS_var_fctr(timestep * dt)(k * dz);
-      };
+    void update_rv_LS(blitz::Array<real_t, 1> &rv_LS,
+                      const int timestep, const real_t dt, const real_t dz) override
+    {
+      blitz::firstIndex k;
+      rv_LS = rv_LS_var_fctr(timestep * dt)(k * dz);
+    };
 
-      void update_th_LS(blitz::Array<real_t, 1> th_LS,
-                        int timestep, const real_t dt, real_t dz)
-      {
-        blitz::firstIndex k;
-        th_LS = th_LS_var_fctr(timestep * dt)(k * dz);
-      };
+    void update_th_LS(blitz::Array<real_t, 1> &th_LS,
+                      const int timestep, const real_t dt, const real_t dz) override
+    {
+      blitz::firstIndex k;
+      th_LS = th_LS_var_fctr(timestep * dt)(k * dz);
+    };
       */
 
       // ctor

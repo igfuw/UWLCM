@@ -8,7 +8,7 @@ void slvr_common<ct_params_t>::rv_LS()
   this->mem->barrier();
   if(this->rank == 0)
   {
-    params.update_rv_LS(this->timestep);
+    params.update_rv_LS(this->timestep, this->dt);
   }
   this->mem->barrier();
 
@@ -21,7 +21,7 @@ void slvr_common<ct_params_t>::th_LS()
   this->mem->barrier();
   if(this->rank == 0)
   {
-    params.update_th_LS(this->timestep);
+    params.update_th_LS(this->timestep, this->dt);
   }
   this->mem->barrier();
 
