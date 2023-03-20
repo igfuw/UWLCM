@@ -31,9 +31,15 @@ namespace cases
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
     const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud base
-    const quantity<si::velocity, real_t> mean_u = real_t(-5.9) * si::metres / si::seconds;
-    const quantity<si::velocity, real_t> mean_v = real_t(-3.8) * si::metres / si::seconds;
 
+    inline quantity<si::velocity, real_t> u_rico(const real_t &z)
+    {
+      return real_t(-9.9 + 2e-3 * z) * si::meters / si::seconds;
+    }
+    inline quantity<si::velocity, real_t> v_rico(const real_t &z)
+    {
+      return real_t(-3.8) * si::meters / si::seconds;
+    }
 
     inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
@@ -93,23 +99,19 @@ namespace cases
       };
     
       // westerly wind
-      struct u_t
+      struct u_t : hori_vel_t
       {
-        const bool window;
-        const real_t mean = mean_u * si::seconds / si::meters;
-
         real_t operator()(const real_t &z) const
         {
-          real_t vel = -9.9 + 2e-3 * z;
-          return window ? vel - mean : vel;
+          return hori_vel_t::operator()(z);
         }
 
-        u_t(bool window): window(window) {}
+        u_t() : hori_vel_t(&u_rico) {}
 
         BZ_DECLARE_FUNCTOR(u_t);
       };
 
-      const u_t u;
+      u_t u;
     
       // large-scale vertical wind
       struct w_LS_fctr
@@ -369,8 +371,7 @@ namespace cases
       public:
 
       // ctor
-      Rico11Common(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
-        u(window)
+      Rico11Common(const real_t _X, const real_t _Y, const real_t _Z, const bool window)
       {
         init();
 
@@ -379,11 +380,9 @@ namespace cases
           this->Y = _Y < 0 ? Y_def : _Y * si::meters;
         this->Z = _Z < 0 ? Z_def : _Z * si::meters;
 
-        if(window)
-        {
-          this->ForceParameters.uv_mean[0] = mean_u * si::seconds / si::meters;
-          this->ForceParameters.uv_mean[1] = mean_v * si::seconds / si::meters;
-        }
+        u.init(window, this->Z);
+
+        this->ForceParameters.uv_mean[0] = u.mean_vel;
       }
     };
     
@@ -423,23 +422,19 @@ namespace cases
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
       // southerly wind
-      struct v_t
+      struct v_t : hori_vel_t
       {
-        const bool window;
-        const real_t mean = mean_v * si::seconds / si::meters;
-
         real_t operator()(const real_t &z) const
         {
-          real_t vel = -3.8;
-          return window ? vel - mean : vel;
+          return hori_vel_t::operator()(z);
         }
 
-        v_t(bool window): window(window) {}
+        v_t() : hori_vel_t(&v_rico) {}
 
         BZ_DECLARE_FUNCTOR(v_t);
       };
 
-      const v_t v;
+      v_t v;
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -474,9 +469,11 @@ namespace cases
 
       public:
       Rico11(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
-        parent_t(_X, _Y, _Z, window),
-        v(window)
-        {}
+        parent_t(_X, _Y, _Z, window)
+        {
+          v.init(window, this->Z);
+          this->ForceParameters.uv_mean[1] = v.mean_vel;
+        }
     };
   };
 };

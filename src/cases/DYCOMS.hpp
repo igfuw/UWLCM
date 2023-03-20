@@ -22,8 +22,21 @@ namespace cases
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
     const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud
     const quantity<si::frequency, real_t> D = real_t(3.75e-6) / si::seconds; // large-scale wind horizontal divergence
-    const quantity<si::velocity, real_t> mean_u[] = {/*RF1*/real_t(7)    * si::metres / si::seconds, /*RF2*/real_t(6.225) * si::metres / si::seconds};
-    const quantity<si::velocity, real_t> mean_v[] = {/*RF1*/real_t(-5.5) * si::metres / si::seconds, /*RF2*/real_t(-4.8)  * si::metres / si::seconds};
+
+    template <int RF>
+    quantity<si::velocity, real_t> u_dycoms(const real_t &z)
+    {
+      return RF == 1 ? 
+        real_t(7) * si::meters / si::seconds :                    // RF01 
+        real_t(3. + 4.3 * z / 1000.) * si::meters / si::seconds;  // RF02
+    }
+    template <int RF>
+    quantity<si::velocity, real_t> v_dycoms(const real_t &z)
+    {
+      return RF == 1 ? 
+        real_t(-5.5) * si::meters / si::seconds :                 // RF01 
+        real_t(-9 + 5.6 * z / 1000.) * si::meters / si::seconds;  // RF02
+    }
 
     // liquid water potential temperature at height z
     template <int RF>
@@ -88,26 +101,19 @@ namespace cases
       };
     
       // westerly wind
-      struct u_t
+      struct u_t : hori_vel_t
       {
-        const bool window;
-        const real_t mean = mean_u[RF-1] * si::seconds / si::meters;
-
         real_t operator()(const real_t &z) const
         {
-          real_t vel = RF == 1 ? 
-            7 :                   // RF01
-            3. + 4.3 * z / 1000.; // RF02
-
-          return window ? vel - mean : vel;
+          return hori_vel_t::operator()(z);
         }
 
-        u_t(bool window): window(window) {}
+        u_t() : hori_vel_t(&u_dycoms<RF>) {}
 
         BZ_DECLARE_FUNCTOR(u_t);
       };
 
-      const u_t u;
+      u_t u;
     
       // large-scale vertical wind
       struct w_LS_fctr
@@ -311,8 +317,7 @@ namespace cases
 
       public:
       // ctor
-      DycomsCommon(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
-        u(window)
+      DycomsCommon(const real_t _X, const real_t _Y, const real_t _Z, const bool window)
       {
         init();
 
@@ -320,12 +325,9 @@ namespace cases
         if(n_dims == 3)
           this->Y = _Y < 0 ? Y_def[RF-1] : _Y * si::meters;
         this->Z = _Z < 0 ? Z_def : _Z * si::meters;
+        u.init(window, this->Z);
 
-        if(window)
-        {
-          this->ForceParameters.uv_mean[0] = mean_u[RF-1] * si::seconds / si::meters;
-          this->ForceParameters.uv_mean[1] = mean_v[RF-1] * si::seconds / si::meters;
-        }
+        this->ForceParameters.uv_mean[0] = u.mean_vel;
       }
     };
     
@@ -366,26 +368,19 @@ namespace cases
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
       // southerly wind
-      struct v_t
+      struct v_t : hori_vel_t
       {
-        const bool window;
-        const real_t mean = mean_v[RF-1] * si::seconds / si::meters;
-
         real_t operator()(const real_t &z) const
         {
-          real_t vel = RF == 1 ? 
-            -5.5 :                   // RF01
-            -9. + 5.6 * z / 1000.;   // RF02
-
-          return window ? vel - mean : vel;
+          return hori_vel_t::operator()(z);
         }
 
-        v_t(bool window): window(window) {}
+        v_t() : hori_vel_t(&v_dycoms<RF>) {}
 
         BZ_DECLARE_FUNCTOR(v_t);
       };
 
-      const v_t v;
+      v_t v;
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -421,9 +416,11 @@ namespace cases
 
       public:
       Dycoms(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
-        parent_t(_X, _Y, _Z, window),
-        v(window)
-        {}
+        parent_t(_X, _Y, _Z, window)
+        {
+          v.init(window, this->Z);
+          this->ForceParameters.uv_mean[1] = v.mean_vel;
+        }
     };
   };
 };
