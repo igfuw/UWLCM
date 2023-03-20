@@ -350,12 +350,8 @@ namespace cases
         this->intcond_hlpr(concurr, rhod, rng_seed, k);
       };
 
-      public:
-      Dycoms(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
-      {
-        this->X = _X < 0 ? X_def[RF-1] : _X * si::meters;
-        this->Z = _Z < 0 ? Z_def       : _Z * si::meters;
-      }
+      // ctor
+      using parent_t::parent_t;
     };
 
     template<class case_ct_params_t, int RF>

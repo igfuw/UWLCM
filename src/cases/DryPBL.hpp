@@ -358,15 +358,6 @@ namespace cases
         concurr.vab_relaxed_state(1) = 0;
       }
 
-      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
-      {
-        parent_t::set_profs(profs, nz, user_params);
-        // geostrophic wind equal to the initial velocity profile
-        blitz::firstIndex k;
-        typename parent_t::u u;
-        real_t dz = (this->Z / si::metres) / (nz-1);
-      }
-
       public:
       DryPBL(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
