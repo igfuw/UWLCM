@@ -31,6 +31,9 @@ namespace cases
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
     const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud base
+    const quantity<si::velocity, real_t> mean_u = real_t(-5.9) * si::metres / si::seconds;
+    const quantity<si::velocity, real_t> mean_v = real_t(-3.8) * si::metres / si::seconds;
+
 
     inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
@@ -93,10 +96,12 @@ namespace cases
       struct u_t
       {
         const bool window;
+        const real_t mean = mean_u * si::seconds / si::meters;
 
         real_t operator()(const real_t &z) const
         {
-          return window ? -4. + 2e-3 * z : -9.9 + 2e-3 * z;  // mean wind -5.9 m/s
+          real_t vel = -9.9 + 2e-3 * z;
+          return window ? vel - mean : vel;
         }
 
         u_t(bool window): window(window) {}
@@ -376,8 +381,8 @@ namespace cases
 
         if(window)
         {
-          this->ForceParameters.uv_mean[0] = -5.9;
-          this->ForceParameters.uv_mean[1] = -3.8;
+          this->ForceParameters.uv_mean[0] = mean_u * si::seconds / si::meters;
+          this->ForceParameters.uv_mean[1] = mean_v * si::seconds / si::meters;
         }
       }
     };
@@ -421,10 +426,12 @@ namespace cases
       struct v_t
       {
         const bool window;
+        const real_t mean = mean_v * si::seconds / si::meters;
 
         real_t operator()(const real_t &z) const
         {
-          return window ? 0 : -3.8; // mean wind -3.8 m/s
+          real_t vel = -3.8;
+          return window ? vel - mean : vel;
         }
 
         v_t(bool window): window(window) {}
