@@ -41,8 +41,11 @@ int main(int ac, char** av)
     "--case=dycoms_rf02",
     "--case=dycoms_rf02 --out_dry_spec=1 --out_wet_spec=1",
     "--case=dycoms_rf02 --relax_th_rv=1",
+    "--case=dycoms_rf02 --window=1",
     "--case=rico11",
+    "--case=rico11 --window=1",
     "--case=dycoms_rf01",
+    "--case=dycoms_rf01 --window=1",
     "--case=dry_pbl",
     "--case=cumulus_congestus"
   });
