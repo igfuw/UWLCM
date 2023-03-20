@@ -81,16 +81,6 @@ namespace cases
         BZ_DECLARE_FUNCTOR(th_std_fctr);
       };
     
-      // westerly wind
-      struct u
-      {
-        real_t operator()(const real_t &z) const
-        {
-          return 0;
-        }
-        BZ_DECLARE_FUNCTOR(u);
-      };
-    
       // large-scale vertical wind
       struct w_LS_fctr
       {
@@ -190,12 +180,12 @@ namespace cases
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::rv) = r_t_fctr{}(index * dz); 
-        concurr.advectee(ix::u)= u{}(index * dz);
+        concurr.advectee(ix::u) = 0;
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
         concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 1020 * (index * dz - z_abs) / (this->Z / si::metres - z_abs), 0);
-        concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
+        concurr.vab_relaxed_state(0) = 0;
         concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
   
         // density profile
@@ -339,16 +329,6 @@ namespace cases
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
-      // southerly wind
-      struct v
-      {
-        real_t operator()(const real_t &z) const
-        {
-          return 0;
-        }
-        BZ_DECLARE_FUNCTOR(v);
-      };
-
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
         this->setopts_hlpr(params, user_params);
@@ -374,8 +354,8 @@ namespace cases
         int nz = concurr.advectee_global().extent(ix::w);
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
-        concurr.advectee(ix::v)= v()(k * dz);
-        concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
+        concurr.advectee(ix::v)= 0;
+        concurr.vab_relaxed_state(1) = 0;
       }
 
       void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
