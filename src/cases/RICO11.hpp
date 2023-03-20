@@ -460,7 +460,6 @@ namespace cases
         parent_t::set_profs(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile, doesnt include mean, because its only used in coriolis = u-geostr
         blitz::firstIndex k;
-//        typename parent_t::u u;
         real_t dz = (this->Z / si::metres) / (nz-1);
         profs.geostr[0] = this->u(k * dz);
         profs.geostr[1] = v(k * dz);
