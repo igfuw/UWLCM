@@ -21,7 +21,9 @@ namespace cases
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
     const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud
-    const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
+    const quantity<si::frequency, real_t> D = real_t(3.75e-6) / si::seconds; // large-scale wind horizontal divergence
+    const quantity<si::velocity, real_t> mean_u[] = {/*RF1*/real_t(7)    * si::metres / si::seconds, /*RF2*/real_t(6.225) * si::metres / si::seconds};
+    const quantity<si::velocity, real_t> mean_v[] = {/*RF1*/real_t(-5.5) * si::metres / si::seconds, /*RF2*/real_t(-4.8)  * si::metres / si::seconds};
 
     // liquid water potential temperature at height z
     template <int RF>
@@ -89,13 +91,15 @@ namespace cases
       struct u_t
       {
         const bool window;
+        const real_t mean = mean_u[RF-1] * si::seconds / si::meters;
 
         real_t operator()(const real_t &z) const
         {
-          return RF == 1 ? 
-            window ? 0 : 7                                            // 7 m/s mean wind
-            : 
-            window ? -3.225 + 4.3 * z / 1000. : 3. + 4.3 * z / 1000.; // 6.225 m/s mean wind
+          real_t vel = RF == 1 ? 
+            7 :                   // RF01
+            3. + 4.3 * z / 1000.; // RF02
+
+          return window ? vel - mean : vel;
         }
 
         u_t(bool window): window(window) {}
@@ -110,7 +114,7 @@ namespace cases
       {
         real_t operator()(const real_t &z) const
         {
-          return - D * z; 
+          return - (D * si::seconds) * z; 
         }
         BZ_DECLARE_FUNCTOR(w_LS_fctr);
       };
@@ -299,7 +303,7 @@ namespace cases
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
-        this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
+        this->ForceParameters.D = D * si::seconds; 
         this->z_rlx = z_rlx;
         this->gccn_max_height = gccn_max_height;
       }
@@ -319,8 +323,8 @@ namespace cases
 
         if(window)
         {
-          this->ForceParameters.uv_mean[0] = -5.9;
-          this->ForceParameters.uv_mean[1] = -3.8;
+          this->ForceParameters.uv_mean[0] = mean_u[RF-1] * si::seconds / si::meters;
+          this->ForceParameters.uv_mean[1] = mean_v[RF-1] * si::seconds / si::meters;
         }
       }
     };
@@ -365,12 +369,15 @@ namespace cases
       struct v_t
       {
         const bool window;
+        const real_t mean = mean_v[RF-1] * si::seconds / si::meters;
 
         real_t operator()(const real_t &z) const
         {
-          return RF == 1 ? 
-                   window ? 0 : -5.5                                            // -5.5 m/s mean wind
-                   : window ? -4.2 + 5.6 * z / 1000. : -9. + 5.6 * z / 1000.;   // -4.8 m/s mean wind 
+          real_t vel = RF == 1 ? 
+            -5.5 :                   // RF01
+            -9. + 5.6 * z / 1000.;   // RF02
+
+          return window ? vel - mean : vel;
         }
 
         v_t(bool window): window(window) {}
