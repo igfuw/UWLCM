@@ -28,16 +28,19 @@ namespace cases
   // helper, could be moved somewhere else
   struct hori_vel_t
   {
+    bool initialized;
     real_t mean_vel; 
     const std::function<quantity<si::velocity, real_t>(real_t)> f_vel_prof;
 
     real_t operator()(const real_t &z) const
     {
+      assert(initialized && "called uninitialized hori_vel_t");
       return f_vel_prof(z) * si::seconds / si::meters - mean_vel;
     }
 
     void init(bool window, quantity<si::length, real_t> Z) 
     {
+      initialized=true;
       mean_vel = 0;
 
       if(window) // calculate mean of the velocity profile
@@ -48,7 +51,7 @@ namespace cases
       }
     }
 
-    hori_vel_t(std::function<quantity<si::velocity, real_t>(real_t)> f): f_vel_prof(f) {}
+    hori_vel_t(std::function<quantity<si::velocity, real_t>(real_t)> f): f_vel_prof(f), initialized(false) {}
   };
 
   template<class case_ct_params_t, int n_dims>
