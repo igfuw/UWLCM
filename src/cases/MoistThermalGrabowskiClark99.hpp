@@ -287,6 +287,7 @@ namespace cases
     
         //th_ref = th_std_fctr(th_std_0 / si::kelvins)(k * dz);
         profs.rhod = rho_fctr(rhod_surf)(k * dz); // rhod is dry density profsile?
+        profs.rhod_vctr = rho_fctr(rhod_surf)((k-0.5) * dz); // rhod is dry density profsile?
     
         // turn virtual potential temperature env profsile into env profsile of standard potential temp
         profs.th_e = profs.th_e / (1. + a * profs.rv_e);

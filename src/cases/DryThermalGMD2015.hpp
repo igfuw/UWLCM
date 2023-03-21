@@ -93,6 +93,7 @@ namespace cases
         parent_t::set_profs(profs, nz, user_params);
        
         profs.rhod = 1;
+        profs.rhod_vctr = 1;
         profs.th_e = 300;
         profs.rv_e = 0; // doesnt matter in dry case, just to have consistent output between runs
 
