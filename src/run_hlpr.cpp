@@ -154,16 +154,16 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // NOTE: some parameters (di, dj, dz for now) are passed by value, hence this needs to be done after their values are set
   //       and also means that these parameters cannot change during simulation
   p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), 
-		                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
-				      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
   p.update_surf_flux_lat  = std::bind(&case_t::update_surf_flux_lat , case_ptr.get(), 
-		                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
-				      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
 
   p.update_surf_flux_uv   = std::bind(&case_t::update_surf_flux_uv,   case_ptr.get(), 
-		                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
-				      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2,
-				      std::placeholders::_6);
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2,
+                                      std::placeholders::_6);
 
   // copy functions used to update large-scale forcings
   p.update_rv_LS = std::bind(&case_t::update_rv_LS, case_ptr.get(), std::ref(p.profs.rv_LS), std::placeholders::_1, std::placeholders::_2, p.dz);
