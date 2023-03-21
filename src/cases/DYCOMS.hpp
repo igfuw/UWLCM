@@ -21,7 +21,22 @@ namespace cases
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 25 * si::metres;
     const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud
-    const real_t D = 3.75e-6; // large-scale wind horizontal divergence [1/s], needed only in radiation procedure of DYCOMS
+    const quantity<si::frequency, real_t> D = real_t(3.75e-6) / si::seconds; // large-scale wind horizontal divergence
+
+    template <int RF>
+    quantity<si::velocity, real_t> u_dycoms(const real_t &z)
+    {
+      return RF == 1 ? 
+        real_t(7) * si::meters / si::seconds :                    // RF01 
+        real_t(3. + 4.3 * z / 1000.) * si::meters / si::seconds;  // RF02
+    }
+    template <int RF>
+    quantity<si::velocity, real_t> v_dycoms(const real_t &z)
+    {
+      return RF == 1 ? 
+        real_t(-5.5) * si::meters / si::seconds :                 // RF01 
+        real_t(-9 + 5.6 * z / 1000.) * si::meters / si::seconds;  // RF02
+    }
 
     // liquid water potential temperature at height z
     template <int RF>
@@ -86,22 +101,26 @@ namespace cases
       };
     
       // westerly wind
-      struct u
+      struct u_t : hori_vel_t
       {
         real_t operator()(const real_t &z) const
         {
-          return RF == 1 ? 7 : 3. + 4.3 * z / 1000.; 
+          return hori_vel_t::operator()(z);
         }
-        BZ_DECLARE_FUNCTOR(u);
+
+        u_t() : hori_vel_t(&u_dycoms<RF>) {}
+
+        BZ_DECLARE_FUNCTOR(u_t);
       };
-    
+
+      u_t u;
     
       // large-scale vertical wind
       struct w_LS_fctr
       {
         real_t operator()(const real_t &z) const
         {
-          return - D * z; 
+          return - (D * si::seconds) * z; 
         }
         BZ_DECLARE_FUNCTOR(w_LS_fctr);
       };
@@ -177,7 +196,7 @@ namespace cases
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::rv) = r_t_fctr{}(index * dz); 
-        concurr.advectee(ix::u)= u{}(index * dz);
+        concurr.advectee(ix::u)= u(index * dz);
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
@@ -272,15 +291,14 @@ namespace cases
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const real_t &U_ground_z,
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy)
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean)
       {
         surf_flux_uv = where(U_ground == 0., 0.,
-            - 0.0625 * uv_ground / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)// 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s; * -1 because negative gradient of upward flux means inflow
+            - 0.0625 * (uv_ground + uv_mean) / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)// 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s; * -1 because negative gradient of upward flux means inflow
           );
       }
 
-      // ctor
-      DycomsCommon() 
+      void init() 
       {
         //aerosol bimodal lognormal dist. - DYCOMS
         this->p_0 = p_0;
@@ -291,9 +309,25 @@ namespace cases
         this->n1_stp = real_t(125e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(65e6) / si::cubic_metres;  // 65 || 16
         this->ForceParameters.coriolis_parameter = 0.76e-4; // [1/s] @ 31.5 deg N
-        this->ForceParameters.D = D; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
+        this->ForceParameters.D = D * si::seconds; 
         this->z_rlx = z_rlx;
         this->gccn_max_height = gccn_max_height;
+      }
+
+
+      public:
+      // ctor
+      DycomsCommon(const real_t _X, const real_t _Y, const real_t _Z, const bool window)
+      {
+        init();
+
+        this->X = _X < 0 ? X_def[RF-1] : _X * si::meters;
+        if(n_dims == 3)
+          this->Y = _Y < 0 ? Y_def[RF-1] : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
+        u.init(window, this->Z);
+
+        this->ForceParameters.uv_mean[0] = u.mean_vel;
       }
     };
     
@@ -322,12 +356,8 @@ namespace cases
         this->intcond_hlpr(concurr, rhod, rng_seed, k);
       };
 
-      public:
-      Dycoms(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
-      {
-        this->X = _X < 0 ? X_def[RF-1] : _X * si::meters;
-        this->Z = _Z < 0 ? Z_def       : _Z * si::meters;
-      }
+      // ctor
+      using parent_t::parent_t;
     };
 
     template<class case_ct_params_t, int RF>
@@ -336,15 +366,21 @@ namespace cases
       using parent_t = DycomsCommon<case_ct_params_t, RF, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       // southerly wind
-      struct v
+      struct v_t : hori_vel_t
       {
         real_t operator()(const real_t &z) const
         {
-          return RF == 1 ? -5.5 : -9. + 5.6 * z / 1000.; 
+          return hori_vel_t::operator()(z);
         }
-        BZ_DECLARE_FUNCTOR(v);
+
+        v_t() : hori_vel_t(&v_dycoms<RF>) {}
+
+        BZ_DECLARE_FUNCTOR(v_t);
       };
+
+      v_t v;
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -364,7 +400,7 @@ namespace cases
         int nz = concurr.advectee_global().extent(ix::w);
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
-        concurr.advectee(ix::v)= v()(k * dz);
+        concurr.advectee(ix::v)= v(k * dz);
         concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
@@ -373,19 +409,18 @@ namespace cases
         parent_t::set_profs(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile
         blitz::firstIndex k;
-        typename parent_t::u u;
         real_t dz = (this->Z / si::metres) / (nz-1);
-        profs.geostr[0] = u(k * dz); 
-        profs.geostr[1] = v()(k * dz); 
+        profs.geostr[0] = this->u(k * dz); 
+        profs.geostr[1] = v(k * dz); 
       }
 
       public:
-      Dycoms(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
-      {
-        this->X = _X < 0 ? X_def[RF-1] : _X * si::meters;
-        this->Y = _Y < 0 ? Y_def[RF-1] : _Y * si::meters;
-        this->Z = _Z < 0 ? Z_def       : _Z * si::meters;
-      }
+      Dycoms(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
+        parent_t(_X, _Y, _Z, window)
+        {
+          v.init(window, this->Z);
+          this->ForceParameters.uv_mean[1] = v.mean_vel;
+        }
     };
   };
 };

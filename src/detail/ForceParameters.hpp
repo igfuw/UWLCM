@@ -8,7 +8,7 @@ namespace detail
   // TODO: make forcing functions part of case class ?
   struct ForceParameters_t
   {
-    setup::real_t q_i, heating_kappa, F_0, F_1, rho_i, D, coriolis_parameter;
+    setup::real_t q_i, heating_kappa, F_0, F_1, rho_i, D, coriolis_parameter, uv_mean[2];
   };
 };
 

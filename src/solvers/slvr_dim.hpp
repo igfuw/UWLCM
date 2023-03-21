@@ -118,17 +118,25 @@ class slvr_dim<
     this->mem->barrier();
   }
 
+  struct rt_params_t : parent_t::rt_params_t
+  {
+    detail::ForceParameters_t ForceParameters; // uv_mean needed for ground velocity calculation
+  };
+
+  rt_params_t params;
+
   auto calc_U_ground() 
     return_macro(,
-    abs(this->state(ix::vip_i)(this->hrzntl_slice(0))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
+    abs(this->state(ix::vip_i)(this->hrzntl_slice(0)) + this->params.ForceParameters.uv_mean[0]) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
   )
 
   // ctor
   slvr_dim(
     typename parent_t::ctor_args_t args,
-    typename parent_t::rt_params_t const &p
+    const rt_params_t &p
   ) :
-    parent_t(args, p) 
+    parent_t(args, p),
+    params(p)
     {}
 };
 
@@ -224,17 +232,25 @@ class slvr_dim<
     this->mem->barrier();
   }
 
+  struct rt_params_t : parent_t::rt_params_t
+  {
+    detail::ForceParameters_t ForceParameters; // uv_mean needed for ground velocity calculation
+  };
+
+  rt_params_t params;
+
   auto calc_U_ground() 
     return_macro(,
-    sqrt(pow2(this->state(ix::vip_i)(this->hrzntl_slice(0))) + pow2(this->state(ix::vip_j)(this->hrzntl_slice(0))))
+    sqrt(pow2(this->state(ix::vip_i)(this->hrzntl_slice(0)) + this->params.ForceParameters.uv_mean[0]) + pow2(this->state(ix::vip_j)(this->hrzntl_slice(0)) + this->params.ForceParameters.uv_mean[1]))
   )
 
   // ctor
   slvr_dim(
     typename parent_t::ctor_args_t args, 
-    typename parent_t::rt_params_t const &p
+    const rt_params_t &p
   ) : 
-    parent_t(args, p)
+    parent_t(args, p),
+    params(p)
     {}
 };
 

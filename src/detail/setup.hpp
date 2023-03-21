@@ -12,6 +12,14 @@ namespace setup
   using clock = std::chrono::system_clock;
   using timer = std::chrono::milliseconds;
 
+  const int mean_horvel_npts = 1e5; // number of iterations when calculating mean horizontal velocities (done only at the start of a simulation)
+
+
+
+
+
+  // ---- stuff below deals with the initial aerosol distribution, TODO: move it somewhere else ----
+
 /*
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
     n_unit_test = real_t(1) / si::cubic_metres;

@@ -18,5 +18,6 @@ struct user_params_t
   quantity<si::dimensionless, setup::real_t> case_n_stp_multiplier;
 
   bool relax_th_rv,
+       window,
        relax_ccn = false; // relevant only for lgrngn micro, hence needs a default value as otherwise it might be undefined in blk_1m/blk_2m
 };

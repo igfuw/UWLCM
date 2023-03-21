@@ -131,6 +131,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("sgs_delta", "user_params", params.user_params.sgs_delta);  
       this->record_aux_const("relax_th_rv", "user_params", params.user_params.relax_th_rv);  
       this->record_aux_const("case_n_stp_multiplier", "user_params", params.user_params.case_n_stp_multiplier);  
+      this->record_aux_const("window", "user_params", params.user_params.window);  
 
       this->record_aux_const("th_src", "rt_params", params.th_src);  
       this->record_aux_const("rv_src", "rt_params", params.rv_src);  
@@ -153,6 +154,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("F_1", "ForceParameters", params.ForceParameters.F_1);  
       this->record_aux_const("rho_i", "ForceParameters", params.ForceParameters.rho_i);  
       this->record_aux_const("D", "ForceParameters", params.ForceParameters.D);  
+      this->record_aux_const("u_mean", "ForceParameters", params.ForceParameters.uv_mean[0]);  
+      this->record_aux_const("v_mean", "ForceParameters", params.ForceParameters.uv_mean[1]);  
       this->record_aux_const("coriolis_parameter", "ForceParameters", params.ForceParameters.coriolis_parameter);  
 
       // TODO: need to update ref files in tests to include this in output
@@ -206,7 +209,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
-      params.dz / 2, 0, this->dt, this->di, this->dj
+      params.dz / 2, 0, this->dt, this->di, this->dj,
+      params.ForceParameters.uv_mean[0]
     );
     if(parent_t::n_dims==3)
     {
@@ -214,7 +218,8 @@ class slvr_common : public slvr_dim<ct_params_t>
         surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
         this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
         U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-        params.dz / 2, 0, this->dt, this->di, this->dj
+        params.dz / 2, 0, this->dt, this->di, this->dj,
+        params.ForceParameters.uv_mean[1]
       );
     }
   }
@@ -317,7 +322,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         // horizontal velocity sources 
         if(params.uv_src)
         {
-          for(auto type : this->hori_vel)
+          for(const auto& type : this->hori_vel)
           {
             // TODO: move these to uv_src
             // subsidence
@@ -328,7 +333,7 @@ class slvr_common : public slvr_dim<ct_params_t>
             }
 
             // Coriolis
-            coriolis((type+1) % this->hori_vel.size());
+            coriolis((type+1) % this->hori_vel.size()); // NOTE: we rely on that ix::u==0 and ix::v==1!!
             if(type == ix::vip_i)
               rhs.at(type)(ijk) += F(ijk);
             else if(type == ix::vip_j)
@@ -534,15 +539,14 @@ class slvr_common : public slvr_dim<ct_params_t>
     bool rc_src = true, rr_src = true; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
     bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
-    detail::ForceParameters_t ForceParameters;
+//    detail::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params
 
     // functions for updating surface fluxes per timestep
-    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;
-
+    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens, update_surf_flux_lat;
+    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
     // functions for updating large-scale forcings
     std::function<void(typename setup::arr_1D_t, const int&, const real_t&, const real_t&)> update_rv_LS, update_th_LS;
-    
   };
 
   // per-thread copy of params

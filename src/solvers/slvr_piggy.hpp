@@ -25,7 +25,7 @@ class slvr_piggy<
 {
   private:
   bool save_vel_flag; // should velocity field be stored for piggybacking
-  setup::real_t prs_tol; // store a copy for output purposes
+//  setup::real_t prs_tol; // store a copy for output purposes
 
   protected:
   using parent_t = output::hdf5_xdmf<
@@ -59,7 +59,7 @@ class slvr_piggy<
     if(this->rank==0)
     {
       this->record_aux_const("save_vel", "piggy", save_vel_flag);  
-      this->record_aux_const("rt_params prs_tol", "piggy", prs_tol);  
+      this->record_aux_const("rt_params prs_tol", "piggy", this->prs_tol);  
 
       if (this->mem->distmem.rank() == 0 && save_vel_flag)
       {
@@ -95,20 +95,22 @@ class slvr_piggy<
         ("prs_tol", po::value<setup::real_t>()->default_value(1e-6) , "pressure solver tolerance"); // not really related to piggybacking, but convenient to put here as it is the first solver to inherit from libmpdata++
       po::variables_map vm;
       handle_opts(opts, vm);
-          
       save_vel_flag = vm["save_vel"].as<bool>();
       this->prs_tol = vm["prs_tol"].as<setup::real_t>();
     }
   };
 
+  rt_params_t params;
+
   // ctor
   slvr_piggy(
     typename parent_t::ctor_args_t args,
-    rt_params_t p
+    const rt_params_t &p
   ) :
     parent_t(args, p),
     save_vel_flag(p.save_vel_flag),
-    prs_tol(p.prs_tol)
+    params(p)
+    //prs_tol(p.prs_tol)
     {}
 };
 

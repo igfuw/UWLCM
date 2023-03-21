@@ -35,15 +35,19 @@ int main(int ac, char** av)
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1 --relax_ccn=1",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --rd_min=1e-9 --rd_max=1e-6"
   });
+  // keep dry tests first - they are ran only with micro==none
   vector<string> opts_case({
-    "--case=moist_thermal",
     "--case=dry_thermal",
+    "--case=dry_pbl",
+    "--case=moist_thermal",
     "--case=dycoms_rf02",
     "--case=dycoms_rf02 --out_dry_spec=1 --out_wet_spec=1",
     "--case=dycoms_rf02 --relax_th_rv=1",
+    "--case=dycoms_rf02 --window=1",
     "--case=rico11",
+    "--case=rico11 --window=1",
     "--case=dycoms_rf01",
-    "--case=dry_pbl",
+    "--case=dycoms_rf01 --window=1",
     "--case=cumulus_congestus"
   });
   vector<string> opts_piggy({
@@ -69,17 +73,17 @@ int main(int ac, char** av)
         for (auto &opts_r : opts_rng)
           for (auto &opts_p : opts_piggy) // piggy needs to be the last
           {
-            if((opts_c == opts_case[1]) && (opts_d == opts_dim[2] || opts_d == opts_dim[3]))
+            if((opts_c == opts_case[0]) && (opts_d == opts_dim[2] || opts_d == opts_dim[3]))
             {
               std::cout << "skipping 3d dry thermal tests" << std::endl;
               continue;
             }
-            if((opts_c == opts_case[1]) && opts_m != opts_micro[0])
+            if((opts_c == opts_case[0]) && opts_m != opts_micro[0])
             {
               std::cout << "skipping dry thermal tests with microphysics other than 'none'" << std::endl;
               continue; 
             }
-            if((opts_c == opts_case[7]) && opts_m != opts_micro[0])
+            if((opts_c == opts_case[1]) && opts_m != opts_micro[0])
             {
               std::cout << "skipping dry pbl tests with microphysics other than 'none'" << std::endl;
               continue; 

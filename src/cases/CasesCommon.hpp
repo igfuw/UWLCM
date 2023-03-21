@@ -25,6 +25,35 @@ namespace cases
   using real_t = setup::real_t;
   using arr_1D_t = setup::arr_1D_t;
 
+  // helper, could be moved somewhere else
+  struct hori_vel_t
+  {
+    bool initialized;
+    real_t mean_vel; 
+    const std::function<quantity<si::velocity, real_t>(real_t)> f_vel_prof;
+
+    real_t operator()(const real_t &z) const
+    {
+      assert(initialized && "called uninitialized hori_vel_t");
+      return f_vel_prof(z) * si::seconds / si::meters - mean_vel;
+    }
+
+    void init(bool window, quantity<si::length, real_t> Z) 
+    {
+      initialized=true;
+      mean_vel = 0;
+
+      if(window) // calculate mean of the velocity profile
+      {
+        for(int i=0; i < setup::mean_horvel_npts; ++i)
+          mean_vel += f_vel_prof(i * (Z / si::meters) / (setup::mean_horvel_npts-1)) * si::seconds / si::meters;
+        mean_vel /= setup::mean_horvel_npts;
+      }
+    }
+
+    hori_vel_t(std::function<quantity<si::velocity, real_t>(real_t)> f): f_vel_prof(f), initialized(false) {}
+  };
+
   template<class case_ct_params_t, int n_dims>
   class CasesCommon
   {
@@ -146,7 +175,7 @@ namespace cases
                                      blitz::Array<real_t, n_dims> uv_ground,   
                                      blitz::Array<real_t, n_dims> U_ground,   
                                      const real_t &U_ground_z,
-                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0, const real_t &uv_mean = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
 
     virtual void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
@@ -168,6 +197,8 @@ namespace cases
       ForceParameters.rho_i = 1.12; // kg/m^3
       ForceParameters.coriolis_parameter = 0.;
       ForceParameters.D = 0.; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
+      ForceParameters.uv_mean[0] = 0; // mean horizontal wind speed (for 'moving-window' simulations)
+      ForceParameters.uv_mean[1] = 0; // mean horizontal wind speed (for 'moving-window' simulations)
       X = 0 * si::metres;
       Y = 0 * si::metres;
       Z = 0 * si::metres;
