@@ -543,7 +543,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     assert(this->rank == 0);
 
     // plain (no xdmf) hdf5 output
-    parent_t::parent_t::parent_t::parent_t::record_all();
+    parent_t::parent_t::parent_t::parent_t::parent_t::record_all();
     this->diag();
     // xmf markup
     this->write_xmfs();
