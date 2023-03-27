@@ -76,7 +76,7 @@ endif()
 # by default, don't compile 2D and blk, because they dont use refinement and libmpdata++ doesnt compile without refinement
 # also dont compile piggy as it is not compatible with refinement too
 if(NOT UWLCM_DISABLE)
-  set(UWLCM_DISABLE "2D_BLK_1M;3D_BLK_1M;2D_BLK_2M;3D_BLK_2M;2D_LGRNGN;PIGGYBACKER")
+  set(UWLCM_DISABLE "2D_BLK_1M;3D_BLK_1M;2D_BLK_2M;3D_BLK_2M;2D_LGRNGN;2D_NONE;3D_NONE;PIGGYBACKER")
 endif()
 
 # handle the disable compilation options
