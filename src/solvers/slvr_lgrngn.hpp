@@ -30,7 +30,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 #endif
 
   // member fields
-  std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
+  using prtcls_t = std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>>;
+  prtcls_t prtcls;
 
   // helpers for calculating RHS from condensation, probably some of the could be avoided e.g. if step_cond returnd deltas and not changed fields 
   // or if change in theta was calculated from change in rv  
@@ -120,6 +121,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   {
     return r_c;
   }
+
+  virtual void init_prtcls();
 
   void hook_ante_loop(int nt);
   void hook_ante_step();

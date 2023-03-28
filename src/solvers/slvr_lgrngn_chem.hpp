@@ -52,7 +52,4 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
     params(p)
   {
   }
-
-
-
 };
