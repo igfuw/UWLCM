@@ -187,22 +187,22 @@ class slvr_common : public slvr_dim<ct_params_t>
         this->record_prof_const("v_geostr", params.profs.geostr[1].data()); 
       }
 
-      this->record_prof_const("refined th_e", params.profs_ref.th_e.data(), true); 
-      this->record_prof_const("refined p_e", params.profs_ref.p_e.data(), true); 
-      this->record_prof_const("refined rv_e", params.profs_ref.rv_e.data(), true); 
-      this->record_prof_const("refined rl_e", params.profs_ref.rl_e.data(), true); 
-      this->record_prof_const("refined th_reference", params.profs_ref.th_reference.data(), true); 
-      this->record_prof_const("refined rhod", params.profs_ref.rhod.data(), true); 
-      this->record_prof_const("refined w_LS", params.profs_ref.w_LS.data(), true); 
-      this->record_prof_const("refined th_LS", params.profs_ref.th_LS.data(), true); 
-      this->record_prof_const("refined rv_LS", params.profs_ref.rv_LS.data(), true); 
-      this->record_prof_const("refined hgt_fctr", params.profs_ref.hgt_fctr.data(), true); 
-      this->record_prof_const("refined mix_len", params.profs_ref.mix_len.data(), true);
-      this->record_prof_const("refined relax_th_rv_coeff", params.profs_ref.relax_th_rv_coeff.data(), true); 
+      this->record_prof_refined_const("refined th_e", params.profs_ref.th_e.data()); 
+      this->record_prof_refined_const("refined p_e", params.profs_ref.p_e.data()); 
+      this->record_prof_refined_const("refined rv_e", params.profs_ref.rv_e.data()); 
+      this->record_prof_refined_const("refined rl_e", params.profs_ref.rl_e.data()); 
+      this->record_prof_refined_const("refined th_reference", params.profs_ref.th_reference.data()); 
+      this->record_prof_refined_const("refined rhod", params.profs_ref.rhod.data()); 
+      this->record_prof_refined_const("refined w_LS", params.profs_ref.w_LS.data()); 
+      this->record_prof_refined_const("refined th_LS", params.profs_ref.th_LS.data()); 
+      this->record_prof_refined_const("refined rv_LS", params.profs_ref.rv_LS.data()); 
+      this->record_prof_refined_const("refined hgt_fctr", params.profs_ref.hgt_fctr.data()); 
+      this->record_prof_refined_const("refined mix_len", params.profs_ref.mix_len.data());
+      this->record_prof_refined_const("refined relax_th_rv_coeff", params.profs_ref.relax_th_rv_coeff.data()); 
       if(parent_t::n_dims==3)
       {
-        this->record_prof_const("refined u_geostr", params.profs_ref.geostr[0].data(), true); 
-        this->record_prof_const("refined v_geostr", params.profs_ref.geostr[1].data(), true); 
+        this->record_prof_refined_const("refined u_geostr", params.profs_ref.geostr[0].data()); 
+        this->record_prof_refined_const("refined v_geostr", params.profs_ref.geostr[1].data()); 
       }
     }
     
@@ -548,7 +548,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     assert(this->rank == 0);
 
     // plain (no xdmf) hdf5 output
-    parent_t::parent_t::parent_t::parent_t::record_all();
+    parent_t::parent_t::parent_t::parent_t::parent_t::record_all();
     this->diag();
     // xmf markup
     this->write_xmfs();
