@@ -27,7 +27,7 @@ add_test(api_test_iles_diff bash -c "
 ")
 
 add_test(api_test_smg_diff bash -c " 
-  cd ${CMAKE_CURRENT_SOURCE_DIR}/refdata_smg/ && find ./* -maxdepth 1 -type d -print0 |            
+  cd ${CMAKE_CURRENT_SOURCE_DIR}/refdata_smg/ && find ./* -maxdepth 0 -type d -print0 | 
     while IFS= read -rd '' dir; do 
       echo \"\\n============== working with $dir ===============\";
       grep $(echo \"$dir\" | sed 's/..//') hash_dict.txt
