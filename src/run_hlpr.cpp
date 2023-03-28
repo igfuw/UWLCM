@@ -75,19 +75,19 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   case_ptr_t case_ptr; 
 
-  // setup choice
+  // setup choice, NOTE: user_params.window only makes a difference if initial horizontal velocity is non-zero
   if (user_params.model_case == "moist_thermal")
     case_ptr.reset(new cases::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
   else if (user_params.model_case == "dry_thermal")
     case_ptr.reset(new cases::dry_thermal::DryThermal<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
   else if (user_params.model_case == "dycoms_rf01")
-    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
+    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
   else if (user_params.model_case == "dycoms_rf02")
-    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
+    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
   else if (user_params.model_case == "cumulus_congestus")
     case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else if (user_params.model_case == "rico11")
-    case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
+    case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else if (user_params.model_case == "dry_pbl")
     case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else
@@ -154,16 +154,16 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // NOTE: some parameters (di, dj, dz for now) are passed by value, hence this needs to be done after their values are set
   //       and also means that these parameters cannot change during simulation
   p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), 
-		                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
-				      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
   p.update_surf_flux_lat  = std::bind(&case_t::update_surf_flux_lat , case_ptr.get(), 
-		                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
-				      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
 
   p.update_surf_flux_uv   = std::bind(&case_t::update_surf_flux_uv,   case_ptr.get(), 
-		                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
-				      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2,
-				      std::placeholders::_6);
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2,
+                                      std::placeholders::_6);
 
   // copy functions used to update large-scale forcings
   p.update_rv_LS = std::bind(&case_t::update_rv_LS, case_ptr.get(), std::ref(p.profs.rv_LS), std::placeholders::_1, std::placeholders::_2, p.dz);

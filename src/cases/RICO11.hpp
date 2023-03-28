@@ -32,6 +32,15 @@ namespace cases
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
     const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud base
 
+    inline quantity<si::velocity, real_t> u_rico(const real_t &z)
+    {
+      return real_t(-9.9 + 2e-3 * z) * si::meters / si::seconds;
+    }
+    inline quantity<si::velocity, real_t> v_rico(const real_t &z)
+    {
+      return real_t(-3.8) * si::meters / si::seconds;
+    }
+
     inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
       quantity<si::temperature, real_t> ret;
@@ -90,14 +99,19 @@ namespace cases
       };
     
       // westerly wind
-      struct u
+      struct u_t : hori_vel_t
       {
         real_t operator()(const real_t &z) const
         {
-          return -4. + 2e-3 * z;  // mean wind -5.9 m/s included in ForceParameters
+          return hori_vel_t::operator()(z);
         }
-        BZ_DECLARE_FUNCTOR(u);
+
+        u_t() : hori_vel_t(&u_rico) {}
+
+        BZ_DECLARE_FUNCTOR(u_t);
       };
+
+      u_t u;
     
       // large-scale vertical wind
       struct w_LS_fctr
@@ -216,8 +230,6 @@ namespace cases
         this->setopts_sgs(params);
       }
   
-  
-  
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
@@ -225,7 +237,7 @@ namespace cases
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
         concurr.advectee(ix::rv) = r_t_fctr{}(index * dz); 
-        concurr.advectee(ix::u)= u{}(index * dz);
+        concurr.advectee(ix::u)= u(index * dz);
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
@@ -318,10 +330,10 @@ namespace cases
 
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
-      void update_surf_flux_uv  (blitz::Array<real_t, n_dims> surf_flux_uv,
-                                 const blitz::Array<real_t, n_dims> &uv_ground,   
-                                 const blitz::Array<real_t, n_dims> &U_ground,   
-                                 const int timestep, const real_t dt, 
+      void update_surf_flux_uv  (blitz::Array<real_t, n_dims> surf_flux_uv,                  // output array
+                                 const blitz::Array<real_t, n_dims> &uv_ground,              // value of u or v on the ground (without mean if window==1)
+                                 const blitz::Array<real_t, n_dims> &U_ground,               // magnitude of horizontal ground wind (total, including mean if window==1)
+                                 const int timestep, const real_t dt,                         
                                  const real_t dx, const real_t dy, const real_t U_ground_z, 
                                  const real_t uv_mean = 0) override
       {
@@ -344,8 +356,7 @@ namespace cases
     };
       */
 
-      // ctor
-      Rico11Common()
+      void init()
       {
         this->p_0 = p_0;
         this->mean_rd1 = real_t(.03e-6) * si::metres,
@@ -357,20 +368,38 @@ namespace cases
         this->ForceParameters.coriolis_parameter = 0.449e-4; // [1/s] @ 18.0 deg N
         this->z_rlx = z_rlx;
         this->gccn_max_height = gccn_max_height;
-        this->ForceParameters.uv_mean[0] = -5.9;
-        this->ForceParameters.uv_mean[1] = -3.8;
+      }
+
+      public:
+
+      // ctor
+      Rico11Common(const real_t _X, const real_t _Y, const real_t _Z, const bool window)
+      {
+        init();
+
+        this->X = _X < 0 ? X_def : _X * si::meters;
+        if(n_dims == 3)
+          this->Y = _Y < 0 ? Y_def : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
+
+        u.init(window, this->Z);
+
+        this->ForceParameters.uv_mean[0] = u.mean_vel;
       }
     };
     
     template<class case_ct_params_t, int n_dims>
     class Rico11;
 
+
+    // TODO: stuff from 2D can be moved to common? 
     template<class case_ct_params_t>
     class Rico11<case_ct_params_t, 2> : public Rico11Common<case_ct_params_t, 2>
     {
       using parent_t = Rico11Common<case_ct_params_t, 2>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+      using parent_t::parent_t;
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -382,23 +411,8 @@ namespace cases
 
       void intcond(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
-        blitz::secondIndex k;
-        this->intcond_hlpr(concurr, rhod, rng_seed, k);
-
-        auto th_global = concurr.advectee_global(ix::th);
-        this->make_cyclic(th_global);
-        concurr.advectee_global_set(th_global, ix::th);
-
-        auto rv_global = concurr.advectee_global(ix::rv);
-        this->make_cyclic(rv_global);
-        concurr.advectee_global_set(rv_global, ix::rv);
-      }
-
-      public:
-      Rico11(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
-      {
-        this->X = _X < 0 ? X_def : _X * si::meters;
-        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
+       // blitz::secondIndex k;
+        this->intcond_hlpr(concurr, rhod, rng_seed, blitz::secondIndex{});
       }
     };
 
@@ -410,15 +424,19 @@ namespace cases
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
       // southerly wind
-      struct v
+      struct v_t : hori_vel_t
       {
         real_t operator()(const real_t &z) const
         {
-          return 0; // mean wind -3.8 m/s included in ForceParameters
-//          return -3.8;
+          return hori_vel_t::operator()(z);
         }
-        BZ_DECLARE_FUNCTOR(v);
+
+        v_t() : hori_vel_t(&v_rico) {}
+
+        BZ_DECLARE_FUNCTOR(v_t);
       };
+
+      v_t v;
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -433,19 +451,11 @@ namespace cases
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(concurr, rhod, rng_seed, k);
-
-        auto th_global = concurr.advectee_global(ix::th);
-        this->make_cyclic(th_global);
-        concurr.advectee_global_set(th_global, ix::th);
-
-        auto rv_global = concurr.advectee_global(ix::rv);
-        this->make_cyclic(rv_global);
-        concurr.advectee_global_set(rv_global, ix::rv);
   
         int nz = concurr.advectee_global().extent(ix::w);
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
-        concurr.advectee(ix::v)= v()(k * dz);
+        concurr.advectee(ix::v)= v(k * dz);
         concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
@@ -454,19 +464,18 @@ namespace cases
         parent_t::set_profs(profs, nz, user_params);
         // geostrophic wind equal to the initial velocity profile, doesnt include mean, because its only used in coriolis = u-geostr
         blitz::firstIndex k;
-        typename parent_t::u u;
         real_t dz = (this->Z / si::metres) / (nz-1);
-        profs.geostr[0] = u(k * dz);
-        profs.geostr[1] = v()(k * dz);
+        profs.geostr[0] = this->u(k * dz);
+        profs.geostr[1] = v(k * dz);
       }
 
       public:
-      Rico11(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
-      {
-        this->X = _X < 0 ? X_def : _X * si::meters;
-        this->Y = _Y < 0 ? Y_def : _Y * si::meters;
-        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
-      }
+      Rico11(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
+        parent_t(_X, _Y, _Z, window)
+        {
+          v.init(window, this->Z);
+          this->ForceParameters.uv_mean[1] = v.mean_vel;
+        }
     };
   };
 };

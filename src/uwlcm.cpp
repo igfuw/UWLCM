@@ -43,6 +43,7 @@ int main(int argc, char** argv)
       ("outfreq", po::value<int>()->required(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(0) , "number of initial timesteps during which rain formation is to be turned off")
       ("serial", po::value<bool>()->default_value(false), "force CPU component of the model (dynamics and bulk microphysics) to be computed on single thread")
+      ("window", po::value<bool>()->default_value(false), "moving-window simulation, i.e. mean horizontal velocity substracted from advectors")
 //      ("th_src", po::value<bool>()->default_value(true) , "temp src")
 //      ("rv_src", po::value<bool>()->default_value(true) , "water vap source")
 //      ("rc_src", po::value<bool>()->default_value(true) , "cloud water source (in blk_1/2m)")
@@ -121,6 +122,8 @@ int main(int argc, char** argv)
     user_params.X = vm["X"].as<setup::real_t>();
     user_params.Y = vm["Y"].as<setup::real_t>();
     user_params.Z = vm["Z"].as<setup::real_t>();
+
+    user_params.window = vm["window"].as<bool>();
 
     // handling serial-advection-forcing flag
     if(vm["serial"].as<bool>()) setenv("OMP_NUM_THREADS", "1", 1);

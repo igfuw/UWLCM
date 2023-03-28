@@ -25,6 +25,32 @@ namespace cases
   using real_t = setup::real_t;
   using arr_1D_t = setup::arr_1D_t;
 
+  // helper, could be moved somewhere else
+  struct hori_vel_t
+  {
+    real_t mean_vel; 
+    const std::function<quantity<si::velocity, real_t>(real_t)> f_vel_prof;
+
+    real_t operator()(const real_t &z) const
+    {
+      return f_vel_prof(z) * si::seconds / si::meters - mean_vel;
+    }
+
+    void init(bool window, quantity<si::length, real_t> Z) 
+    {
+      mean_vel = 0;
+
+      if(window) // calculate mean of the velocity profile
+      {
+        for(int i=0; i < setup::mean_horvel_npts; ++i)
+          mean_vel += f_vel_prof(i * (Z / si::meters) / (setup::mean_horvel_npts-1)) * si::seconds / si::meters;
+        mean_vel /= setup::mean_horvel_npts;
+      }
+    }
+
+    hori_vel_t(std::function<quantity<si::velocity, real_t>(real_t)> f): f_vel_prof(f) {}
+  };
+
   template<class case_ct_params_t, int n_dims>
   class CasesCommon
   {
