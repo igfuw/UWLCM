@@ -56,6 +56,11 @@ class slvr_dim<
   const rng_t &vert_rng = this->j;
   std::set<int> hori_vel = std::set<int>{ix::u};
 
+  blitz::TinyVector<int, 2> extent(const idx_t<2> &idx)
+  {
+    return blitz::TinyVector<int, 2>({idx.ubound(0)-idx.lbound(0)+1, idx.ubound(1)-idx.lbound(1)+1});
+  }
+
   idx_t<2> hrzntl_slice(int k)
   {
       return idx_t<2>({this->i, rng_t(k, k)});
@@ -169,6 +174,11 @@ class slvr_dim<
   blitz::thirdIndex vert_idx;
   const rng_t &vert_rng = this->k;
   std::set<int> hori_vel = std::set<int>{ix::u, ix::v};
+
+  blitz::TinyVector<int, 3> extent(const idx_t<3> &idx)
+  {
+    return blitz::TinyVector<int, 3>({idx.ubound(0)-idx.lbound(0)+1, idx.ubound(1)-idx.lbound(1)+1, idx.ubound(2)-idx.lbound(2)+1});
+  }
 
   idx_t<3> hrzntl_slice(int k)
   {

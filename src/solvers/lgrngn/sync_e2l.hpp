@@ -2,7 +2,7 @@
 #include "../slvr_lgrngn.hpp"
 
 template <class ct_params_t>
-virtual void slvr_lgrngn<ct_params_t>::sync_e2l()
+void slvr_lgrngn<ct_params_t>::sync_e2l()
 {
   assert(this->rank==0);
 

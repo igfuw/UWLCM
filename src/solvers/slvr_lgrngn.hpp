@@ -126,6 +126,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   }
 
   virtual void init_prtcls();
+  virtual void sync_e2l();
 
   void hook_ante_loop(int nt);
   void hook_ante_step();
@@ -205,9 +206,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     th_pre_cond(args.mem->tmp[__FILE__][0][2]),
     th_post_cond(args.mem->tmp[__FILE__][0][3]),
     r_c(args.mem->tmp[__FILE__][1][0]),
-    Cx(this->Cx_domain),
-    Cy(this->Cy_domain),
-    Cz(this->Cz_domain)
+    Cx(this->extent(this->Cx_domain)),
+    Cy(this->extent(this->Cy_domain)),
+    Cz(this->extent(this->Cz_domain))
   {
     r_c = 0.;
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
