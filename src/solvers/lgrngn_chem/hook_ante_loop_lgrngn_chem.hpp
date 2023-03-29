@@ -3,7 +3,6 @@
 #include "init_prtcls_chem.hpp"
 
 
-// recording mass of H and S_VI in wet radius bins
 template <class ct_params_t>
 void slvr_lgrngn_chem<ct_params_t>::hook_ante_loop(int nt)
 {
@@ -40,15 +39,5 @@ void slvr_lgrngn_chem<ct_params_t>::hook_ante_loop(int nt)
     */
 
     parent_t::parent_t::hook_ante_loop(nt);
-   // TODO: barrier?
-   // TODO - make a lagrangian_common class for particles with and without chem 
-    if (this->rank == 0)
-    {
-      // writing diagnostic data for the initial condition
-      parent_t::diag();
-      diag_chem();
-      diag_pH();
-    }
-    // TODO: barrier?
 
 }

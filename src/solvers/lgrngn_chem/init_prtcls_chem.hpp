@@ -2,7 +2,7 @@
 #include "../slvr_lgrngn_chem.hpp"
 
 template <class ct_params_t>
-void slvr_lgrngn<ct_params_t>::init_prtcls() override
+void slvr_lgrngn_chem<ct_params_t>::init_prtcls() override
 {
   assert(this->rank == 0);
   assert(params.cloudph_opts_init.chem_switch == true);

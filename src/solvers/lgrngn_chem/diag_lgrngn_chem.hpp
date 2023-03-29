@@ -64,3 +64,11 @@ void slvr_lgrngn_chem<ct_params_t>::diag_chem()
     }
   }
 }
+
+template <class ct_params_t>
+void slvr_lgrngn_chem<ct_params_t>::diag()
+{
+  parent_t::diag();
+  diag_pH();
+  diag_chem();
+}

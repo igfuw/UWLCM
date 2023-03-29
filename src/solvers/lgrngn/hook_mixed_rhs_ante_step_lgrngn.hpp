@@ -1,9 +1,11 @@
 #pragma once
 #include "../slvr_lgrngn.hpp"
 #include "../../detail/func_time.hpp"
+#include "sync_e2l.hpp"
 #if defined(STD_FUTURE_WORKS)
 #  include <future>
 #endif
+
 
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
@@ -19,10 +21,9 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
   if (this->rank == 0) 
   {
     // temporarily Cx & Cz are multiplied by this->rhod ...
-    auto 
-      Cx = this->mem->GC[0](this->Cx_domain).copy(),
-      Cy = this->mem->GC[1](this->Cy_domain).copy(),
-      Cz = this->mem->GC[ix::w](this->Cz_domain).copy(); 
+    Cx = this->mem->GC[0](this->Cx_domain),
+    Cy = this->mem->GC[1](this->Cy_domain),
+    Cz = this->mem->GC[ix::w](this->Cz_domain); 
     nancheck(Cx, "Cx after copying from mpdata");
     nancheck(Cy, "Cy after copying from mpdata");
     nancheck(Cz, "Cz after copying from mpdata");
@@ -72,21 +73,12 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     tbeg = setup::clock::now();
 #endif
 
+    // pass euler variables to lagrangian microphysics
+    this->sync_e2l();
+
     using libcloudphxx::lgrngn::particles_t;
     using libcloudphxx::lgrngn::CUDA;
     using libcloudphxx::lgrngn::multi_CUDA;
-
-    prtcls->sync_in(
-      make_arrinfo(this->mem->advectee(ix::th)),
-      make_arrinfo(this->mem->advectee(ix::rv)),
-      libcloudphxx::lgrngn::arrinfo_t<real_t>(),
-      make_arrinfo(Cx),
-      this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
-      make_arrinfo(Cz),
-      (ct_params_t::sgs_scheme == libmpdataxx::solvers::iles) || (!params.cloudph_opts.turb_cond && !params.cloudph_opts.turb_adve && !params.cloudph_opts.turb_coal) ?
-                                  libcloudphxx::lgrngn::arrinfo_t<real_t>() :
-                                  make_arrinfo(this->diss_rate(this->domain).reindex(this->zero))
-    );
 
     // start sync/async run of step_cond
     // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
