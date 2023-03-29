@@ -1,8 +1,10 @@
 #pragma once
 #include "../slvr_lgrngn_chem.hpp"
 
+using namespace libcloudphxx::common::chem;
+
 template <class ct_params_t>
-void slvr_lgrngn_chem<ct_params_t>::init_prtcls() override
+void slvr_lgrngn_chem<ct_params_t>::init_prtcls()
 {
   assert(this->rank == 0);
   assert(params.cloudph_opts_init.chem_switch == true);
@@ -28,7 +30,7 @@ void slvr_lgrngn_chem<ct_params_t>::init_prtcls() override
     this->make_arrinfo(this->mem->advectee(ix::th)),
     this->make_arrinfo(this->mem->advectee(ix::rv)),
     this->make_arrinfo(rhod),
-    this->make_arrinfo(p_e)
+    this->make_arrinfo(p_e),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),

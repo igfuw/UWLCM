@@ -8,5 +8,5 @@
 #include "run_hlpr.cpp"
 
 // explicit instantiation
-template
-void run_hlpr<slvr_lgrngn, ct_params_3D_lgrngn, 3>(bool piggy, bool sgs, const std::string &type, const int (&nps)[3], const user_params_t &user_params);
+//template
+//void run_hlpr<slvr_lgrngn, ct_params_3D_lgrngn, 3>(bool piggy, bool sgs, const std::string &type, const int (&nps)[3], const user_params_t &user_params);

@@ -13,14 +13,19 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
 
   private:
 
-  void diag_pH()
-  void diag_chem()
+  void diag_pH();
+  void diag_chem();
 
   protected:
 
+  void init_prtcls() override;
+  void sync_e2l() override;
+  void hook_ante_loop(int nt) override;
+  void diag() override;
+
   void set_chem(bool val)
   {
-    parent_t::params.cloudph_opts.chem_rct = val ? params.flag_chem : false;
+    parent_t::params.cloudph_opts.chem_rct = val ? params.flag_chem_rct : false;
   };
 
   void set_rain(bool val)
@@ -34,6 +39,7 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   struct rt_params_t : parent_t::rt_params_t
   {
     outmom_t<real_t> out_chem, out_wet_pH;
+    bool flag_chem_rct;
   };
 
   private:

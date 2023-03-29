@@ -6,8 +6,7 @@
 template <class ct_params_t>
 void slvr_lgrngn_chem<ct_params_t>::hook_ante_loop(int nt)
 {
-
-  params.flag_chem = params.cloudph_opts.chem;
+  params.flag_chem_rct = params.cloudph_opts.chem_rct;
 
 /*
     this->coal = parent_t::params.cloudph_opts.coal;
@@ -38,6 +37,13 @@ void slvr_lgrngn_chem<ct_params_t>::hook_ante_loop(int nt)
     }
     */
 
-    parent_t::parent_t::hook_ante_loop(nt);
+    parent_t::hook_ante_loop(nt);
 
+    if (this->rank == 0)
+    {
+      this->record_aux_const("flag_chem_rct", "lgrngn_chem", params.flag_chem_rct);
+      this->record_aux_const("chem_rct", "lgrngn_chem", params.cloudph_opts.chem_rct);
+      this->record_aux_const("chem_dsc", "lgrngn_chem", params.cloudph_opts.chem_dsc);
+      this->record_aux_const("chem_dsl", "lgrngn_chem", params.cloudph_opts.chem_dsl);
+    }
 }
