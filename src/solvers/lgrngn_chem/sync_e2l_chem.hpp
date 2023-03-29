@@ -6,7 +6,7 @@ void slvr_lgrngn_chem<ct_params_t>::sync_e2l()
 {
   assert(this->rank==0);
 
-  std::map<enum chem_species_t, const libcloudphxx::lgrngn::arrinfo_t<real_t> > ambient_chem;
+  std::map<enum chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> > ambient_chem;
   boost::assign::insert(ambient_chem)
     (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
     (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))

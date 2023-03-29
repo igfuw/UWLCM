@@ -25,7 +25,7 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
 
   void set_chem(bool val)
   {
-    parent_t::params.cloudph_opts.chem_rct = val ? params.flag_chem_rct : false;
+    this->params.cloudph_opts.chem_rct = val ? params.flag_chem_rct : false;
   };
 
   void set_rain(bool val)

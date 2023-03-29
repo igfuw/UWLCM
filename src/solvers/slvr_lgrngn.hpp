@@ -71,6 +71,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->puddle = prtcls->diag_puddle();
   }
 
+  protected:
+
   std::string aux_name(
     const std::string pfx, 
     const int rng,
@@ -81,8 +83,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     tmp << pfx << "_rng" << std::setw(3) << std::setfill('0') << rng << "_mom" << mom;
     return tmp.str();
   }
-
-  protected:
 
   void diag();
 
