@@ -26,11 +26,19 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
   this->mem->barrier();
   */
 
-  this->interpolate_refinee(ix::u);
-  this->interpolate_refinee(ix::v);
-  this->interpolate_refinee(ix::w);
+//  this->interpolate_refinee(ix::u);
+//  this->interpolate_refinee(ix::v);
+//  this->interpolate_refinee(ix::w);
+//
+//  this->interpolate_refined_courants(courants, this->uvw_ref);
 
-  this->interpolate_refined_courants(courants, this->uvw_ref);
+  this->mem->refinee(this->ix_r2r.at(ix::u))(this->ijkm_ref) = 0;
+  this->mem->refinee(this->ix_r2r.at(ix::v))(this->ijkm_ref) = 0;
+  this->mem->refinee(this->ix_r2r.at(ix::w))(this->ijkm_ref) = 0;
+
+  courants[0] = 0;
+  courants[1] = 0;
+  courants[2] = 0;
 
   //this->xchng_ref(ix::u);
   //this->xchng_ref(ix::v);
@@ -45,9 +53,9 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 
   negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of mixed_rhs_ante_step");
 
-  this->generate_stretching_parameters(std::random_device{}());
-  this->reconstruct_refinee(ix::th);
-  this->reconstruct_refinee(ix::rv);
+//  this->generate_stretching_parameters(std::random_device{}());
+//  this->reconstruct_refinee(ix::th);
+//  this->reconstruct_refinee(ix::rv);
 
   //negtozero(this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref), "refined rv at start of mixed_rhs_ante_step");
   negtozero2(this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref), "refined rv at start of mixed_rhs_ante_step",

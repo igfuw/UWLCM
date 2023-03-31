@@ -51,8 +51,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 //    std::cerr << "th diff cond: " << th_post_cond(this->ijk_ref) << std::endl;
 
     this->mem->barrier();
-    libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(th_post_cond, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
-    libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(rv_post_cond, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
+//    libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(th_post_cond, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
+//    libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(rv_post_cond, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
 
     dth(this->ijk) = th_post_cond(this->ijk_r2r);
     drv(this->ijk) = rv_post_cond(this->ijk_r2r);
@@ -61,8 +61,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
  //   std::cerr << "drv: " << drv(this->ijk) << std::endl;
 
     // with cyclic bcond, th and rv in corresponding edge cells needs to change by the same amount
-    this->avg_edge_sclr(dth, this->ijk);
-    this->avg_edge_sclr(drv, this->ijk);
+//    this->avg_edge_sclr(dth, this->ijk);
+//    this->avg_edge_sclr(drv, this->ijk);
 
 //    this->state(ix::th)(this->ijk) += dth(this->ijk); 
 //    this->state(ix::rv)(this->ijk) += drv(this->ijk); 

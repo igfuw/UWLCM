@@ -8,9 +8,11 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
 
   this->mem->barrier();
 
-  this->generate_stretching_parameters(std::random_device{}());
-  this->reconstruct_refinee(ix::th);
-  this->reconstruct_refinee(ix::rv);
+//  this->generate_stretching_parameters(std::random_device{}());
+//  this->reconstruct_refinee(ix::th);
+//  this->reconstruct_refinee(ix::rv);
+  this->mem->refinee(this->ix_r2r.at(ix::th)) = 300;
+  this->mem->refinee(this->ix_r2r.at(ix::rv)) = 1e-3;
   negtozero(this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref), "refined rv in hook_ante_loop");
 
   if (this->rank == 0) 

@@ -85,7 +85,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->mem->barrier();
 
 
-    this->xchng_ref(rx_ref, this->ijk_ref);
+//    this->xchng_ref(rx_ref, this->ijk_ref);
  //   std::cerr << "rx_ref(ijk_ref) after xchng_ref: " << rx_ref(this->ijk_ref) << std::endl;
  //   std::cerr << "rx_ref after xchng_ref: " << rx_ref << std::endl;
     libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(rx_ref, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
@@ -97,7 +97,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     rx(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
     this->mem->barrier();
 
-    this->avg_edge_sclr(rx, this->ijk); // in case of cyclic bcond, rc on edges needs to be the same
+//    this->avg_edge_sclr(rx, this->ijk); // in case of cyclic bcond, rc on edges needs to be the same
   }
 
   void diag_rc()
