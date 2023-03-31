@@ -118,6 +118,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     }
     this->mem->barrier();
     diag_rx(this->r_l);
+
+    this->r_l(this->ijk) = 0;
   }
 
   void get_puddle() override
