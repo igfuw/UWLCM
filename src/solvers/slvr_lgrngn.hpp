@@ -249,9 +249,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     negref_dbg_arr_names({"c_j", "d_j", "f_j"})
   {
     r_c = 0.;
+    /*
     uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::u))));
     uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::v))));
     uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::w))));
+    */
 
     negref_dbg_arrs.push_back(this->mem->never_delete(&this->c_j));
     negref_dbg_arrs.push_back(this->mem->never_delete(&this->d_j));
