@@ -6,15 +6,6 @@ void slvr_lgrngn_chem<ct_params_t>::sync_e2l()
 {
   assert(this->rank==0);
 
-  std::map<enum chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> > ambient_chem;
-  boost::assign::insert(ambient_chem)
-    (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
-    (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
-    (chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
-    (chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
-    (chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
-    (chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
-
   this->prtcls->sync_in(
     this->make_arrinfo(this->mem->advectee(ix::th)),
     this->make_arrinfo(this->mem->advectee(ix::rv)),
