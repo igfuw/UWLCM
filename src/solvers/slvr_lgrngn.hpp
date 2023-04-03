@@ -102,22 +102,25 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   void diag_rc()
   {
-    if(this->rank == 0) 
-    {
-      prtcls->diag_wet_rng(.5e-6, 25.e-6);
-    }
-    this->mem->barrier();
-    diag_rx(r_c);
+//    if(this->rank == 0) 
+//    {
+//      prtcls->diag_wet_rng(.5e-6, 25.e-6);
+//    }
+//    this->mem->barrier();
+//    diag_rx(r_c);
+    r_c(this-ijk) = 0;
   }
 
   void diag_rl()
   {
+  /*
     if(this->rank == 0) 
     {
       prtcls->diag_all();
     }
     this->mem->barrier();
     diag_rx(this->r_l);
+    */
 
     this->r_l(this->ijk) = 0;
   }
