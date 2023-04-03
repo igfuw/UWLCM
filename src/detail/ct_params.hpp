@@ -51,8 +51,8 @@ struct ct_params_3D_lgrngn : ct_params_common
     vip_i=u, vip_j=v, vip_k=w, vip_den=-1
   }; };
   enum { delayed_step  = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) };
-  enum { fractal_recon = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) 
-                  //     |  libmpdataxx::opts::bit(ix::u)  | libmpdataxx::opts::bit(ix::v)  | libmpdataxx::opts::bit(ix::w)
+  enum { fractal_recon = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) | 
+                         libmpdataxx::opts::bit(ix::u)  | libmpdataxx::opts::bit(ix::v)  | libmpdataxx::opts::bit(ix::w)
        };
 };
 
