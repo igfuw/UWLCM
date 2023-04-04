@@ -22,6 +22,6 @@ void slvr_lgrngn<ct_params_t>::init_prtcls()
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
-    this->ambient_chem
+    ambient_chem_init
   ); 
 }

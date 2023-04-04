@@ -10,7 +10,7 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   using ix = typename ct_params_t::ix;
   using real_t = typename ct_params_t::real_t;
   using arr_sub_t = typename parent_t::arr_sub_t;
-  using chem_species_t = typename parent_t::chem_species_t;
+  using chem_species_t = libcloudphxx::common::chem::chem_species_t;
   using ambient_chem_t = typename parent_t::ambient_chem_t;
 
   private:
@@ -37,7 +37,6 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
 
   protected:
 
-  void init_prtcls() override;
   void hook_ante_loop(int nt) override;
   void diag() override;
 
@@ -90,6 +89,15 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
     HNO3_post_cond(args.mem->tmp[__FILE__][1][5])
 
   {
+    // ambient_chem and ambient_chem_init are different in that arrinfo is const in the latter... libcloudph++ requirement
+    boost::assign::insert(this->ambient_chem_init)
+      (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
+      (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
+      (chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
+      (chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
+      (chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
+      (chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
+
     boost::assign::insert(this->ambient_chem)
       (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
       (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
