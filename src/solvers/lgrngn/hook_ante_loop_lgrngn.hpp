@@ -1,5 +1,4 @@
 #pragma once
-#include "init_prtcls.hpp"
 #include "../slvr_lgrngn.hpp"
 
 template <class ct_params_t>

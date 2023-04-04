@@ -1,7 +1,5 @@
 #pragma once
 #include "../slvr_lgrngn_chem.hpp"
-#include "init_prtcls_chem.hpp"
-
 
 template <class ct_params_t>
 void slvr_lgrngn_chem<ct_params_t>::hook_ante_loop(int nt)

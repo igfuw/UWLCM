@@ -10,10 +10,26 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   using ix = typename ct_params_t::ix;
   using real_t = typename ct_params_t::real_t;
   using arr_sub_t = typename parent_t::arr_sub_t;
+  using chem_species_t = typename parent_t::chem_species_t;
+  using ambient_chem_t = typename parent_t::ambient_chem_t;
 
   private:
 
- std::map<enum chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> > ambient_chem, ambient_chem_pre_cond, ambient_chem_post_cond;
+  ambient_chem_t ambient_chem_pre_cond;
+
+  typename parent_t::arr_t &SO2_pre_cond,
+                           &O3_pre_cond,
+                           &H2O2_pre_cond,
+                           &CO2_pre_cond,
+                           &NH3_pre_cond,
+                           &HNO3_pre_cond,
+
+                           &SO2_post_cond,
+                           &O3_post_cond,
+                           &H2O2_post_cond,
+                           &CO2_post_cond,
+                           &NH3_post_cond,
+                           &HNO3_post_cond;
 
 
   void diag_pH();
@@ -22,7 +38,6 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   protected:
 
   void init_prtcls() override;
-  void sync_e2l() override;
   void hook_ante_loop(int nt) override;
   void diag() override;
 
@@ -75,7 +90,7 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
     HNO3_post_cond(args.mem->tmp[__FILE__][1][5])
 
   {
-    boost::assign::insert(ambient_chem)
+    boost::assign::insert(this->ambient_chem)
       (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
       (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
       (chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
@@ -91,7 +106,7 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
       (chem_species_t::NH3,  this->make_arrinfo(NH3_pre_cond))
       (chem_species_t::HNO3, this->make_arrinfo(HNO3_pre_cond));
 
-    boost::assign::insert(ambient_chem_post_cond)
+    boost::assign::insert(this->ambient_chem_post_cond)
       (chem_species_t::SO2,  this->make_arrinfo(SO2_post_cond))
       (chem_species_t::O3,   this->make_arrinfo(O3_post_cond))
       (chem_species_t::H2O2, this->make_arrinfo(H2O2_post_cond))

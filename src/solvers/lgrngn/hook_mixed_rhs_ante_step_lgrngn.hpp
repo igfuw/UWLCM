@@ -1,7 +1,6 @@
 #pragma once
 #include "../slvr_lgrngn.hpp"
 #include "../../detail/func_time.hpp"
-#include "sync_e2l.hpp"
 #if defined(STD_FUTURE_WORKS)
 #  include <future>
 #endif
@@ -74,7 +73,18 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 #endif
 
     // pass euler variables to lagrangian microphysics
-    this->sync_e2l();
+    prtcls->sync_in(
+      make_arrinfo(this->mem->advectee(ix::th)),
+      make_arrinfo(this->mem->advectee(ix::rv)),
+      libcloudphxx::lgrngn::arrinfo_t<real_t>(),
+      make_arrinfo(Cx),
+      this->n_dims == 2 ? libcloudphxx::lgrngn::arrinfo_t<real_t>() : make_arrinfo(Cy),
+      make_arrinfo(Cz),
+      (ct_params_t::sgs_scheme == libmpdataxx::solvers::iles) || (!params.cloudph_opts.turb_cond && !params.cloudph_opts.turb_adve && !params.cloudph_opts.turb_coal) ?
+        libcloudphxx::lgrngn::arrinfo_t<real_t>() :
+        make_arrinfo(this->diss_rate(this->domain).reindex(this->zero)),
+      ambient_chem
+    );
 
     using libcloudphxx::lgrngn::particles_t;
     using libcloudphxx::lgrngn::CUDA;
@@ -94,7 +104,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
           params.cloudph_opts,
           make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
           make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
-          std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
+          ambient_chem_post_cond
         );
       else if(params.backend == multi_CUDA)
         ftr = async_launcher(
@@ -103,7 +113,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
           params.cloudph_opts,
           make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
           make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
-          std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
+          ambient_chem_post_cond
         );
       assert(ftr.valid());
     } else 
@@ -112,7 +122,8 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
       prtcls->step_cond(
         params.cloudph_opts,
         make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero))
+        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
+        ambient_chem_post_cond
       );
     }
 

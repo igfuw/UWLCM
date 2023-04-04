@@ -18,6 +18,10 @@ void slvr_lgrngn<ct_params_t>::init_prtcls()
     make_arrinfo(this->mem->advectee(ix::th)),
     make_arrinfo(this->mem->advectee(ix::rv)),
     make_arrinfo(rhod),
-    make_arrinfo(p_e)
+    make_arrinfo(p_e),
+    libcloudphxx::lgrngn::arrinfo_t<real_t>(),
+    libcloudphxx::lgrngn::arrinfo_t<real_t>(),
+    libcloudphxx::lgrngn::arrinfo_t<real_t>(),
+    this->ambient_chem
   ); 
 }
