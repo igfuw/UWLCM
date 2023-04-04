@@ -55,7 +55,7 @@ target_include_directories(uwlcm_includes
 )
 
 # std::future test
-SET(CMAKE_REQUIRED_FLAGS "-std=c++11") # c++11 needed by the std_future test
+SET(CMAKE_REQUIRED_FLAGS "-std=c++17") 
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("#include <future>\n int main() { std::future<void> f; }\n" STD_FUTURE_WORKS)
 if(${STD_FUTURE_WORKS})
@@ -136,7 +136,7 @@ target_link_libraries(uwlcm
 
 # enabling c++14, but not gnu++14
 set_target_properties(uwlcm PROPERTIES CXX_EXTENSIONS OFF)
-target_compile_features(uwlcm PRIVATE cxx_std_14)
+target_compile_features(uwlcm PRIVATE cxx_std_17)
 
 # search for Boost
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)

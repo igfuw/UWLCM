@@ -38,6 +38,7 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   protected:
 
   void hook_ante_loop(int nt) override;
+  void hook_ante_delayed_step() override;
   void diag() override;
 
   void set_chem(bool val)

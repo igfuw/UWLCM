@@ -62,7 +62,11 @@ struct ct_params_2D_lgrngn_chem : ct_params_common
     SO2g, O3g, H2O2g, CO2g, NH3g, HNO3g,
     vip_i=u, vip_j=w, vip_den=-1
   }; };
-  enum { delayed_step = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) };
+  enum { delayed_step = libmpdataxx::opts::bit(ix::th) | libmpdataxx::opts::bit(ix::rv) 
+                      | libmpdataxx::opts::bit(ix::SO2g) | libmpdataxx::opts::bit(ix::O3g)
+                      | libmpdataxx::opts::bit(ix::H2O2g) | libmpdataxx::opts::bit(ix::CO2g)
+                      | libmpdataxx::opts::bit(ix::NH3g) | libmpdataxx::opts::bit(ix::HNO3g)
+       };
 };
 
 struct ct_params_2D_blk_2m : ct_params_common
