@@ -88,7 +88,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->xchng_ref(rx_ref, this->ijk_ref);
  //   std::cerr << "rx_ref(ijk_ref) after xchng_ref: " << rx_ref(this->ijk_ref) << std::endl;
  //   std::cerr << "rx_ref after xchng_ref: " << rx_ref << std::endl;
-    libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(rx_ref, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
+//    libmpdataxx::formulae::refined::spatial_average_ref2reg<real_t>(rx_ref, this->ijk_r2r, this->mem->n_ref/2, this->mem->distmem.grid_size_ref, true);
  //   std::cerr << "rx_ref(ijk_ref) after spatial average: " << rx_ref(this->ijk_ref) << std::endl;
     rx(this->ijk) = rx_ref(this->ijk_r2r);
    // std::cerr << "rx(ijk) after copy from refined: " << rx(this->ijk) << std::endl;
