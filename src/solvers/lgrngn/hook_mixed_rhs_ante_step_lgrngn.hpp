@@ -26,19 +26,19 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
   this->mem->barrier();
   */
 
-//  this->interpolate_refinee(ix::u);
-//  this->interpolate_refinee(ix::v);
-//  this->interpolate_refinee(ix::w);
+  this->interpolate_refinee(ix::u);
+  this->interpolate_refinee(ix::v);
+  this->interpolate_refinee(ix::w);
+
+  this->interpolate_refined_courants(courants, this->uvw_ref);
+
+//  this->mem->refinee(this->ix_r2r.at(ix::u))(this->ijkm_ref) = 0;
+//  this->mem->refinee(this->ix_r2r.at(ix::v))(this->ijkm_ref) = 0;
+//  this->mem->refinee(this->ix_r2r.at(ix::w))(this->ijkm_ref) = 0;
 //
-//  this->interpolate_refined_courants(courants, this->uvw_ref);
-
-  this->mem->refinee(this->ix_r2r.at(ix::u))(this->ijkm_ref) = 0;
-  this->mem->refinee(this->ix_r2r.at(ix::v))(this->ijkm_ref) = 0;
-  this->mem->refinee(this->ix_r2r.at(ix::w))(this->ijkm_ref) = 0;
-
-  courants[0] = 0;
-  courants[1] = 0;
-  courants[2] = 0;
+//  courants[0] = 0;
+//  courants[1] = 0;
+//  courants[2] = 0;
 
   //this->xchng_ref(ix::u);
   //this->xchng_ref(ix::v);
