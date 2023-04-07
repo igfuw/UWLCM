@@ -38,7 +38,7 @@ namespace cases
       return f_vel_prof(z) * si::seconds / si::meters - mean_vel;
     }
 
-    void init(bool window, quantity<si::length, real_t> Z) 
+    void init(bool window, quantity<si::length, real_t> Z, real_t target_mean_vel = 0) // target_mean_vel is the mean velocity we want to have within the window 
     {
       initialized=true;
       mean_vel = 0;
@@ -48,6 +48,7 @@ namespace cases
         for(int i=0; i < setup::mean_horvel_npts; ++i)
           mean_vel += f_vel_prof(i * (Z / si::meters) / (setup::mean_horvel_npts-1)) * si::seconds / si::meters;
         mean_vel /= setup::mean_horvel_npts;
+        mean_vel -= target_mean_vel;
       }
     }
 
