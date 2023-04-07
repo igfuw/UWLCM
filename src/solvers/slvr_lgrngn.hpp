@@ -82,6 +82,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->mem->barrier();
 
     this->spatial_average_ref2reg(rx_ref, rx);
+    nancheck(rx(this->ijk), "rx after spatial averaging from ref in diag_rx");
+
     rx(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
   }
 
