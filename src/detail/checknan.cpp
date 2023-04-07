@@ -1,6 +1,6 @@
 #pragma once
 
-#define NEGTOZERO_SET_VAR 1e-6
+#define NEGTOZERO_SET_VAR 1e-4
 
 #ifdef NDEBUG
 #define nancheck(arr, name) ((void)0)
