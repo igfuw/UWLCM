@@ -58,6 +58,11 @@ namespace cases
         rt_above = RF == 1 ? 1.5e-3 : (5. - 3. * (1. - exp((z_i[RF - 1] - z)/500.))) * 1e-3;
       return z < z_i[RF - 1] ? rt_below : rt_above;
     }
+
+    quantity<si::dimensionless, real_t> SO2g_dycoms(const real_t &z)
+    {
+      return quantity<si::dimensionless, real_t>(5e-10);
+    }
   
     template<class case_ct_params_t, int RF, int n_dims>
     class DycomsCommon : public Anelastic<case_ct_params_t, n_dims>
@@ -123,6 +128,16 @@ namespace cases
           return - (D * si::seconds) * z; 
         }
         BZ_DECLARE_FUNCTOR(w_LS_fctr);
+      };
+
+      // initial ambient SO2 profile (mixing ratio?)
+      struct SO2g_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return SO2g_dycoms(z);
+        }
+        BZ_DECLARE_FUNCTOR(SO2g_fctr);
       };
     
       // density profile as a function of altitude
@@ -224,6 +239,12 @@ namespace cases
           this->make_cyclic(th_global);
           concurr.advectee_global_set(th_global, ix::th);
         }
+
+        // chemical composition
+        concurr.advectee(ix::SO2g) = SO2g_fctr()(index * dz);
+    //      config::mixr_helper(this->setup)(index * dz)
+    //      * (SO2_g_0 * molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
+
       }
   
       // calculate the initial environmental theta and rv profiles

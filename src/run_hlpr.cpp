@@ -87,7 +87,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   {
     using rt_params_t = typename solver_t::rt_params_t;
     using ix = typename solver_t::ix;
-    enum {enable_sgs = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
+    enum {enable_sgs  = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
+    enum {enable_chem = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
   };
 
   using case_t = cases::CasesCommon<
