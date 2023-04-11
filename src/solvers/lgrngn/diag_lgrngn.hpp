@@ -6,6 +6,7 @@ void slvr_lgrngn<ct_params_t>::diag()
 {
   parent_t::diag();
 
+
   // ---- DEBUGGING: record interpolated refined courants ----
   // we dont have a function for recording variables are at the edges, so we crop last courant and shift values to the center
   // making a copy is not efficient, but this is just for debugging
@@ -40,6 +41,7 @@ void slvr_lgrngn<ct_params_t>::diag()
 
   // ---- END OF COURANT DEBUGGING ----
 
+  this->record_aux_dsc("dth", dth);
 
   // recording super-droplet concentration per grid cell 
   prtcls->diag_all();
