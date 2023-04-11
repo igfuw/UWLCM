@@ -220,7 +220,7 @@ namespace cases
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
       {
-        params.buoyancy_wet = true;
+        params.buoyancy_wet = false;
         params.subsidence = true;
         params.vel_subsidence = false;
         params.friction = true;
@@ -477,7 +477,7 @@ namespace cases
           // Otherwise we get stuck in pressure solver in simulations with fractal grid refinement. 
           // TODO: Is it due to errors in handling of boundary conditions in coupling from refined to resolved grids (e.g. spatial_average_ref2reg), 
           //       that is done to feed back r_l, rv and tht to dynamics? These variables affect buoyancy.
-          v.init(window, this->Z, -1);
+          v.init(window, this->Z, 0);
           this->ForceParameters.uv_mean[1] = v.mean_vel;
         }
     };
