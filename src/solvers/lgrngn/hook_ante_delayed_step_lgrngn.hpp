@@ -52,9 +52,14 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 
     this->mem->barrier();
     this->spatial_average_ref2reg(th_post_cond, dth);
-    nancheck(th_post_cond(this->ijk), "th_post_cond after spatial averaging from ref");
+    nancheck(dth(this->ijk), "dth after spatial averaging from ref");
     this->spatial_average_ref2reg(rv_post_cond, drv);
-    nancheck(rv_post_cond(this->ijk), "rv_post_cond after spatial averaging from ref");
+    nancheck(drv(this->ijk), "drv after spatial averaging from ref");
+
+    this->mem->barrier();
+    if(this->rank==0)
+      this->record_aux_dsc("dth", dth);
+    this->mem->barrier();
 
 
  //   std::cerr << "dth: " << dth(this->ijk) << std::endl;
