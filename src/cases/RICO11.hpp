@@ -473,11 +473,11 @@ namespace cases
       Rico11(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
         parent_t(_X, _Y, _Z, window)
         {
-          // we want to have 0.1 m/s mean velocity to stabilize the simulation. 
+          // we want to have some mean velocity to stabilize the simulation. 
           // Otherwise we get stuck in pressure solver in simulations with fractal grid refinement. 
           // TODO: Is it due to errors in handling of boundary conditions in coupling from refined to resolved grids (e.g. spatial_average_ref2reg), 
           //       that is done to feed back r_l, rv and tht to dynamics? These variables affect buoyancy.
-          v.init(window, this->Z, 0.1);
+          v.init(window, this->Z, -1);
           this->ForceParameters.uv_mean[1] = v.mean_vel;
         }
     };
