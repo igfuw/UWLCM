@@ -1,6 +1,13 @@
 #pragma once
 #include <random>
+#include <type_traits>
 #include "Anelastic.hpp"
+
+template< class, class = std::void_t<> >
+struct has_SO2g : std::false_type { };
+
+template< class T >
+struct has_SO2g<T, std::void_t<typename T::SO2g>> : std::true_type { };
 
 namespace cases 
 {
@@ -59,7 +66,7 @@ namespace cases
       return z < z_i[RF - 1] ? rt_below : rt_above;
     }
 
-    quantity<si::dimensionless, real_t> SO2g_dycoms(const real_t &z)
+    inline quantity<si::dimensionless, real_t> SO2g_dycoms(const real_t &z)
     {
       return quantity<si::dimensionless, real_t>(5e-10);
     }
@@ -241,7 +248,9 @@ namespace cases
         }
 
         // chemical composition
-        concurr.advectee(ix::SO2g) = SO2g_fctr()(index * dz);
+        if constexpr(has_SO2g<ix>{}())
+          concurr.advectee(ix::SO2g) = SO2g_fctr()(index * dz);
+
     //      config::mixr_helper(this->setup)(index * dz)
     //      * (SO2_g_0 * molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
 
