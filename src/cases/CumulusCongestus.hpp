@@ -185,7 +185,7 @@ namespace cases
           }
           if(cell_no == nz) break;
         }
-        if(cell_no != nz) throw std::runtime_error("The initial sounding is not high enough");
+        if(cell_no != nz) throw std::runtime_error("UWLCM: The initial sounding is not high enough");
 
         // calc derived profsiles
         std::vector<real_t> th_std(nz), th_dry(nz), rv(nz);

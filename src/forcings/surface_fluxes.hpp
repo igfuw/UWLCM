@@ -98,7 +98,7 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_u_impl(smg_tag)
 {
   // SMG simulation should not call surf_u - momentum fluxes are done via vip_rhs_expl_calc() in libmpdata++/solvers/detail/mpdata_rhs_vip_prs_sgs_common.hpp
-  throw std::runtime_error("SMG simulation called surf_u_impl.");
+  throw std::runtime_error("UWLCM: SMG simulation called surf_u_impl.");
   return;
 }
 
@@ -128,7 +128,7 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_v_impl(smg_tag)
 {
   // SMG simulation should not call surf_v - momentum fluxes are done via vip_rhs_expl_calc() in libmpdata++/solvers/detail/mpdata_rhs_vip_prs_sgs_common.hpp
-  throw std::runtime_error("SMG simulation called surf_v_impl.");
+  throw std::runtime_error("UWLCM: SMG simulation called surf_v_impl.");
   return;
 }
 

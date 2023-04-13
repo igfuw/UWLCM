@@ -117,7 +117,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   else if (user_params.model_case == "dry_pbl")
     case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else
-    throw std::runtime_error("wrong case choice");
+    throw std::runtime_error("UWLCM: wrong case choice");
 
   // instantiation of structure containing simulation parameters
   rt_params_t p;

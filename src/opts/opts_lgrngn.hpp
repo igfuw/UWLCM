@@ -109,7 +109,7 @@ void setopts_micro(
   if (adve_scheme_str == "euler") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
   else if (adve_scheme_str == "implicit") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
   else if (adve_scheme_str == "pred_corr") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
-  else throw std::runtime_error("unrecognized adve_scheme optsion");
+  else throw std::runtime_error("UWLCM: unrecognized adve_scheme optsion");
 
   setup::arr_1D_t neg_w_LS = rt_params.w_LS->copy(); 
   neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
@@ -119,7 +119,7 @@ void setopts_micro(
 
   {
     if(user_params.n1_stp*si::cubic_metres >= 0 && user_params.n2_stp*si::cubic_metres >= 0 && user_params.kappa1 == user_params.kappa2) {
-        throw std::runtime_error("cannot emplace two modes with same kappa");
+        throw std::runtime_error("UWLCM: cannot emplace two modes with same kappa");
     }
     if(user_params.n1_stp*si::cubic_metres >= 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -194,7 +194,7 @@ void setopts_micro(
 
       if(user_params.n1_stp*si::cubic_metres >= 0 || user_params.n2_stp*si::cubic_metres >= 0) {
         if(rt_params.gccn > setup::real_t(0)) 
-          throw std::runtime_error("CCN relaxation + GCCN + user-defined aerosol spectra does not work, because kappa ranges for relaxation are not known");
+          throw std::runtime_error("UWLCM: CCN relaxation + GCCN + user-defined aerosol spectra does not work, because kappa ranges for relaxation are not known");
         if(user_params.n1_stp*si::cubic_metres < 0)
           user_kpa_rng2 = std::make_pair<thrust_real_t, thrust_real_t>(0,10); // only one user-defined distribution, whole kappa range
         if(user_params.n2_stp*si::cubic_metres < 0)
