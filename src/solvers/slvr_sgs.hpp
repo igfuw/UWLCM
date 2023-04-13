@@ -368,7 +368,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     sgs_rv_flux(args.mem->tmp[__FILE__][3][1])
   {
     if(params.fricvelsq > 0 && params.cdrag > 0)
-      throw std::runtime_error("in SGS simulation either cdrag or fricvelsq need to be positive, not both");
+      throw std::runtime_error("UWLCM: in SGS simulation either cdrag or fricvelsq need to be positive, not both");
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)

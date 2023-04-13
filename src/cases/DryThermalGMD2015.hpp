@@ -186,7 +186,7 @@ namespace cases
       // TODO: make it work in 3d?
       DryThermal(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        throw std::runtime_error("Dry Thermal doesn't work in 3d yet");
+        throw std::runtime_error("UWLCM: Dry Thermal doesn't work in 3d yet");
       }
     };
   };
