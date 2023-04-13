@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/assign/ptr_map_inserter.hpp>
 #include "slvr_lgrngn.hpp"
 
 template <class ct_params_t>

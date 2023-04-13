@@ -46,6 +46,14 @@
   #include "solvers/slvr_dry.hpp"
 #endif
 
+#if !defined(UWLCM_DISABLE_2D_LGRNGN_CHEM) || !defined(UWLCM_DISABLE_3D_LGRNGN_CHEM)
+//  #include "opts/opts_lgrngn_chem.hpp"
+  #include "solvers/slvr_lgrngn_chem.hpp"
+  #include "solvers/lgrngn_chem/hook_ante_loop_lgrngn_chem.hpp"
+  #include "solvers/lgrngn_chem/hook_ante_delayed_step_lgrngn_chem.hpp"
+  #include "solvers/lgrngn_chem/diag_lgrngn_chem.hpp" 
+#endif
+
 #include "solvers/common/calc_forces_common.hpp"
 
 #include <map>
@@ -91,6 +99,7 @@ int main(int argc, char** argv)
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model length scale [m]. If negative, sgs_delta = dz")
       ("help", "produce a help message (see also --micro X --help)")
       ("relax_th_rv", po::value<bool>()->default_value(false) , "relax per-level mean theta and rv to a desired (case-specific) profile")
+      ("chem", po::value<bool>()->default_value(false) , "turn chemistry on/off")
 
       // aerosol distribution params
       // default values are realistic params, except n1_stp=n2_stp=-1
@@ -176,6 +185,7 @@ int main(int argc, char** argv)
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();
     user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
+    user_params.chem = vm["chem"].as<bool>();
     
 // sanity check if desired options were compiled
 #if defined(UWLCM_DISABLE_PIGGYBACKER)
@@ -217,12 +227,15 @@ int main(int argc, char** argv)
     if(micro != "none" && user_params.model_case == "dry_pbl")
       throw std::runtime_error("The dry_pbl case needs micro set to 'none'");
 
+    if(micro != "lgrngn" && user_params.chem)
+      throw std::runtime_error("Chemistry can only be done with Lagrangian microphysics");
+
     // run the simulation
-    if (micro == "lgrngn" && ny == 0) // 2D super-droplet
+    if (micro == "lgrngn" && ny == 0 && !user_params.chem) // 2D super-droplet
 #if !defined(UWLCM_DISABLE_2D_LGRNGN)
       run_hlpr<slvr_lgrngn, ct_params_2D_lgrngn>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
-      throw std::runtime_error("2D Lagrangian option was disabled at compile time");
+      throw std::runtime_error("2D Lagrangian without chemistry option was disabled at compile time");
 #endif
 
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
@@ -230,6 +243,13 @@ int main(int argc, char** argv)
       run_hlpr<slvr_lgrngn, ct_params_3D_lgrngn>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
       throw std::runtime_error("3D Lagrangian option was disabled at compile time");
+#endif
+
+    else if (micro == "lgrngn" && ny == 0 && user_params.chem) // 2D super-droplet with chemistry
+#if !defined(UWLCM_DISABLE_2D_LGRNGN_CHEM)
+      run_hlpr<slvr_lgrngn_chem, ct_params_2D_lgrngn_chem>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+      throw std::runtime_error("2D Lagrangian with chemistry option was disabled at compile time");
 #endif
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
