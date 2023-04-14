@@ -88,7 +88,6 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     using rt_params_t = typename solver_t::rt_params_t;
     using ix = typename solver_t::ix;
     enum {enable_sgs  = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
-    enum {enable_chem = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
   };
 
   using case_t = cases::CasesCommon<
@@ -171,6 +170,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     // WARNING: assumes certain ordering of variables to avoid tedious template programming !
     p.outvars.insert({1, {"v", "[m/s]"}});
   }
+
+  if constexpr(has_SO2g<ix>) p.outvars.insert({ix::SO2g,  {"SO2g", "[dimensionless]"}});
 
   // solver instantiation
   std::unique_ptr<concurr_any_t> concurr;

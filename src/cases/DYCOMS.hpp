@@ -3,36 +3,6 @@
 #include <type_traits>
 #include "Anelastic.hpp"
 
-template< typename, typename = void >
-constexpr bool has_SO2g{};
-template< typename T >
-constexpr bool has_SO2g<T, std::void_t<decltype(T::SO2g)>> = true;
-
-template< typename, typename = void >
-constexpr bool has_HNO3g{};
-template< typename T >
-constexpr bool has_HNO3g<T, std::void_t<decltype(T::HNO3g)>> = true;
-
-template< typename, typename = void >
-constexpr bool has_NH3g{};
-template< typename T >
-constexpr bool has_NH3g<T, std::void_t<decltype(T::NH3g)>> = true;
-
-template< typename, typename = void >
-constexpr bool has_CO2g{};
-template< typename T >
-constexpr bool has_CO2g<T, std::void_t<decltype(T::CO2g)>> = true;
-
-template< typename, typename = void >
-constexpr bool has_H2O2g{};
-template< typename T >
-constexpr bool has_H2O2g<T, std::void_t<decltype(T::H2O2g)>> = true;
-
-template< typename, typename = void >
-constexpr bool has_O3g{};
-template< typename T >
-constexpr bool has_O3g<T, std::void_t<decltype(T::O3g)>> = true;
-
 namespace cases 
 {
   namespace dycoms
