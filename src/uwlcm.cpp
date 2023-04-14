@@ -228,7 +228,7 @@ int main(int argc, char** argv)
       throw std::runtime_error("UWLCM: The dry_pbl case needs micro set to 'none'");
 
     if(micro != "lgrngn" && user_params.chem)
-      throw std::runtime_error("Chemistry can only be done with Lagrangian microphysics");
+      throw std::runtime_error("UWLCM: Chemistry can only be done with Lagrangian microphysics");
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0 && !user_params.chem) // 2D super-droplet

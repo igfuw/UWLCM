@@ -3,11 +3,35 @@
 #include <type_traits>
 #include "Anelastic.hpp"
 
-template< class, class = std::void_t<> >
-struct has_SO2g : std::false_type { };
+template< typename, typename = void >
+constexpr bool has_SO2g{};
+template< typename T >
+constexpr bool has_SO2g<T, std::void_t<decltype(T::SO2g)>> = true;
 
-template< class T >
-struct has_SO2g<T, std::void_t<typename T::SO2g>> : std::true_type { };
+template< typename, typename = void >
+constexpr bool has_HNO3g{};
+template< typename T >
+constexpr bool has_HNO3g<T, std::void_t<decltype(T::HNO3g)>> = true;
+
+template< typename, typename = void >
+constexpr bool has_NH3g{};
+template< typename T >
+constexpr bool has_NH3g<T, std::void_t<decltype(T::NH3g)>> = true;
+
+template< typename, typename = void >
+constexpr bool has_CO2g{};
+template< typename T >
+constexpr bool has_CO2g<T, std::void_t<decltype(T::CO2g)>> = true;
+
+template< typename, typename = void >
+constexpr bool has_H2O2g{};
+template< typename T >
+constexpr bool has_H2O2g<T, std::void_t<decltype(T::H2O2g)>> = true;
+
+template< typename, typename = void >
+constexpr bool has_O3g{};
+template< typename T >
+constexpr bool has_O3g<T, std::void_t<decltype(T::O3g)>> = true;
 
 namespace cases 
 {
@@ -70,6 +94,26 @@ namespace cases
     {
       return quantity<si::dimensionless, real_t>(5e-10);
     }
+    inline quantity<si::dimensionless, real_t> CO2g_dycoms(const real_t &z)
+    {
+      return quantity<si::dimensionless, real_t>(0);
+    }
+    inline quantity<si::dimensionless, real_t> O3g_dycoms(const real_t &z)
+    {
+      return quantity<si::dimensionless, real_t>(0);
+    }
+    inline quantity<si::dimensionless, real_t> H2O2g_dycoms(const real_t &z)
+    {
+      return quantity<si::dimensionless, real_t>(0);
+    }
+    inline quantity<si::dimensionless, real_t> NH3g_dycoms(const real_t &z)
+    {
+      return quantity<si::dimensionless, real_t>(0);
+    }
+    inline quantity<si::dimensionless, real_t> HNO3g_dycoms(const real_t &z)
+    {
+      return quantity<si::dimensionless, real_t>(0);
+    }
   
     template<class case_ct_params_t, int RF, int n_dims>
     class DycomsCommon : public Anelastic<case_ct_params_t, n_dims>
@@ -111,7 +155,7 @@ namespace cases
         }
         BZ_DECLARE_FUNCTOR(th_std_fctr);
       };
-    
+
       // westerly wind
       struct u_t : hori_vel_t
       {
@@ -137,7 +181,7 @@ namespace cases
         BZ_DECLARE_FUNCTOR(w_LS_fctr);
       };
 
-      // initial ambient SO2 profile (mixing ratio?)
+      // initial ambient chem profiles (mixing ratio?)
       struct SO2g_fctr
       {
         real_t operator()(const real_t &z) const
@@ -145,6 +189,46 @@ namespace cases
           return SO2g_dycoms(z);
         }
         BZ_DECLARE_FUNCTOR(SO2g_fctr);
+      };
+      struct H2O2g_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return H2O2g_dycoms(z);
+        }
+        BZ_DECLARE_FUNCTOR(H2O2g_fctr);
+      };
+      struct CO2g_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return CO2g_dycoms(z);
+        }
+        BZ_DECLARE_FUNCTOR(CO2g_fctr);
+      };
+      struct NH3g_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return NH3g_dycoms(z);
+        }
+        BZ_DECLARE_FUNCTOR(NH3g_fctr);
+      };
+      struct HNO3g_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return HNO3g_dycoms(z);
+        }
+        BZ_DECLARE_FUNCTOR(HNO3g_fctr);
+      };
+      struct O3g_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return O3g_dycoms(z);
+        }
+        BZ_DECLARE_FUNCTOR(O3g_fctr);
       };
     
       // density profile as a function of altitude
@@ -248,9 +332,18 @@ namespace cases
         }
 
         // chemical composition
-        if constexpr(has_SO2g<ix>{}())
-          concurr.advectee(ix::SO2g) = SO2g_fctr()(index * dz);
-
+        if constexpr(has_SO2g<ix>)
+          concurr.advectee(ix::SO2g)  = SO2g_fctr() (index * dz);
+        if constexpr(has_O3g<ix>)
+          concurr.advectee(ix::O3g)   = O3g_fctr()  (index * dz);
+        if constexpr(has_H2O2g<ix>)
+          concurr.advectee(ix::H2O2g) = H2O2g_fctr()(index * dz);
+        if constexpr(has_CO2g<ix>)
+          concurr.advectee(ix::CO2g)  = CO2g_fctr() (index * dz);
+        if constexpr(has_NH3g<ix>)
+          concurr.advectee(ix::NH3g)  = NH3g_fctr() (index * dz);
+        if constexpr(has_HNO3g<ix>)
+          concurr.advectee(ix::HNO3g) = HNO3g_fctr()(index * dz);
     //      config::mixr_helper(this->setup)(index * dz)
     //      * (SO2_g_0 * molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
 
