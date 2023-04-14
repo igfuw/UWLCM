@@ -179,19 +179,19 @@ int main(int argc, char** argv)
     
 // sanity check if desired options were compiled
 #if defined(UWLCM_DISABLE_PIGGYBACKER)
-    if(piggy)  throw std::runtime_error("Piggybacker option was disabled at compile time");
+    if(piggy)  throw std::runtime_error("UWLCM: Piggybacker option was disabled at compile time");
 #endif
 #if defined(UWLCM_DISABLE_DRIVER)
-    if(!piggy)  throw std::runtime_error("Driver option was disabled at compile time");
+    if(!piggy)  throw std::runtime_error("UWLCM: Driver option was disabled at compile time");
 #endif
 #if defined(UWLCM_DISABLE_SGS)
-    if(sgs)  throw std::runtime_error("SGS option was disabled at compile time");
+    if(sgs)  throw std::runtime_error("UWLCM: SGS option was disabled at compile time");
 #endif
 #if defined(UWLCM_DISABLE_ILES)
-    if(!sgs)  throw std::runtime_error("ILES option was disabled at compile time");
+    if(!sgs)  throw std::runtime_error("UWLCM: ILES option was disabled at compile time");
 #endif
 
-    if(piggy && sgs) throw std::runtime_error("SGS does not work in a piggybacker run");
+    if(piggy && sgs) throw std::runtime_error("UWLCM: SGS does not work in a piggybacker run");
 
     // set aerosol params to user_params data structure
     user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
@@ -212,66 +212,66 @@ int main(int argc, char** argv)
     user_params.model_case = vm["case"].as<std::string>();
 
     if(micro != "none" && user_params.model_case == "dry_thermal")
-      throw std::runtime_error("The dry_thermal case needs micro set to 'none'");
+      throw std::runtime_error("UWLCM: The dry_thermal case needs micro set to 'none'");
 
     if(micro != "none" && user_params.model_case == "dry_pbl")
-      throw std::runtime_error("The dry_pbl case needs micro set to 'none'");
+      throw std::runtime_error("UWLCM: The dry_pbl case needs micro set to 'none'");
 
     // run the simulation
     if (micro == "lgrngn" && ny == 0) // 2D super-droplet
 #if !defined(UWLCM_DISABLE_2D_LGRNGN)
       run_hlpr<slvr_lgrngn, ct_params_2D_lgrngn>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
-      throw std::runtime_error("2D Lagrangian option was disabled at compile time");
+      throw std::runtime_error("UWLCM: 2D Lagrangian option was disabled at compile time");
 #endif
 
     else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
 #if !defined(UWLCM_DISABLE_3D_LGRNGN)
       run_hlpr<slvr_lgrngn, ct_params_3D_lgrngn>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
-      throw std::runtime_error("3D Lagrangian option was disabled at compile time");
+      throw std::runtime_error("UWLCM: 3D Lagrangian option was disabled at compile time");
 #endif
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
 #if !defined(UWLCM_DISABLE_2D_BLK_1M)
       run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
-      throw std::runtime_error("2D Bulk 1-moment option was disabled at compile time");
+      throw std::runtime_error("UWLCM: 2D Bulk 1-moment option was disabled at compile time");
 #endif
 
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
 #if !defined(UWLCM_DISABLE_3D_BLK_1M)
       run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
-      throw std::runtime_error("3D Bulk 1-moment option was disabled at compile time");
+      throw std::runtime_error("UWLCM: 3D Bulk 1-moment option was disabled at compile time");
 #endif
 
     else if (micro == "blk_2m" && ny == 0) // 2D two-moment
 #if !defined(UWLCM_DISABLE_2D_BLK_2M)
       run_hlpr<slvr_blk_2m, ct_params_2D_blk_2m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
-      throw std::runtime_error("2D Bulk 2-moment option was disabled at compile time");
+      throw std::runtime_error("UWLCM: 2D Bulk 2-moment option was disabled at compile time");
 #endif
 
     else if (micro == "blk_2m" && ny > 0) // 3D two-moment
 #if !defined(UWLCM_DISABLE_3D_BLK_2M)      
       run_hlpr<slvr_blk_2m, ct_params_3D_blk_2m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
-      throw std::runtime_error("3D Bulk 2-moment option was disabled at compile time");
+      throw std::runtime_error("UWLCM: 3D Bulk 2-moment option was disabled at compile time");
 #endif
 
     else if (micro == "none" && ny == 0) // 2D two-moment
 #if !defined(UWLCM_DISABLE_2D_NONE)
       run_hlpr<slvr_dry, ct_params_2D_dry>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
-      throw std::runtime_error("2D none micro option was disabled at compile time");
+      throw std::runtime_error("UWLCM: 2D none micro option was disabled at compile time");
 #endif
 
     else if (micro == "none" && ny > 0) // 3D two-moment
 #if !defined(UWLCM_DISABLE_3D_NONE)      
       run_hlpr<slvr_dry, ct_params_3D_dry>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
-      throw std::runtime_error("3D none micro option was disabled at compile time");
+      throw std::runtime_error("UWLCM: 3D none micro option was disabled at compile time");
 #endif
 
     // TODO: not only micro can be wrong
