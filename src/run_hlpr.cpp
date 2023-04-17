@@ -33,6 +33,8 @@
   #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
   #include "solvers/lgrngn/diag_lgrngn.hpp" 
   #include "solvers/lgrngn/init_prtcls.hpp" 
+  #include "solvers/lgrngn/sync_in.hpp" 
+  #include "solvers/lgrngn/step_cond.hpp" 
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)
@@ -60,6 +62,8 @@
   #include "solvers/lgrngn_chem/hook_ante_loop_lgrngn_chem.hpp"
   #include "solvers/lgrngn_chem/hook_ante_delayed_step_lgrngn_chem.hpp"
   #include "solvers/lgrngn_chem/diag_lgrngn_chem.hpp" 
+  #include "solvers/lgrngn_chem/sync_in_chem.hpp" 
+  #include "solvers/lgrngn_chem/step_cond_chem.hpp" 
 #endif
 
 #include "run_hlpr.hpp"

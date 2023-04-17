@@ -27,14 +27,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   protected:
 
   using prtcls_t = std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>>;
-  using ambient_chem_t = std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >;
-  using ambient_chem_ct = std::map<enum libcloudphxx::common::chem::chem_species_t, const libcloudphxx::lgrngn::arrinfo_t<real_t> >;
 
   // member fields
   prtcls_t prtcls;
-
-  ambient_chem_t  ambient_chem, ambient_chem_post_cond;
-  ambient_chem_ct ambient_chem_init;
 
   // helpers for passing Courant numbers from libmpdata to libcloud
   typename parent_t::arr_t Cx, Cy, Cz;
@@ -135,6 +130,8 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   }
 
   virtual void init_prtcls();
+  virtual void sync_in();
+  virtual void step_cond();
 
   void hook_ante_loop(int nt);
   void hook_ante_step();

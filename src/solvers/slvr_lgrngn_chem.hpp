@@ -12,11 +12,14 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   using real_t = typename ct_params_t::real_t;
   using arr_sub_t = typename parent_t::arr_sub_t;
   using chem_species_t = libcloudphxx::common::chem::chem_species_t;
-  using ambient_chem_t = typename parent_t::ambient_chem_t;
+  using ambient_chem_t = std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >;
+  using ambient_chem_ct = std::map<enum libcloudphxx::common::chem::chem_species_t, const libcloudphxx::lgrngn::arrinfo_t<real_t> >;
 
   private:
 
-  ambient_chem_t ambient_chem_pre_cond;
+  ambient_chem_t  ambient_chem, ambient_chem_pre_cond, ambient_chem_post_cond;
+  ambient_chem_ct ambient_chem_init;
+
 
   typename parent_t::arr_t &SO2_pre_cond,
                            &O3_pre_cond,
@@ -41,6 +44,10 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   void hook_ante_loop(int nt) override;
   void hook_ante_delayed_step() override;
   void diag() override;
+  void init_prtcls() override;
+  void sync_in() override;
+  void step_cond() override;
+
 
   void set_chem(bool val)
   {
@@ -51,6 +58,17 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   {
     parent_t::set_rain(val);
     set_chem(val);
+  }
+
+  void assign_ambient_chem_pre_cond()
+  {
+    boost::assign::insert(ambient_chem_pre_cond)
+      (chem_species_t::SO2,  this->make_arrinfo(SO2_pre_cond))
+      (chem_species_t::O3,   this->make_arrinfo(O3_pre_cond))
+      (chem_species_t::H2O2, this->make_arrinfo(H2O2_pre_cond))
+      (chem_species_t::CO2,  this->make_arrinfo(CO2_pre_cond))
+      (chem_species_t::NH3,  this->make_arrinfo(NH3_pre_cond))
+      (chem_species_t::HNO3, this->make_arrinfo(HNO3_pre_cond));
   }
 
   public:
@@ -91,38 +109,6 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
     HNO3_post_cond(args.mem->tmp[__FILE__][1][5])
 
   {
-    // ambient_chem and ambient_chem_init are different in that arrinfo is const in the latter... libcloudph++ requirement
-    boost::assign::insert(this->ambient_chem_init)
-      (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
-      (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
-      (chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
-      (chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
-      (chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
-      (chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
-
-    boost::assign::insert(this->ambient_chem)
-      (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
-      (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
-      (chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
-      (chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
-      (chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
-      (chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
-
-    boost::assign::insert(ambient_chem_pre_cond)
-      (chem_species_t::SO2,  this->make_arrinfo(SO2_pre_cond))
-      (chem_species_t::O3,   this->make_arrinfo(O3_pre_cond))
-      (chem_species_t::H2O2, this->make_arrinfo(H2O2_pre_cond))
-      (chem_species_t::CO2,  this->make_arrinfo(CO2_pre_cond))
-      (chem_species_t::NH3,  this->make_arrinfo(NH3_pre_cond))
-      (chem_species_t::HNO3, this->make_arrinfo(HNO3_pre_cond));
-
-    boost::assign::insert(this->ambient_chem_post_cond)
-      (chem_species_t::SO2,  this->make_arrinfo(SO2_post_cond))
-      (chem_species_t::O3,   this->make_arrinfo(O3_post_cond))
-      (chem_species_t::H2O2, this->make_arrinfo(H2O2_post_cond))
-      (chem_species_t::CO2,  this->make_arrinfo(CO2_post_cond))
-      (chem_species_t::NH3,  this->make_arrinfo(NH3_post_cond))
-      (chem_species_t::HNO3, this->make_arrinfo(HNO3_post_cond));
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
