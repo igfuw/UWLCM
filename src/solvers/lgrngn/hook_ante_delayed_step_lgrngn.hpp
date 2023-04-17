@@ -64,7 +64,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 //    this->avg_edge_sclr(dth, this->ijk);
 //    this->avg_edge_sclr(drv, this->ijk);
 
-//    this->state(ix::th)(this->ijk) += dth(this->ijk); 
+    this->state(ix::th)(this->ijk) += dth(this->ijk); 
     this->state(ix::rv)(this->ijk) += drv(this->ijk); 
 
     // microphysics could have led to rv < 0 ?
