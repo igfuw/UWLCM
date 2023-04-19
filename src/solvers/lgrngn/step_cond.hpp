@@ -23,7 +23,8 @@ void slvr_lgrngn<ct_params_t>::step_cond()
         dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
         params.cloudph_opts,
         make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero))
+        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
+        std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
       );
     else if(params.backend == multi_CUDA)
       ftr = async_launcher(
@@ -31,7 +32,8 @@ void slvr_lgrngn<ct_params_t>::step_cond()
         dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
         params.cloudph_opts,
         make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero))
+        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
+        std::map<enum libcloudphxx::common::chem::chem_species_t, libcloudphxx::lgrngn::arrinfo_t<real_t> >()
       );
     assert(ftr.valid());
   } else 

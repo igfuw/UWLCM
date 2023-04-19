@@ -30,8 +30,8 @@ void slvr_lgrngn_chem<ct_params_t>::step_cond()
         &particles_t<real_t, CUDA>::step_cond, 
         dynamic_cast<particles_t<real_t, CUDA>*>(this->prtcls.get()),
         params.cloudph_opts,
-        make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
+        this->make_arrinfo(this->th_post_cond(this->domain).reindex(this->zero)),
+        this->make_arrinfo(this->rv_post_cond(this->domain).reindex(this->zero)),
         ambient_chem_post_cond
       );
     else if(params.backend == multi_CUDA)
@@ -39,8 +39,8 @@ void slvr_lgrngn_chem<ct_params_t>::step_cond()
         &particles_t<real_t, multi_CUDA>::step_cond, 
         dynamic_cast<particles_t<real_t, multi_CUDA>*>(this->prtcls.get()),
         params.cloudph_opts,
-        make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-        make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
+        this->make_arrinfo(this->th_post_cond(this->domain).reindex(this->zero)),
+        this->make_arrinfo(this->rv_post_cond(this->domain).reindex(this->zero)),
         ambient_chem_post_cond
       );
     assert(this->ftr.valid());
@@ -49,9 +49,11 @@ void slvr_lgrngn_chem<ct_params_t>::step_cond()
   {
     this->prtcls->step_cond(
       params.cloudph_opts,
-      make_arrinfo(th_post_cond(this->domain).reindex(this->zero)),
-      make_arrinfo(rv_post_cond(this->domain).reindex(this->zero)),
+      this->make_arrinfo(this->th_post_cond(this->domain).reindex(this->zero)),
+      this->make_arrinfo(this->rv_post_cond(this->domain).reindex(this->zero)),
       ambient_chem_post_cond
     );
+      std::cerr <<  "SO2_post_cond right after step_cond with async==0: " << SO2_post_cond(this->ijk) << std::endl;
+
   }
 }

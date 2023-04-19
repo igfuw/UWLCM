@@ -34,12 +34,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   // helpers for passing Courant numbers from libmpdata to libcloud
   typename parent_t::arr_t Cx, Cy, Cz;
 
-  private:
-
-#if defined(UWLCM_TIMING)
-  setup::clock::time_point tbeg, tend;
-#endif
-
   // helpers for calculating RHS from condensation, probably some of the could be avoided e.g. if step_cond returnd deltas and not changed fields 
   // or if change in theta was calculated from change in rv  
   typename parent_t::arr_t &rv_pre_cond,
@@ -47,6 +41,12 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
                            &th_pre_cond,
                            &th_post_cond,
                            &r_c;  // temp storate for r_c to be used in SMG, separate storage for it allows more concurrency (like r_l)
+
+  private:
+
+#if defined(UWLCM_TIMING)
+  setup::clock::time_point tbeg, tend;
+#endif
 
   void diag_rl()
   {

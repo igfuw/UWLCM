@@ -61,7 +61,9 @@
   #include "solvers/slvr_lgrngn_chem.hpp"
   #include "solvers/lgrngn_chem/hook_ante_loop_lgrngn_chem.hpp"
   #include "solvers/lgrngn_chem/hook_ante_delayed_step_lgrngn_chem.hpp"
+  #include "solvers/lgrngn_chem/hook_mixed_rhs_ante_step_lgrngn_chem.hpp"
   #include "solvers/lgrngn_chem/diag_lgrngn_chem.hpp" 
+  #include "solvers/lgrngn_chem/init_prtcls_chem.hpp" 
   #include "solvers/lgrngn_chem/sync_in_chem.hpp" 
   #include "solvers/lgrngn_chem/step_cond_chem.hpp" 
 #endif

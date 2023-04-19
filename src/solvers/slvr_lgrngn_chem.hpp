@@ -43,6 +43,7 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
 
   void hook_ante_loop(int nt) override;
   void hook_ante_delayed_step() override;
+  void hook_mixed_rhs_ante_step() override;
   void diag() override;
   void init_prtcls() override;
   void sync_in() override;

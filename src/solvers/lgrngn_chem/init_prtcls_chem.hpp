@@ -23,11 +23,11 @@ void slvr_lgrngn_chem<ct_params_t>::init_prtcls()
     (chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
     (chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
 
-  prtcls->init(
-    make_arrinfo(this->mem->advectee(ix::th)),
-    make_arrinfo(this->mem->advectee(ix::rv)),
-    make_arrinfo(rhod),
-    make_arrinfo(p_e),
+  this->prtcls->init(
+    this->make_arrinfo(this->mem->advectee(ix::th)),
+    this->make_arrinfo(this->mem->advectee(ix::rv)),
+    this->make_arrinfo(rhod),
+    this->make_arrinfo(p_e),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),

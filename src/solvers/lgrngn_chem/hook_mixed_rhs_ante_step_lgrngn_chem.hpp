@@ -11,6 +11,9 @@ void slvr_lgrngn_chem<ct_params_t>::hook_mixed_rhs_ante_step()
   NH3_pre_cond(this->ijk)  = this->state(ix::NH3g)(this->ijk);
   HNO3_pre_cond(this->ijk) = this->state(ix::HNO3g)(this->ijk);
 
+  std::cerr <<  "SO2_pre_cond in hook_mixed_rhs_ante_step: " << SO2_pre_cond(this->ijk) << std::endl;
+
+
   parent_t::hook_mixed_rhs_ante_step();
 }
 
