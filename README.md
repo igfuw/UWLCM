@@ -1,7 +1,11 @@
 # University of Warsaw Lagrangian Cloud Model
 
 UWLCM is a tool for numerical modeling of clouds using LES model of turbulence and Lagrangian cloud microphysics.
-Paper describing the model is available at: https://www.geosci-model-dev-discuss.net/gmd-2018-281/
+
+Papers describing the model: 
+https://gmd.copernicus.org/articles/12/2587/2019/
+https://gmd.copernicus.org/articles/15/4489/2022/
+
 
 Key features:
  - MPDATA algorithm for advection
