@@ -16,12 +16,13 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   public:
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
+  
   private:
-
   // a 2D/3D array with copy of the environmental total pressure of dry air
   typename parent_t::arr_t &p_e;
 
   protected:
+  typename parent_t::arr_t &precipitation_rate;
 
   // accumulated water falling out of domain
   real_t liquid_puddle;
@@ -39,8 +40,8 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   {
     parent_t::diag();
     
-    // TODO: recording precipitation flux
-    // this->record_aux_dsc("precip_rate",precipitation_rate);    
+    // recording precipitation flux
+    this->record_aux_dsc("precip_rate", precipitation_rate);    
 
     /*
     assert(this->rank == 0);
@@ -151,7 +152,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 1); // p_e
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // p_e, precipitation_rate
   }
 
   // ctor
@@ -162,6 +163,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t(args, p),
     params(p),
     liquid_puddle(0),
-    p_e(args.mem->tmp[__FILE__][0][0])
+    p_e(args.mem->tmp[__FILE__][0][0]),
+    precipitation_rate(args.mem->tmp[__FILE__][0][1])
   {}
 };

@@ -46,14 +46,16 @@ class slvr_blk_2m<
         auto
           dot_rr = rhs.at(parent_t::ix::rr)(i, this->j),
           dot_nr = rhs.at(parent_t::ix::nr)(i, this->j);
+          precipitation_rate_arg = this->precipitation_rate(i, this->j);
         const auto
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j),
           nr     = this->state(parent_t::ix::nr)(i, this->j);
         this->liquid_puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
-          this->params.cloudph_opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
+          this->params.cloudph_opts, dot_rr, dot_nr, precipitation_rate_arg, rhod, rr, nr, this->dt, this->params.dz
         );
       }
+      rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
       this->mem->barrier();
       if(this->rank == 0)
@@ -102,14 +104,16 @@ class slvr_blk_2m<
           auto
           dot_rr = rhs.at(parent_t::ix::rr)(i, j, this->k),
           dot_nr = rhs.at(parent_t::ix::nr)(i, j, this->k);
+          precipitation_rate_arg = this->precipitation_rate(i, j, this->k);
           const auto
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k),
           nr     = this->state(parent_t::ix::nr)(i, j, this->k);
           this->liquid_puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
-            this->params.cloudph_opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
+            this->params.cloudph_opts, dot_rr, dot_nr, precipitation_rate_arg, rhod, rr, nr, this->dt, this->params.dz
           );
         }
+        rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 
       this->mem->barrier();
       if(this->rank == 0)
