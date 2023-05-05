@@ -1,6 +1,5 @@
 #pragma once
 #include "blk_1m/slvr_blk_1m_common.hpp"
-
 #include <libcloudph++/blk_1m/rhs_columnwise.hpp>
 
 template <class ct_params_t, class enableif = void>

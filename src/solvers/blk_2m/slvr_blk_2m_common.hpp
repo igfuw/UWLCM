@@ -22,7 +22,9 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   typename parent_t::arr_t &p_e;
 
   protected:
-  typename parent_t::arr_t &precipitation_rate;
+  typename parent_t::arr_t &rr_flux;
+  typename parent_t::arr_t &nr_flux;
+
 
   // accumulated water falling out of domain
   real_t liquid_puddle;
@@ -41,7 +43,8 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t::diag();
     
     // recording precipitation flux
-    this->record_aux_dsc("precip_rate", precipitation_rate);    
+    this->record_aux_dsc("precip_rate_rr", rr_flux);    
+    this->record_aux_dsc("precip_rate_nr", nr_flux);    
 
     /*
     assert(this->rank == 0);
@@ -152,7 +155,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // p_e, precipitation_rate
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 3); // p_e, rr_flux, nr_flux
   }
 
   // ctor
@@ -164,6 +167,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     params(p),
     liquid_puddle(0),
     p_e(args.mem->tmp[__FILE__][0][0]),
-    precipitation_rate(args.mem->tmp[__FILE__][0][1])
+    rr_flux(args.mem->tmp[__FILE__][0][1]),
+    nr_flux(args.mem->tmp[__FILE__][0][2])
   {}
 };

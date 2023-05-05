@@ -16,8 +16,11 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
   parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
   // zero-out precipitation rate, will be set in columnwise
-  if(at == 0)
-    precipitation_rate(this->ijk) = 0;
+  if(at == 0) 
+  {
+    rr_flux(this->ijk) = 0;
+    nr_flux(this->ijk) = 0;
+  }
 
   this->mem->barrier();
 
