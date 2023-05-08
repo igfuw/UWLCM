@@ -258,10 +258,10 @@ namespace cases
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
-                                       blitz::Array<real_t, n_dims> th_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                 const blitz::Array<real_t, n_dims> &th_ground,   
+                                 const blitz::Array<real_t, n_dims> &U_ground,   
+                                 const int timestep, const real_t dt, 
+                                 const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
@@ -272,10 +272,10 @@ namespace cases
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                       blitz::Array<real_t, n_dims> rt_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                const blitz::Array<real_t, n_dims> &rt_ground,   
+                                const blitz::Array<real_t, n_dims> &U_ground,   
+                                const int timestep, const real_t dt, 
+                                const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
@@ -287,11 +287,12 @@ namespace cases
 
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
-      void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
-                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
-                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
-                               const real_t &U_ground_z,
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean)
+      void update_surf_flux_uv  (blitz::Array<real_t, n_dims> surf_flux_uv,
+                                 const blitz::Array<real_t, n_dims> &uv_ground,   
+                                 const blitz::Array<real_t, n_dims> &U_ground,   
+                                 const int timestep, const real_t dt, 
+                                 const real_t dx, const real_t dy, const real_t U_ground_z, 
+                                 const real_t uv_mean = 0) override
       {
         surf_flux_uv = where(U_ground == 0., 0.,
             - 0.0625 * (uv_ground + uv_mean) / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)// 0.0625 m^2 / s^2 is the square of friction velocity = 0.25 m / s; * -1 because negative gradient of upward flux means inflow

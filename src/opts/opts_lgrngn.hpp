@@ -110,11 +110,11 @@ void setopts_micro(
   else if (adve_scheme_str == "pred_corr") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
   else throw std::runtime_error("UWLCM: unrecognized adve_scheme optsion");
 
-  setup::arr_1D_t neg_w_LS = rt_params.w_LS->copy(); 
+  setup::arr_1D_t neg_w_LS = rt_params.profs_ref.w_LS.copy(); 
   neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
-  rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
+  rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.profs_ref.mix_len.begin(), rt_params.profs_ref.mix_len.end());
 
   {
     if(user_params.n1_stp*si::cubic_metres >= 0 && user_params.n2_stp*si::cubic_metres >= 0 && user_params.kappa1 == user_params.kappa2) {

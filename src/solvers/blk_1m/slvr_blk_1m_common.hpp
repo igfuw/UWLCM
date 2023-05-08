@@ -99,7 +99,7 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->state(ix::rr)(this->ijk) = 0;
 
     // init the p_e array
-    p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
+    p_e(this->ijk).reindex(this->zero) = (params.profs.p_e)(this->vert_idx);
 
     // deal with initial supersaturation, TODO: don't do it here (vide slvr_lgrngn)
     condevap();

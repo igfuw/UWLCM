@@ -219,13 +219,12 @@ namespace cases
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 
       }
-
       // functions that set surface fluxes per timestep
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
-                                       blitz::Array<real_t, n_dims> th_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                 const blitz::Array<real_t, n_dims> &th_ground,   
+                                 const blitz::Array<real_t, n_dims> &U_ground,   
+                                 const int timestep, const real_t dt, 
+                                 const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         if(timestep == 0) 
           surf_flux_sens = .1 * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; -1 because negative gradient of upward flux means inflow
@@ -238,12 +237,11 @@ namespace cases
         }
       }
       
-
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                       blitz::Array<real_t, n_dims> rt_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                const blitz::Array<real_t, n_dims> &rt_ground,   
+                                const blitz::Array<real_t, n_dims> &U_ground,   
+                                const int timestep, const real_t dt, 
+                                const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         if(timestep == 0)
           surf_flux_lat = .4e-4 * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [m/s]
@@ -259,17 +257,17 @@ namespace cases
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
       void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
-                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
-                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
-                               const real_t &U_ground_z,
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean)
+                               const blitz::Array<real_t, n_dims> &uv_ground,    // value of u or v on the ground
+                               const blitz::Array<real_t, n_dims> &U_ground,     // magnitude of horizontal ground wind
+                               const int timestep, const real_t dt,
+                               const real_t dx, const real_t dy, const real_t U_ground_z,
+                               const real_t uv_mean = 0)
       {
         surf_flux_uv = where(U_ground < 1e-4, 
             - 0.0784 * (uv_ground + uv_mean) / real_t(1e-4) * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters), // 0.0784 m^2 / s^2 is the square of friction velocity = 0.28 m / s
             - 0.0784 * (uv_ground + uv_mean) / U_ground * -1  * (this->rhod_0 / si::kilograms * si::cubic_meters)
           );
       }
-
 
       // ctor
       CumulusCongestusCommon()

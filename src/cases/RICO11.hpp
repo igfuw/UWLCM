@@ -303,25 +303,26 @@ namespace cases
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
         // large-scale horizontal advection
+	// TODO: instead of initializing it here, use the new update_th/rv_LS with t=0?
         profs.th_LS = th_LS_fctr()(k * dz);
         profs.rv_LS = rv_LS_fctr()(k * dz);
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
-                                 blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
-                                 blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
-                                 const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                 const blitz::Array<real_t, n_dims> &th_ground,   
+                                 const blitz::Array<real_t, n_dims> &U_ground,   
+                                 const int timestep, const real_t dt, 
+                                 const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
         surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                       blitz::Array<real_t, n_dims> rt_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                const blitz::Array<real_t, n_dims> &rt_ground,   
+                                const blitz::Array<real_t, n_dims> &U_ground,   
+                                const int timestep, const real_t dt, 
+                                const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
         surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * (this->rhod_0 / si::kilograms * si::cubic_meters); // [kg / (m^2 s)]
@@ -329,29 +330,30 @@ namespace cases
 
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
-      void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
-                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground (without mean)
-                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind (total, including mean)
-                               const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean) override
+      void update_surf_flux_uv  (blitz::Array<real_t, n_dims> surf_flux_uv,                  // output array
+                                 const blitz::Array<real_t, n_dims> &uv_ground,              // value of u or v on the ground (without mean if window==1)
+                                 const blitz::Array<real_t, n_dims> &U_ground,               // magnitude of horizontal ground wind (total, including mean if window==1)
+                                 const int timestep, const real_t dt,                         
+                                 const real_t dx, const real_t dy, const real_t U_ground_z, 
+                                 const real_t uv_mean = 0) override
       {
         surf_flux_uv = - formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001229) * U_ground * (uv_ground + uv_mean) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
       }
 
 /*
-      void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
-                        int timestep, const real_t dt, real_t dz)
-      {
-        blitz::firstIndex k;
-        rv_LS = rv_LS_var_fctr(timestep * dt)(k * dz);
-      };
+    void update_rv_LS(blitz::Array<real_t, 1> &rv_LS,
+                      const int timestep, const real_t dt, const real_t dz) override
+    {
+      blitz::firstIndex k;
+      rv_LS = rv_LS_var_fctr(timestep * dt)(k * dz);
+    };
 
-      void update_th_LS(blitz::Array<real_t, 1> th_LS,
-                        int timestep, const real_t dt, real_t dz)
-      {
-        blitz::firstIndex k;
-        th_LS = th_LS_var_fctr(timestep * dt)(k * dz);
-      };
+    void update_th_LS(blitz::Array<real_t, 1> &th_LS,
+                      const int timestep, const real_t dt, const real_t dz) override
+    {
+      blitz::firstIndex k;
+      th_LS = th_LS_var_fctr(timestep * dt)(k * dz);
+    };
       */
 
       void init()
@@ -471,7 +473,11 @@ namespace cases
       Rico11(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
         parent_t(_X, _Y, _Z, window)
         {
-          v.init(window, this->Z);
+          // we want to have some mean velocity to stabilize the simulation. 
+          // Otherwise we get stuck in pressure solver in simulations with fractal grid refinement. 
+          // TODO: Is it due to errors in handling of boundary conditions in coupling from refined to resolved grids (e.g. spatial_average_ref2reg), 
+          //       that is done to feed back r_l, rv and tht to dynamics? These variables affect buoyancy.
+          v.init(window, this->Z, 0);
           this->ForceParameters.uv_mean[1] = v.mean_vel;
         }
     };

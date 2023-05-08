@@ -244,31 +244,23 @@ namespace cases
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
-                                 blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
-                                 blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
-                                 const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                                 const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                                 const blitz::Array<real_t, n_dims> &th_ground,   
+                                 const blitz::Array<real_t, n_dims> &U_ground,   
+                                 const int timestep, const real_t dt, 
+                                 const real_t dx, const real_t dy, const real_t U_ground_z) override
       {
         surf_flux_sens = .01 * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; -1 because negative gradient of upward flux means inflow
 
       }
 
-      void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                       blitz::Array<real_t, n_dims> rt_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
-      {
-        surf_flux_lat = 0;
-      }
-
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
-      void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
-                               blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
-                               blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
-                               const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy, const real_t &uv_mean) override
+      void update_surf_flux_uv  (blitz::Array<real_t, n_dims> surf_flux_uv,
+                                 const blitz::Array<real_t, n_dims> &uv_ground,   
+                                 const blitz::Array<real_t, n_dims> &U_ground,   
+                                 const int timestep, const real_t dt, 
+                                 const real_t dx, const real_t dy, const real_t U_ground_z, 
+                                 const real_t uv_mean = 0) override
       {
         surf_flux_uv = - real_t(0.1) * U_ground * (uv_ground + uv_mean) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [ kg m/s / (m^2 s) ]
       }

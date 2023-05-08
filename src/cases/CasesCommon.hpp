@@ -38,7 +38,7 @@ namespace cases
       return f_vel_prof(z) * si::seconds / si::meters - mean_vel;
     }
 
-    void init(bool window, quantity<si::length, real_t> Z) 
+    void init(bool window, quantity<si::length, real_t> Z, real_t target_mean_vel = 0) // target_mean_vel is the mean velocity we want to have within the window 
     {
       initialized=true;
       mean_vel = 0;
@@ -48,6 +48,7 @@ namespace cases
         for(int i=0; i < setup::mean_horvel_npts; ++i)
           mean_vel += f_vel_prof(i * (Z / si::meters) / (setup::mean_horvel_npts-1)) * si::seconds / si::meters;
         mean_vel /= setup::mean_horvel_npts;
+        mean_vel -= target_mean_vel;
       }
     }
 
@@ -158,32 +159,33 @@ namespace cases
     }
 
     virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
-                                       blitz::Array<real_t, n_dims> th_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+                                       const blitz::Array<real_t, n_dims> &th_ground,   
+                                       const blitz::Array<real_t, n_dims> &U_ground,   
+                                       const int timestep, const real_t dt, 
+                                       const real_t dx, const real_t dy, const real_t U_ground_z)
     {if(timestep==0) surf_flux_sens = 0.;};
 
-    virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
-                                       blitz::Array<real_t, n_dims> rt_ground,   
-                                       blitz::Array<real_t, n_dims> U_ground,   
-                                       const real_t &U_ground_z,
-                                       const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+    virtual void update_surf_flux_lat (blitz::Array<real_t, n_dims> surf_flux_lat,
+                                       const blitz::Array<real_t, n_dims> &rt_ground,   
+                                       const blitz::Array<real_t, n_dims> &U_ground,   
+                                       const int timestep, const real_t dt, 
+                                       const real_t dx, const real_t dy, const real_t U_ground_z)
     {if(timestep==0) surf_flux_lat = 0.;};
 
-    virtual void update_surf_flux_uv(blitz::Array<real_t, n_dims> surf_flux_uv,
-                                     blitz::Array<real_t, n_dims> uv_ground,   
-                                     blitz::Array<real_t, n_dims> U_ground,   
-                                     const real_t &U_ground_z,
-                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0, const real_t &uv_mean = 0)
+    virtual void update_surf_flux_uv  (blitz::Array<real_t, n_dims> surf_flux_uv,
+                                       const blitz::Array<real_t, n_dims> &uv_ground,   
+                                       const blitz::Array<real_t, n_dims> &U_ground,   
+                                       const int timestep, const real_t dt, 
+                                       const real_t dx, const real_t dy, const real_t U_ground_z, 
+                                       const real_t uv_mean = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
 
-    virtual void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
-                              int timestep, real_t dt, real_t dz)
+    virtual void update_rv_LS(blitz::Array<real_t, 1> &rv_LS,
+                              const int timestep, const real_t dt, const real_t dz)
     {};
 
-    virtual void update_th_LS(blitz::Array<real_t, 1> th_LS,
-                              int timestep, real_t dt, real_t dz)
+    virtual void update_th_LS(blitz::Array<real_t, 1> &th_LS,
+                              const int timestep, const real_t dt, const real_t dz)
     {};
 
     // ctor

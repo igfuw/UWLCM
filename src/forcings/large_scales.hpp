@@ -5,19 +5,25 @@
 template <class ct_params_t>
 void slvr_common<ct_params_t>::rv_LS()
 {
-  params.update_rv_LS(
-    *params.rv_LS, this->timestep, params.dt, params.dz
-  );
+  this->mem->barrier();
+  if(this->rank == 0)
+  {
+    params.update_rv_LS(this->timestep, this->dt);
+  }
+  this->mem->barrier();
 
-  F(this->ijk).reindex(this->zero) = (*params.rv_LS)(this->vert_idx);
+  F(this->ijk).reindex(this->zero) = (params.profs.rv_LS)(this->vert_idx);
 }
 
 template <class ct_params_t>
 void slvr_common<ct_params_t>::th_LS()
 {
-  params.update_th_LS(
-    *params.th_LS, this->timestep, params.dt, params.dz
-  );
+  this->mem->barrier();
+  if(this->rank == 0)
+  {
+    params.update_th_LS(this->timestep, this->dt);
+  }
+  this->mem->barrier();
 
-  F(this->ijk).reindex(this->zero) = (*params.th_LS)(this->vert_idx);
+  F(this->ijk).reindex(this->zero) = (params.profs.th_LS)(this->vert_idx);
 }

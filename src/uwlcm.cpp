@@ -12,41 +12,7 @@
 # include <omp.h>
 #endif
 
-#include "opts/opts_common.hpp"
-
-#include "run_hlpr.hpp"
-
-#include "detail/ct_params.hpp"
-
-#if !defined(UWLCM_DISABLE_2D_LGRNGN) || !defined(UWLCM_DISABLE_3D_LGRNGN)
-//  #include "opts/opts_lgrngn.hpp"
-  #include "solvers/slvr_lgrngn.hpp"
-  #include "solvers/lgrngn/diag_lgrngn.hpp" 
-  #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
-  #include "solvers/lgrngn/hook_ante_loop_lgrngn.hpp"
-  #include "solvers/lgrngn/hook_ante_step_lgrngn.hpp" 
-  #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
-#endif
-
-#if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)
-//  #include "opts/opts_blk_1m.hpp"
-  #include "solvers/slvr_blk_1m.hpp"
-  #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
-  #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
-#endif
-
-#if !defined(UWLCM_DISABLE_2D_BLK_2M) || !defined(UWLCM_DISABLE_3D_BLK_2M)
-//  #include "opts/opts_blk_2m.hpp"
-  #include "solvers/slvr_blk_2m.hpp"
-  #include "solvers/blk_2m/calc_forces_blk_2m_common.hpp"
-  #include "solvers/blk_2m/update_rhs_blk_2m_common.hpp"
-#endif
-
-#if !defined(UWLCM_DISABLE_2D_NONE) || !defined(UWLCM_DISABLE_3D_NONE)
-  #include "solvers/slvr_dry.hpp"
-#endif
-
-#include "solvers/common/calc_forces_common.hpp"
+#include "common_headers.hpp"
 
 #include <map>
 
@@ -106,6 +72,7 @@ int main(int argc, char** argv)
       ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "aerosol distirbution lognormal mode 2: hygroscopicity parameter (lgrngn and blk_2m microphysics only)")
       ("case_n_stp_multiplier", po::value<setup::real_t>()->default_value(1.0) , "if case-specific aerosol distribution is used, multiply the case-default aerosols concentration by this value.")
 //      ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
+      ("n_fra_iter", po::value<int>()->default_value(1) , "number of iterations of fractal grid refinement")
     ;
     po::variables_map vm;
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown
@@ -138,6 +105,7 @@ int main(int argc, char** argv)
 
     user_params.nt = vm["nt"].as<int>(),
     user_params.spinup = vm["spinup"].as<int>();
+    user_params.n_fra_iter = vm["n_fra_iter"].as<int>(),
 
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();

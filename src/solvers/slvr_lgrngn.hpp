@@ -2,6 +2,8 @@
 #include "slvr_sgs.hpp"
 #include "../detail/outmom.hpp"
 #include <libcloudph++/lgrngn/factory.hpp>
+#include <libmpdata++/formulae/refined_grid.hpp>
+
 
 #if defined(STD_FUTURE_WORKS)
 #  include <future>
@@ -38,26 +40,71 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
                            &rv_post_cond,
                            &th_pre_cond,
                            &th_post_cond,
-                           &r_c;  // temp storate for r_c to be used in SMG, separate storage for it allows more concurrency (like r_l)
+                           &dth,
+                           &drv,
+                           &r_c,  // temp storate for r_c to be used in SMG, separate storage for it allows more concurrency (like r_l)
+                           &tmp_ref;
 
-  void diag_rl()
+  libmpdataxx::arrvec_t<typename parent_t::arr_t> courants, // courant number on the refined grid
+                                                  uvw_ref,
+						  negref_dbg_arrs; // arrays to be outputted when debugging negative values in refinement
+
+  const std::vector<std::string> negref_dbg_arr_names;
+
+//  void diag_rl()
+//  {
+//    // fill with rl values from superdroplets
+//    if(this->rank == 0) 
+//    {
+//      prtcls->diag_all();
+//      prtcls->diag_wet_mom(3);
+//      auto r_l_indomain = this->r_l(this->domain); // rl refrences subdomain of r_l
+//      r_l_indomain = typename parent_t::arr_t(prtcls->outbuf(), r_l_indomain.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+//    }
+//    this->mem->barrier();
+//
+//    nancheck(this->r_l(this->ijk), "rl after copying from diag_wet_mom(3)");
+//    this->r_l(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+//    this->mem->barrier();
+//
+//    // average values of rl in edge cells
+//    this->avg_edge_sclr(this->r_l, this->ijk); // in case of cyclic bcond, rl on edges needs to be the same
+//  }
+
+  void diag_rx(typename parent_t::arr_t &rx)
   {
-    // fill with rl values from superdroplets
+    typename parent_t::arr_t &rx_ref(this->tmp_ref);
     if(this->rank == 0) 
     {
-      prtcls->diag_all();
       prtcls->diag_wet_mom(3);
-      auto r_l_indomain = this->r_l(this->domain); // rl refrences subdomain of r_l
-      r_l_indomain = typename parent_t::arr_t(prtcls->outbuf(), r_l_indomain.shape(), blitz::duplicateData); // copy in data from outbuf; total liquid third moment of wet radius per kg of dry air [m^3 / kg]
+      rx_ref(this->domain_ref) = typename parent_t::arr_t(prtcls->outbuf(), this->shape(this->domain_ref), blitz::neverDeleteData);
     }
     this->mem->barrier();
 
-    nancheck(this->r_l(this->ijk), "rl after copying from diag_wet_mom(3)");
-    this->r_l(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
-    this->mem->barrier();
+    this->spatial_average_ref2reg(rx_ref, rx);
+    nancheck(rx(this->ijk), "rx after spatial averaging from ref in diag_rx");
 
-    // average values of rl in edge cells
-    this->avg_edge_sclr(this->r_l, this->ijk); // in case of cyclic bcond, rl on edges needs to be the same
+    rx(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
+  }
+
+  void diag_rc()
+  {
+    if(this->rank == 0) 
+    {
+      prtcls->diag_wet_rng(.5e-6, 25.e-6);
+    }
+    this->mem->barrier();
+    diag_rx(r_c);
+  }
+
+  void diag_rl()
+  {
+    if(this->rank == 0) 
+    {
+      prtcls->diag_all();
+    }
+    this->mem->barrier();
+    diag_rx(this->r_l);
   }
 
   void get_puddle() override
@@ -96,25 +143,6 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
   };
   
-  // very similar to diag_rl, TODO: unify
-  void diag_rc()
-  {
-    // fill with rc values from superdroplets
-    if(this->rank == 0) 
-    {
-      prtcls->diag_wet_rng(.5e-6, 25.e-6);
-      prtcls->diag_wet_mom(3);
-      auto rc = r_c(this->domain);
-      rc = typename parent_t::arr_t(prtcls->outbuf(), rc.shape(), blitz::duplicateData);
-    }
-    this->mem->barrier();
-
-    nancheck(r_c(this->ijk), "r_c after copying from diag_wet_mom(3) in diag_rc");
-    r_c(this->ijk) *= 4./3. * 1000. * 3.14159; // get mixing ratio [kg/kg]
-    this->mem->barrier();
-
-    this->avg_edge_sclr(r_c, this->ijk); // in case of cyclic bcond, rc on edges needs to be the same
-  }
   
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t& tmp) final
   {
@@ -198,17 +226,32 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     rv_post_cond(args.mem->tmp[__FILE__][0][1]),
     th_pre_cond(args.mem->tmp[__FILE__][0][2]),
     th_post_cond(args.mem->tmp[__FILE__][0][3]),
-    r_c(args.mem->tmp[__FILE__][1][0])
+    tmp_ref(args.mem->tmp[__FILE__][0][4]),
+    r_c(args.mem->tmp[__FILE__][1][0]),
+    dth(args.mem->tmp[__FILE__][2][0]),
+    drv(args.mem->tmp[__FILE__][2][1]),
+    courants(args.mem->tmp[__FILE__][3]),
+    negref_dbg_arr_names({"c_j", "d_j", "f_j"})
   {
     r_c = 0.;
+    uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::u))));
+    uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::v))));
+    uvw_ref.push_back(this->mem->never_delete(&this->mem->psi_ref.at(this->ix_r2r.at(ix::w))));
+
+    negref_dbg_arrs.push_back(this->mem->never_delete(&this->c_j));
+    negref_dbg_arrs.push_back(this->mem->never_delete(&this->d_j));
+    negref_dbg_arrs.push_back(this->mem->never_delete(&this->f_j));
+    
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 4);
+    parent_t::alloc_tmp_sclr_ref(mem, __FILE__, 5); // th and rv pre and post cond, tmp_ref
     parent_t::alloc_tmp_sclr(mem, __FILE__, 1);
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 2);
+    parent_t::alloc_tmp_vctr_ref(mem, __FILE__); // courants (refined)
   }
 
 };

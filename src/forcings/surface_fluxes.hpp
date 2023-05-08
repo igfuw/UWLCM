@@ -10,12 +10,12 @@ void slvr_common<ct_params_t>::surf_sens_impl(iles_tag)
     surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
     this->state(ix::th)(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-    params.dz / 2, this->timestep, this->dt, this->di, this->dj
+    this->timestep, this->dt
   ); // [ K kg / (m^2 s)]
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    F(this->hrzntl_slice(k)) = surf_flux_sens(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k) / calc_exner()((*params.p_e)(k)); // [K/s]
+    F(this->hrzntl_slice(k)) = surf_flux_sens(this->hrzntl_slice(0)) * (params.profs.hgt_fctr)(k) /  (params.profs.rhod)(k) / calc_exner()((params.profs.p_e)(k)); // [K/s]
   }
 }
 
@@ -26,7 +26,7 @@ void slvr_common<ct_params_t>::surf_sens_impl(smg_tag)
     surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
     this->state(ix::th)(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-    params.dz / 2, this->timestep, this->dt, this->di, this->dj
+    this->timestep, this->dt
   ); // [K kg / (m^2 s)]
 
   F(this->ijk) = 0;
@@ -47,12 +47,12 @@ void slvr_common<ct_params_t>::surf_latent_impl(iles_tag)
     surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
     this->tmp1(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-    params.dz / 2, this->timestep, this->dt, this->di, this->dj
+    this->timestep, this->dt
   );  // [lg / (m^2 s)]
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    F(this->hrzntl_slice(k)) = surf_flux_lat(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k)  /  (*params.rhod)(k); // [1/s]
+    F(this->hrzntl_slice(k)) = surf_flux_lat(this->hrzntl_slice(0)) * (params.profs.hgt_fctr)(k)  /  (params.profs.rhod)(k); // [1/s]
   }
 }
 
@@ -65,7 +65,7 @@ void slvr_common<ct_params_t>::surf_latent_impl(smg_tag)
     surf_flux_lat(this->hrzntl_slice(0)).reindex(this->origin),
     this->tmp1(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-    params.dz / 2, this->timestep, this->dt, this->di, this->dj
+    this->timestep, this->dt
   );  // [kg / (m^2 s)]
 
   F(this->ijk) = 0;
@@ -85,12 +85,12 @@ void slvr_common<ct_params_t>::surf_u_impl(iles_tag)
     surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
     this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-    params.dz / 2, this->timestep, this->dt, this->di, this->dj, params.ForceParameters.uv_mean[0]
+    this->timestep, this->dt, params.ForceParameters.uv_mean[0]
   );
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    F(this->hrzntl_slice(k)) = surf_flux_u(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k); // [m/s^2]
+    F(this->hrzntl_slice(k)) = surf_flux_u(this->hrzntl_slice(0)) * (params.profs.hgt_fctr)(k) /  (params.profs.rhod)(k); // [m/s^2]
   }
 }
 
@@ -115,12 +115,12 @@ void slvr_common<ct_params_t>::surf_v_impl(iles_tag)
     surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
     this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-    params.dz / 2, this->timestep, this->dt, this->di, this->dj, params.ForceParameters.uv_mean[1]
+    this->timestep, this->dt, params.ForceParameters.uv_mean[1]
   );
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
   {
-    F(this->hrzntl_slice(k)) = surf_flux_v(this->hrzntl_slice(0)) * (*params.hgt_fctr)(k) /  (*params.rhod)(k); // [m/s^2]
+    F(this->hrzntl_slice(k)) = surf_flux_v(this->hrzntl_slice(0)) * (params.profs.hgt_fctr)(k) /  (params.profs.rhod)(k); // [m/s^2]
   }
 }
 

@@ -112,7 +112,7 @@ namespace cases
         );
         profs.p_e = real_t(p / si::pascals); // total env pressure
 
-        profs.th_ref = 300;
+        profs.th_reference = 300;
         profs.w_LS = 0.;  // no subsidence
         profs.th_LS = 0.; // no large-scale horizontal advection
         profs.rv_LS = 0.; 

@@ -7,7 +7,6 @@
 
 #include "detail/setup.hpp"
 #include "detail/concurr_types.hpp"
-#include "detail/ct_params.hpp"
 #include "detail/panic.hpp"
 
 #include "cases/DYCOMS.hpp"
@@ -17,49 +16,34 @@
 #include "cases/CumulusCongestus.hpp"
 #include "cases/DryPBL.hpp"
 
-#include "opts/opts_common.hpp"
-#include "solvers/common/calc_forces_common.hpp"
-
 #if defined(UWLCM_TIMING)
   #include "detail/exec_timer.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_LGRNGN) || !defined(UWLCM_DISABLE_3D_LGRNGN)
   #include "opts/opts_lgrngn.hpp"
-  #include "solvers/slvr_lgrngn.hpp"
-  #include "solvers/lgrngn/diag_lgrngn.hpp" 
-  #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
-  #include "solvers/lgrngn/hook_ante_loop_lgrngn.hpp"
-  #include "solvers/lgrngn/hook_ante_step_lgrngn.hpp" 
-  #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)
   #include "opts/opts_blk_1m.hpp"
-  #include "solvers/slvr_blk_1m.hpp"
-  #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
-  #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_2M) || !defined(UWLCM_DISABLE_3D_BLK_2M)
   #include "opts/opts_blk_2m.hpp"
-  #include "solvers/slvr_blk_2m.hpp"
-  #include "solvers/blk_2m/calc_forces_blk_2m_common.hpp"
-  #include "solvers/blk_2m/update_rhs_blk_2m_common.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_NONE) || !defined(UWLCM_DISABLE_3D_NONE)
   #include "opts/opts_dry.hpp"
-  #include "solvers/slvr_dry.hpp"
 #endif
 
-#include "run_hlpr.hpp"
+#include "common_headers.hpp"
 
 // dimension-independent model run logic - the same for any microphysics
 template <class solver_t, int n_dims>
 void run(const int (&nps)[n_dims], const user_params_t &user_params)
 {
-  auto nz = nps[n_dims - 1];
+  const int nz = nps[n_dims - 1],
+            nz_ref = (nz - 1) * pow(2, user_params.n_fra_iter) + 1; // TODO: use grid_size_ref or refine_grid_size from libmpdata++
   
   using concurr_any_t = libmpdataxx::concurr::any<
     typename solver_t::real_t, 
@@ -115,14 +99,6 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // copy force constants
   p.ForceParameters = case_ptr->ForceParameters;
 
-  // copy functions used to update surface fluxes
-  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8);
-  p.update_surf_flux_lat  = std::bind(&case_t::update_surf_flux_lat,  case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8);
-  p.update_surf_flux_uv   = std::bind(&case_t::update_surf_flux_uv,   case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9);
-  // copy functions used to update large-scale forcings
-  p.update_rv_LS = std::bind(&case_t::update_rv_LS, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-  p.update_th_LS = std::bind(&case_t::update_th_LS, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-
   // copy user_params
   p.user_params = user_params;
 
@@ -130,6 +106,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   p.outdir = user_params.outdir;
   p.outfreq = user_params.outfreq;
   p.dt = user_params.dt;
+  p.n_fra_iter = user_params.n_fra_iter;
 
   // output and simulation parameters
   for (int d = 0; d < n_dims; ++d)
@@ -139,14 +116,24 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
   case_ptr->setopts(p, nps, user_params);
 
-  // reference profiles shared among threads
-  detail::profiles_t profs(nz); 
-  // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-
-  // assign their values
-  case_ptr->set_profs(profs, nz, user_params);
+  // reference profiles (on normal and refined grids). 
+  // They are shared among threads! When params are copied by each thread's solver, 
+  // blitz::array copy constructor gives reference to the same data
+  p.profs.init(nz);
+  p.profs_ref.init(nz_ref);
+  // NOTE for Anelastic: env profiles on both grids agree very well
+  //                     reference profiles differ a little, e.g. for rico11 nz=51 there's up to 0.02% difference in rhod for n_fra_iter=1 (and 0.03% for n_fra_iter=2)
+  //                     but thats acceptable (?) (rhod doesnt affect RH)
+  // TODO: initial large-scale forcings profiles th_LS and rv_LS are set here
+  //       but can also be updated during simulation by update_th/rv_LS()
+  //       unify this - use update_th/rv_LS at t=0 to set the initial profile
+  case_ptr->set_profs(p.profs, nz, user_params);
+  case_ptr->set_profs(p.profs_ref, nz_ref, user_params);
   // pass them to rt_params
-  detail::copy_profiles(profs, p);
+//  p.profs     = profs;
+//  p.profs_ref = profs_ref;
+//  detail::copy_profiles(profs, p.profs);
+//  detail::copy_profiles(profs_ref, p);
 
   // set micro-specific options, needs to be done after copy_profiles
   setopts_micro<solver_t>(p, user_params, case_ptr);
@@ -161,6 +148,26 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     // WARNING: assumes certain ordering of variables to avoid tedious template programming !
     p.outvars.insert({1, {"v", "[m/s]"}});
   }
+
+
+  // copy functions used to update surface fluxes
+  // NOTE: some parameters (di, dj, dz for now) are passed by value, hence this needs to be done after their values are set
+  //       and also means that these parameters cannot change during simulation
+  p.update_surf_flux_sens = std::bind(&case_t::update_surf_flux_sens, case_ptr.get(), 
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
+  p.update_surf_flux_lat  = std::bind(&case_t::update_surf_flux_lat , case_ptr.get(), 
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2);
+
+  p.update_surf_flux_uv   = std::bind(&case_t::update_surf_flux_uv,   case_ptr.get(), 
+                                      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, 
+                                      std::placeholders::_4, std::placeholders::_5, p.di, p.dj, p.dz / 2,
+                                      std::placeholders::_6);
+
+  // copy functions used to update large-scale forcings
+  p.update_rv_LS = std::bind(&case_t::update_rv_LS, case_ptr.get(), std::ref(p.profs.rv_LS), std::placeholders::_1, std::placeholders::_2, p.dz);
+  p.update_th_LS = std::bind(&case_t::update_th_LS, case_ptr.get(), std::ref(p.profs.th_LS), std::placeholders::_1, std::placeholders::_2, p.dz);
 
   // solver instantiation
   std::unique_ptr<concurr_any_t> concurr;
@@ -179,7 +186,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p));
   }
   
-  case_ptr->intcond(*concurr.get(), profs.rhod, profs.th_e, profs.rv_e, profs.rl_e, profs.p_e, user_params.rng_seed_init);
+  case_ptr->intcond(*concurr.get(), p.profs.rhod, p.profs.th_e, p.profs.rv_e, p.profs.rl_e, p.profs.p_e, user_params.rng_seed_init);
 
   // setup panic pointer and the signal handler
   panic = concurr->panic_ptr();
