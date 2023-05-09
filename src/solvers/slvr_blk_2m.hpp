@@ -43,20 +43,18 @@ class slvr_blk_2m<
       for (int i = this->i.first(); i <= this->i.last(); ++i)
       {
         auto
-          // dot_rr = rhs.at(parent_t::ix::rr)(i, this->j),
-          // dot_nr = rhs.at(parent_t::ix::nr)(i, this->j);
-          rr_flux_arg = this->rr_flux(i, this->j),
-          nr_flux_arg = this->nr_flux(i, this->j);
+          dot_rr = this->rr_flux(i, this->j),
+          dot_nr = this->nr_flux(i, this->j);
         const auto
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j),
           nr     = this->state(parent_t::ix::nr)(i, this->j);
         this->liquid_puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
-          this->params.cloudph_opts, rr_flux_arg, nr_flux_arg, rhod, rr, nr, this->dt, this->params.dz
+          this->params.cloudph_opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
         );
       }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->rr_flux(this->ijk);
-      rhs.at(parent_t::ix::rr)(this->ijk) += this->nr_flux(this->ijk);
+      rhs.at(parent_t::ix::nr)(this->ijk) += this->nr_flux(this->ijk);
 
       this->mem->barrier();
       if(this->rank == 0)
@@ -103,20 +101,18 @@ class slvr_blk_2m<
         for (int j = this->j.first(); j <= this->j.last(); ++j)
         {
           auto
-          // dot_rr = rhs.at(parent_t::ix::rr)(i, j, this->k),
-          // dot_nr = rhs.at(parent_t::ix::nr)(i, j, this->k);
-          rr_flux_arg = this->rr_flux(i, this->j),
-          nr_flux_arg = this->nr_flux(i, this->j);    
+          dot_rr = this->rr_flux(i, this->j),
+          dot_nr = this->nr_flux(i, this->j);    
           const auto
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k),
           nr     = this->state(parent_t::ix::nr)(i, j, this->k);
           this->liquid_puddle += -libcloudphxx::blk_2m::rhs_columnwise<real_t>(
-            this->params.cloudph_opts, rr_flux_arg, nr_flux_arg, rhod, rr, nr, this->dt, this->params.dz
+            this->params.cloudph_opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
           );
         }
         rhs.at(parent_t::ix::rr)(this->ijk) += this->rr_flux(this->ijk);
-        rhs.at(parent_t::ix::rr)(this->ijk) += this->nr_flux(this->ijk);
+        rhs.at(parent_t::ix::nr)(this->ijk) += this->nr_flux(this->ijk);
 
       this->mem->barrier();
       if(this->rank == 0)
