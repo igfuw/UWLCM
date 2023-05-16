@@ -101,8 +101,8 @@ class slvr_blk_2m<
         for (int j = this->j.first(); j <= this->j.last(); ++j)
         {
           auto
-          dot_rr = this->rr_flux(i, this->j),
-          dot_nr = this->nr_flux(i, this->j);    
+          dot_rr = this->rr_flux(i, j, this->k),
+          dot_nr = this->nr_flux(i, j, this->k);    
           const auto
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k),
