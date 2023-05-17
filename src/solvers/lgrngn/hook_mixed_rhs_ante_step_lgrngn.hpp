@@ -53,9 +53,9 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 
   negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of mixed_rhs_ante_step");
 
-  this->generate_stretching_parameters(std::random_device{}(), libmpdataxx::formulae::fractal::stretch_params::d_distro_t::LES_th_supersaturated);
+  this->generate_stretching_parameters(std::random_device{}(), libmpdataxx::formulae::fractal::stretch_params::d_distro_t::LES_th_supersaturated_halved);
   this->reconstruct_refinee(ix::th);
-  this->generate_stretching_parameters(std::random_device{}(), libmpdataxx::formulae::fractal::stretch_params::d_distro_t::LES_rv_supersaturated);
+  this->generate_stretching_parameters(std::random_device{}(), libmpdataxx::formulae::fractal::stretch_params::d_distro_t::LES_rv_supersaturated_halved);
   this->reconstruct_refinee(ix::rv);
 
   //negtozero(this->mem->refinee(this->ix_r2r.at(ix::rv))(this->ijk_ref), "refined rv at start of mixed_rhs_ante_step");

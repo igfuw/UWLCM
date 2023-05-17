@@ -8,9 +8,9 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
 
   this->mem->barrier();
 
-  this->generate_stretching_parameters(std::random_device{}(), libmpdataxx::formulae::fractal::stretch_params::d_distro_t::LES_th_supersaturated);
+  this->generate_stretching_parameters(std::random_device{}(), libmpdataxx::formulae::fractal::stretch_params::d_distro_t::LES_th_supersaturated_halved);
   this->reconstruct_refinee(ix::th);
-  this->generate_stretching_parameters(std::random_device{}(), libmpdataxx::formulae::fractal::stretch_params::d_distro_t::LES_rv_supersaturated);
+  this->generate_stretching_parameters(std::random_device{}(), libmpdataxx::formulae::fractal::stretch_params::d_distro_t::LES_rv_supersaturated_halved);
   this->reconstruct_refinee(ix::rv);
 //  this->mem->refinee(this->ix_r2r.at(ix::th)) = 300;
 //  this->mem->refinee(this->ix_r2r.at(ix::rv)) = 1e-3;
