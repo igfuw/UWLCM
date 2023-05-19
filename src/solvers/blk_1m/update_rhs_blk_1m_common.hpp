@@ -42,6 +42,12 @@ void slvr_blk_1m_common<ct_params_t>::update_rhs(
         rhod, p_e_arg, th, rv, rc, rr,
         dt
     );
+
+    nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after rhs_cellwise");
+    nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after rhs_cellwise");
+    nancheck2(rhs.at(ix::rc)(this->ijk), this->state(ix::rc)(this->ijk), "RHS of rc after rhs_cellwise (+ output of rc)");
+    nancheck2(rhs.at(ix::rr)(this->ijk), this->state(ix::rr)(this->ijk), "RHS of rr after rhs_cellwise (+ output of rr)");
+    //nancheck(rhs.at(ix::rr)(this->ijk), "RHS of rr after rhs_cellwise");
   }
 
   // forcing
