@@ -52,6 +52,8 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
       negcheck(nc, "nc after blk_2m rhs_cellwise call");
       nancheck(nc, "nr after blk_2m rhs_cellwise call");
       negcheck(nc, "nr after blk_2m rhs_cellwise call");
+
+//      negcheck(dot_nc, "dot_nc after blk_2m rhs_cellwise call");
   }
 
   // forcing
@@ -98,6 +100,27 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
       break;
     }
   }
+
+  // assure that we do not remove more cloud/rain water than there is!
+  // this could happen due to blk_2m microphyscs combined with other forcings (e.g. subsidence)
+  auto
+    dot_rc = rhs.at(ix::rc)(this->ijk),
+    dot_rr = rhs.at(ix::rr)(this->ijk),
+    dot_nc = rhs.at(ix::nc)(this->ijk),
+    dot_nr = rhs.at(ix::nr)(this->ijk);
+
+  const auto
+    rc     = this->state(ix::rc)(this->ijk),
+    rr     = this->state(ix::rr)(this->ijk),
+    nc     = this->state(ix::nc)(this->ijk),
+    nr     = this->state(ix::nr)(this->ijk);
+
+  dot_rc = where(dot_rc * dt <= -rc, -rc / dt, dot_rc);
+  dot_rr = where(dot_rr * dt <= -rr, -rr / dt, dot_rr);
+  dot_nc = where(dot_nc * dt <= -nc, -nc / dt, dot_nc);
+  dot_nr = where(dot_nr * dt <= -rr, -rr / dt, dot_nr);
+
+
   this->mem->barrier();
   if(this->rank == 0)
   {
