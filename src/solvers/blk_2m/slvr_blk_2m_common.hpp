@@ -81,12 +81,28 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   void hook_mixed_rhs_ante_step()
   {
     negcheck(this->mem->advectee(ix::nc)(this->ijk), "nc at start of hook_mixed_rhs_ante_step");
-    //negtozero(this->mem->advectee(ix::nc)(this->ijk), "nc at start of hook_mixed_rhs_ante_step");
+  //  negtozero(this->mem->advectee(ix::nc)(this->ijk), "nc at start of hook_mixed_rhs_ante_step");
     parent_t::hook_mixed_rhs_ante_step();
+
+    nancheck(this->mem->advectee(ix::nc)(this->ijk), "nc after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::nr)(this->ijk), "nr after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::rc)(this->ijk), "rc after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::rr)(this->ijk), "rr after mixed_rhs_ante_step apply rhs");
+    negcheck2(this->mem->advectee(ix::nc)(this->ijk), this->rhs.at(ix::nc)(this->ijk), "nc after mixed_rhs_ante_step apply rhs (+ output of nc rhs)");
+//    negcheck2(this->mem->advectee(ix::nr)(this->ijk), this->rhs.at(ix::nr)(this->ijk), "nr after mixed_rhs_ante_step apply rhs (+ output of nr rhs)");
+    negcheck2(this->mem->advectee(ix::rc)(this->ijk), this->rhs.at(ix::rc)(this->ijk), "rc after mixed_rhs_ante_step apply rhs (+ output of rc rhs)");
+    //negcheck2(this->mem->advectee(ix::rr)(this->ijk), this->rhs.at(ix::rr)(this->ijk), "rr after mixed_rhs_ante_step apply rhs (+ output of rr rhs)");
+    negtozero(this->mem->advectee(ix::nr)(this->ijk), "nr after mixed_rhs_ante_step apply rhs");
+    negtozero(this->mem->advectee(ix::rr)(this->ijk), "rr after mixed_rhs_ante_step apply rhs");
   }
 
   void hook_mixed_rhs_post_step()
   {
+    negtozero(this->mem->advectee(ix::nc)(this->ijk), "nc at start of hook_mixed_rhs_ante_step");
+    negtozero(this->mem->advectee(ix::nr)(this->ijk), "nr at start of hook_mixed_rhs_ante_step");
+    negtozero(this->mem->advectee(ix::rr)(this->ijk), "rr at start of hook_mixed_rhs_ante_step");
+    //negcheck(this->mem->advectee(ix::nc)(this->ijk), "nc at start of mixed_rhs_post_step");
+
     parent_t::hook_mixed_rhs_post_step();
 
     nancheck(this->mem->advectee(ix::nc)(this->ijk), "nc after mixed_rhs_post_step apply rhs");
@@ -151,7 +167,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
     const int &at
-  );
+  ) override;
 
   public:
 
