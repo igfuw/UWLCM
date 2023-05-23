@@ -5,6 +5,7 @@
 #include "../slvr_blk_1m.hpp"
 
 // single-moment bulk forcing functions
+// rc_src
 template <class ct_params_t>
 void slvr_blk_1m_common<ct_params_t>::rc_src()
 {
@@ -13,7 +14,7 @@ void slvr_blk_1m_common<ct_params_t>::rc_src()
   {
     // large-scale vertical wind
     parent_t::subsidence(ix::rc); 
-    
+
     this->alpha(ijk) = this->F(ijk);
   }
   else
@@ -25,7 +26,7 @@ void slvr_blk_1m_common<ct_params_t>::rc_src()
 //  this->beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
-
+// rr_src
 template <class ct_params_t>
 void slvr_blk_1m_common<ct_params_t>::rr_src()
 {

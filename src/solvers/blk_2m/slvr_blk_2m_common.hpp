@@ -17,14 +17,15 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
   
+  protected:
+  typename parent_t::arr_t &rr_flux;
+  typename parent_t::arr_t &nr_flux;
+
   private:
   // a 2D/3D array with copy of the environmental total pressure of dry air
   typename parent_t::arr_t &p_e;
 
   protected:
-  typename parent_t::arr_t &rr_flux;
-  typename parent_t::arr_t &nr_flux;
-
 
   // accumulated water falling out of domain
   real_t liquid_puddle;
@@ -62,9 +63,9 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   void nc_src();
   void rr_src();
   void nr_src();
-
   bool get_rain() { return params.cloudph_opts.acnv; }
-  void set_rain(bool val) {
+  void set_rain(bool val) 
+  {
     params.cloudph_opts.acnv = val ? params.flag_acnv : false;
     params.cloudph_opts.RH_max = val ? 44 : 1.01;
   };

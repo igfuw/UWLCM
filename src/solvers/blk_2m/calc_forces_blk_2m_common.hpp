@@ -14,6 +14,7 @@ void slvr_blk_2m_common<ct_params_t>::rc_src()
   {
     // large-scale vertical wind
     parent_t::subsidence(ix::rc); 
+
     this->alpha(ijk) = this->F(ijk);
   }
   else
@@ -31,6 +32,7 @@ void slvr_blk_2m_common<ct_params_t>::nc_src()
   {
     // large-scale vertical wind
     parent_t::subsidence(ix::nc); 
+
     this->alpha(ijk) = this->F(ijk);
   }
   else
@@ -48,6 +50,7 @@ void slvr_blk_2m_common<ct_params_t>::rr_src()
   {
     // large-scale vertical wind
     parent_t::subsidence(ix::rr); 
+
     this->alpha(ijk) = this->F(ijk);
   }
   else
@@ -65,6 +68,7 @@ void slvr_blk_2m_common<ct_params_t>::nr_src()
   {
     // large-scale vertical wind
     parent_t::subsidence(ix::nr); 
+    
     this->alpha(ijk) = this->F(ijk);
   }
   else

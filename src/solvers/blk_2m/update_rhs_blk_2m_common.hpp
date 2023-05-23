@@ -2,7 +2,6 @@
 #include <libcloudph++/blk_2m/rhs_cellwise.hpp>
 #include "../slvr_blk_2m.hpp"
 
-
 template <class ct_params_t>
 void slvr_blk_2m_common<ct_params_t>::update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
