@@ -46,17 +46,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     // recording precipitation flux
     this->record_aux_dsc("precip_rate_rr", rr_flux);    
     this->record_aux_dsc("precip_rate_nr", nr_flux);    
-
-    /*
-    assert(this->rank == 0);
-
-    // recording puddle
-    for(int i=0; i < 10; ++i)
-    {
-       this->f_puddle << i << " " << (i == 8 ? this->puddle : 0) << "\n";
-    }
-    this->f_puddle << "\n";
-    */
   }
 
   void rc_src();
@@ -163,11 +152,17 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->mem->barrier();
   }
 
-  void update_rhs(
-    libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
-    const typename parent_t::real_t &dt,
-    const int &at
-  ) override;
+
+  void hook_post_step()
+  {
+    parent_t::hook_post_step(); 
+  }
+
+  // void update_rhs(
+  //   libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
+  //   const typename parent_t::real_t &dt,
+  //   const int &at
+  // ) override;
 
   public:
 
@@ -190,6 +185,12 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 3); // p_e, rr_flux, nr_flux
   }
+
+  void update_rhs(
+    libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
+    const typename parent_t::real_t &dt,
+    const int &at
+  );
 
   // ctor
   slvr_blk_2m_common(
