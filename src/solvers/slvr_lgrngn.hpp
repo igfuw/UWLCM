@@ -177,6 +177,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     outmom_t<real_t> out_dry, out_wet;
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
+    real_t turb_diss_rate;
   };
 
   private:
@@ -202,6 +203,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   {
     r_c = 0.;
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
+    
+    // set the TKE dissipation rate for SGS models in SDM
+    if constexpr(ct_params_t::sgs_scheme == libmpdataxx::solvers::iles)
+      this->diss_rate = p.turb_diss_rate * 1e-4; // constant TKE dissipation rate for SGS models in microphysics; change from [cm2/s3] to [m2/s3]
   }  
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)

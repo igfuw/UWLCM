@@ -76,6 +76,7 @@ void setopts_micro(
     ("turb_cond", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_cond), "turbulence effects in SD condensation (1=on, 0=off)")
     ("turb_adve", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_adve), "turbulence effects in SD motion (1=on, 0=off)")
     ("turb_coal", po::value<bool>()->default_value(rt_params.cloudph_opts.turb_coal) , "turbulence effects in SD coalescence (1=on, 0=off)")
+    ("turb_diss_rate", po::value<setup::real_t>()->default_value(-1), "TKE dissipation rate (constant) [cm^2/s^3] used in SGS turbulence models in SDM microphysics in ILES. In LES with Smagroinsky, dissipation rate is diagnosed from the flow.")
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
@@ -425,6 +426,18 @@ void setopts_micro(
   
   rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
+
+  rt_params.turb_diss_rate = vm["turb_diss_rate"].as<thrust_real_t>();
+
+  if constexpr(solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles) // SGS
+  {
+    if(rt_params.turb_diss_rate >= 0) throw std::runtime_error("turb_diss_rate cannot be set in a simulation with the Smagorinsky model (--sgs=1). It is diagnosed from the flow.");
+  }
+  else // ILES
+  {
+    if( (rt_params.cloudph_opts.turb_cond || rt_params.cloudph_opts.turb_adve || rt_params.cloudph_opts.turb_coal) && rt_params.turb_diss_rate < 0)
+      throw std::runtime_error("turb_cond/adve/coal in ILES require turb_diss_rate >= 0");
+  }
   
   // subsidence of SDs
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
