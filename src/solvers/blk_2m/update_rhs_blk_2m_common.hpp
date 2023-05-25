@@ -118,7 +118,7 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
   dot_rc = where(dot_rc * dt <= -rc, -rc / dt, dot_rc);
   dot_rr = where(dot_rr * dt <= -rr, -rr / dt, dot_rr);
   dot_nc = where(dot_nc * dt <= -nc, -nc / dt, dot_nc);
-  dot_nr = where(dot_nr * dt <= -rr, -rr / dt, dot_nr);
+  dot_nr = where(dot_nr * dt <= -nr, -nr / dt, dot_nr);
 
 
   this->mem->barrier();
