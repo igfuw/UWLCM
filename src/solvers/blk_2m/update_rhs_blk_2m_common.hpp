@@ -31,17 +31,17 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
       dot_th = rhs.at(ix::th)(this->ijk),
       dot_rv = rhs.at(ix::rv)(this->ijk),
       dot_rc = rhs.at(ix::rc)(this->ijk),
-      dot_rr = rhs.at(ix::rr)(this->ijk),
       dot_nc = rhs.at(ix::nc)(this->ijk),
+      dot_rr = rhs.at(ix::rr)(this->ijk),
       dot_nr = rhs.at(ix::nr)(this->ijk);
      const auto
-      rc     = this->state(ix::rc)(this->ijk),
-      rr     = this->state(ix::rr)(this->ijk),
-      nc     = this->state(ix::nc)(this->ijk),
-      nr     = this->state(ix::nr)(this->ijk),
-      rhod   = (*this->mem->G)(this->ijk),
       th     = this->state(ix::th)(this->ijk),
       rv     = this->state(ix::rv)(this->ijk),
+      rc     = this->state(ix::rc)(this->ijk),
+      nc     = this->state(ix::nc)(this->ijk),
+      rr     = this->state(ix::rr)(this->ijk),
+      nr     = this->state(ix::nr)(this->ijk),
+      rhod   = (*this->mem->G)(this->ijk),
       &p_e_arg = p_e(this->ijk); //TODO: use const pressure in blk_2m
       nancheck(nc, "nc before blk_2m rhs_cellwise call");
       negtozero(this->state(ix::nc)(this->ijk), "nc before blk_2m rhs_cellwise call");

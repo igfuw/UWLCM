@@ -158,12 +158,6 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t::hook_post_step(); 
   }
 
-  // void update_rhs(
-  //   libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
-  //   const typename parent_t::real_t &dt,
-  //   const int &at
-  // ) override;
-
   public:
 
   struct rt_params_t : parent_t::rt_params_t
