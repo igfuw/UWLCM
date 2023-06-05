@@ -18,6 +18,12 @@
 			<Attribute Name="nr" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="4 4 4 " NumberType="Float" Format="HDF">timestep0000000000.h5:/nr</DataItem>
 			</Attribute>
+			<Attribute Name="precip_rate_nr" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/precip_rate_nr</DataItem>
+			</Attribute>
+			<Attribute Name="precip_rate_rr" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/precip_rate_rr</DataItem>
+			</Attribute>
 			<Attribute Name="radiative_flux" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/radiative_flux</DataItem>
 			</Attribute>
