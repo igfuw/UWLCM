@@ -61,7 +61,6 @@ class slvr_blk_2m<
         nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
         nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
       }
-      this->mem->barrier();
     }
   }
 };
@@ -116,10 +115,9 @@ class slvr_blk_2m<
 
       if(this->rank == 0)
       {
-        nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
-        nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
+        nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
+        nancheck(rhs.at(parent_t::ix::nr)(this->ijk), "RHS of nr after rhs_update");
       }
-      this->mem->barrier();
     }
   }
 };

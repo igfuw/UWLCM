@@ -130,9 +130,9 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
   this->mem->barrier();
   if(this->rank == 0)
   {
-    nancheck(rhs.at(ix::rc)(this->domain), "RHS of rc after rhs_update");
-    nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
-    nancheck(rhs.at(ix::nc)(this->domain), "RHS of nc after rhs_update");
-    nancheck(rhs.at(ix::nr)(this->domain), "RHS of nr after rhs_update");
+    nancheck(rhs.at(ix::rc)(this->ijk), "RHS of rc after rhs_update");
+    nancheck(rhs.at(ix::rr)(this->ijk), "RHS of rr after rhs_update");
+    nancheck(rhs.at(ix::nc)(this->ijk), "RHS of nc after rhs_update");
+    nancheck(rhs.at(ix::nr)(this->ijk), "RHS of nr after rhs_update");
   }
 }
