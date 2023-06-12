@@ -16,8 +16,12 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   public:
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
-  private:
+  
+  protected:
+  typename parent_t::arr_t &rr_flux;
+  typename parent_t::arr_t &nr_flux;
 
+  private:
   // a 2D/3D array with copy of the environmental total pressure of dry air
   typename parent_t::arr_t &p_e;
 
@@ -39,28 +43,18 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   {
     parent_t::diag();
     
-    // TODO: recording precipitation flux
-    // this->record_aux_dsc("precip_rate",precipitation_rate);    
-
-    /*
-    assert(this->rank == 0);
-
-    // recording puddle
-    for(int i=0; i < 10; ++i)
-    {
-       this->f_puddle << i << " " << (i == 8 ? this->puddle : 0) << "\n";
-    }
-    this->f_puddle << "\n";
-    */
+    // recording precipitation flux
+    this->record_aux_dsc("precip_rate_rr", rr_flux);    
+    this->record_aux_dsc("precip_rate_nr", nr_flux);    
   }
 
   void rc_src();
   void nc_src();
   void rr_src();
   void nr_src();
-
   bool get_rain() { return params.cloudph_opts.acnv; }
-  void set_rain(bool val) {
+  void set_rain(bool val) 
+  {
     params.cloudph_opts.acnv = val ? params.flag_acnv : false;
     params.cloudph_opts.RH_max = val ? 44 : 1.01;
   };
@@ -158,11 +152,11 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->mem->barrier();
   }
 
-  void update_rhs(
-    libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
-    const typename parent_t::real_t &dt,
-    const int &at
-  ) override;
+
+  void hook_post_step()
+  {
+    parent_t::hook_post_step(); 
+  }
 
   public:
 
@@ -183,8 +177,14 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 1); // p_e
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 3); // p_e, rr_flux, nr_flux
   }
+
+  void update_rhs(
+    libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
+    const typename parent_t::real_t &dt,
+    const int &at
+  );
 
   // ctor
   slvr_blk_2m_common(
@@ -194,6 +194,8 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t(args, p),
     params(p),
     liquid_puddle(0),
-    p_e(args.mem->tmp[__FILE__][0][0])
+    p_e(args.mem->tmp[__FILE__][0][0]),
+    rr_flux(args.mem->tmp[__FILE__][0][1]),
+    nr_flux(args.mem->tmp[__FILE__][0][2])
   {}
 };

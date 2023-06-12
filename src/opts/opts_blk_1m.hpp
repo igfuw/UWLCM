@@ -8,7 +8,6 @@
 #pragma once
 
 #include <libcloudph++/blk_1m/options.hpp>
-
 #include "opts_common.hpp"
 
 // simulation and output parameters for micro=blk_1m

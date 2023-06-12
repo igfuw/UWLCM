@@ -2,7 +2,6 @@
 #include <libcloudph++/blk_2m/rhs_cellwise.hpp>
 #include "../slvr_blk_2m.hpp"
 
-
 template <class ct_params_t>
 void slvr_blk_2m_common<ct_params_t>::update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
@@ -15,6 +14,13 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
 
   parent_t::update_rhs(rhs, dt, at); // shouldnt forcings be after condensation to be consistent with lgrngn solver?
 
+  // zero-out precipitation rate, will be set in columnwise
+  if(at == 0) 
+  {
+    rr_flux(this->ijk) = 0;
+    nr_flux(this->ijk) = 0;
+  }
+
   this->mem->barrier();
 
   // cell-wise
@@ -25,17 +31,17 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
       dot_th = rhs.at(ix::th)(this->ijk),
       dot_rv = rhs.at(ix::rv)(this->ijk),
       dot_rc = rhs.at(ix::rc)(this->ijk),
-      dot_rr = rhs.at(ix::rr)(this->ijk),
       dot_nc = rhs.at(ix::nc)(this->ijk),
+      dot_rr = rhs.at(ix::rr)(this->ijk),
       dot_nr = rhs.at(ix::nr)(this->ijk);
      const auto
-      rc     = this->state(ix::rc)(this->ijk),
-      rr     = this->state(ix::rr)(this->ijk),
-      nc     = this->state(ix::nc)(this->ijk),
-      nr     = this->state(ix::nr)(this->ijk),
-      rhod   = (*this->mem->G)(this->ijk),
       th     = this->state(ix::th)(this->ijk),
       rv     = this->state(ix::rv)(this->ijk),
+      rc     = this->state(ix::rc)(this->ijk),
+      nc     = this->state(ix::nc)(this->ijk),
+      rr     = this->state(ix::rr)(this->ijk),
+      nr     = this->state(ix::nr)(this->ijk),
+      rhod   = (*this->mem->G)(this->ijk),
       &p_e_arg = p_e(this->ijk); //TODO: use const pressure in blk_2m
       nancheck(nc, "nc before blk_2m rhs_cellwise call");
       negtozero(this->state(ix::nc)(this->ijk), "nc before blk_2m rhs_cellwise call");
@@ -124,9 +130,9 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
   this->mem->barrier();
   if(this->rank == 0)
   {
-    nancheck(rhs.at(ix::rc)(this->domain), "RHS of rc after rhs_update");
-    nancheck(rhs.at(ix::rr)(this->domain), "RHS of rr after rhs_update");
-    nancheck(rhs.at(ix::nc)(this->domain), "RHS of nc after rhs_update");
-    nancheck(rhs.at(ix::nr)(this->domain), "RHS of nr after rhs_update");
+    nancheck(rhs.at(ix::rc)(this->ijk), "RHS of rc after rhs_update");
+    nancheck(rhs.at(ix::rr)(this->ijk), "RHS of rr after rhs_update");
+    nancheck(rhs.at(ix::nc)(this->ijk), "RHS of nc after rhs_update");
+    nancheck(rhs.at(ix::nr)(this->ijk), "RHS of nr after rhs_update");
   }
 }

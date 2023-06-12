@@ -1,6 +1,5 @@
 #pragma once
 #include "blk_1m/slvr_blk_1m_common.hpp"
-
 #include <libcloudph++/blk_1m/rhs_columnwise.hpp>
 
 template <class ct_params_t, class enableif = void>
@@ -48,10 +47,11 @@ class slvr_blk_1m<
         const auto 
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j);
-        this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->params.cloudph_opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+        this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(
+          this->params.cloudph_opts, precipitation_rate_arg, rhod, rr, this->params.dz
+        );
       }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
-
 
       nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
       this->mem->barrier();
@@ -99,7 +99,9 @@ class slvr_blk_1m<
           const auto 
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k);
-          this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(this->params.cloudph_opts, precipitation_rate_arg, rhod, rr, this->params.dz);
+          this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(
+            this->params.cloudph_opts, precipitation_rate_arg, rhod, rr, this->params.dz
+          );
         }
       rhs.at(parent_t::ix::rr)(this->ijk) += this->precipitation_rate(this->ijk);
 

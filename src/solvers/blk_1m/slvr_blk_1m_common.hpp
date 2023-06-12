@@ -17,7 +17,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   public:
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
-  using arr_sub_t = typename parent_t::arr_sub_t;
 
   protected:
   typename parent_t::arr_t &precipitation_rate; 

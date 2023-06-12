@@ -2,7 +2,6 @@
 #include "blk_2m/slvr_blk_2m_common.hpp"
 #include <libcloudph++/blk_2m/rhs_columnwise.hpp>
 
-
 template <class ct_params_t, class enableif = void>
 class slvr_blk_2m
 {};
@@ -44,8 +43,8 @@ class slvr_blk_2m<
       for (int i = this->i.first(); i <= this->i.last(); ++i)
       {
         auto
-          dot_rr = rhs.at(parent_t::ix::rr)(i, this->j),
-          dot_nr = rhs.at(parent_t::ix::nr)(i, this->j);
+          dot_rr = this->rr_flux(i, this->j),
+          dot_nr = this->nr_flux(i, this->j);
         const auto
           rhod   = (*this->mem->G)(i, this->j),
           rr     = this->state(parent_t::ix::rr)(i, this->j),
@@ -54,8 +53,9 @@ class slvr_blk_2m<
           this->params.cloudph_opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
         );
       }
+      rhs.at(parent_t::ix::rr)(this->ijk) += this->rr_flux(this->ijk);
+      rhs.at(parent_t::ix::nr)(this->ijk) += this->nr_flux(this->ijk);
 
-      this->mem->barrier();
       if(this->rank == 0)
       {
         nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
@@ -100,8 +100,8 @@ class slvr_blk_2m<
         for (int j = this->j.first(); j <= this->j.last(); ++j)
         {
           auto
-          dot_rr = rhs.at(parent_t::ix::rr)(i, j, this->k),
-          dot_nr = rhs.at(parent_t::ix::nr)(i, j, this->k);
+          dot_rr = this->rr_flux(i, j, this->k),
+          dot_nr = this->nr_flux(i, j, this->k);    
           const auto
           rhod   = (*this->mem->G)(i, j, this->k),
           rr     = this->state(parent_t::ix::rr)(i, j, this->k),
@@ -110,12 +110,13 @@ class slvr_blk_2m<
             this->params.cloudph_opts, dot_rr, dot_nr, rhod, rr, nr, this->dt, this->params.dz
           );
         }
+        rhs.at(parent_t::ix::rr)(this->ijk) += this->rr_flux(this->ijk);
+        rhs.at(parent_t::ix::nr)(this->ijk) += this->nr_flux(this->ijk);
 
-      this->mem->barrier();
       if(this->rank == 0)
       {
-        nancheck(rhs.at(parent_t::ix::rr)(this->domain), "RHS of rr after rhs_update");
-        nancheck(rhs.at(parent_t::ix::nr)(this->domain), "RHS of nr after rhs_update");
+        nancheck(rhs.at(parent_t::ix::rr)(this->ijk), "RHS of rr after rhs_update");
+        nancheck(rhs.at(parent_t::ix::nr)(this->ijk), "RHS of nr after rhs_update");
       }
     }
   }
