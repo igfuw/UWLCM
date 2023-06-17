@@ -167,6 +167,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("turb_adve", "lgrngn", params.cloudph_opts.turb_adve);  
     this->record_aux_const("turb_cond", "lgrngn", params.cloudph_opts.turb_cond);  
     this->record_aux_const("turb_coal", "lgrngn", params.cloudph_opts.turb_coal);  
+    this->record_aux_const("turb_diss_rate", "lgrngn", params.turb_diss_rate);  
     this->record_aux_const("chem_switch", "lgrngn", params.cloudph_opts_init.chem_switch);  
     this->record_aux_const("coal_switch", "lgrngn", params.cloudph_opts_init.coal_switch);  
     this->record_aux_const("sedi_switch", "lgrngn", params.cloudph_opts_init.sedi_switch);  

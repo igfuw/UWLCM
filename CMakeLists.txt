@@ -128,9 +128,9 @@ target_link_libraries(uwlcm
     clphxx::cloudphxx_lgrngn
 )
 
-# enabling c++14, but not gnu++14
+# enabling c++17, but not gnu++17
 set_target_properties(uwlcm PROPERTIES CXX_EXTENSIONS OFF)
-target_compile_features(uwlcm PRIVATE cxx_std_14)
+target_compile_features(uwlcm PRIVATE cxx_std_17)
 
 # search for Boost
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
