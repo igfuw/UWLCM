@@ -2,6 +2,9 @@
 #include <random>
 #include <type_traits>
 #include "Anelastic.hpp"
+#include "../detail/blitz_hlpr_fctrs.hpp"
+#include <libcloudph++/common/chem.hpp>
+
 
 namespace cases 
 {
@@ -62,27 +65,27 @@ namespace cases
 
     inline quantity<si::dimensionless, real_t> SO2g_dycoms(const real_t &z)
     {
-      return quantity<si::dimensionless, real_t>(5e-10);
+      return quantity<si::dimensionless, real_t>(.2e-9);
     }
     inline quantity<si::dimensionless, real_t> CO2g_dycoms(const real_t &z)
     {
-      return quantity<si::dimensionless, real_t>(0);
+      return quantity<si::dimensionless, real_t>(360e-6);
     }
     inline quantity<si::dimensionless, real_t> O3g_dycoms(const real_t &z)
     {
-      return quantity<si::dimensionless, real_t>(0);
+      return quantity<si::dimensionless, real_t>(25e-9);
     }
     inline quantity<si::dimensionless, real_t> H2O2g_dycoms(const real_t &z)
     {
-      return quantity<si::dimensionless, real_t>(0);
+      return quantity<si::dimensionless, real_t>(.4e-9);
     }
     inline quantity<si::dimensionless, real_t> NH3g_dycoms(const real_t &z)
     {
-      return quantity<si::dimensionless, real_t>(0);
+      return quantity<si::dimensionless, real_t>(.1e-9);
     }
     inline quantity<si::dimensionless, real_t> HNO3g_dycoms(const real_t &z)
     {
-      return quantity<si::dimensionless, real_t>(0);
+      return quantity<si::dimensionless, real_t>(.1e-9);
     }
   
     template<class case_ct_params_t, int RF, int n_dims>
@@ -266,8 +269,11 @@ namespace cases
       }
   
       template <class index_t>
-      void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
+      void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &p_e, int rng_seed, index_t index)
       {
+        namespace molar_mass  = libcloudphxx::common::molar_mass;
+        using libcloudphxx::common::moist_air::kaBoNA;
+
         int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (this->Z / si::metres) / (nz-1); 
   
@@ -301,21 +307,25 @@ namespace cases
           concurr.advectee_global_set(th_global, ix::th);
         }
 
+        arr_1D_t mixr_hlpr(nz);
+        mixr_hlpr = p_e / // pressure
+                    real_t(kaBoNA<real_t>() / si::joules * si::kelvin * si::mole) // Blotzman * Avogadro
+                    / (th_std_fctr()(blitz::firstIndex() * dz) * calc_exner()(p_e))  / rhod(blitz::Range(0,nz-1));
+//        std::cerr << "mixr_hlpr: " << mixr_hlpr << std::endl;
+
         // chemical composition
         if constexpr(has_SO2g<ix>)
-          concurr.advectee(ix::SO2g)  = SO2g_fctr() (index * dz);
+          concurr.advectee(ix::SO2g)  = mixr_hlpr(index) * SO2g_fctr() (index * dz) * real_t(molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
         if constexpr(has_O3g<ix>)
-          concurr.advectee(ix::O3g)   = O3g_fctr()  (index * dz);
+          concurr.advectee(ix::O3g)  = mixr_hlpr(index) * O3g_fctr() (index * dz) * real_t(molar_mass::M_O3<real_t>()  * si::moles / si::kilograms);
         if constexpr(has_H2O2g<ix>)
-          concurr.advectee(ix::H2O2g) = H2O2g_fctr()(index * dz);
+          concurr.advectee(ix::H2O2g)  = mixr_hlpr(index) * H2O2g_fctr() (index * dz) * real_t(molar_mass::M_H2O2<real_t>()  * si::moles / si::kilograms);
         if constexpr(has_CO2g<ix>)
-          concurr.advectee(ix::CO2g)  = CO2g_fctr() (index * dz);
+          concurr.advectee(ix::CO2g)  = mixr_hlpr(index) * CO2g_fctr() (index * dz) * real_t(molar_mass::M_CO2<real_t>()  * si::moles / si::kilograms);
         if constexpr(has_NH3g<ix>)
-          concurr.advectee(ix::NH3g)  = NH3g_fctr() (index * dz);
+          concurr.advectee(ix::NH3g)  = mixr_hlpr(index) * NH3g_fctr() (index * dz) * real_t(molar_mass::M_NH3<real_t>()  * si::moles / si::kilograms);
         if constexpr(has_HNO3g<ix>)
-          concurr.advectee(ix::HNO3g) = HNO3g_fctr()(index * dz);
-    //      config::mixr_helper(this->setup)(index * dz)
-    //      * (SO2_g_0 * molar_mass::M_SO2<real_t>()  * si::moles / si::kilograms);
+          concurr.advectee(ix::HNO3g)  = mixr_hlpr(index) * HNO3g_fctr() (index * dz) * real_t(molar_mass::M_HNO3<real_t>()  * si::moles / si::kilograms);
 
       }
   
@@ -446,7 +456,7 @@ namespace cases
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::secondIndex k;
-        this->intcond_hlpr(concurr, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, p_e, rng_seed, k);
       };
 
       // ctor
@@ -488,7 +498,7 @@ namespace cases
                    arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
       {
         blitz::thirdIndex k;
-        this->intcond_hlpr(concurr, rhod, rng_seed, k);
+        this->intcond_hlpr(concurr, rhod, p_e, rng_seed, k);
   
         int nz = concurr.advectee_global().extent(ix::w);
         real_t dz = (this->Z / si::metres) / (nz-1); 

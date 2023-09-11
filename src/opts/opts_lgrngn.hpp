@@ -58,6 +58,8 @@ void setopts_micro(
     ("chem_dsl", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsl) , "dissolving trace gases (1=on, 0=off)")
     ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
+    ("chem_rho", po::value<setup::real_t>()->default_value(1.8e3),    "dry particle density (used in chemistry) [kg/m3]")
+
     ("dev_count", po::value<int>()->default_value(0), "no. of CUDA devices")
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
     // free parameters
@@ -390,6 +392,7 @@ void setopts_micro(
   rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();
   rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
   rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
+  rt_params.cloudph_opts_init.chem_rho = vm["chem_rho"].as<thrust_real_t>();
 
   rt_params.cloudph_opts_init.dev_count = vm["dev_count"].as<int>();
   rt_params.cloudph_opts_init.dev_id = vm["dev_id"].as<int>();

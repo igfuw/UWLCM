@@ -9,20 +9,12 @@ void slvr_lgrngn_chem<ct_params_t>::step_cond()
   using libcloudphxx::lgrngn::particles_t;
   using libcloudphxx::lgrngn::CUDA;
   using libcloudphxx::lgrngn::multi_CUDA;
-  
-  boost::assign::insert(this->ambient_chem_post_cond)
-    (chem_species_t::SO2,  this->make_arrinfo(SO2_post_cond))
-    (chem_species_t::O3,   this->make_arrinfo(O3_post_cond))
-    (chem_species_t::H2O2, this->make_arrinfo(H2O2_post_cond))
-    (chem_species_t::CO2,  this->make_arrinfo(CO2_post_cond))
-    (chem_species_t::NH3,  this->make_arrinfo(NH3_post_cond))
-    (chem_species_t::HNO3, this->make_arrinfo(HNO3_post_cond));
 
   // start sync/async run of step_cond
   // step_cond takes th and rv only for sync_out purposes - the values of th and rv before condensation come from sync_in, i.e. before apply_rhs
 
 #if defined(STD_FUTURE_WORKS)
-  if (params.async)
+  if (params.async && (params.backend == CUDA || params.backend == multi_CUDA))
   {
     assert(!this->ftr.valid());
     if(params.backend == CUDA)
@@ -32,7 +24,14 @@ void slvr_lgrngn_chem<ct_params_t>::step_cond()
         params.cloudph_opts,
         this->make_arrinfo(this->th_post_cond(this->domain).reindex(this->zero)),
         this->make_arrinfo(this->rv_post_cond(this->domain).reindex(this->zero)),
-        ambient_chem_post_cond
+        ambient_chem_t {
+          {chem_species_t::SO2,  this->make_arrinfo(SO2_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::O3,   this->make_arrinfo(O3_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::H2O2, this->make_arrinfo(H2O2_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::CO2,  this->make_arrinfo(CO2_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::NH3,  this->make_arrinfo(NH3_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::HNO3, this->make_arrinfo(HNO3_post_cond(this->domain).reindex(this->zero))}
+        }
       );
     else if(params.backend == multi_CUDA)
       this->ftr = async_launcher(
@@ -41,9 +40,16 @@ void slvr_lgrngn_chem<ct_params_t>::step_cond()
         params.cloudph_opts,
         this->make_arrinfo(this->th_post_cond(this->domain).reindex(this->zero)),
         this->make_arrinfo(this->rv_post_cond(this->domain).reindex(this->zero)),
-        ambient_chem_post_cond
+        ambient_chem_t {
+          {chem_species_t::SO2,  this->make_arrinfo(SO2_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::O3,   this->make_arrinfo(O3_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::H2O2, this->make_arrinfo(H2O2_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::CO2,  this->make_arrinfo(CO2_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::NH3,  this->make_arrinfo(NH3_post_cond(this->domain).reindex(this->zero))},
+          {chem_species_t::HNO3, this->make_arrinfo(HNO3_post_cond(this->domain).reindex(this->zero))}
+        }
       );
-    assert(this->ftr.valid());
+      assert(this->ftr.valid());
   } else 
 #endif
   {
@@ -51,9 +57,14 @@ void slvr_lgrngn_chem<ct_params_t>::step_cond()
       params.cloudph_opts,
       this->make_arrinfo(this->th_post_cond(this->domain).reindex(this->zero)),
       this->make_arrinfo(this->rv_post_cond(this->domain).reindex(this->zero)),
-      ambient_chem_post_cond
+      {
+        {chem_species_t::SO2,  this->make_arrinfo(SO2_post_cond(this->domain).reindex(this->zero))},
+        {chem_species_t::O3,   this->make_arrinfo(O3_post_cond(this->domain).reindex(this->zero))},
+        {chem_species_t::H2O2, this->make_arrinfo(H2O2_post_cond(this->domain).reindex(this->zero))},
+        {chem_species_t::CO2,  this->make_arrinfo(CO2_post_cond(this->domain).reindex(this->zero))},
+        {chem_species_t::NH3,  this->make_arrinfo(NH3_post_cond(this->domain).reindex(this->zero))},
+        {chem_species_t::HNO3, this->make_arrinfo(HNO3_post_cond(this->domain).reindex(this->zero))}
+      }
     );
-      std::cerr <<  "SO2_post_cond right after step_cond with async==0: " << SO2_post_cond(this->ijk) << std::endl;
-
   }
 }

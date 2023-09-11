@@ -4,6 +4,8 @@
 template <class ct_params_t>
 void slvr_lgrngn_chem<ct_params_t>::init_prtcls()
 {
+  using libcloudphxx::common::chem::chem_gas_n;
+
   assert(this->rank == 0);
 
   // temporary array of densities - prtcls cant be init'd with 1D profile
@@ -14,15 +16,6 @@ void slvr_lgrngn_chem<ct_params_t>::init_prtcls()
   typename parent_t::arr_t p_e(this->mem->advectee(ix::th).shape()); 
   p_e = (*params.p_e)(this->vert_idx);
 
-  // needs to be assigned each time, because temp arrays returned by advectee() point to garbage after they get out of scope
-  boost::assign::insert(ambient_chem_init)
-    (chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g)))
-    (chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g)))
-    (chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g)))
-    (chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g)))
-    (chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g)))
-    (chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g)));
-
   this->prtcls->init(
     this->make_arrinfo(this->mem->advectee(ix::th)),
     this->make_arrinfo(this->mem->advectee(ix::rv)),
@@ -31,6 +24,13 @@ void slvr_lgrngn_chem<ct_params_t>::init_prtcls()
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
     libcloudphxx::lgrngn::arrinfo_t<real_t>(),
-    ambient_chem_init
+    {
+      {chem_species_t::SO2,  this->make_arrinfo(this->mem->advectee(ix::SO2g))},
+      {chem_species_t::O3,   this->make_arrinfo(this->mem->advectee(ix::O3g))},
+      {chem_species_t::H2O2, this->make_arrinfo(this->mem->advectee(ix::H2O2g))},
+      {chem_species_t::CO2,  this->make_arrinfo(this->mem->advectee(ix::CO2g))},
+      {chem_species_t::NH3,  this->make_arrinfo(this->mem->advectee(ix::NH3g))},
+      {chem_species_t::HNO3, this->make_arrinfo(this->mem->advectee(ix::HNO3g))}
+    }
   ); 
 }

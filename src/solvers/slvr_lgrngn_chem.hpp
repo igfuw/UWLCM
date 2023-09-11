@@ -17,10 +17,6 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
 
   private:
 
-  ambient_chem_t  ambient_chem, ambient_chem_pre_cond, ambient_chem_post_cond;
-  ambient_chem_ct ambient_chem_init;
-
-
   typename parent_t::arr_t &SO2_pre_cond,
                            &O3_pre_cond,
                            &H2O2_pre_cond,
@@ -34,7 +30,6 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
                            &CO2_post_cond,
                            &NH3_post_cond,
                            &HNO3_post_cond;
-
 
   void diag_pH();
   void diag_chem();
@@ -59,17 +54,6 @@ class slvr_lgrngn_chem : public slvr_lgrngn<ct_params_t>
   {
     parent_t::set_rain(val);
     set_chem(val);
-  }
-
-  void assign_ambient_chem_pre_cond()
-  {
-    boost::assign::insert(ambient_chem_pre_cond)
-      (chem_species_t::SO2,  this->make_arrinfo(SO2_pre_cond))
-      (chem_species_t::O3,   this->make_arrinfo(O3_pre_cond))
-      (chem_species_t::H2O2, this->make_arrinfo(H2O2_pre_cond))
-      (chem_species_t::CO2,  this->make_arrinfo(CO2_pre_cond))
-      (chem_species_t::NH3,  this->make_arrinfo(NH3_pre_cond))
-      (chem_species_t::HNO3, this->make_arrinfo(HNO3_pre_cond));
   }
 
   public:
