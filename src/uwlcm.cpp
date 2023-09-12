@@ -239,7 +239,7 @@ int main(int argc, char** argv)
       throw std::runtime_error("UWLCM: 2D Lagrangian without chemistry option was disabled at compile time");
 #endif
 
-    else if (micro == "lgrngn" && ny > 0) // 3D super-droplet
+    else if (micro == "lgrngn" && ny > 0 && !user_params.chem) // 3D super-droplet
 #if !defined(UWLCM_DISABLE_3D_LGRNGN)
       run_hlpr<slvr_lgrngn, ct_params_3D_lgrngn>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
@@ -251,6 +251,13 @@ int main(int argc, char** argv)
       run_hlpr<slvr_lgrngn_chem, ct_params_2D_lgrngn_chem>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
       throw std::runtime_error("2D Lagrangian with chemistry option was disabled at compile time");
+#endif
+
+    else if (micro == "lgrngn" && ny > 0 && user_params.chem) // 3D super-droplet with chemistry
+#if !defined(UWLCM_DISABLE_3D_LGRNGN_CHEM)
+      run_hlpr<slvr_lgrngn_chem, ct_params_3D_lgrngn_chem>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+      throw std::runtime_error("3D Lagrangian with chemistry option was disabled at compile time");
 #endif
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
