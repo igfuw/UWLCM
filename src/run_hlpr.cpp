@@ -177,7 +177,12 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     p.outvars.insert({1, {"v", "[m/s]"}});
   }
 
-  if constexpr(has_SO2g<ix>) p.outvars.insert({ix::SO2g,  {"SO2g", "[dimensionless]"}});
+  if constexpr(has_SO2g<ix>)  p.outvars.insert({ix::SO2g,  {"SO2g", "[dimensionless]"}});
+  if constexpr(has_O3g<ix>)   p.outvars.insert({ix::O3g,   {"O3g", "[dimensionless]"}});
+  if constexpr(has_H2O2g<ix>) p.outvars.insert({ix::H2O2g, {"H2O2g", "[dimensionless]"}});
+  if constexpr(has_CO2g<ix>)  p.outvars.insert({ix::CO2g,  {"CO2g", "[dimensionless]"}});
+  if constexpr(has_NH3g<ix>)  p.outvars.insert({ix::NH3g,  {"NH3g", "[dimensionless]"}});
+  if constexpr(has_HNO3g<ix>) p.outvars.insert({ix::HNO3g, {"HNO3g", "[dimensionless]"}});
 
   // solver instantiation
   std::unique_ptr<concurr_any_t> concurr;
