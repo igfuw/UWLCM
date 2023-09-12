@@ -55,7 +55,7 @@ target_include_directories(uwlcm_includes
 )
 
 # std::future test
-SET(CMAKE_REQUIRED_FLAGS "-std=c++11") # c++11 needed by the std_future test
+SET(CMAKE_REQUIRED_FLAGS "-std=c++17") 
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("#include <future>\n int main() { std::future<void> f; }\n" STD_FUTURE_WORKS)
 if(${STD_FUTURE_WORKS})
@@ -99,6 +99,12 @@ if(UWLCM_DISABLE)
   if(NOT "3D_LGRNGN" IN_LIST UWLCM_DISABLE)
     target_sources(uwlcm PRIVATE src/run_hlpr_3d_lgrngn.cpp)
   endif()
+  if(NOT "2D_LGRNGN_CHEM" IN_LIST UWLCM_DISABLE)
+    target_sources(uwlcm PRIVATE src/run_hlpr_2d_lgrngn_chem.cpp)
+  endif()
+  if(NOT "3D_LGRNGN_CHEM" IN_LIST UWLCM_DISABLE)
+    target_sources(uwlcm PRIVATE src/run_hlpr_3d_lgrngn_chem.cpp)
+  endif()
   if(NOT "2D_NONE" IN_LIST UWLCM_DISABLE)
     target_sources(uwlcm PRIVATE src/run_hlpr_2d_none.cpp)
   endif()
@@ -107,7 +113,7 @@ if(UWLCM_DISABLE)
   endif()
 else()
   # if no options were disabled, add all sources
-  target_sources(uwlcm PRIVATE src/run_hlpr_2d_blk_1m.cpp src/run_hlpr_3d_blk_1m.cpp src/run_hlpr_2d_blk_2m.cpp src/run_hlpr_3d_blk_2m.cpp src/run_hlpr_2d_lgrngn.cpp src/run_hlpr_3d_lgrngn.cpp src/run_hlpr_2d_none.cpp src/run_hlpr_3d_none.cpp)
+  target_sources(uwlcm PRIVATE src/run_hlpr_2d_blk_1m.cpp src/run_hlpr_3d_blk_1m.cpp src/run_hlpr_2d_blk_2m.cpp src/run_hlpr_3d_blk_2m.cpp src/run_hlpr_2d_lgrngn.cpp src/run_hlpr_3d_lgrngn.cpp src/run_hlpr_2d_none.cpp src/run_hlpr_3d_none.cpp src/run_hlpr_2d_lgrngn_chem.cpp src/run_hlpr_3d_lgrngn_chem.cpp )
 endif()
 
 # ensure that uwlcm is not built before current git_revision file is created
@@ -130,7 +136,7 @@ target_link_libraries(uwlcm
 
 # enabling c++14, but not gnu++14
 set_target_properties(uwlcm PROPERTIES CXX_EXTENSIONS OFF)
-target_compile_features(uwlcm PRIVATE cxx_std_14)
+target_compile_features(uwlcm PRIVATE cxx_std_17)
 
 # search for Boost
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
