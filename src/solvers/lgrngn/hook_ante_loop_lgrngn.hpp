@@ -98,6 +98,10 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     int n_sd_from_rlx_dry_distros = params.cloudph_opts_init.rlx_sd_per_bin * params.cloudph_opts_init.rlx_bins * params.cloudph_opts_init.nz * 100; // room for 100 rounds of full relaxation... 
     params.cloudph_opts_init.n_sd_max += n_sd_from_rlx_dry_distros;
 
+    // pre-collision statistics diagnosis stuff
+    params.cloudph_opts_init.precoal_stats_tmax = params.user_params.precoal_tmax > 0 ? params.user_params.precoal_tmax : 
+      (params.user_params.nt - params.user_params.precoal_start) * params.user_params.dt;
+
     prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
       (libcloudphxx::lgrngn::backend_t)params.backend, 
       params.cloudph_opts_init
@@ -196,6 +200,10 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("rd_min", "lgrngn", params.cloudph_opts_init.rd_min);  
     this->record_aux_const("rd_max", "lgrngn", params.cloudph_opts_init.rd_max);  
     this->record_aux_const("relax_ccn", "user_params", params.user_params.relax_ccn);  
+    this->record_aux_const("precoal_start", "user_params", params.user_params.precoal_start);  
+    this->record_aux_const("precoal_outfreq", "user_params", params.user_params.precoal_outfreq);  
+    this->record_aux_const("precoal_tmax", "user_params", params.user_params.precoal_tmax);  
+    this->record_aux_const("precoal_stats_tmax", "lgrngn", params.cloudph_opts_init.precoal_stats_tmax);  
   }
   this->mem->barrier();
 }

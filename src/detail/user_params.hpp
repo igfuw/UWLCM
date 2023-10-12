@@ -7,8 +7,8 @@
 // note: description and default values are in uwlcm.cpp, all parameters have to be handled there
 struct user_params_t
 {
-  int nt, outfreq, spinup, rng_seed, rng_seed_init;
-  setup::real_t X, Y, Z, dt;
+  int nt, outfreq, spinup, rng_seed, rng_seed_init, precoal_start, precoal_outfreq;
+  setup::real_t X, Y, Z, dt, precoal_tmax;
   std::string outdir, model_case;
   setup::real_t sgs_delta;
   quantity<si::length, setup::real_t> mean_rd1, mean_rd2;		

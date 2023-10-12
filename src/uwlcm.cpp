@@ -25,6 +25,7 @@
   #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_loop_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_step_lgrngn.hpp" 
+  #include "solvers/lgrngn/hook_post_step_lgrngn.hpp" 
   #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
 #endif
 
@@ -91,6 +92,9 @@ int main(int argc, char** argv)
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model length scale [m]. If negative, sgs_delta = dz")
       ("help", "produce a help message (see also --micro X --help)")
       ("relax_th_rv", po::value<bool>()->default_value(false) , "relax per-level mean theta and rv to a desired (case-specific) profile")
+      ("precoal_start", po::value<int>()->default_value(-1) , "timestep at which storing of SD positions (for precoal distance diag) starts (negative for not storing at all)")
+      ("precoal_outfreq", po::value<int>()->default_value(0) , "timestep interval at which SD positions are stored (for precoal distance diag)")
+      ("precoal_tmax", po::value<setup::real_t>()->default_value(-1) , "pre-collision statistics are diagnosed up to precoal_stats_tmax [s] before collision (negative for precoal_tmax=(nt - precoal_start)*dt)")
 
       // aerosol distribution params
       // default values are realistic params, except n1_stp=n2_stp=-1
@@ -138,6 +142,9 @@ int main(int argc, char** argv)
 
     user_params.nt = vm["nt"].as<int>(),
     user_params.spinup = vm["spinup"].as<int>();
+    user_params.precoal_start = vm["precoal_start"].as<int>();
+    user_params.precoal_outfreq = vm["precoal_outfreq"].as<int>();
+    user_params.precoal_tmax = vm["precoal_tmax"].as<setup::real_t>();
 
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();

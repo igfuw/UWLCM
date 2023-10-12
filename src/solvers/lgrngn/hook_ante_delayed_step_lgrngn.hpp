@@ -74,18 +74,20 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
           ftr = async_launcher(
             &particles_t<real_t, CUDA>::step_async, 
             dynamic_cast<particles_t<real_t, CUDA>*>(prtcls.get()),
-            params.cloudph_opts
+            params.cloudph_opts,
+            this->timestep * params.dt
           );
         else if(params.backend == multi_CUDA)
           ftr = async_launcher(
             &particles_t<real_t, multi_CUDA>::step_async, 
             dynamic_cast<particles_t<real_t, multi_CUDA>*>(prtcls.get()),
-            params.cloudph_opts
+            params.cloudph_opts,
+            this->timestep * params.dt
           );
         assert(ftr.valid());
       } else 
 #endif
-        prtcls->step_async(params.cloudph_opts);
+        prtcls->step_async(params.cloudph_opts, this->timestep * params.dt);
 
 #if defined(UWLCM_TIMING)
       tend = setup::clock::now();
