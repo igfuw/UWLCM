@@ -7,10 +7,10 @@ https://github.com/igfuw/UWLCM/blob/master/singularity/sng_ubuntu_20_04_cuda_11_
 When building for MPI runs, tell CMake to use the MPI compiler instead of gcc, e.g.:
 -DCMAKE_CXX_COMPILER=mpic++
 
-2. You need to have Apptainer/Singularity. It is most probably already installed on the cluster.
+2. You need to have Apptainer or Singularity (they forked from the original Singularity project). It is most probably already installed on the cluster.
 
-3. Download the UWLCM Singularity image ubuntu_20_04_cuda_11_4_mvapich2_v2 from:
-https://cloud.sylabs.io/library/pdziekan/test/uwlcm
+3. Download a UWLCM image (with or without MPI) from:
+https://cloud.sylabs.io/library/pdziekan/default/uwlcm
 
 4. Download libmpdata++ library from github, e.g.:
 $ git clone https://github.com/igfuw/libmpdataxx.git
@@ -24,14 +24,14 @@ $ git clone https://github.com/igfuw/UWLCM.git
 8. Install libmpdata++ using the Singularity image:
 - create “build” directory: libmpdataxx/libmpdata++/build
 - in the build direcory issue:
-$ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
+$ singularity exec --nv [IMAGE_NAME].sif sh -c 
 "cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
 -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} .. ; make install"
 
 9. Build and install libcloudph++ using the Singularity image:
 - create “build” directory: libcloudphxx/build
 - in the build direcory issue:
-$ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
+$ singularity exec --nv [IMAGE_NAME].sif sh -c 
 "cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
 -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} 
 -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True .. ; make -j4 install"
@@ -39,7 +39,7 @@ $ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c
 10. Build and install UWLCM using the Singularity image:
 - create “build” directory: UWLCM/build
 - in the build direcory issue:
-$ singularity exec --nv uwlcm_ubuntu_20_04_cuda_11_4.sif sh -c 
+$ singularity exec --nv [IMAGE_NAME] sh -c 
 "cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc 
 -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
  -Dlibmpdata++_DIR=${INSTALL_DIR}/share/libmpdata++ 
