@@ -31,6 +31,7 @@
   #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_loop_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_step_lgrngn.hpp" 
+  #include "solvers/lgrngn/hook_post_step_lgrngn.hpp" 
   #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
 #endif
 
