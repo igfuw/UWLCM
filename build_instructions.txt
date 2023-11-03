@@ -7,7 +7,11 @@ https://github.com/igfuw/UWLCM/blob/master/singularity/sng_ubuntu_20_04_cuda_11_
 When building for MPI runs, tell CMake to use the MPI compiler instead of gcc, e.g.:
 -DCMAKE_CXX_COMPILER=mpic++
 
-2. You need to have Apptainer or Singularity (they forked from the original Singularity project). It is most probably already installed on the cluster.
+2. You need to have Singularity (not the Linux game!) or Apptainer (they forked from the original Singularity project). It is most probably already installed on your cluster.
+
+2a. If using Apptainer, you need to add the sylabs cloud repository (see https://apptainer.org/docs/user/1.0/endpoint.html), e.g.:
+$ apptainer remote add --no-login SylabsCloud cloud.sylabs.io
+$ apptainer remote use SylabsCloud
 
 3. Download a UWLCM image (with or without MPI) from:
 https://cloud.sylabs.io/library/pdziekan/default/uwlcm
