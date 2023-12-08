@@ -17,7 +17,7 @@
 #include <libcloudph++/lgrngn/kernel.hpp>
 #include <libcloudph++/lgrngn/terminal_velocity.hpp>
 #include <libcloudph++/lgrngn/RH_formula.hpp>
-
+#include <libcloudph++/lgrngn/ccn_source.hpp>
 
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
@@ -68,7 +68,7 @@ void setopts_micro(
     ("sstp_coal", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_coal), "no. of substeps for coalescence")
     ("sstp_chem", po::value<int>()->default_value(rt_params.cloudph_opts_init.sstp_chem), "no. of substeps for chemistry")
     // 
-    ("out_dry", po::value<std::string>()->default_value(""),       "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_dry", po::value<std::string>()->default_value(""),  "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("gccn", po::value<setup::real_t>()->default_value(0) , "concentration of giant aerosols = gccn * VOCALS observations")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
@@ -83,7 +83,9 @@ void setopts_micro(
     ("supstp_src", po::value<int>()->default_value(100), "interval between time steps in which CCN from source are added")
     ("src_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ccn injected into specified cells, [1 / m^3 / s]")
     ("src_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected CCN")
-
+    ("rd_min", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_min), "minimum dry radius of initialized droplets [m] (negative means automatic detection)")
+    ("rd_max", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_max), "maximum dry radius of initialized droplets [m] (negative means automatic detection); sd_conc_large_tail==true may result in initialization of even larger droplets")
+    ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
     // TODO: MAC, HAC, vent_coef
   ;
   po::variables_map vm;
@@ -97,8 +99,6 @@ void setopts_micro(
 
   rt_params.async = vm["async"].as<bool>();
   rt_params.gccn = vm["gccn"].as<setup::real_t>();
-  rt_params.out_wet_spec = vm["out_wet_spec"].as<bool>();
-  rt_params.out_dry_spec = vm["out_dry_spec"].as<bool>();
   rt_params.out_spec_freq = vm["out_spec_freq"].as<int>();
   assert((rt_params.out_spec_freq % user_params.outfreq == 0) && "out_spec_freq needs to be a multiple of outfreq");
 
@@ -108,33 +108,65 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
 
+  rt_params.cloudph_opts_init.rd_min = vm["rd_min"].as<setup::real_t>();
+  rt_params.cloudph_opts_init.rd_max = vm["rd_max"].as<setup::real_t>();
+
   std::string adve_scheme_str = vm["adve_scheme"].as<std::string>();
   if (adve_scheme_str == "euler") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::euler;
   else if (adve_scheme_str == "implicit") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::implicit;
   else if (adve_scheme_str == "pred_corr") rt_params.cloudph_opts_init.adve_scheme = libcloudphxx::lgrngn::as_t::pred_corr;
-  else throw std::runtime_error("unrecognized adve_scheme optsion");
+  else throw std::runtime_error("UWLCM: unrecognized adve_scheme optsion");
 
   setup::arr_1D_t neg_w_LS = rt_params.w_LS->copy(); 
   neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
-
   rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
 
- // if(!unit_test)
   {
-    rt_params.cloudph_opts_init.dry_distros.emplace(
-      case_ptr->kappa, // key
-      std::make_shared<setup::log_dry_radii<thrust_real_t>> (
-        case_ptr->mean_rd1, // parameters
-        case_ptr->mean_rd2,
-        case_ptr->sdev_rd1,
-        case_ptr->sdev_rd2,
-        case_ptr->n1_stp,
-        case_ptr->n2_stp
-      )
-    );
-
+    if(user_params.n1_stp*si::cubic_metres >= 0 && user_params.n2_stp*si::cubic_metres >= 0 && user_params.kappa1 == user_params.kappa2) {
+        throw std::runtime_error("UWLCM: cannot emplace two modes with same kappa");
+    }
+    if(user_params.n1_stp*si::cubic_metres >= 0) {
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        user_params.kappa1,
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          user_params.mean_rd1,
+          thrust_real_t(1.0e-6) * si::metres,
+          user_params.sdev_rd1,
+          thrust_real_t(1.2),
+          user_params.n1_stp,
+          thrust_real_t(0) / si::cubic_metres
+        )
+      );
+    } 
+    if(user_params.n2_stp*si::cubic_metres >= 0) {
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        user_params.kappa2,
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          thrust_real_t(1.0e-6) * si::metres,
+          user_params.mean_rd2,
+          thrust_real_t(1.2),
+          user_params.sdev_rd2,
+          thrust_real_t(0) / si::cubic_metres,
+          user_params.n2_stp
+        )
+      );
+    } 
+    if(user_params.n1_stp*si::cubic_metres < 0 && user_params.n2_stp*si::cubic_metres < 0) {
+      rt_params.cloudph_opts_init.dry_distros.emplace(
+        case_ptr->kappa,
+        std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+          case_ptr->mean_rd1,
+          case_ptr->mean_rd2,
+          case_ptr->sdev_rd1,
+          case_ptr->sdev_rd2,
+          user_params.case_n_stp_multiplier * case_ptr->n1_stp,
+          user_params.case_n_stp_multiplier * case_ptr->n2_stp
+        )
+      );
+    }
+ 
     // GCCNs using a fitted lognormal function to Jensen and Nugent, JAS 2016
     /*
     rt_params.cloudph_opts_init.dry_distros.emplace(
@@ -149,55 +181,190 @@ void setopts_micro(
       )
     );
     */
+
 //std::cout << "kappa 0.61 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[0.61]))(1e-14) << std::endl;
 //std::cout << "kappa 1.28 dry distros for 1e-14: " << (*(rt_params.cloudph_opts_init.dry_distros[1.28]))(1e-14) << std::endl;
 
+    // CCN relaxation stuff
+    rt_params.user_params.relax_ccn = vm["relax_ccn"].as<bool>();
+    if(rt_params.user_params.relax_ccn)
+    {
+      rt_params.cloudph_opts_init.rlx_switch = 1;
+      rt_params.cloudph_opts_init.rlx_bins = 100;
+      rt_params.cloudph_opts_init.rlx_sd_per_bin = 400;
+      rt_params.cloudph_opts_init.supstp_rlx = 120 / rt_params.dt; // relaxation every two minutes
+      rt_params.cloudph_opts_init.rlx_timescale = 600; // 10 min
+
+      // define kappa ranges of user-defined aerosol distros
+      std::pair<thrust_real_t, thrust_real_t> user_kpa_rng1, user_kpa_rng2;
+
+      if(user_params.n1_stp*si::cubic_metres >= 0 || user_params.n2_stp*si::cubic_metres >= 0) {
+        if(rt_params.gccn > setup::real_t(0)) 
+          throw std::runtime_error("UWLCM: CCN relaxation + GCCN + user-defined aerosol spectra does not work, because kappa ranges for relaxation are not known");
+        if(user_params.n1_stp*si::cubic_metres < 0)
+          user_kpa_rng2 = std::make_pair<thrust_real_t, thrust_real_t>(0,10); // only one user-defined distribution, whole kappa range
+        if(user_params.n2_stp*si::cubic_metres < 0)
+          user_kpa_rng1 = std::make_pair<thrust_real_t, thrust_real_t>(0,10); // only one user-defined distribution, whole kappa range
+        if(user_params.n1_stp*si::cubic_metres >= 0 && user_params.n2_stp*si::cubic_metres >= 0) {
+          if(user_params.kappa1 < user_params.kappa2)
+          {
+            user_kpa_rng1 = std::make_pair<thrust_real_t, thrust_real_t>(0, (user_params.kappa1 + user_params.kappa2) / 2.);
+            user_kpa_rng2 = std::make_pair<thrust_real_t, thrust_real_t>((user_params.kappa1 + user_params.kappa2) / 2., 10);
+          }
+          else
+          {
+            user_kpa_rng2 = std::make_pair<thrust_real_t, thrust_real_t>(0, (user_params.kappa1 + user_params.kappa2) / 2.);
+            user_kpa_rng1 = std::make_pair<thrust_real_t, thrust_real_t>((user_params.kappa1 + user_params.kappa2) / 2., 10);
+          }
+        }
+      }
+
+      if(user_params.n1_stp*si::cubic_metres >= 0) {
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+          user_params.kappa1,
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+              user_params.mean_rd1,
+              thrust_real_t(1.0e-6) * si::metres,
+              user_params.sdev_rd1,
+              thrust_real_t(1.2),
+              user_params.n1_stp,
+              thrust_real_t(0) / si::cubic_metres
+            ),
+            user_kpa_rng1,
+            std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+          )
+        );
+      } 
+      if(user_params.n2_stp*si::cubic_metres >= 0) {
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+          user_params.kappa2,
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+              thrust_real_t(1.0e-6) * si::metres,
+              user_params.mean_rd2,
+              thrust_real_t(1.2),
+              user_params.sdev_rd2,
+              thrust_real_t(0) / si::cubic_metres,
+              user_params.n2_stp
+            ),
+            user_kpa_rng2,
+            std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+          )
+        );
+      } 
+
+      if(user_params.n1_stp*si::cubic_metres < 0 && user_params.n2_stp*si::cubic_metres < 0) {
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+          case_ptr->kappa,
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii<thrust_real_t>> (
+              case_ptr->mean_rd1,
+              case_ptr->mean_rd2,
+              case_ptr->sdev_rd1,
+              case_ptr->sdev_rd2,
+              user_params.case_n_stp_multiplier * case_ptr->n1_stp,
+              user_params.case_n_stp_multiplier * case_ptr->n2_stp
+              //thrust_real_t(4*90e6) / si::cubic_metres,
+              //thrust_real_t(4*15e6) / si::cubic_metres 
+            ),
+            std::make_pair<thrust_real_t>(0., (0.61 + 1.28) / 2.),
+            //std::make_pair<thrust_real_t>(1000, case_ptr->Z / si::meters)
+            std::make_pair<thrust_real_t>(0, case_ptr->Z / si::meters)
+          )
+        );
+      }
+    }
+
+ 
     // GCCNs following Jensen and Nugent, JAS 2016
     if(rt_params.gccn > setup::real_t(0))
     {
-      rt_params.cloudph_opts_init.dry_sizes.emplace(
+      // TODO: src_x0, src_x1, src_y0 and src_y1 should exclude half of outside cells, like x0, x1, y0, y1?
+      rt_params.cloudph_opts_init.src_type = libcloudphxx::lgrngn::src_t::simple;
+      rt_params.cloudph_opts_init.src_x0 = 0;
+      rt_params.cloudph_opts_init.src_x1 = case_ptr->X / si::meters;
+      rt_params.cloudph_opts_init.src_y0 = 0;
+      rt_params.cloudph_opts_init.src_y1 = case_ptr->Y / si::meters;
+      rt_params.cloudph_opts_init.src_z0 = 0;
+//      rt_params.cloudph_opts_init.src_z1 = case_ptr->Z / si::meters;
+      rt_params.cloudph_opts_init.src_z1 = case_ptr->gccn_max_height / si::meters;// 700;
+  //    rt_params.cloudph_opts_init.src_z1 = 200;
+
+      rt_params.cloudph_opts_init.src_sd_conc = 38;
+
+/*
+      rt_params.cloudph_opts_init.src_dry_sizes.emplace(
         1.28, // kappa
         std::map<setup::real_t, std::pair<setup::real_t, int> > {
-          {0.8e-6, {rt_params.gccn * 111800, 1}},
-          {1.0e-6, {rt_params.gccn * 68490,  1}},
-          {1.2e-6, {rt_params.gccn * 38400,  1}},
-          {1.4e-6, {rt_params.gccn * 21820,  1}},
-          {1.6e-6, {rt_params.gccn * 13300,  1}},
-          {1.8e-6, {rt_params.gccn * 8496,  1}},
-          {2.0e-6, {rt_params.gccn * 5486,  1}},
-          {2.2e-6, {rt_params.gccn * 3805,  1}},
-          {2.4e-6, {rt_params.gccn * 2593,  1}},
-          {2.6e-6, {rt_params.gccn * 1919,  1}},
-          {2.8e-6, {rt_params.gccn * 1278,  1}},
-          {3.0e-6, {rt_params.gccn * 988.4,  1}},
-          {3.2e-6, {rt_params.gccn * 777.9,  1}},
-          {3.4e-6, {rt_params.gccn * 519.5,  1}},
-          {3.6e-6, {rt_params.gccn * 400.5,  1}},
-          {3.8e-6, {rt_params.gccn * 376.9,  1}},
-          {4.0e-6, {rt_params.gccn * 265.3,  1}},
-          {4.2e-6, {rt_params.gccn * 212.4,  1}},
-          {4.4e-6, {rt_params.gccn * 137.8,  1}},
-          {4.6e-6, {rt_params.gccn * 121.4,  1}},
-          {4.8e-6, {rt_params.gccn * 100.9,  1}},
-          {5.0e-6, {rt_params.gccn * 122.2,  1}},
-          {5.2e-6, {rt_params.gccn * 50.64,  1}},
-          {5.4e-6, {rt_params.gccn * 38.30,  1}},
-          {5.6e-6, {rt_params.gccn * 55.47,  1}},
-          {5.8e-6, {rt_params.gccn * 21.45,  1}},
-          {6.0e-6, {rt_params.gccn * 12.95,  1}},
-          {6.2e-6, {rt_params.gccn * 43.23,  1}},
-          {6.4e-6, {rt_params.gccn * 26.26,  1}},
-          {6.6e-6, {rt_params.gccn * 30.50,  1}},
-          {6.8e-6, {rt_params.gccn * 4.385,  1}},
-          {7.0e-6, {rt_params.gccn * 4.372,  1}},
-          {7.2e-6, {rt_params.gccn * 4.465,  1}},
-          {7.4e-6, {rt_params.gccn * 4.395,  1}},
-          {7.6e-6, {rt_params.gccn * 4.427,  1}},
-          {7.8e-6, {rt_params.gccn * 4.411,  1}},
-          {8.6e-6, {rt_params.gccn * 4.522,  1}},
-          {9.0e-6, {rt_params.gccn * 4.542,  1}}
+          {0.8e-6, {rt_params.gccn / rt_params.dt * 111800, 1}},
+          {1.0e-6, {rt_params.gccn / rt_params.dt * 68490,  1}},
+          {1.2e-6, {rt_params.gccn / rt_params.dt * 38400,  1}},
+          {1.4e-6, {rt_params.gccn / rt_params.dt * 21820,  1}},
+          {1.6e-6, {rt_params.gccn / rt_params.dt * 13300,  1}},
+          {1.8e-6, {rt_params.gccn / rt_params.dt * 8496,  1}},
+          {2.0e-6, {rt_params.gccn / rt_params.dt * 5486,  1}},
+          {2.2e-6, {rt_params.gccn / rt_params.dt * 3805,  1}},
+          {2.4e-6, {rt_params.gccn / rt_params.dt * 2593,  1}},
+          {2.6e-6, {rt_params.gccn / rt_params.dt * 1919,  1}},
+          {2.8e-6, {rt_params.gccn / rt_params.dt * 1278,  1}},
+          {3.0e-6, {rt_params.gccn / rt_params.dt * 988.4,  1}},
+          {3.2e-6, {rt_params.gccn / rt_params.dt * 777.9,  1}},
+          {3.4e-6, {rt_params.gccn / rt_params.dt * 519.5,  1}},
+          {3.6e-6, {rt_params.gccn / rt_params.dt * 400.5,  1}},
+          {3.8e-6, {rt_params.gccn / rt_params.dt * 376.9,  1}},
+          {4.0e-6, {rt_params.gccn / rt_params.dt * 265.3,  1}},
+          {4.2e-6, {rt_params.gccn / rt_params.dt * 212.4,  1}},
+          {4.4e-6, {rt_params.gccn / rt_params.dt * 137.8,  1}},
+          {4.6e-6, {rt_params.gccn / rt_params.dt * 121.4,  1}},
+          {4.8e-6, {rt_params.gccn / rt_params.dt * 100.9,  1}},
+          {5.0e-6, {rt_params.gccn / rt_params.dt * 122.2,  1}},
+          {5.2e-6, {rt_params.gccn / rt_params.dt * 50.64,  1}},
+          {5.4e-6, {rt_params.gccn / rt_params.dt * 38.30,  1}},
+          {5.6e-6, {rt_params.gccn / rt_params.dt * 55.47,  1}},
+          {5.8e-6, {rt_params.gccn / rt_params.dt * 21.45,  1}},
+          {6.0e-6, {rt_params.gccn / rt_params.dt * 12.95,  1}},
+          {6.2e-6, {rt_params.gccn / rt_params.dt * 43.23,  1}},
+          {6.4e-6, {rt_params.gccn / rt_params.dt * 26.26,  1}},
+          {6.6e-6, {rt_params.gccn / rt_params.dt * 30.50,  1}},
+          {6.8e-6, {rt_params.gccn / rt_params.dt * 4.385,  1}},
+          {7.0e-6, {rt_params.gccn / rt_params.dt * 4.372,  1}},
+          {7.2e-6, {rt_params.gccn / rt_params.dt * 4.465,  1}},
+          {7.4e-6, {rt_params.gccn / rt_params.dt * 4.395,  1}},
+          {7.6e-6, {rt_params.gccn / rt_params.dt * 4.427,  1}},
+          {7.8e-6, {rt_params.gccn / rt_params.dt * 4.411,  1}},
+          {8.6e-6, {rt_params.gccn / rt_params.dt * 4.522,  1}},
+          {9.0e-6, {rt_params.gccn / rt_params.dt * 4.542,  1}}
         }
       );
+      */
+
+      rt_params.cloudph_opts_init.src_dry_distros.emplace(
+        1.28, // kappa
+        std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+          log(0.8e-6),      // minimum radius  
+          log(10e-6),   // maximum radius
+          rt_params.gccn / rt_params.dt // concenctration multiplier
+        )
+      );
+
+      // GCCN relaxation stuff
+      if(rt_params.user_params.relax_ccn)
+      {
+        rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
+          1.28, // kappa
+          std::make_tuple(
+            std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+              log(0.8e-6),      // minimum radius  
+              log(10e-6),   // maximum radius
+              rt_params.gccn // concenctration multiplier
+            ),
+            std::make_pair<thrust_real_t>((0.61 + 1.28) / 2., 10000),
+            std::make_pair<thrust_real_t>(0, rt_params.cloudph_opts_init.src_z1)
+            //std::make_pair<thrust_real_t>(0, 700)
+          )
+        );
+      }
     }
    }
 /*  else if(unit_test)
@@ -208,7 +375,7 @@ void setopts_micro(
     )(
       setup::kappa // key
     );*/
-/*
+/*  
   if(gccn) // add the gccns spectra
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_gccn<thrust_real_t> // value type
@@ -241,6 +408,8 @@ void setopts_micro(
   rt_params.cloudph_opts_init.sd_conc_large_tail = vm["sd_conc_large_tail"].as<bool>();
 
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
+  rt_params.cloudph_opts_init.rng_seed_init = user_params.rng_seed_init;
+  rt_params.cloudph_opts_init.rng_seed_init_switch = true;
 
   // coalescence kernel choice
   if(!vm["turb_coal"].as<bool>())
@@ -263,7 +432,7 @@ void setopts_micro(
   
   rt_params.cloudph_opts_init.turb_adve_switch = vm["turb_adve"].as<bool>();
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
-
+  
   // subsidence of SDs
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
   rt_params.cloudph_opts.subs = rt_params.subsidence;
@@ -332,35 +501,24 @@ void setopts_micro(
     }
   } 
 
-  if(rt_params.out_wet_spec)
+  for (auto &opt : std::set<std::string>({"out_dry_spec", "out_wet_spec"}))
   {
-    auto left_edges = bins_wet();
-    for (int i = 0; i < left_edges.size()-1; ++i)
+    if(vm[opt].as<bool>())
     {
-      rt_params.out_wet.push_back(outmom_t<thrust_real_t>::value_type(
-        outmom_t<thrust_real_t>::value_type::first_type(
-          left_edges.at(i),
-          left_edges.at(i+1)
-        ), 
-        outmom_t<setup::real_t>::value_type::second_type(1, 0)
-      ));
+      auto left_edges = opt == "out_dry_spec" ? bins_dry() : bins_wet();
+      auto &out = opt == "out_dry_spec" ? rt_params.out_dry : rt_params.out_wet;
+      for (int i = 0; i < left_edges.size()-1; ++i)
+      {
+        out.push_back(outmom_t<thrust_real_t>::value_type(
+          outmom_t<thrust_real_t>::value_type::first_type(
+            left_edges.at(i),
+            left_edges.at(i+1)
+          ), 
+          outmom_t<setup::real_t>::value_type::second_type{0} // 0-th moment only, e.g. {0,1,3} would store 0-th, 1-st and 3-rd moments
+        ));
+      }
     }
   }
-  if(rt_params.out_dry_spec)
-  {
-    auto left_edges = bins_dry();
-    for (int i = 0; i < left_edges.size()-1; ++i)
-    {
-      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
-        outmom_t<thrust_real_t>::value_type::first_type(
-          left_edges.at(i),
-          left_edges.at(i+1)
-        ), 
-        outmom_t<setup::real_t>::value_type::second_type(1, 0)
-      ));
-    }
-  }
-
 
   setup::real_t src_inj_rate = vm["src_inj_rate"].as<setup::real_t>();  // number/m^3 (@ STP) created per second in each source cell
   unsigned long long src_sd_no = vm["src_sd_no"].as<unsigned long long>();  // number of SD to represent injected CCN in each cell, added per supstp_src steps
@@ -385,5 +543,20 @@ void setopts_micro(
   rt_params.cloudph_opts_init.src_y1 = (64 + .5) * dx; 
   rt_params.cloudph_opts_init.src_z0 = 0.5 * dx;
   rt_params.cloudph_opts_init.src_z1 = (32 + .5) * dx; 
-  rt_params.cloudph_opts_init.src_switch = true;
+  rt_params.cloudph_opts_init.src_type = libcloudphxx::lgrngn::src_t::simple;
+
+//  if(vm["out_dry_spec"].as<bool>())
+//  {
+//    auto left_edges = bins_dry();
+//    for (int i = 0; i < left_edges.size()-1; ++i)
+//    {
+//      rt_params.out_dry.push_back(outmom_t<thrust_real_t>::value_type(
+//        outmom_t<thrust_real_t>::value_type::first_type(
+//          left_edges.at(i),
+//          left_edges.at(i+1)
+//        ), 
+//        outmom_t<setup::real_t>::value_type::second_type{0}
+//      ));
+//    }
+//  }
 }

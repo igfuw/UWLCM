@@ -3,7 +3,7 @@
 #pragma once
 #include "CasesCommon.hpp"
 
-namespace setup 
+namespace cases 
 {
   template<class case_ct_params_t, int n_dims>
   class Anelastic : public CasesCommon<case_ct_params_t, n_dims>
@@ -15,14 +15,14 @@ namespace setup
     quantity<si::mass_density, real_t> rhod_0 = 0 * si::kilograms / si::cubic_meters; 
 
     // liquid water potential temperature at height z
-    virtual quantity<si::temperature, real_t> th_l(const real_t &z) {throw std::runtime_error("base Anelastic class th_l called");}
+    virtual quantity<si::temperature, real_t> th_l(const real_t &z) {throw std::runtime_error("UWLCM: base Anelastic class th_l called");}
 
     // water mixing ratio at height z
-    virtual quantity<si::dimensionless, real_t> r_t(const real_t &z) {throw std::runtime_error("base Anelastic class r_t called");}
+    virtual quantity<si::dimensionless, real_t> r_t(const real_t &z) {throw std::runtime_error("UWLCM: base Anelastic class r_t called");}
 
     // calculate the initial environmental theta and rv profiles
     // like in Wojtek's BabyEulag
-    void env_prof(profiles_t &profs, int nz)
+    void env_prof(detail::profiles_t &profs, int nz)
     {
       using libcloudphxx::common::moist_air::R_d_over_c_pd;
       using libcloudphxx::common::moist_air::c_pd;
@@ -83,7 +83,7 @@ namespace setup
 
     // calculate the initial reference theta and rv profiles
     // like in Wojtek's BabyEulag
-    void ref_prof(profiles_t &profs, int nz)
+    void ref_prof(detail::profiles_t &profs, int nz)
     {
       using libcloudphxx::common::moist_air::R_d_over_c_pd;
       using libcloudphxx::common::moist_air::c_pd;

@@ -85,7 +85,7 @@ void slvr_common<ct_params_t>::surf_u_impl(iles_tag)
     surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
     this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-    params.dz / 2, this->timestep, this->dt, this->di, this->dj
+    params.dz / 2, this->timestep, this->dt, this->di, this->dj, params.ForceParameters.uv_mean[0]
   );
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
@@ -98,7 +98,7 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_u_impl(smg_tag)
 {
   // SMG simulation should not call surf_u - momentum fluxes are done via vip_rhs_expl_calc() in libmpdata++/solvers/detail/mpdata_rhs_vip_prs_sgs_common.hpp
-  throw std::runtime_error("SMG simulation called surf_u_impl.");
+  throw std::runtime_error("UWLCM: SMG simulation called surf_u_impl.");
   return;
 }
 
@@ -115,7 +115,7 @@ void slvr_common<ct_params_t>::surf_v_impl(iles_tag)
     surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
     this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-    params.dz / 2, this->timestep, this->dt, this->di, this->dj
+    params.dz / 2, this->timestep, this->dt, this->di, this->dj, params.ForceParameters.uv_mean[1]
   );
 
   for (auto k = this->vert_rng.first(); k <= this->vert_rng.last(); ++k)
@@ -128,7 +128,7 @@ template <class ct_params_t>
 void slvr_common<ct_params_t>::surf_v_impl(smg_tag)
 {
   // SMG simulation should not call surf_v - momentum fluxes are done via vip_rhs_expl_calc() in libmpdata++/solvers/detail/mpdata_rhs_vip_prs_sgs_common.hpp
-  throw std::runtime_error("SMG simulation called surf_v_impl.");
+  throw std::runtime_error("UWLCM: SMG simulation called surf_v_impl.");
   return;
 }
 

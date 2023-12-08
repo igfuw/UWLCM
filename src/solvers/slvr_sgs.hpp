@@ -188,7 +188,15 @@ class slvr_sgs : public slvr_common<ct_params_t>
   void calc_drag_cmpct() override
   {
     if(params.cdrag > 0)           // kinematic momentum flux = - cdrag |U| u
-      parent_t::calc_drag_cmpct();
+    {
+      formulae::stress::calc_drag_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau_srfc,
+                                                                            this->vips(),
+                                                                            *this->mem->G,
+                                                                            this->cdrag,
+                                                                            this->ijk,
+                                                                            this->ijkm,
+                                                                            this->params.ForceParameters.uv_mean);
+    }
     else if(params.fricvelsq > 0)  // kinematic momentum flux = - fricvelsq u / |U|
     {
       // have to use modified ijkm due to shared-memory parallelisation, otherwise overlapping ranges
@@ -198,7 +206,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                                                                 *this->mem->G,
                                                                                 params.fricvelsq,
                                                                                 this->ijk,
-                                                                                this->ijkm_sep);
+                                                                                this->ijkm_sep,
+                                                                                this->params.ForceParameters.uv_mean);
     }
   }
   
@@ -359,7 +368,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     sgs_rv_flux(args.mem->tmp[__FILE__][3][1])
   {
     if(params.fricvelsq > 0 && params.cdrag > 0)
-      throw std::runtime_error("in SGS simulation either cdrag or fricvelsq need to be positive, not both");
+      throw std::runtime_error("UWLCM: in SGS simulation either cdrag or fricvelsq need to be positive, not both");
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)

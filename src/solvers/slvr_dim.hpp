@@ -45,6 +45,7 @@ class slvr_dim<
   idx_t<2> Cx_domain = idx_t<2>({this->mem->grid_size[0]^h, this->mem->grid_size[1]}); // libcloudphxx requires courants with a halo of 2 in the x direction
   idx_t<2> Cy_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h}); // just fill in with Cz_domain to avoid some asserts
   idx_t<2> Cz_domain = idx_t<2>({this->mem->grid_size[0], this->mem->grid_size[1]^h});
+  const int n_cell_per_level = this->mem->distmem.grid_size[0];
 
 
   blitz::TinyVector<int, 2> zero = blitz::TinyVector<int, 2>({0,0});
@@ -81,6 +82,12 @@ class slvr_dim<
   void set_vertcl_slice_y(const typename parent_t::arr_t &a, int i, const setup::real_t &val)
   {
     assert(0 && "set_vertcl_slice_y called in a 2D simulation.");
+  }
+
+  void hrzntl_mean(const typename parent_t::arr_t &a, setup::arr_1D_t &res)
+  {
+    for(int k=0; k<this->mem->distmem.grid_size[1]; ++k)
+      res(k) = this->mem->sum(this->rank, a, hrzntl_slice(k), false) / (this->mem->distmem.grid_size[0]);
   }
 
   void vert_grad_fwd(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
@@ -129,17 +136,25 @@ class slvr_dim<
     this->mem->barrier();
   }
 
+  struct rt_params_t : parent_t::rt_params_t
+  {
+    detail::ForceParameters_t ForceParameters; // uv_mean needed for ground velocity calculation
+  };
+
+  rt_params_t params;
+
   auto calc_U_ground() 
     return_macro(,
-    abs(this->state(ix::vip_i)(this->hrzntl_slice(0))) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
+    abs(this->state(ix::vip_i)(this->hrzntl_slice(0)) + this->params.ForceParameters.uv_mean[0]) // at 1st level, because 0-th level has no clear interpretation? 0-th is ground level, but with horizontal winds
   )
 
   // ctor
   slvr_dim(
     typename parent_t::ctor_args_t args,
-    typename parent_t::rt_params_t const &p
+    const rt_params_t &p
   ) :
-    parent_t(args, p) 
+    parent_t(args, p),
+    params(p)
     {}
 };
 
@@ -163,6 +178,7 @@ class slvr_dim<
   idx_t<3> Cx_domain = idx_t<3>({this->mem->grid_size[0]^h, this->mem->grid_size[1], this->mem->grid_size[2]});
   idx_t<3> Cy_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1]^h, this->mem->grid_size[2]});
   idx_t<3> Cz_domain = idx_t<3>({this->mem->grid_size[0], this->mem->grid_size[1], this->mem->grid_size[2]^h});
+  const int n_cell_per_level = this->mem->distmem.grid_size[0] * this->mem->distmem.grid_size[1];
 
   blitz::TinyVector<int, 3> zero = blitz::TinyVector<int, 3>({0,0,0});
   blitz::TinyVector<int, 2> zero_plane = blitz::TinyVector<int, 2>({0,0});
@@ -213,6 +229,12 @@ class slvr_dim<
   {
       return blitz::safeToReturn(a(idx_t<3>({this->i, this->j, rng_t(k, k)})) + 0);
   }
+  
+  void hrzntl_mean(const typename parent_t::arr_t &a, setup::arr_1D_t &res)
+  {
+    for(int k=0; k<this->mem->distmem.grid_size[2]; ++k)
+      res(k) = this->mem->sum(this->rank, a, hrzntl_slice(k), false) / (this->mem->distmem.grid_size[0] * this->mem->distmem.grid_size[1]);
+  }
 
   void vert_grad_fwd(typename parent_t::arr_t in, typename parent_t::arr_t out, setup::real_t dz)
   {
@@ -260,17 +282,25 @@ class slvr_dim<
     this->mem->barrier();
   }
 
+  struct rt_params_t : parent_t::rt_params_t
+  {
+    detail::ForceParameters_t ForceParameters; // uv_mean needed for ground velocity calculation
+  };
+
+  rt_params_t params;
+
   auto calc_U_ground() 
     return_macro(,
-    sqrt(pow2(this->state(ix::vip_i)(this->hrzntl_slice(0))) + pow2(this->state(ix::vip_j)(this->hrzntl_slice(0))))
+    sqrt(pow2(this->state(ix::vip_i)(this->hrzntl_slice(0)) + this->params.ForceParameters.uv_mean[0]) + pow2(this->state(ix::vip_j)(this->hrzntl_slice(0)) + this->params.ForceParameters.uv_mean[1]))
   )
 
   // ctor
   slvr_dim(
     typename parent_t::ctor_args_t args, 
-    typename parent_t::rt_params_t const &p
+    const rt_params_t &p
   ) : 
-    parent_t(args, p)
+    parent_t(args, p),
+    params(p)
     {}
 };
 

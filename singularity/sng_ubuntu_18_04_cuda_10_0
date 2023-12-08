@@ -18,7 +18,10 @@ apt-get update -qq \
         vim \
         curl \
         language-pack-en-base \
-        gdb
+        gdb \
+        gfortran \
+        libnetcdf-dev \
+        libnetcdff-dev
 
 add-apt-repository ppa:ubuntu-toolchain-r/test
 apt-get update
@@ -37,6 +40,7 @@ apt-get update -qq \
         python3-scipy \
         python3-matplotlib \
         python3-pytest \
+        python3-cffi \
 	python-tk\
 	dvipng\
 	texlive-latex-extra\
@@ -46,8 +50,9 @@ apt-get update -qq \
 wget https://github.com/Kitware/CMake/releases/download/v3.13.2/cmake-3.13.2-Linux-x86_64.sh
 sudo sh cmake-3.13.2-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
 
-git clone --depth=1 git://github.com/thrust/thrust.git
+git clone --depth=1 git://github.com/thrust/thrust.git --branch 1.9.10-1
 sudo ln -s `pwd`/thrust/thrust /usr/local/include/thrust
+
 
 git clone --depth=1 git://github.com/blitzpp/blitz.git
 cd blitz

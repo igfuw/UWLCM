@@ -35,10 +35,10 @@ endif()
 
 # Select flags.
 #-g0 negates -g; -UBZ_DEBUG negates blitz debug; NOTE: don't use -Ofast as it makes std::isfinite(sum(x)) return true even if some elements of x are nan/inf
-SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libmpdataxx_CXX_FLAGS_DEBUG} -O3 -g0 -UBZ_DEBUG -march=native") 
+SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${libmpdataxx_CXX_FLAGS_DEBUG} -O3 -g0 -UBZ_DEBUG -march=native -Wno-enum-compare") 
 
-SET(CMAKE_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE}")
-SET(CMAKE_CXX_FLAGS_DEBUG  "${libmpdataxx_CXX_FLAGS_DEBUG}")
+SET(CMAKE_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -Wno-enum-compare")
+SET(CMAKE_CXX_FLAGS_DEBUG  "${libmpdataxx_CXX_FLAGS_DEBUG} -Wno-enum-compare")
 
 add_executable(uwlcm src/opts/opts_common.cpp src/detail/get_uwlcm_git_revision.cpp src/uwlcm.cpp)
 add_library(uwlcm_includes INTERFACE)
@@ -68,6 +68,11 @@ foreach(opts ${MPDATA_OPTS})
   target_compile_definitions(uwlcm PRIVATE ${MPDATA_OPTS_PREFIX}${opts})
 endforeach()
 
+#handle execution timing flag
+if(UWLCM_TIMING)
+  target_compile_options(uwlcm PRIVATE "-DUWLCM_TIMING")
+endif()
+
 # handle the disable compilation options
 if(UWLCM_DISABLE)
   set(UWLCM_DISABLE_PREFIX "UWLCM_DISABLE_")
@@ -82,15 +87,27 @@ if(UWLCM_DISABLE)
   if(NOT "3D_BLK_1M" IN_LIST UWLCM_DISABLE)
     target_sources(uwlcm PRIVATE src/run_hlpr_3d_blk_1m.cpp)
   endif()
+  if(NOT "2D_BLK_2M" IN_LIST UWLCM_DISABLE)
+    target_sources(uwlcm PRIVATE src/run_hlpr_2d_blk_2m.cpp)
+  endif()
+  if(NOT "3D_BLK_2M" IN_LIST UWLCM_DISABLE)
+    target_sources(uwlcm PRIVATE src/run_hlpr_3d_blk_2m.cpp)
+  endif()
   if(NOT "2D_LGRNGN" IN_LIST UWLCM_DISABLE)
     target_sources(uwlcm PRIVATE src/run_hlpr_2d_lgrngn.cpp)
   endif()
   if(NOT "3D_LGRNGN" IN_LIST UWLCM_DISABLE)
     target_sources(uwlcm PRIVATE src/run_hlpr_3d_lgrngn.cpp)
   endif()
+  if(NOT "2D_NONE" IN_LIST UWLCM_DISABLE)
+    target_sources(uwlcm PRIVATE src/run_hlpr_2d_none.cpp)
+  endif()
+  if(NOT "3D_NONE" IN_LIST UWLCM_DISABLE)
+    target_sources(uwlcm PRIVATE src/run_hlpr_3d_none.cpp)
+  endif()
 else()
   # if no options were disabled, add all sources
-  target_sources(uwlcm PRIVATE src/run_hlpr_2d_blk_1m.cpp src/run_hlpr_3d_blk_1m.cpp src/run_hlpr_2d_lgrngn.cpp src/run_hlpr_3d_lgrngn.cpp)
+  target_sources(uwlcm PRIVATE src/run_hlpr_2d_blk_1m.cpp src/run_hlpr_3d_blk_1m.cpp src/run_hlpr_2d_blk_2m.cpp src/run_hlpr_3d_blk_2m.cpp src/run_hlpr_2d_lgrngn.cpp src/run_hlpr_3d_lgrngn.cpp src/run_hlpr_2d_none.cpp src/run_hlpr_3d_none.cpp)
 endif()
 
 # ensure that uwlcm is not built before current git_revision file is created
@@ -117,9 +134,9 @@ target_compile_features(uwlcm PRIVATE cxx_std_14)
 
 # search for Boost
 find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
-if(TARGET Boost::thread AND TARGET Boost::iostreams AND TARGET Boost::system AND TARGET Boost::timer AND TARGET Boost::program_options AND TARGET Boost::filesystem)
+if(TARGET Boost::thread AND TARGET Boost::iostreams AND TARGET Boost::system AND TARGET Boost::timer AND TARGET Boost::program_options AND TARGET Boost::filesystem AND TARGET Boost::atomic AND TARGET Boost::regex) # atomic and regex are required by some other libs and boost was trying to link them via target although the target didnt exist
   message("linkiing boost targets")
-  target_link_libraries(uwlcm PRIVATE Boost::thread Boost::iostreams Boost::system Boost::timer Boost::program_options Boost::filesystem)
+  target_link_libraries(uwlcm PRIVATE Boost::thread Boost::iostreams Boost::system Boost::timer Boost::program_options Boost::filesystem Boost::atomic Boost::regex)
 else()
   message("linkiing boost without targets")
   # we dont link using targets, because they are not set if there is some discrepancy between cmake and boost version

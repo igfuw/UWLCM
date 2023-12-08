@@ -6,7 +6,7 @@
 #pragma once
 #include "Anelastic.hpp"
 
-namespace setup 
+namespace cases 
 {
   namespace PiChamber
   {
@@ -79,10 +79,10 @@ namespace setup
 
       void setopts_hlpr(rt_params_t &params, const user_params_t &user_params)
       {
-        params.outdir = user_params.outdir;
-        params.outfreq = user_params.outfreq;
-        params.spinup = user_params.spinup;
-        params.w_src = user_params.w_src;
+//        params.outdir = user_params.outdir;
+//        params.outfreq = user_params.outfreq;
+//        params.spinup = user_params.spinup;
+//        params.w_src = user_params.w_src;
         // no explicit sources from boundaries (following Wojtek)
         // but what about transverse velocities at boundaries? add relaxation?
         params.uv_src = false;
@@ -90,8 +90,8 @@ namespace setup
         params.rv_src = false;
         params.rc_src = false;
         params.rr_src = false;
-        params.dt = user_params.dt;
-        params.nt = user_params.nt;
+//        params.dt = user_params.dt;
+//        params.nt = user_params.nt;
         params.buoyancy_wet = true;
         params.subsidence = false;
         params.vel_subsidence = false;
@@ -150,7 +150,7 @@ namespace setup
     
       public:
       // calculate the initial environmental theta and rv profiles
-      void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
       // pre_ref - total pressure
       // th_e - dry potential temp
       // th_ref - dry potential temp refrence profsile
@@ -242,7 +242,7 @@ namespace setup
                                blitz::Array<real_t, n_dims>  uv_ground,    // value of u or v on the ground
                                blitz::Array<real_t, n_dims>  U_ground,     // magnitude of horizontal ground wind
                                const real_t &U_ground_z,                   // altituted at which U_ground is diagnosed
-                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
+                               const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) 
       {
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
           surf_flux_uv = 0;
