@@ -3,11 +3,22 @@
 #include <libcloudph++/common/unary_function.hpp>
 #include <libcloudph++/common/lognormal.hpp>
 #include <UWLCM/setup.hpp>
+#include <chrono>
 
 namespace setup 
 {
   using arr_1D_t = blitz::Array<setup::real_t, 1>;
 
+  using clock = std::chrono::system_clock;
+  using timer = std::chrono::milliseconds;
+
+  const int mean_horvel_npts = 1e5; // number of iterations when calculating mean horizontal velocities (done only at the start of a simulation)
+
+
+
+
+
+  // ---- stuff below deals with the initial aerosol distribution, TODO: move it somewhere else ----
 
 /*
   const quantity<power_typeof_helper<si::length, static_rational<-3>>::type, real_t>
@@ -84,12 +95,23 @@ namespace setup
   template <typename T>
   struct log_dry_radii_gccn : public libcloudphxx::common::unary_function<T>
   {
+    real_t lnrd_min, lnrd_max, conc_multiplier;
+
     T funval(const T lnrd) const
     {
-      return T((
-          lognormal::n_e(mean_rd3, sdev_rd3, n3_stp, quantity<si::dimensionless, real_t>(lnrd)) 
-        ) * si::cubic_metres
-      );
+      return 
+        lnrd < lnrd_min ? 0 :
+          lnrd > lnrd_max ? 0 :
+            T((
+              lognormal::n_e(mean_rd3, sdev_rd3, conc_multiplier * n3_stp, quantity<si::dimensionless, real_t>(lnrd)) 
+            ) * si::cubic_metres
+            );
     }
+
+    log_dry_radii_gccn(const real_t lnrd_min = 0, const real_t lnrd_max = 1000000, const real_t conc_multiplier = 1): 
+      lnrd_min(lnrd_min),
+      lnrd_max(lnrd_max),
+      conc_multiplier(conc_multiplier)
+    {}
   };
 };

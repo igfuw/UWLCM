@@ -6,80 +6,53 @@
 #include <libcloudph++/common/theta_std.hpp>
 #include <libcloudph++/common/theta_dry.hpp>
 
-#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
+//#include <libmpdata++/solvers/mpdata_rhs_vip_prs_sgs.hpp>
 
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
 
 #include "../detail/user_params.hpp"
 #include "../detail/concurr_types.hpp"
+#include "../detail/ForceParameters.hpp"
+#include "../detail/profiles.hpp"
 
-namespace setup 
+namespace cases
 {
   namespace hydrostatic = libcloudphxx::common::hydrostatic;
   namespace theta_std = libcloudphxx::common::theta_std;
   namespace theta_dry = libcloudphxx::common::theta_dry;
 
-  // container for constants that appear in forcings, some are not needed in all cases, etc...
-  // TODO: make forcing functions part of case class
-  struct ForceParameters_t
-  {
-    real_t q_i, heating_kappa, F_0, F_1, rho_i, D, coriolis_parameter;
-  };
- 
-  // CAUTION: new profiles have to be added to both structs and in copy_profiles below
-  // TODO: try a different design where it is not necessary ?
-  struct profiles_t
-  {
-    arr_1D_t th_e, p_e, rv_e, rl_e, th_ref, rhod, w_LS, hgt_fctr, th_LS, rv_LS, mix_len;
-    std::array<arr_1D_t, 2> geostr;
+  using real_t = setup::real_t;
+  using arr_1D_t = setup::arr_1D_t;
 
-    profiles_t(int nz) :
-    // rhod needs to be bigger, cause it divides vertical courant number
-    // TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-      th_e(nz), p_e(nz), rv_e(nz), rl_e(nz), th_ref(nz), rhod(nz+1), w_LS(nz), hgt_fctr(nz), th_LS(nz), rv_LS(nz), mix_len(nz)
+  // helper, could be moved somewhere else
+  struct hori_vel_t
+  {
+    bool initialized;
+    real_t mean_vel; 
+    const std::function<quantity<si::velocity, real_t>(real_t)> f_vel_prof;
+
+    real_t operator()(const real_t &z) const
     {
-      geostr[0].resize(nz);
-      geostr[1].resize(nz);
-
-      // set to zero just to have predicatble output in cases that dont need these profiles
-      geostr[0] = 0.;
-      geostr[1] = 0.;
-      hgt_fctr  = 0.;
-      rl_e      = 0.;
+      assert(initialized && "called uninitialized hori_vel_t");
+      return f_vel_prof(z) * si::seconds / si::meters - mean_vel;
     }
-  };
-  struct profile_ptrs_t
-  {
-    arr_1D_t *th_e, *p_e, *rv_e, *rl_e, *th_ref, *rhod, *w_LS, *hgt_fctr, *geostr[2], *th_LS, *rv_LS, *mix_len;
-  };
 
-  // copy external profiles into rt_parameters
-  // TODO: more elegant way
-  template<class params_t>
-  inline void copy_profiles(profiles_t &profs, params_t &p)
-  {
-    std::vector<std::pair<std::reference_wrapper<setup::arr_1D_t*>, std::reference_wrapper<setup::arr_1D_t>>> tobecopied = {
-      {p.hgt_fctr     , profs.hgt_fctr     },
-      {p.th_e         , profs.th_e         },
-      {p.p_e          , profs.p_e          },
-      {p.rv_e         , profs.rv_e         },
-      {p.rl_e         , profs.rl_e         },
-      {p.th_ref       , profs.th_ref       },
-      {p.rhod         , profs.rhod         },
-      {p.w_LS         , profs.w_LS         },
-      {p.th_LS        , profs.th_LS        },
-      {p.rv_LS        , profs.rv_LS        },
-      {p.geostr[0]    , profs.geostr[0]    },
-      {p.geostr[1]    , profs.geostr[1]    },
-      {p.mix_len      , profs.mix_len      }
-    };
-
-    for (auto dst_src : tobecopied)
+    void init(bool window, quantity<si::length, real_t> Z) 
     {
-      dst_src.first.get() = new setup::arr_1D_t(dst_src.second.get().dataFirst(), dst_src.second.get().shape(), blitz::neverDeleteData);
+      initialized=true;
+      mean_vel = 0;
+
+      if(window) // calculate mean of the velocity profile
+      {
+        for(int i=0; i < setup::mean_horvel_npts; ++i)
+          mean_vel += f_vel_prof(i * (Z / si::meters) / (setup::mean_horvel_npts-1)) * si::seconds / si::meters;
+        mean_vel /= setup::mean_horvel_npts;
+      }
     }
-  }
+
+    hori_vel_t(std::function<quantity<si::velocity, real_t>(real_t)> f): f_vel_prof(f), initialized(false) {}
+  };
 
   template<class case_ct_params_t, int n_dims>
   class CasesCommon
@@ -116,6 +89,7 @@ namespace setup
 
     real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
+    quantity<si::length, real_t> gccn_max_height; // GCCN added (at init and via relaxation) only up to this level
 
     template<bool enable_sgs = case_ct_params_t::enable_sgs>
     void setopts_sgs(rt_params_t &params,
@@ -134,11 +108,11 @@ namespace setup
     }
 
 
-    ForceParameters_t ForceParameters;
+    detail::ForceParameters_t ForceParameters;
 
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
-    virtual void intcond(concurr_any_t &solver, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
-    virtual void set_profs(profiles_t &profs, int nz, const user_params_t &user_params)
+    virtual void intcond(concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
+    virtual void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
     {
       real_t dz = (Z / si::metres) / (nz-1);
       // set SGS mixing length
@@ -201,8 +175,16 @@ namespace setup
                                      blitz::Array<real_t, n_dims> uv_ground,   
                                      blitz::Array<real_t, n_dims> U_ground,   
                                      const real_t &U_ground_z,
-                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
+                                     const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0, const real_t &uv_mean = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
+
+    virtual void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
+                              int timestep, real_t dt, real_t dz)
+    {};
+
+    virtual void update_th_LS(blitz::Array<real_t, 1> th_LS,
+                              int timestep, real_t dt, real_t dz)
+    {};
 
     // ctor
     // TODO: these are DYCOMS definitions, move them there
@@ -215,30 +197,33 @@ namespace setup
       ForceParameters.rho_i = 1.12; // kg/m^3
       ForceParameters.coriolis_parameter = 0.;
       ForceParameters.D = 0.; // large-scale wind horizontal divergence [1/s], needed in the radiation procedure of DYCOMS
+      ForceParameters.uv_mean[0] = 0; // mean horizontal wind speed (for 'moving-window' simulations)
+      ForceParameters.uv_mean[1] = 0; // mean horizontal wind speed (for 'moving-window' simulations)
       X = 0 * si::metres;
       Y = 0 * si::metres;
       Z = 0 * si::metres;
+      gccn_max_height = 0 * si::metres;
     }
 
     virtual ~CasesCommon() = default;
 
     protected:
-  
+
     // function enforcing cyclic values in horizontal directions
     // 2D version
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 2>::type* = 0)
     { arr(arr.extent(0) - 1, blitz::Range::all()) = arr(0, blitz::Range::all()); }
-  
+
     // 3D version
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 3>::type* = 0)
-    { 
-      arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) = 
-        arr(0, blitz::Range::all(), blitz::Range::all()); 
-      arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) = 
+    {
+      arr(arr.extent(0) - 1, blitz::Range::all(), blitz::Range::all()) =
+        arr(0, blitz::Range::all(), blitz::Range::all());
+      arr(blitz::Range::all(), arr.extent(1) - 1, blitz::Range::all()) =
         arr(blitz::Range::all(), 0, blitz::Range::all());
     }
   };

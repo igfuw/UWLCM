@@ -6,6 +6,7 @@
 #include <libcloudph++/git_revision.h>
 #include <libcloudph++/common/output.hpp>
 #include "../detail/get_uwlcm_git_revision.hpp"
+#include "../detail/ForceParameters.hpp"
 
 struct smg_tag  {};
 struct iles_tag {};
@@ -24,15 +25,12 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   protected:
 
-  using clock = std::chrono::high_resolution_clock; // TODO: option to disable timing, as it may affect performance a little?
-  // timing fields
-  // TODO: timing slows down simulations
-  //       either remove it and use profiling tools (e.g. vtune)
-  //       or add some compile-time flag to turn it off
-  clock::time_point tbeg, tend, tbeg_loop;
-  std::chrono::milliseconds tdiag, tupdate, tsync, tsync_wait, tasync, tasync_wait, tloop, tnondelayed_step;
+#if defined(UWLCM_TIMING)
+  setup::timer tsync, tsync_gpu, tsync_wait, tasync, tasync_gpu, tasync_wait, tasync_wait_in_record_all; // timings used in lgrngn solver TODO: move them to slvr_lgrngn
 
-  int spinup; // number of timesteps
+  protected:
+#endif
+
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
 
   // accumulated total changes of th and rv at top and bottom
@@ -68,6 +66,10 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &radiative_flux,
                            &diss_rate; // TODO: move to slvr_sgs to save memory in iles simulations !;
 
+  setup::arr_1D_t th_mean_prof, rv_mean_prof; // profiles with mean th/rv at each level
+                                              // NOTE: these profiles hold the same values for all threads (and MPI processes),
+                                              //       but each thread has it's own copy. We could have one per MPI process to save memory
+
   // precip output
   std::map<cmn::output_t, real_t> puddle;
   const int n_puddle_scalars = cmn::output_names.size();
@@ -80,68 +82,102 @@ class slvr_common : public slvr_dim<ct_params_t>
   virtual void sgs_scalar_forces(const std::vector<int>&) {}
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) = 0;
 
-  void hook_ante_loop(int nt) 
+  //void common_water_src(int, int);
+
+  void hook_ante_loop(int nt)
   {
-    if (spinup > 0)
+    if (params.user_params.spinup > 0)
     {
       set_rain(false);
     }
     else
       set_rain(true);
 
-    parent_t::hook_ante_loop(nt); 
+    parent_t::hook_ante_loop(nt);
 
     // record user_params and profiles
     if(this->rank==0)
     {
-      this->record_aux_const(std::string("UWLCM git_revision : ") + get_uwlcm_git_revision(), "git_revisions", -44);  
+      this->record_aux_const("UWLCM git_revision", "git_revisions", get_uwlcm_git_revision());  
 #ifdef LIBMPDATAXX_GIT_REVISION
-      this->record_aux_const(std::string("LIBMPDATAXX git_revision : ") + LIBMPDATAXX_GIT_REVISION, "git_revisions", -44);  
+      this->record_aux_const("LIBMPDATAXX git_revision", "git_revisions", LIBMPDATAXX_GIT_REVISION);  
 #else
       static_assert(false, "LIBMPDATAXX_GIT_REVISION is not defined, update your libmpdata++ library");
 #endif
 #ifdef LIBCLOUDPHXX_GIT_REVISION
-      this->record_aux_const(std::string("LIBCLOUDPHXX git_revision : ") + LIBCLOUDPHXX_GIT_REVISION, "git_revisions", -44);  
+      this->record_aux_const("LIBCLOUDPHXX git_revision", "git_revisions", LIBCLOUDPHXX_GIT_REVISION);  
 #else
       static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
       this->record_aux_dsc_const("vab_coefficient", this->mem->vab_coefficient());  
 
+      std::string run_command;
+      for(int i=0; i<ac; ++i)
+        run_command += std::string(av[i]) + std::string(" ");
+      this->record_aux_const("run command", "misc", run_command);  
       this->record_aux_const("omp_max_threads (on MPI rank 0)", omp_get_max_threads());  
-      this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());  
-      this->record_aux_const(std::string("user_params case : ") + params.user_params.model_case, -44);  
-      this->record_aux_const("user_params nt", params.user_params.nt);  
-      this->record_aux_const("user_params dt", params.user_params.dt);  
-      this->record_aux_const("user_params outfreq", params.user_params.outfreq);  
-      this->record_aux_const(std::string("user_params outdir : ") +  params.user_params.outdir, -44);  
-      this->record_aux_const("user_params spinup", params.user_params.spinup);  
-      this->record_aux_const("user_params rng_seed", params.user_params.rng_seed);  
-      this->record_aux_const("user_params th_src", params.user_params.th_src);  
-      this->record_aux_const("user_params rv_src", params.user_params.rv_src);  
-      this->record_aux_const("user_params uv_src", params.user_params.uv_src);  
-      this->record_aux_const("user_params w_src", params.user_params.w_src);  
+      this->record_aux_const("MPI compiler (true/false)", "MPI details", 
+#ifdef USE_MPI
+        1
+#else
+        0
+#endif
+        );
+      this->record_aux_const("MPI size", "MPI details", this->mem->distmem.size());
 
-      this->record_aux_const("rt_params th_src", params.th_src);  
-      this->record_aux_const("rt_params rv_src", params.rv_src);  
-      this->record_aux_const("rt_params uv_src", params.uv_src);  
-      this->record_aux_const("rt_params w_src", params.w_src);  
-      this->record_aux_const("rt_params spinup", params.spinup);  
-      this->record_aux_const("rt_params subsidence", params.subsidence);  
-      this->record_aux_const("rt_params vel_subsidence", params.vel_subsidence);  
-      this->record_aux_const("rt_params coriolis", params.coriolis);  
-      this->record_aux_const("rt_params friction", params.friction);  
-      this->record_aux_const("rt_params buoyancy_wet", params.buoyancy_wet);  
-      this->record_aux_const("rt_params no_ccn_at_init", params.no_ccn_at_init);  
-      this->record_aux_const("rt_params open_side_walls", params.open_side_walls);  
+      this->record_aux_const("case", "user_params", params.user_params.model_case);
+      this->record_aux_const("nt", "user_params", params.user_params.nt);
+      this->record_aux_const("dt", "user_params", params.user_params.dt);  
+      this->record_aux_const("X", "user_params", params.user_params.X);  
+      this->record_aux_const("Y", "user_params", params.user_params.Y);  
+      this->record_aux_const("Z", "user_params", params.user_params.Z);  
+      this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
+      this->record_aux_const("outdir", "user_params", params.user_params.outdir);
+      this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
+      this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
+      this->record_aux_const("rng_seed_init", "user_params", params.user_params.rng_seed_init);  
+      this->record_aux_const("sgs_delta", "user_params", params.user_params.sgs_delta);  
+      this->record_aux_const("relax_th_rv", "user_params", params.user_params.relax_th_rv);  
+      this->record_aux_const("case_n_stp_multiplier", "user_params", params.user_params.case_n_stp_multiplier);  
+      this->record_aux_const("window", "user_params", params.user_params.window);  
 
-      this->record_aux_const("ForceParameters q_i", params.ForceParameters.q_i);  
-      this->record_aux_const("ForceParameters heating_kappa", params.ForceParameters.heating_kappa);  
-      this->record_aux_const("ForceParameters F_0", params.ForceParameters.F_0);  
-      this->record_aux_const("ForceParameters F_1", params.ForceParameters.F_1);  
-      this->record_aux_const("ForceParameters rho_i", params.ForceParameters.rho_i);  
-      this->record_aux_const("ForceParameters D", params.ForceParameters.D);  
-      this->record_aux_const("ForceParameters coriolis_parameter", params.ForceParameters.coriolis_parameter);  
-     
+      this->record_aux_const("th_src", "rt_params", params.th_src);  
+      this->record_aux_const("rv_src", "rt_params", params.rv_src);  
+      this->record_aux_const("uv_src", "rt_params", params.uv_src);  
+      this->record_aux_const("w_src",  "rt_params", params.w_src);  
+      this->record_aux_const("outfreq", "rt_params", params.outfreq);  
+      this->record_aux_const("outdir", "rt_params", params.outdir);
+
+      this->record_aux_const("subsidence", "rt_params", params.subsidence);  
+      this->record_aux_const("vel_subsidence", "rt_params", params.vel_subsidence);  
+      this->record_aux_const("coriolis", "rt_params", params.coriolis);  
+      this->record_aux_const("friction", "rt_params", params.friction);  
+      this->record_aux_const("buoyancy_wet", "rt_params", params.buoyancy_wet);  
+      this->record_aux_const("radiation", "rt_params", params.radiation);  
+      this->record_aux_const("dz", "rt_params", params.dz);  
+      this->record_aux_const("no_ccn_at_init", "rt_params", params.no_ccn_at_init);  
+      this->record_aux_const("open_side_walls", "rt_params", params.open_side_walls);  
+
+      this->record_aux_const("q_i", "ForceParameters", params.ForceParameters.q_i);  
+      this->record_aux_const("heating_kappa", "ForceParameters", params.ForceParameters.heating_kappa);  
+      this->record_aux_const("F_0", "ForceParameters", params.ForceParameters.F_0);  
+      this->record_aux_const("F_1", "ForceParameters", params.ForceParameters.F_1);  
+      this->record_aux_const("rho_i", "ForceParameters", params.ForceParameters.rho_i);  
+      this->record_aux_const("D", "ForceParameters", params.ForceParameters.D);  
+      this->record_aux_const("u_mean", "ForceParameters", params.ForceParameters.uv_mean[0]);  
+      this->record_aux_const("v_mean", "ForceParameters", params.ForceParameters.uv_mean[1]);  
+      this->record_aux_const("coriolis_parameter", "ForceParameters", params.ForceParameters.coriolis_parameter);  
+
+      // TODO: need to update ref files in tests to include this in output
+      this->record_aux_const("mean_rd1", "user_params", params.user_params.mean_rd1 / si::metres);  
+      this->record_aux_const("sdev_rd1", "user_params", params.user_params.sdev_rd1);
+      this->record_aux_const("n1_stp", "user_params", params.user_params.n1_stp * si::cubic_metres);
+      this->record_aux_const("kappa1", "user_params", params.user_params.kappa1);
+      this->record_aux_const("mean_rd2", "user_params", params.user_params.mean_rd2 / si::metres);  
+      this->record_aux_const("sdev_rd2", "user_params", params.user_params.sdev_rd2);
+      this->record_aux_const("n2_stp", "user_params", params.user_params.n2_stp * si::cubic_metres);
+      this->record_aux_const("kappa2", "user_params", params.user_params.kappa2);
+
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
       this->record_prof_const("p_e", params.p_e->data()); 
@@ -154,14 +190,16 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("rv_LS", params.rv_LS->data()); 
       this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
       this->record_prof_const("mix_len", params.mix_len->data());
+      this->record_prof_const("relax_th_rv_coeff", params.relax_th_rv_coeff->data()); 
       if(parent_t::n_dims==3)
       {
         this->record_prof_const("u_geostr", params.geostr[0]->data()); 
         this->record_prof_const("v_geostr", params.geostr[1]->data()); 
       }
     }
+    
     this->mem->barrier();
- 
+    
     // initialize surf fluxes with timestep==0
     U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
 
@@ -181,7 +219,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       surf_flux_u(this->hrzntl_slice(0)).reindex(this->origin),
       this->state(ix::vip_i)(this->hrzntl_slice(0)).reindex(this->origin),
       U_ground(this->hrzntl_slice(0)).reindex(this->origin), 
-      params.dz / 2, 0, this->dt, this->di, this->dj
+      params.dz / 2, 0, this->dt, this->di, this->dj,
+      params.ForceParameters.uv_mean[0]
     );
     if(parent_t::n_dims==3)
     {
@@ -189,12 +228,10 @@ class slvr_common : public slvr_dim<ct_params_t>
         surf_flux_v(this->hrzntl_slice(0)).reindex(this->origin),
         this->state(ix::vip_j)(this->hrzntl_slice(0)).reindex(this->origin),
         U_ground(this->hrzntl_slice(0)).reindex(this->origin),
-        params.dz / 2, 0, this->dt, this->di, this->dj
+        params.dz / 2, 0, this->dt, this->di, this->dj,
+        params.ForceParameters.uv_mean[1]
       );
     }
-
-    // save current time for execution time diagnostic
-    tbeg_loop = clock::now();
   }
 
   void hook_ante_step()
@@ -246,12 +283,12 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_rv; 
     }
 
-    if (spinup != 0 && spinup == this->timestep)
+    if (params.user_params.spinup != 0 && params.user_params.spinup == this->timestep)
     {
       // turn autoconversion on only after spinup (if spinup was specified)
       set_rain(true);
     }
-    parent_t::hook_ante_step(); 
+    parent_t::hook_ante_step();
   }
 
 
@@ -290,6 +327,10 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void subsidence(const int&);
   void coriolis(const int&);
+  void relax_th_rv(const int&);
+
+  void rv_LS();
+  void th_LS();
 
   void update_rhs(
     arrvec_t<typename parent_t::arr_t> &rhs,
@@ -299,8 +340,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     parent_t::update_rhs(rhs, dt, at); // zero-out rhs
     this->mem->barrier();
-    if(this->rank == 0)
-      tbeg = clock::now();
 
     using ix = typename ct_params_t::ix;
 
@@ -314,6 +353,13 @@ class slvr_common : public slvr_dim<ct_params_t>
       {
         // calculate surface wind magnitude, TODO: not needed if there are no surface fluxes
         U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
+
+        // calculate mean th and rv at each level, needed for nudging of the horizontal mean
+        if(params.user_params.relax_th_rv)
+        {
+          this->hrzntl_mean(this->state(ix::rv), rv_mean_prof);
+          this->hrzntl_mean(this->state(ix::th), th_mean_prof);
+        }
 
         // ---- water vapor sources ----
         rv_src();
@@ -333,7 +379,7 @@ class slvr_common : public slvr_dim<ct_params_t>
         // horizontal velocity sources 
         if(params.uv_src)
         {
-          for(auto type : this->hori_vel)
+          for(const auto& type : this->hori_vel)
           {
             // TODO: move these to uv_src
             // subsidence
@@ -344,7 +390,7 @@ class slvr_common : public slvr_dim<ct_params_t>
             }
 
             // Coriolis
-            coriolis((type+1) % this->hori_vel.size());
+            coriolis((type+1) % this->hori_vel.size()); // NOTE: we rely on that ix::u==0 and ix::v==1!!
             if(type == ix::vip_i)
               rhs.at(type)(ijk) += F(ijk);
             else if(type == ix::vip_j)
@@ -401,14 +447,14 @@ class slvr_common : public slvr_dim<ct_params_t>
           rhs.at(ix::w)(ijk) += alpha(ijk);
         }
 
-        // horizontal velocity sources 
+        // horizontal velocity sources
         // large-scale vertical wind
 /*
         if(params.uv_src)
         {
           for(auto type : this->hori_vel)
           {
-            subsidence(type); 
+            subsidence(type);
             rhs.at(type)(ijk) += F(ijk);
           }
         }
@@ -422,11 +468,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     for(auto type : this->hori_vel)
       {nancheck(rhs.at(type)(this->ijk), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
     this->mem->barrier();
-    if(this->rank == 0)
-    {
-      tend = clock::now();
-      tupdate += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
-    }
   }
 
 
@@ -436,7 +477,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     parent_t::vip_rhs_expl_calc();
 
     if(!params.friction) return;
-  
+
     this->mem->barrier();
     if(this->rank == 0)
       tbeg = clock::now();
@@ -452,7 +493,7 @@ class slvr_common : public slvr_dim<ct_params_t>
           -2 * pow(params.ForceParameters.u_fric,2) *  // 2, because it is multiplied by 0.5 in vip_rhs_apply
           this->vip_ground[it](blitz::tensor::i, blitz::tensor::j) /              // u_i at z=0
           U_ground(blitz::tensor::i, blitz::tensor::j) *  // |U| at z=0
-          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr 
+          (*params.hgt_fctr_vctr)(this->vert_idx)                                       // hgt_fctr
         );
     }
 
@@ -472,26 +513,37 @@ class slvr_common : public slvr_dim<ct_params_t>
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step");
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
-
-    if (this->rank == 0) 
-    {
-      // there's no hook_post_loop, so we imitate it here to write out computation times, TODO: move to destructor?
-      if(this->timestep == params.nt) // timestep incremented before post_step
-      {
-        tend = clock::now();
-        tloop = std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg_loop );
-        std::cout <<  "wall time in milliseconds: " << std::endl
-          << "loop: " << tloop.count() << std::endl
-          << "custom rhs update: " << tupdate.count() << " ("<< setup::real_t(tupdate.count())/tloop.count()*100 <<"%)" << std::endl
-          << "diag: " << tdiag.count() << " ("<< setup::real_t(tdiag.count())/tloop.count()*100 <<"%)" << std::endl
-          << "sync: " << tsync.count() << " ("<< setup::real_t(tsync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "nondelayed step: " << tnondelayed_step.count() << " ("<< setup::real_t(tnondelayed_step.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async: " << tasync.count() << " ("<< setup::real_t(tasync.count())/tloop.count()*100 <<"%)" << std::endl
-          << "async_wait: " << tasync_wait.count() << " ("<< setup::real_t(tasync_wait.count())/tloop.count()*100 <<"%)" << std::endl
-          << "sync_wait: " << tsync_wait.count() << " ("<< setup::real_t(tsync_wait.count())/tloop.count()*100 <<"%)" << std::endl;
-      }
-    }
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at end of slvr_common::hook_post_step");
+  }
+
+  void hook_mixed_rhs_ante_step()
+  {
+    this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero (?)
+    this->apply_rhs(this->dt);
+
+    // rv might be negative due to large negative RHS from SD fluctuations + large-scale subsidence?
+    // turn all negative rv into rv = 0... CHEATING
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
+  }
+
+  void hook_mixed_rhs_post_step()
+  {
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after advection");
+
+    this->update_rhs(this->rhs, this->dt, 1);
+    negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
+    this->apply_rhs(this->dt);
+
+    // no negtozero after apply, because only w changed here
+    // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
+    nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
+    negcheck2(this->mem->advectee(ix::th)(this->ijk), this->rhs.at(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs (+ output of th rhs)");
+    negcheck2(this->mem->advectee(ix::rv)(this->ijk), this->rhs.at(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs (+ output of rv rhs)");
   }
 
   virtual void diag()
@@ -506,6 +558,9 @@ class slvr_common : public slvr_dim<ct_params_t>
 //    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
 //    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
 //    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
+
+    this->record_aux_prof("rv_LS", params.rv_LS->data());
+    this->record_aux_prof("th_LS", params.th_LS->data());
 
     get_puddle();
     for(int i=0; i < n_puddle_scalars; ++i)
@@ -523,49 +578,51 @@ class slvr_common : public slvr_dim<ct_params_t>
   void record_all()
   {
     assert(this->rank == 0);
-    tbeg = clock::now();
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
     this->diag();
     // xmf markup
     this->write_xmfs();
-
-    tend = clock::now();
-    tdiag += std::chrono::duration_cast<std::chrono::milliseconds>( tend - tbeg );
   }
 
   public:
-
+  // case-specific parameters
   // note dual inheritance to get profile pointers
-  struct rt_params_t : parent_t::rt_params_t, setup::profile_ptrs_t
-  { 
-    int spinup = 0, // number of timesteps during which autoconversion is to be turned off
-        nt;         // total number of timesteps
-    bool rv_src, th_src, uv_src, w_src, subsidence, coriolis, friction, buoyancy_wet, radiation;
-    bool vel_subsidence = true; // should subsidence be also applied to velocitiy fields - False eg. in RICO
-    bool rc_src, rr_src; // these two are only relevant for blk_1m, but need to be here so that Cases can have access to it
+  struct rt_params_t : parent_t::rt_params_t, detail::profile_ptrs_t
+  {
+    bool rv_src = true, th_src = true, uv_src = true, w_src = true;
+    bool subsidence = false,
+         coriolis = false, 
+         friction = false, 
+         buoyancy_wet = false, 
+         radiation = false,
+         vel_subsidence = false; // should subsidence be also applied to velocitiy fields - False eg. in RICO
+    bool rc_src = true, rr_src = true; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
+    bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
-    setup::ForceParameters_t ForceParameters;
-    user_params_t user_params; // copy od user_params needed only for output to const.h5, since the output has to be done at the end of hook_ante_loop
     bool no_ccn_at_init=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
     bool open_side_walls=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
+//    detail::ForceParameters_t ForceParameters;
+    user_params_t user_params; // copy od user_params
 
     // functions for updating surface fluxes per timestep
-    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv, update_surf_flux_sens, update_surf_flux_lat;
+    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens, update_surf_flux_lat;
+    std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
+    // functions for updating large-scale forcings
+    std::function<void(typename setup::arr_1D_t, const int&, const real_t&, const real_t&)> update_rv_LS, update_th_LS;
   };
 
   // per-thread copy of params
   rt_params_t params;
 
   // ctor
-  slvr_common( 
-    typename parent_t::ctor_args_t args, 
+  slvr_common(
+    typename parent_t::ctor_args_t args,
     const rt_params_t &p
-  ) : 
+  ) :
     parent_t(args, p),
     params(p),
-    spinup(p.spinup),
     tmp1(args.mem->tmp[__FILE__][0][0]),
     r_l(args.mem->tmp[__FILE__][0][1]),
     F(args.mem->tmp[__FILE__][0][2]),
@@ -589,6 +646,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     k_i.reindexSelf(this->base(this->hrzntl_subdomain));
     r_l = 0.;
     surf_flux_zero = 0.;
+    th_mean_prof.resize(this->vert_rng.length());
+    rv_mean_prof.resize(this->vert_rng.length());
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)

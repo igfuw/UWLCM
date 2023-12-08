@@ -16,7 +16,7 @@ void slvr_common<ct_params_t>::coriolis(
   if(params.coriolis && ct_params_t::n_dims==3) // TODO: n_dims is known at compile time
   {
     F(ijk).reindex(this->zero) = params.ForceParameters.coriolis_parameter *
-      (this->state(vel_idx)(ijk).reindex(this->zero) - (*params.geostr[vel_idx])(this->vert_idx));
+      (this->state(vel_idx)(ijk).reindex(this->zero) - (*params.geostr[vel_idx])(this->vert_idx)); 
   }
   else
     F(ijk)=0.;
