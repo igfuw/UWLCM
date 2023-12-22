@@ -197,6 +197,10 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("rd_max", "lgrngn", params.cloudph_opts_init.rd_max);  
     this->record_aux_const("relax_ccn", "user_params", params.user_params.relax_ccn);  
     this->record_aux_const("out_spec_freq", "rt_params", params.out_spec_freq);
+    this->record_aux_const("src_ccn_inj_rate", "user_params", params.user_params.src_ccn_inj_rate);  
+    this->record_aux_const("src_ice_inj_rate", "user_params", params.user_params.src_ice_inj_rate);  
+    this->record_aux_const("src_ccn_sd_no", "lgrngn", params.user_params.src_ccn_sd_no);  
+    this->record_aux_const("src_ice_sd_no", "lgrngn", params.user_params.src_ice_sd_no);  
   }
   this->mem->barrier();
 }

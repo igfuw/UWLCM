@@ -1,5 +1,5 @@
-// LES of Pi Chamber for the International Cloud Modeling Workshop 2020
-// https://iccp2020.tropmet.res.in/Cloud-Modeling-Workshop-2020
+// LES of Pi Chamber for the International Cloud Modeling Workshop 2024
+// TODO: derive ICMW2020 and ICMW2024 from a single parent 
 // Setup based on Thomas et al. 2019, 
 // but boundary ae conditions similar to the top and bottom conditions used in Grabowski 2019
 
@@ -8,14 +8,17 @@
 
 namespace cases 
 {
-  namespace PiChamber2020
+  namespace PiChamber2024
   {
     namespace const_cp = libcloudphxx::common::const_cp;
 
     // RH T and p to rv assuming RH = r_v / r_vs
-    inline quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
+    inline quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p, const bool ice)
     {
-      return  RH * const_cp::r_vs<real_t>(T, p);
+      if(ice)
+        return  RH * const_cp::r_vsi<real_t>(T, p);
+      else
+        return  RH * const_cp::r_vs<real_t>(T, p);
     }
 
     const quantity<si::length, real_t> 
@@ -26,9 +29,9 @@ namespace cases
     const quantity<si::pressure, real_t> p_0(100000 * si::pascals); // total pressure, const in the whole domain
 
     const quantity<si::dimensionless, real_t>
-      RH_top(1),    // RH at top wall
-      RH_bot(1),    // RH at bottom wall
-      RH_side(0.82); // RH at side walls
+      RH_top(1),    // RH at top wall, w.r.t ice
+      RH_bot(1),    // RH at bottom wall, w.r.t. water
+      RH_side(0.5); // RH at side walls, w.r.t. ice
 
     const real_t abs_dist = 0.03; // distance from walls in which velocity absorber is applied to mimick momentum flux...
     const quantity<si::time, real_t> abs_char_time = real_t(0.1) * si::seconds; // characteristic time defining maximal absorber strength. du/dt = 1 / abs_char_time * (u - u_relax)
@@ -36,20 +39,20 @@ namespace cases
     // initial temperature at height z
     inline quantity<si::temperature, real_t> T(const real_t &z)
     {
-      return quantity<si::temperature, real_t>((299. - 19. * z / 1.) * si::kelvins);
+      return quantity<si::temperature, real_t>((273.15 + 4 - 20. * z / 1.) * si::kelvins);
     }
 
     // initial vapor at height z
     inline quantity<si::dimensionless, real_t> r_t(const real_t &z)
     {
 //      return 0.0216 - 0.0154 * z / 1.; // default from the ICMW2020 case, gives different RH in UWLCM
-      const real_t rv_top = RH_T_p_to_rv(RH_top, 280 * si::kelvins, p_0);
-      const real_t rv_bot = RH_T_p_to_rv(RH_bot, 299 * si::kelvins, p_0);
+      const real_t rv_top = RH_T_p_to_rv(RH_top, real_t(273.15 - 16) * si::kelvins, p_0, true);
+      const real_t rv_bot = RH_T_p_to_rv(RH_bot, real_t(273.15 + 4 ) * si::kelvins, p_0, false);
       return rv_bot - (rv_bot - rv_top) * z / 1.;
     }
 
     template<class case_ct_params_t, int n_dims>
-    class PiChamberICMW2020Common : public Anelastic<case_ct_params_t, n_dims>
+    class PiChamberICMW2024Common : public Anelastic<case_ct_params_t, n_dims>
     {
 
       protected:
@@ -249,7 +252,7 @@ namespace cases
       }
 
       // ctor
-      PiChamberICMW2020Common()
+      PiChamberICMW2024Common()
       {
         this->p_0 = p_0;
        // this->kappa = 1.28; // NaCl aerosol
@@ -263,12 +266,12 @@ namespace cases
 
     // 2d/3d children
     template<class case_ct_params_t, int n_dims>
-    class PiChamberICMW2020;
+    class PiChamberICMW2024;
 
     template<class case_ct_params_t>
-    class PiChamberICMW2020<case_ct_params_t, 2> : public PiChamberICMW2020Common<case_ct_params_t, 2>
+    class PiChamberICMW2024<case_ct_params_t, 2> : public PiChamberICMW2024Common<case_ct_params_t, 2>
     {
-      using parent_t = PiChamberICMW2020Common<case_ct_params_t, 2>;
+      using parent_t = PiChamberICMW2024Common<case_ct_params_t, 2>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -290,16 +293,16 @@ namespace cases
       }
 
       public:
-      PiChamberICMW2020()
+      PiChamberICMW2024()
       {
         this->X = X;
       }
     };
 
     template<class case_ct_params_t>
-    class PiChamberICMW2020<case_ct_params_t, 3> : public PiChamberICMW2020Common<case_ct_params_t, 3>
+    class PiChamberICMW2024<case_ct_params_t, 3> : public PiChamberICMW2024Common<case_ct_params_t, 3>
     {
-      using parent_t = PiChamberICMW2020Common<case_ct_params_t, 3>;
+      using parent_t = PiChamberICMW2024Common<case_ct_params_t, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -335,7 +338,7 @@ namespace cases
       }
 
       public:
-      PiChamberICMW2020()
+      PiChamberICMW2024()
       {
         this->X = X;
         this->Y = Y;

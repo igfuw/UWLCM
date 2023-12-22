@@ -78,6 +78,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   // spinup stuff
   virtual bool get_rain() = 0;
   virtual void set_rain(bool) = 0;
+  virtual void set_ice_src(bool) = 0;
   
   virtual void sgs_scalar_forces(const std::vector<int>&) {}
   virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) = 0;
@@ -87,11 +88,14 @@ class slvr_common : public slvr_dim<ct_params_t>
   void hook_ante_loop(int nt)
   {
     if (params.user_params.spinup > 0)
-    {
       set_rain(false);
-    }
     else
       set_rain(true);
+
+    if (params.user_params.ice_src > 0)
+      set_ice_src(false);
+    else
+      set_ice_src(true);
 
     parent_t::hook_ante_loop(nt);
 
@@ -134,6 +138,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
       this->record_aux_const("outdir", "user_params", params.user_params.outdir);
       this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
+      this->record_aux_const("ice_src", "user_params", params.user_params.ice_src);  
       this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
       this->record_aux_const("rng_seed_init", "user_params", params.user_params.rng_seed_init);  
       this->record_aux_const("sgs_delta", "user_params", params.user_params.sgs_delta);  
@@ -236,7 +241,9 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_step()
   {
-    // ICMW202 defaults, give wrong RH in UWLCM
+    // ICMW2020 setup
+    /*
+    // defaults, give wrong RH in UWLCM
     // const real_t top_wall_rv = 6.1562e-3;
     // const real_t bot_wall_rv = 0.0215865;
     //const real_t side_wall_rv = 7.1183e-3;
@@ -253,6 +260,18 @@ class slvr_common : public slvr_dim<ct_params_t>
     const real_t top_wall_th = 280;
     const real_t bot_wall_th = 299;
     const real_t side_wall_th = 285;
+    */
+
+    // ICMW2024 setup
+    const real_t top_wall_th = 273.15 - 16;
+    const real_t bot_wall_th = 273.15 + 4;
+    const real_t side_wall_th = 273.15 - 12;
+
+    const real_t top_wall_rv = 0.0009392216941182637; // saturated w.r.t. ice
+    const real_t bot_wall_rv = 0.005094220163097267; // saturated w.r.t. water
+    //const real_t side_wall_rv = 0.000609801765439481; // 45% RH w.r.t. ice
+    const real_t side_wall_rv = 0.0006775575171549789; // 50% RH w.r.t. ice
+    //const real_t side_wall_rv = 0.0007453132688704768; // 55% RH w.r.t. ice
 
     // hack to set temperature and moisture of top and bottom walls of a Pi chamber
     acc_mean_th_change_bot += bot_wall_th - blitz::mean(this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))));
@@ -301,6 +320,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     {
       // turn autoconversion on only after spinup (if spinup was specified)
       set_rain(true);
+    }
+
+    if (params.user_params.ice_src != 0 && params.user_params.ice_src == this->timestep)
+    {
+      set_ice_src(true);
     }
     parent_t::hook_ante_step();
   }

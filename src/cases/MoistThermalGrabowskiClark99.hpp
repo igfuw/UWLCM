@@ -27,7 +27,7 @@ namespace cases
     using libcloudphxx::common::moist_air::c_pd;
     using libcloudphxx::common::moist_air::R_d;
     using libcloudphxx::common::moist_air::R_v;
-    using libcloudphxx::common::const_cp::l_tri;
+    using libcloudphxx::common::const_cp::ls_tri;
     using libcloudphxx::common::const_cp::p_vs;
     using libcloudphxx::common::theta_std::p_1000;
 
@@ -202,7 +202,7 @@ namespace cases
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
-        using libcloudphxx::common::const_cp::l_tri;
+        using libcloudphxx::common::const_cp::ls_tri;
         using libcloudphxx::common::theta_std::p_1000;
         using setup::real_t;
 
@@ -219,9 +219,9 @@ namespace cases
         const real_t gg = 9.81;
         real_t rg = R_d<setup::real_t>() / si::joules * si::kelvins * si::kilograms;
         setup::real_t a = R_d<setup::real_t>() / rv / si::joules * si::kelvins * si::kilograms;
-    //    setup::real_t b = l_tri<setup::real_t>() / si::joules * si::kilograms / rv / tt0;
-        setup::real_t c = l_tri<setup::real_t>() / c_pd<setup::real_t>() / si::kelvins;
-        setup::real_t d = l_tri<setup::real_t>() / si::joules * si::kilograms / rv;
+    //    setup::real_t b = ls_tri<setup::real_t>() / si::joules * si::kilograms / rv / tt0;
+        setup::real_t c = ls_tri<setup::real_t>() / c_pd<setup::real_t>() / si::kelvins;
+        setup::real_t d = ls_tri<setup::real_t>() / si::joules * si::kilograms / rv;
         setup::real_t cap = R_d_over_c_pd<setup::real_t>(); 
         real_t capi = 1./cap;
     

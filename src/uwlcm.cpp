@@ -76,6 +76,7 @@ int main(int argc, char** argv)
       ("outdir", po::value<std::string>()->required(), "output directory name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>()->required(), "output rate (timestep interval)")
       ("spinup", po::value<int>()->default_value(0) , "number of initial timesteps during which rain formation is to be turned off")
+      ("ice_src", po::value<int>()->default_value(0) , "number of initial timesteps after which we start injecting ice")
       ("serial", po::value<bool>()->default_value(false), "force CPU component of the model (dynamics and bulk microphysics) to be computed on single thread")
       ("window", po::value<bool>()->default_value(false), "moving-window simulation, i.e. mean horizontal velocity substracted from advectors")
 //      ("th_src", po::value<bool>()->default_value(true) , "temp src")
@@ -138,6 +139,7 @@ int main(int argc, char** argv)
 
     user_params.nt = vm["nt"].as<int>(),
     user_params.spinup = vm["spinup"].as<int>();
+    user_params.ice_src = vm["ice_src"].as<int>();
 
     // handling rng_seed
     user_params.rng_seed = vm["rng_seed"].as<int>();

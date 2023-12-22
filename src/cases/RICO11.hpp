@@ -289,7 +289,7 @@ namespace cases
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
-        using libcloudphxx::common::const_cp::l_tri;
+        using libcloudphxx::common::const_cp::ls_tri;
         using libcloudphxx::common::theta_std::p_1000;
 
         blitz::firstIndex k;

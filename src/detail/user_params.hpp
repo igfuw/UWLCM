@@ -7,7 +7,7 @@
 // note: description and default values are in uwlcm.cpp, all parameters have to be handled there
 struct user_params_t
 {
-  int nt, outfreq, spinup, rng_seed, rng_seed_init;
+  int nt, outfreq, spinup, rng_seed, rng_seed_init, ice_src;
   setup::real_t X, Y, Z, dt;
   std::string outdir, model_case;
   setup::real_t sgs_delta;
@@ -20,4 +20,9 @@ struct user_params_t
   bool relax_th_rv,
        window,
        relax_ccn = false; // relevant only for lgrngn micro, hence needs a default value as otherwise it might be undefined in blk_1m/blk_2m
+
+  setup::real_t src_ccn_inj_rate = 0, 
+                src_ice_inj_rate = 0;
+  unsigned long long src_ccn_sd_no = 0, 
+                     src_ice_sd_no = 0;
 };

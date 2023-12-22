@@ -235,7 +235,7 @@ namespace cases
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
-        using libcloudphxx::common::const_cp::l_tri;
+        using libcloudphxx::common::const_cp::ls_tri;
         using libcloudphxx::common::theta_std::p_1000;
 
         blitz::firstIndex k;
@@ -280,7 +280,7 @@ namespace cases
         if(timestep == 0) // TODO: what if this function is not called at t=0? force such call
         {
           auto flux_value = RF == 1 ? 115. : 93.; // [W/m^2]
-          auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+          auto conv_fctr_lat = (libcloudphxx::common::const_cp::ls_tri<real_t>() * si::kilograms / si::joules);
           surf_flux_lat = -flux_value / conv_fctr_lat; // [kg / (m^2 * s)]
         }
       }

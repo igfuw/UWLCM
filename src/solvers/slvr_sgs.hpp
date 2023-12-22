@@ -32,7 +32,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     const auto& rc = this->get_rc(rcdsn_num); // use rcdsn_num as temp storage for rc
    
     // libcloudph stuff
-    const auto l_tri = libcloudphxx::common::const_cp::l_tri<setup::real_t>() * si::kilograms / si::joules;
+    const auto l_tri = libcloudphxx::common::const_cp::ls_tri<setup::real_t>() * si::kilograms / si::joules;
     const auto eps = libcloudphxx::common::moist_air::eps<setup::real_t>();// / si::dimensionless;
     const auto c_pd = libcloudphxx::common::moist_air::c_pd<setup::real_t>() * si::kilograms * si::kelvins / si::joules;
     const auto R_d = libcloudphxx::common::moist_air::R_d<setup::real_t>() * si::kilograms  * si::kelvins/ si::joules;
@@ -172,7 +172,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     }
     else if (s == ix::rv)// || s == ix::rc)
     {
-      auto conv_fctr_lat = (libcloudphxx::common::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+      auto conv_fctr_lat = (libcloudphxx::common::const_cp::ls_tri<real_t>() * si::kilograms / si::joules);
       conv_fctr = conv_fctr_lat;
       this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], sgs_rv_flux, conv_fctr);
     }

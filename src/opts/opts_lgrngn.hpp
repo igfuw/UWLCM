@@ -81,8 +81,10 @@ void setopts_micro(
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
     ("out_spec_freq", po::value<int>()->default_value(1), "frequency (in timesteps) of spectrum output")
     ("supstp_src", po::value<int>()->default_value(100), "interval between time steps in which CCN from source are added")
-    ("src_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ccn injected into specified cells, [1 / m^3 / s]")
-    ("src_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected CCN")
+    ("src_ccn_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ccn injected into specified cells, [1 / m^3 / s]")
+    ("src_ccn_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected CCN")
+    ("src_ice_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ice injected into specified cells, [1 / m^3 / s]")
+    ("src_ice_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected ice")
     ("rd_min", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_min), "minimum dry radius of initialized droplets [m] (negative means automatic detection)")
     ("rd_max", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_max), "maximum dry radius of initialized droplets [m] (negative means automatic detection); sd_conc_large_tail==true may result in initialization of even larger droplets")
     ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
@@ -129,7 +131,7 @@ void setopts_micro(
     }
     if(user_params.n1_stp*si::cubic_metres >= 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        user_params.kappa1,
+        std::make_pair(user_params.kappa1, 0),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           user_params.mean_rd1,
           thrust_real_t(1.0e-6) * si::metres,
@@ -142,7 +144,7 @@ void setopts_micro(
     } 
     if(user_params.n2_stp*si::cubic_metres >= 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        user_params.kappa2,
+        std::make_pair(user_params.kappa2, 0),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           thrust_real_t(1.0e-6) * si::metres,
           user_params.mean_rd2,
@@ -155,7 +157,7 @@ void setopts_micro(
     } 
     if(user_params.n1_stp*si::cubic_metres < 0 && user_params.n2_stp*si::cubic_metres < 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        case_ptr->kappa,
+        std::make_pair(case_ptr->kappa, 0),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           case_ptr->mean_rd1,
           case_ptr->mean_rd2,
@@ -339,6 +341,7 @@ void setopts_micro(
       );
       */
 
+/*
       rt_params.cloudph_opts_init.src_dry_distros.emplace(
         1.28, // kappa
         std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
@@ -347,6 +350,7 @@ void setopts_micro(
           rt_params.gccn / rt_params.dt // concenctration multiplier
         )
       );
+        */
 
       // GCCN relaxation stuff
       if(rt_params.user_params.relax_ccn)
@@ -410,6 +414,9 @@ void setopts_micro(
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
   rt_params.cloudph_opts_init.rng_seed_init = user_params.rng_seed_init;
   rt_params.cloudph_opts_init.rng_seed_init_switch = true;
+
+  rt_params.cloudph_opts_init.coal_switch = false;
+  rt_params.cloudph_opts_init.ice_switch = true;
 
   // coalescence kernel choice
   if(!vm["turb_coal"].as<bool>())
@@ -520,18 +527,12 @@ void setopts_micro(
     }
   }
 
-  setup::real_t src_inj_rate = vm["src_inj_rate"].as<setup::real_t>();  // number/m^3 (@ STP) created per second in each source cell
-  unsigned long long src_sd_no = vm["src_sd_no"].as<unsigned long long>();  // number of SD to represent injected CCN in each cell, added per supstp_src steps
+  rt_params.user_params.src_ccn_inj_rate = vm["src_ccn_inj_rate"].as<setup::real_t>();  // number/m^3 (@ STP) created per second in each source cell
+  rt_params.user_params.src_ccn_sd_no = vm["src_ccn_sd_no"].as<unsigned long long>();  // number of SD to represent injected CCN in each cell, added per supstp_src steps
   // Keep in mind that multiplicity is an int, so we need (number/m^3/sec * supstp_src * dt * cell_vol * rhod/rhod@STP) to be close to an integer
   // e.g. in Pi chamber volume of cells (except walls) is ca. 30.52 cc
-  
-  // source opts for pi chamber
-  rt_params.cloudph_opts_init.src_dry_sizes.emplace(
-    1.28, // kappa
-    std::map<setup::real_t, std::pair<setup::real_t, int> > {
-      {0.125e-6, {src_inj_rate, src_sd_no}} 
-    }
-  );
+  rt_params.user_params.src_ice_inj_rate = vm["src_ice_inj_rate"].as<setup::real_t>();  // number/m^3 (@ STP) created per second in each source cell
+  rt_params.user_params.src_ice_sd_no = vm["src_ice_sd_no"].as<unsigned long long>();  // number of SD to represent injected CCN in each cell, added per supstp_src steps
 
   rt_params.cloudph_opts_init.supstp_src = vm["supstp_src"].as<int>();
 
