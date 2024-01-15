@@ -133,10 +133,10 @@ set_target_properties(uwlcm PROPERTIES CXX_EXTENSIONS OFF)
 target_compile_features(uwlcm PRIVATE cxx_std_14)
 
 # search for Boost
-find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem REQUIRED)
-if(TARGET Boost::thread AND TARGET Boost::iostreams AND TARGET Boost::system AND TARGET Boost::timer AND TARGET Boost::program_options AND TARGET Boost::filesystem AND TARGET Boost::atomic AND TARGET Boost::regex) # atomic and regex are required by some other libs and boost was trying to link them via target although the target didnt exist
+find_package(Boost COMPONENTS thread iostreams system timer program_options filesystem asio REQUIRED)
+if(TARGET Boost::thread AND TARGET Boost::iostreams AND TARGET Boost::system AND TARGET Boost::timer AND TARGET Boost::program_options AND TARGET Boost::asio AND TARGET Boost::filesystem AND TARGET Boost::atomic AND TARGET Boost::regex) # atomic and regex are required by some other libs and boost was trying to link them via target although the target didnt exist
   message("linkiing boost targets")
-  target_link_libraries(uwlcm PRIVATE Boost::thread Boost::iostreams Boost::system Boost::timer Boost::program_options Boost::filesystem Boost::atomic Boost::regex)
+  target_link_libraries(uwlcm PRIVATE Boost::thread Boost::iostreams Boost::system Boost::timer Boost::program_options Boost::asio Boost::filesystem Boost::atomic Boost::regex)
 else()
   message("linkiing boost without targets")
   # we dont link using targets, because they are not set if there is some discrepancy between cmake and boost version
