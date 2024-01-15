@@ -113,7 +113,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
     tdef_sq(this->ijk) = formulae::stress::calc_tdef_sq_cmpct<ct_params_t::n_dims>(this->tau, this->ijk);
     calc_rcdsn_num();
-
+/*
     this->k_m(this->ijk).reindex(this->zero) = where(
                                  rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num < 1,
                                    pow2(this->smg_c * (*this->params.mix_len)(this->vert_idx))
@@ -121,6 +121,17 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                    * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
                                    0
                                 );
+                                */
+
+    // as in mpdata_rhs_vip_prs_sgs_smg.hpp : no square root of tdef_sq, hence smaller k_m (0<tdef_sq<1)
+    this->k_m(this->ijk).reindex(this->zero) = where(
+                                 rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num < 1,
+                                   pow2(this->smg_c * (*this->params.mix_len)(this->vert_idx))
+                                   * tdef_sq(this->ijk).reindex(this->zero)
+                                   * sqrt((1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
+                                   0
+                                );
+
     this->k_m(this->hrzntl_slice(0)) = this->k_m(this->hrzntl_slice(1));
     this->xchng_sclr(this->k_m, this->ijk, 1);
     
@@ -133,8 +144,10 @@ class slvr_sgs : public slvr_common<ct_params_t>
       pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
       / (*this->params.mix_len)(this->vert_idx);
 
-    formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, this->ijkm_sep);
+    formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, real_t(1.0), this->k_m, *this->mem->G, this->ijkm_sep);
 
+    // TODO: xchng_sgs_tnsr_diag is not needed? It wasnt done before, but it is done in mpdata_rhs_vip_prs_sgs_smg...
+    this->xchng_sgs_tnsr_diag(this->tau, this->vips()[ct_params_t::n_dims - 1], this->vip_div, this->ijk);
     this->xchng_sgs_tnsr_offdiag(this->tau, this->tau_srfc, this->ijk, this->ijkm);
     
     //this->mem->barrier();
