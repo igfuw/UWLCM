@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Data Type:                         CLASS 10 SECOND DATA - CORRECTED LOW LEVEL RH-DEWPT-TEMP
 Project ID:                        SCMS-FLA1

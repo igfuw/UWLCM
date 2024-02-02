@@ -5,25 +5,12 @@
 #include <random>
 #include <fstream>
 #include "CumulusCongestusCommon.hpp"
-#include "LasherTrapp2001_sounding/x7221545.adjdec2.hpp"
+#include "detail/LasherTrapp2001_sounding/x7221545.adjdec2.hpp"
 
 namespace cases 
 {
   namespace CumulusCongestus
   {
-//    namespace moist_air = libcloudphxx::common::moist_air;
-//    namespace const_cp = libcloudphxx::common::const_cp;
-//    namespace theta_std = libcloudphxx::common::theta_std;
-//
-//    using libcloudphxx::common::theta_std::p_1000;
-//    using libcloudphxx::common::moist_air::R_d_over_c_pd;
-//    using libcloudphxx::common::moist_air::c_pd;
-//    using libcloudphxx::common::moist_air::R_d;
-//    using libcloudphxx::common::moist_air::R_v;
-//    using libcloudphxx::common::const_cp::l_tri;
-//    using libcloudphxx::common::const_cp::p_vs;
-//    using libcloudphxx::common::theta_std::p_1000;
-
     template<class case_ct_params_t, int n_dims>
     class CumulusCongestusCommon_icmw20 : public CumulusCongestusCommon<case_ct_params_t, n_dims>
     {

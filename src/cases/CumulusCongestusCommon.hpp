@@ -16,10 +16,12 @@ namespace cases
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
       // env profiles of th and rv from the sounding
+      /*
       arr_1D_t th_dry_env;
       arr_1D_t th_std_env;
       arr_1D_t p_env;
       arr_1D_t rv_env;
+      */
 
       template<bool enable_sgs = case_ct_params_t::enable_sgs>
       void setopts_sgs(rt_params_t &params,
@@ -65,16 +67,15 @@ namespace cases
         int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
         real_t dz = (this->Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
-        concurr.advectee(ix::rv) = rv_env(index); 
-        concurr.advectee(ix::th) = th_std_env(index); 
+        //concurr.advectee(ix::rv) = rv_env(index); 
+        //concurr.advectee(ix::th) = th_std_env(index); 
   
-        concurr.advectee(ix::u) = 0;
         concurr.advectee(ix::w) = 0;  
        
         // absorbers
         concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->Z / si::metres - z_abs)), 2), 0);
         concurr.vab_relaxed_state(0) = concurr.advectee(ix::u);
-        concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+        concurr.vab_relaxed_state(ix::w) = concurr.advectee(ix::w);
   
         // density profile
         concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
@@ -118,10 +119,9 @@ namespace cases
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy,
-                                       const real_t &spinup_flux,      // [K m/s] .1 or .01
-                                       const real_t &gauss_half_width, // [m]     1700 or 3000
-                                       const real_t &gauss_max_flux//,   // [K m/s] .3   or .3
-//                                       const quantity<si::pressure, real_t> p_0
+                                       const real_t &spinup_flux,      // [K m/s] 
+                                       const real_t &gauss_half_width, // [m]    
+                                       const real_t &gauss_max_flux    // [K m/s]
                                      ) 
       {
         if(timestep == 0) 
@@ -141,9 +141,9 @@ namespace cases
                                        blitz::Array<real_t, n_dims> U_ground,   
                                        const real_t &U_ground_z,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy,
-                                       const real_t &spinup_flux,      // [kg/kg m/s] 4e-5 or 4e-5
-                                       const real_t &gauss_half_width, // [m]         1700 or 3000
-                                       const real_t &gauss_max_flux)   // [kg/kg m/s] 1.2e-4   or 2.4e-4
+                                       const real_t &spinup_flux,      // [kg/kg m/s] 
+                                       const real_t &gauss_half_width, // [m]         
+                                       const real_t &gauss_max_flux)   // [kg/kg m/s] 
       {
         if(timestep == 0)
           surf_flux_lat = spinup_flux * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [m/s]

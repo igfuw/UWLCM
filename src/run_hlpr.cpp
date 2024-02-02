@@ -14,8 +14,8 @@
 #include "cases/RICO11.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
-#include "cases/CumulusCongestus_icmw20.hpp"
 //#include "cases/CumulusCongestus_icmw20.hpp"
+#include "cases/CumulusCongestus_icmw24.hpp"
 #include "cases/DryPBL.hpp"
 
 #include "opts/opts_common.hpp"
@@ -101,8 +101,10 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
   else if (user_params.model_case == "dycoms_rf02")
     case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
-  else if (user_params.model_case == "cumulus_congestus_icmw20")
-    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw20<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
+//  else if (user_params.model_case == "cumulus_congestus_icmw20")
+//    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw20<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
+  else if (user_params.model_case == "cumulus_congestus_icmw24")
+    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw24<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else if (user_params.model_case == "rico11")
     case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else if (user_params.model_case == "dry_pbl")
