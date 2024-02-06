@@ -6,53 +6,64 @@
 #include <fstream>
 #include "CumulusCongestusCommon.hpp"
 #include "detail/CAMP2EX_sounding/input_sounding_camp2ex_000907-pbl4.hpp"
+#include "detail/CAMP2EX_sounding/aerosol_profile_factor.hpp"
 
 namespace cases 
 {
   namespace CumulusCongestus
   {
-    // returned units: [K], [g/kg], [m/s]
-    inline real_t interpolate_sounding(const std::string valname, real_t z)
+    // returned units: [K], [g/kg], [m/s], [1]
+    inline real_t interpolate_CAMP2EX_sounding(const std::string valname, real_t pos)
     {
-      assert(z>=0);
-      assert(valname == "theta" || valname == "rv" || valname == "u" || valname == "v");
+      assert(pos>=0);
+      assert(valname == "theta" || valname == "rv" || valname == "u" || valname == "v" || valname == "aerosol_conc_factor");
 
-      const auto &z_s(CAMP2EX_sounding_z);
+      const auto &pos_s(
+        valname == "aerosol_conc_factor" ? CAMP2EX_aerosol_profile_density : CAMP2EX_sounding_z);
 
-      const auto z_up = std::upper_bound(z_s.begin(), z_s.end(), z);
-      if(z_up == z_s.end())
+      const auto pos_up = 
+        valname == "aerosol_conc_factor" ? std::upper_bound(pos_s.begin(), pos_s.end(), pos, std::greater<double>()) : 
+                                           std::upper_bound(pos_s.begin(), pos_s.end(), pos);
+
+      if(pos_up == pos_s.end())
         throw std::runtime_error("UWLCM: The initial sounding is not high enough");
-      if(z_up == z_s.begin())
+      if(pos_up == pos_s.begin())
         throw std::runtime_error("UWLCM: The initial hsa incorrect first element (?)");
 
       const auto &sndg(
         valname == "theta" ? CAMP2EX_sounding_theta :
         valname == "rv" ? CAMP2EX_sounding_rv :
         valname == "u" ? CAMP2EX_sounding_u :
-        CAMP2EX_sounding_v);
+        valname == "v" ? CAMP2EX_sounding_v :
+        CAMP2EX_aerosol_profile_factor);
 
-      const auto s_up = sndg.begin() + std::distance(z_s.begin(), z_up);
-      return real_t(*(s_up-1) + (z - *(z_up-1)) / (*z_up - *(z_up-1)) * (*s_up - *(s_up-1)));
+      const auto s_up = sndg.begin() + std::distance(pos_s.begin(), pos_up);
+      return real_t(*(s_up-1) + (pos - *(pos_up-1)) / (*pos_up - *(pos_up-1)) * (*s_up - *(s_up-1)));
     }
 
     inline quantity<si::velocity, real_t> u_cc_icmw24(const real_t &z)
     {
-      return interpolate_sounding("u", z) * si::meters / si::seconds;
+      return interpolate_CAMP2EX_sounding("u", z) * si::meters / si::seconds;
     }
 
     inline quantity<si::velocity, real_t> v_cc_icmw24(const real_t &z)
     {
-      return interpolate_sounding("v", z) * si::meters / si::seconds;
+      return interpolate_CAMP2EX_sounding("v", z) * si::meters / si::seconds;
     }
 
     inline quantity<si::temperature, real_t> th_l_cc_icmw24(const real_t &z)
     {
-      return interpolate_sounding("theta", z) * si::kelvins;
+      return interpolate_CAMP2EX_sounding("theta", z) * si::kelvins;
     }
 
     inline quantity<si::dimensionless, real_t> r_t_cc_icmw24(const real_t &z)
     {
-      return interpolate_sounding("rv", z) * 1e-3; // to [kg/kg]
+      return interpolate_CAMP2EX_sounding("rv", z) * 1e-3; // to [kg/kg]
+    }
+
+    inline quantity<si::dimensionless, real_t> acf_cc_icmw24(const real_t &rhod) // aerosol concentration factor
+    {
+      return interpolate_CAMP2EX_sounding("aerosol_conc_factor", rhod);
     }
 
     template<class case_ct_params_t, int n_dims>
@@ -116,6 +127,17 @@ namespace cases
         concurr.advectee(ix::u) = u(index * dz);
 
         parent_t::intcond_hlpr(concurr, rhod, rng_seed, index, 0.1, 0.025e-3, (this->Z / si::metres) - 1000);
+      }
+
+      template <class T, class U>
+      void setopts_hlpr(T &params, const int nz, const U &user_params)
+      {
+        params.aerosol_independent_of_rhod=true;
+        for(int i=0; i<nz; ++i)
+        {
+          params.aerosol_conc_factor.push_back(acf_cc_icmw24((*params.rhod)(i)));
+        }
+        parent_t::setopts_hlpr(params, user_params);
       }
 
       // calculate the initial environmental theta and rv profiles
@@ -202,7 +224,7 @@ namespace cases
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
-        this->setopts_hlpr(params, user_params);
+        this->setopts_hlpr(params, nps[1], user_params);
         params.di = (this->X / si::metres) / (nps[0]-1); 
         params.dj = (this->Z / si::metres) / (nps[1]-1);
         params.dz = params.dj;
@@ -246,7 +268,7 @@ namespace cases
 
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
-        this->setopts_hlpr(params, user_params);
+        this->setopts_hlpr(params, nps[2], user_params);
         params.di = (this->X / si::metres) / (nps[0]-1); 
         params.dj = (this->Y / si::metres) / (nps[1]-1);
         params.dk = (this->Z / si::metres) / (nps[2]-1);

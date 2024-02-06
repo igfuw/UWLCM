@@ -115,6 +115,8 @@ void setopts_micro(
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
   rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
+  rt_params.cloudph_opts_init.aerosol_independent_of_rhod = rt_params.aerosol_independent_of_rhod;
+  rt_params.cloudph_opts_init.aerosol_conc_factor = rt_params.aerosol_conc_factor;
 
   {
     if(user_params.n1_stp*si::cubic_metres >= 0 && user_params.n2_stp*si::cubic_metres >= 0 && user_params.kappa1 == user_params.kappa2) {

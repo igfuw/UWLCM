@@ -540,6 +540,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
 //    detail::ForceParameters_t ForceParameters;
+    bool aerosol_independent_of_rhod = false; // ==true currently works only with lgrngn micro
+    std::vector<real_t> aerosol_conc_factor; // currently works only with lgrngn micro
     user_params_t user_params; // copy od user_params
 
     // functions for updating surface fluxes per timestep
