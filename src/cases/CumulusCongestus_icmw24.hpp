@@ -43,12 +43,14 @@ namespace cases
 
     inline quantity<si::velocity, real_t> u_cc_icmw24(const real_t &z)
     {
-      return interpolate_CAMP2EX_sounding("u", z) * si::meters / si::seconds;
+      //return interpolate_CAMP2EX_sounding("u", z) * si::meters / si::seconds;
+      return 0 * si::meters / si::seconds;
     }
 
     inline quantity<si::velocity, real_t> v_cc_icmw24(const real_t &z)
     {
-      return interpolate_CAMP2EX_sounding("v", z) * si::meters / si::seconds;
+      //return interpolate_CAMP2EX_sounding("v", z) * si::meters / si::seconds;
+      return 0 * si::meters / si::seconds;
     }
 
     inline quantity<si::temperature, real_t> th_l_cc_icmw24(const real_t &z)
