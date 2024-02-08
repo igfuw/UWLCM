@@ -18,6 +18,12 @@ namespace cases
       using parent_t = CumulusCongestusCommon<case_ct_params_t, n_dims>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+
+      // env profiles of th and rv from the sounding
+      arr_1D_t th_dry_env;
+      arr_1D_t th_std_env;
+      arr_1D_t p_env;
+      arr_1D_t rv_env;
   
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index) 

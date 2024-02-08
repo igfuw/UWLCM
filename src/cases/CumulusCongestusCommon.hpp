@@ -15,14 +15,6 @@ namespace cases
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
-      // env profiles of th and rv from the sounding
-      /*
-      arr_1D_t th_dry_env;
-      arr_1D_t th_std_env;
-      arr_1D_t p_env;
-      arr_1D_t rv_env;
-      */
-
       template<bool enable_sgs = case_ct_params_t::enable_sgs>
       void setopts_sgs(rt_params_t &params,
                        typename std::enable_if<!enable_sgs>::type* = 0) 
