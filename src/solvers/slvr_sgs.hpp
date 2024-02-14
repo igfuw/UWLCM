@@ -14,10 +14,10 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
   protected:
 
-  real_t prandtl_num;
+  real_t prandtl_num, karman_c;
 
   typename parent_t::arr_t &rcdsn_num, &tdef_sq, &tke, &sgs_th_flux, &sgs_rv_flux;
-  arrvec_t<typename parent_t::arr_t> &tmp_grad, &sgs_momenta_fluxes;
+  arrvec_t<typename parent_t::arr_t> &tmp_grad, &sgs_momenta_fluxes, &k_ma; // k_ma is anisotropic eddy viscosity (two arrays: horizontal and vertical)
   
   void calc_rcdsn_num()
   {
@@ -114,26 +114,42 @@ class slvr_sgs : public slvr_common<ct_params_t>
     tdef_sq(this->ijk) = formulae::stress::calc_tdef_sq_cmpct<ct_params_t::n_dims>(this->tau, this->ijk);
     calc_rcdsn_num();
 
-    this->k_m(this->ijk).reindex(this->zero) = where(
+    // Simon and Chow 2021, eqs. 14a, 14b
+    // l^-2 = (kz)^-2 + (Cs dl)^-2 = A
+    // l = A^(-1/2)
+    // l^2 = 1/A
+    // horizontal assuming dx=dy in 3D
+    this->k_ma[0](this->ijk).reindex(this->zero) = where(
                                  rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num < 1,
-                                   pow2(this->smg_c * (*this->params.mix_len)(this->vert_idx))
+                                   real_t(1) / (real_t(1) / pow(this->smg_c * params.di, 2) + (*this->params.mix_len)(this->vert_idx)) 
                                    * sqrt(tdef_sq(this->ijk).reindex(this->zero)
                                    * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
                                    0
                                 );
-    this->k_m(this->hrzntl_slice(0)) = this->k_m(this->hrzntl_slice(1));
-    this->xchng_sclr(this->k_m, this->ijk, 1);
-    
+    this->k_ma[0](this->hrzntl_slice(0)) = this->k_ma[0](this->hrzntl_slice(1));
+    this->xchng_sclr(this->k_ma[0], this->ijk, 1);
+
+    // vertical
+    this->k_ma[1](this->ijk).reindex(this->zero) = where(
+                                 rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num < 1,
+                                   real_t(1) / (real_t(1) / pow(this->smg_c * params.dz, 2) + (*this->params.mix_len)(this->vert_idx)) 
+                                   * sqrt(tdef_sq(this->ijk).reindex(this->zero)
+                                   * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
+                                   0
+                                );
+    this->k_ma[1](this->hrzntl_slice(0)) = this->k_ma[1](this->hrzntl_slice(1));
+    this->xchng_sclr(this->k_ma[1], this->ijk, 1);
    
     // calculate dissipation rate
 
     // TODO: c_eps should be an adjustable parameter for different cases
+    // TODO2: use k_ma[0] or k_ma[1] ? mix_len has changed!
     real_t c_eps = 0.845;
     this->diss_rate(this->ijk).reindex(this->zero) = c_eps *
-      pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
+      pow3(this->k_ma[0](this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
       / (*this->params.mix_len)(this->vert_idx);
 
-    formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, this->ijkm_sep);
+    formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_ma, *this->mem->G, this->ijkm_sep);
 
     this->xchng_sgs_tnsr_offdiag(this->tau, this->tau_srfc, this->ijk, this->ijkm);
     
@@ -344,7 +360,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
-    real_t prandtl_num;
+    real_t prandtl_num, karman_c;
     real_t fricvelsq = 0; // square of friction velocity [m^2 / s^2]
   };
 
@@ -359,13 +375,15 @@ class slvr_sgs : public slvr_common<ct_params_t>
     parent_t(args, p),
     params(p),
     prandtl_num(p.prandtl_num),
+    karman_c(p.karman_c),
     rcdsn_num(args.mem->tmp[__FILE__][0][0]),
     tdef_sq(args.mem->tmp[__FILE__][0][1]),
     tke(args.mem->tmp[__FILE__][0][2]),
     tmp_grad(args.mem->tmp[__FILE__][1]),
     sgs_momenta_fluxes(args.mem->tmp[__FILE__][2]),
     sgs_th_flux(args.mem->tmp[__FILE__][3][0]),
-    sgs_rv_flux(args.mem->tmp[__FILE__][3][1])
+    sgs_rv_flux(args.mem->tmp[__FILE__][3][1]),
+    k_ma(args.mem->tmp[__FILE__][4])
   {
     if(params.fricvelsq > 0 && params.cdrag > 0)
       throw std::runtime_error("UWLCM: in SGS simulation either cdrag or fricvelsq need to be positive, not both");
@@ -378,5 +396,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
     parent_t::alloc_tmp_vctr(mem, __FILE__); // tmp_grad
     parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // sgs_momenta_fluxes
     parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // sgs_th/rv_flux
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // k_ma
   }
 };
