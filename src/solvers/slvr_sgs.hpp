@@ -126,6 +126,11 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                    * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
                                    0
                                 );
+    // min/max as in Simon and Chow 2021
+    // TODO: do it all in the single loop above
+    this->k_ma[0](this->ijk) = where(this->k_ma[0](this->ijk) > 0.1 * pow(params.di, 2) / params.dt, 0.1 * pow(params.di, 2) / params.dt, this->k_ma[0](this->ijk));
+    this->k_ma[0](this->ijk) = where(this->k_ma[0](this->ijk) < 1e-6 * pow(params.di, 2),  1e-6 * pow(params.di, 2), this->k_ma[0](this->ijk));
+
     this->k_ma[0](this->hrzntl_slice(0)) = this->k_ma[0](this->hrzntl_slice(1));
     this->xchng_sclr(this->k_ma[0], this->ijk, 1);
 
@@ -137,8 +142,16 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                    * (1 - rcdsn_num(this->ijk).reindex(this->zero) / prandtl_num)),
                                    0
                                 );
+    // min/max as in Simon and Chow 2021
+    // TODO: do it all in the single loop above
+    this->k_ma[1](this->ijk) = where(this->k_ma[1](this->ijk) > 0.1 * pow(params.dz, 2) / params.dt, 0.1 * pow(params.dz, 2) / params.dt, this->k_ma[1](this->ijk));
+    this->k_ma[1](this->ijk) = where(this->k_ma[1](this->ijk) < 1e-6 * pow(params.dz, 2),  1e-6 * pow(params.dz, 2), this->k_ma[1](this->ijk));
+
     this->k_ma[1](this->hrzntl_slice(0)) = this->k_ma[1](this->hrzntl_slice(1));
     this->xchng_sclr(this->k_ma[1], this->ijk, 1);
+
+//    std::cerr << "k_ma[0]: " << this->k_ma[0] << std::endl;
+//    std::cerr << "k_ma[1]: " << this->k_ma[1] << std::endl;
    
     // calculate dissipation rate
 
@@ -196,7 +209,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
   
   void calc_sgs_diag_fields()
   {
-    tke(this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
+    // TODO: include k_ma[1]; mix_len is different now! 
+    tke(this->ijk).reindex(this->zero) = pow2(this->k_ma[0](this->ijk).reindex(this->zero)
                                                   / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
     calc_sgs_momenta_fluxes();
   }
@@ -245,7 +259,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
       // ijk_vec is used, because MPI requires that thread rank 0 calculates next vector to the left of the process' domain
       formulae::stress::multiply_vctr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(tmp_grad,
                                                                                     1.0 / prandtl_num,
-                                                                                    this->k_m,
+                                                                                    this->k_ma,
                                                                                     *this->mem->G,
                                                                                     this->ijk_vec);
       for(int d = 0; d < parent_t::n_dims; ++d)
@@ -329,7 +343,8 @@ class slvr_sgs : public slvr_common<ct_params_t>
 //    //std::cout << "test tht6: " << this->k_m(0, 0) << std::endl;
 //    //std::cout << "test tht7: " << this->k_m(0, 1) << std::endl;
 //    std::cout << "recording sgs" << std::endl;
-    this->record_aux_dsc("k_m", this->k_m);
+    this->record_aux_dsc("k_ma[0]", this->k_ma[0]);
+    this->record_aux_dsc("k_ma[1]", this->k_ma[1]);
     this->record_aux_dsc("tke", tke);
     this->record_aux_dsc("sgs_u_flux", sgs_momenta_fluxes[0]);
     if (ct_params_t::n_dims > 2)
