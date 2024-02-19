@@ -178,7 +178,7 @@ jobs:
     - name: Download libcloudph++ dir
       uses: actions/download-artifact@v2
       with:
-        name: libcloud_mpi_${{matrix.mpi}}_tar
+        name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
 
     - name: Decompress libcloudph++ dir
       run: tar -xvf libcloudphxx.tar
