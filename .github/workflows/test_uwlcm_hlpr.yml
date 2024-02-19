@@ -158,6 +158,7 @@ jobs:
         build_type: ["RelWithDebInfo"]
         mpi: ["none", "mvapich2"]
         disable_cuda: ["true"]
+        tar_name: ["RelDbgPort"]
         include:
         - mpi: "none"
           tag: "ubuntu_20_04_cuda_11_4"
