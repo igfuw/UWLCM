@@ -82,6 +82,7 @@ void slvr_blk_1m_common<ct_params_t>::update_rhs(
     case (1):
     // trapezoidal rhs^n+1
     {
+    /*
       // ---- cloud water sources ----
       rc_src();
       rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rc)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
@@ -90,7 +91,7 @@ void slvr_blk_1m_common<ct_params_t>::update_rhs(
       rr_src();
       rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk) + this->beta(this->ijk) * this->state(ix::rr)(this->ijk) / (1. - 0.5 * this->dt * this->beta(this->ijk));
 
-
+*/
       break;
     }
   }
