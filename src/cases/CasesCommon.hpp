@@ -103,6 +103,7 @@ namespace cases
       params.c_m = 0.0856;
       params.smg_c = 0.165;
       params.prandtl_num = 0.42;
+      params.karman_c = 0.41;
       params.cdrag = 0;
       params.fricvelsq = 0;
     }
@@ -114,11 +115,14 @@ namespace cases
     virtual void intcond(concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
     virtual void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
     {
+      const real_t karman_c = 0.41; // also defined in rt_params! (but that one is not used anywhere?)
       real_t dz = (Z / si::metres) / (nz-1);
       // set SGS mixing length
       {
         blitz::firstIndex k;
 
+        // original UWLCM formulation
+        /*
         real_t sgs_delta;
         if (user_params.sgs_delta > 0)
         {
@@ -129,6 +133,11 @@ namespace cases
           sgs_delta = dz;
         }
         profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
+        */
+
+        // Mason & Thomson 1992
+        // (karman_constant * z)^(-2)
+        profs.mix_len = real_t(1) / pow2(karman_c * max(k, 1) * dz);
       }
 
       // set profile of vertical distribution of surface fluxes
