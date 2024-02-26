@@ -28,6 +28,10 @@ namespace cases
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index) 
       {
+        concurr.advectee(ix::rv) = rv_env(index);
+        concurr.advectee(ix::th) = th_std_env(index);
+        concurr.advectee(ix::u) = 0;
+
         parent_t::intcond_hlpr(concurr, rhod, rng_seed, index, 0.1, 0.025e-3, (this->Z / si::metres) - 1000);
       }
 
@@ -150,8 +154,7 @@ namespace cases
           );
       }
 
-      // ctor
-      CumulusCongestusCommon_icmw20()
+      void init()
       {
         this->p_0 = real_t(101800) * si::pascals;
         //aerosol bimodal lognormal dist. - as in RICO with 11x conc following the ICMW2020 setup
@@ -162,6 +165,15 @@ namespace cases
         this->n1_stp = real_t(11*90e6) / si::cubic_metres, 
         this->n2_stp = real_t(11*15e6) / si::cubic_metres;
         this->z_rlx = real_t(1e2) * si::metres;
+      }
+
+      // ctor
+      CumulusCongestusCommon_icmw20(const real_t _X, const real_t _Y, const real_t _Z, const bool window)
+      {
+        init();
+
+        this->Z = _Z < 0 ? 10e3 * si::meters : _Z * si::meters;
+        this->ForceParameters.uv_mean[0] = 0;
       }
     };
     
@@ -191,10 +203,10 @@ namespace cases
       }
 
       public:
-      CumulusCongestus_icmw20(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
+      CumulusCongestus_icmw20(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
+        parent_t(_X, _Y, _Z, window)
       {
         this->X = _X < 0 ? 12e3 * si::meters : _X * si::meters;
-        this->Z = _Z < 0 ? 10e3 * si::meters : _Z * si::meters;
       }
     };
 
@@ -228,11 +240,12 @@ namespace cases
       }
 
       public:
-      CumulusCongestus_icmw20(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
+      CumulusCongestus_icmw20(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
+        parent_t(_X, _Y, _Z, window)
       {
         this->X = _X < 0 ? 10e3 * si::meters : _X * si::meters;
         this->Y = _Y < 0 ? 10e3 * si::meters : _Y * si::meters;
-        this->Z = _Z < 0 ? 10e3 * si::meters : _Z * si::meters;
+        this->ForceParameters.uv_mean[1] = 0;
       }
     };
   };
