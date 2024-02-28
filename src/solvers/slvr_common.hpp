@@ -34,6 +34,12 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   static constexpr int n_flxs = ct_params_t::n_dims + 1; // number of surface fluxes = number of hori velocities + th + rv
 
+  // accumulated total changes of th and rv at top and bottom
+  real_t acc_mean_rv_change_top,
+         acc_mean_rv_change_bot,
+         acc_mean_th_change_top,
+         acc_mean_th_change_bot;
+
   // array with index of inversion
   blitz::Array<real_t, parent_t::n_dims-1> k_i; // TODO: allocate k_i with alloc surf + in MPI calc average k_i over all processes
 
@@ -104,6 +110,8 @@ class slvr_common : public slvr_dim<ct_params_t>
 #else
       static_assert(false, "LIBCLOUDPHXX_GIT_REVISION is not defined, update your libcloudph++ library");
 #endif
+      this->record_aux_dsc_const("vab_coefficient", this->mem->vab_coefficient());  
+
       std::string run_command;
       for(int i=0; i<ac; ++i)
         run_command += std::string(av[i]) + std::string(" ");
@@ -149,6 +157,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("buoyancy_wet", "rt_params", params.buoyancy_wet);  
       this->record_aux_const("radiation", "rt_params", params.radiation);  
       this->record_aux_const("dz", "rt_params", params.dz);  
+      this->record_aux_const("no_ccn_at_init", "rt_params", params.no_ccn_at_init);  
+      this->record_aux_const("open_side_walls", "rt_params", params.open_side_walls);  
 
       this->record_aux_const("q_i", "ForceParameters", params.ForceParameters.q_i);  
       this->record_aux_const("heating_kappa", "ForceParameters", params.ForceParameters.heating_kappa);  
@@ -228,6 +238,67 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_step()
   {
+    // ICMW202 defaults, give wrong RH in UWLCM
+    // const real_t top_wall_rv = 6.1562e-3;
+    // const real_t bot_wall_rv = 0.0215865;
+    //const real_t side_wall_rv = 7.1183e-3;
+    const real_t top_wall_rv = 0.0062192674278;
+    const real_t bot_wall_rv = 0.0213489271007;
+    //const real_t side_wall_rv = 0.00873884004297; // 100% RH
+    //const real_t side_wall_rv = 0.00716584883524; // 82% RH
+    const real_t side_wall_rv = 0.00699107203438; // 80% RH
+//    const real_t side_wall_rv = 0.0068;
+    //const real_t side_wall_rv = 0.0066;
+    //const real_t side_wall_rv = 0.00611718803008; // 70% RH
+    //const real_t side_wall_rv = 0.00524330402578; // 60% RH
+    
+    const real_t top_wall_th = 280;
+    const real_t bot_wall_th = 299;
+    const real_t side_wall_th = 285;
+
+    // hack to set temperature and moisture of top and bottom walls of a Pi chamber
+    acc_mean_th_change_bot += bot_wall_th - blitz::mean(this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))));
+    acc_mean_rv_change_bot += bot_wall_rv - blitz::mean(this->state(ix::rv)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))));
+
+    acc_mean_th_change_top += top_wall_th - blitz::mean(this->state(ix::th)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))));
+    acc_mean_rv_change_top += top_wall_rv - blitz::mean(this->state(ix::rv)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))));
+
+    this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = bot_wall_th; 
+    this->state(ix::rv)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))) = bot_wall_rv;
+
+    this->state(ix::th)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = top_wall_th; 
+    this->state(ix::rv)(this->hrzntl_slice(this->ijk.ubound(parent_t::n_dims-1))) = top_wall_rv;
+
+
+    // side walls perpendicular to x
+    this->set_vertcl_slice_x(this->state(ix::th), 0, side_wall_th);
+    this->set_vertcl_slice_x(this->state(ix::rv), 0, side_wall_rv);
+
+    this->set_vertcl_slice_x(this->state(ix::th), params.grid_size[0]-1, side_wall_th);
+    this->set_vertcl_slice_x(this->state(ix::rv), params.grid_size[0]-1, side_wall_rv);
+
+//      this->state(ix::th)(this->vertcl_slice_x(this->ijk.lbound(0))) = side_wall_th; 
+//      this->state(ix::rv)(this->vertcl_slice_x(this->ijk.lbound(0))) = side_wall_rv; 
+//
+//      this->state(ix::th)(this->vertcl_slice_x(this->ijk.ubound(0))) = side_wall_th; 
+//      this->state(ix::rv)(this->vertcl_slice_x(this->ijk.ubound(0))) = side_wall_rv; 
+
+    // side walls perpendicular to y
+    if(parent_t::n_dims==3)
+    {
+      //this->state(ix::th)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_th; 
+      //this->state(ix::rv)(this->vertcl_slice_y(this->ijk.lbound(1))) = side_wall_rv; 
+
+      //this->state(ix::th)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_th; 
+      //this->state(ix::rv)(this->vertcl_slice_y(this->ijk.ubound(1))) = side_wall_rv; 
+
+      this->set_vertcl_slice_y(this->state(ix::th), 0, side_wall_th);
+      this->set_vertcl_slice_y(this->state(ix::rv), 0, side_wall_rv);
+  
+      this->set_vertcl_slice_y(this->state(ix::th), params.grid_size[1]-1, side_wall_th);
+      this->set_vertcl_slice_y(this->state(ix::rv), params.grid_size[1]-1, side_wall_rv);
+    }
+
     if (params.user_params.spinup != 0 && params.user_params.spinup == this->timestep)
     {
       // turn autoconversion on only after spinup (if spinup was specified)
@@ -494,15 +565,15 @@ class slvr_common : public slvr_dim<ct_params_t>
   virtual void diag()
   {
     assert(this->rank == 0);
-    this->record_aux_dsc("radiative_flux", radiative_flux); 
-
-    auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
-    surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
-    this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
-
-    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
-    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
-    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
+//    this->record_aux_dsc("radiative_flux", radiative_flux); 
+//
+//    auto conv_fctr_sens = (cmn::moist_air::c_pd<real_t>() * si::kilograms * si::kelvins / si::joules);
+//    surf_flux_tmp = - surf_flux_sens * conv_fctr_sens;
+//    this->record_aux_dsc("sensible surface flux", surf_flux_tmp, true); 
+//
+//    auto conv_fctr_lat = (cmn::const_cp::l_tri<real_t>() * si::kilograms / si::joules);
+//    surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
+//    this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
 
     this->record_aux_prof("rv_LS", params.rv_LS->data());
     this->record_aux_prof("th_LS", params.th_LS->data());
@@ -513,6 +584,16 @@ class slvr_common : public slvr_dim<ct_params_t>
       real_t sum = this->mem->distmem.sum(puddle.at(static_cast<cmn::output_t>(i)));
       this->record_aux_scalar(cmn::output_names.at(static_cast<cmn::output_t>(i)), "puddle", sum);
     }
+
+    this->record_aux_scalar("acc_mean_th_change_bot", acc_mean_th_change_bot);
+    this->record_aux_scalar("acc_mean_th_change_top", acc_mean_th_change_top);
+    this->record_aux_scalar("acc_mean_rv_change_bot", acc_mean_rv_change_bot);
+    this->record_aux_scalar("acc_mean_rv_change_top", acc_mean_rv_change_top);
+    acc_mean_th_change_bot = 0;
+    acc_mean_th_change_top = 0;
+    acc_mean_rv_change_bot = 0;
+    acc_mean_rv_change_top = 0;
+
   } 
 
   void record_all()
@@ -541,6 +622,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     bool rc_src = true, rr_src = true; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
     bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
+    bool no_ccn_at_init=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
+    bool open_side_walls=false; // right now this only works for Lagrangian micro. TODO: make it work for blk micro
 //    detail::ForceParameters_t ForceParameters;
     user_params_t user_params; // copy od user_params
 
@@ -574,7 +657,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     U_ground(args.mem->tmp[__FILE__][1][3]),
     surf_flux_tmp(args.mem->tmp[__FILE__][1][4]),
     surf_flux_u(args.mem->tmp[__FILE__][1][5]),
-    surf_flux_v(args.mem->tmp[__FILE__][1][6]) // flux_v needs to be last
+    surf_flux_v(args.mem->tmp[__FILE__][1][6]), // flux_v needs to be last
+    acc_mean_rv_change_top(0),
+    acc_mean_rv_change_bot(0),
+    acc_mean_th_change_top(0),
+    acc_mean_th_change_bot(0)
   {
     k_i.resize(this->shape(this->hrzntl_subdomain)); 
     k_i.reindexSelf(this->base(this->hrzntl_subdomain));

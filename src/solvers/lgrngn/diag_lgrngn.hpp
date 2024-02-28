@@ -33,19 +33,19 @@ void slvr_lgrngn<ct_params_t>::diag()
   */
 
   // recording precipitation rate per grid cel
-  prtcls->diag_all();
-  prtcls->diag_precip_rate();
-  this->record_aux("precip_rate", prtcls->outbuf());
-
-  // recording 0th mom of rw of rd>=0.8um
-  prtcls->diag_dry_rng(0.7999e-6, 1);
-  prtcls->diag_wet_mom(0);
-  this->record_aux("rd_geq_0.8um_rw_mom0", prtcls->outbuf());
-
-  // recording 0th mom of rw of rd>=0.8um
-  prtcls->diag_dry_rng(0, 0.8e-6);
-  prtcls->diag_wet_mom(0);
-  this->record_aux("rd_lt_0.8um_rw_mom0", prtcls->outbuf());
+//  prtcls->diag_all();
+//  prtcls->diag_precip_rate();
+//  this->record_aux("precip_rate", prtcls->outbuf());
+//
+//  // recording 0th mom of rw of rd>=0.8um
+//  prtcls->diag_dry_rng(0.7999e-6, 1);
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("rd_geq_0.8um_rw_mom0", prtcls->outbuf());
+//
+//  // recording 0th mom of rw of rd>=0.8um
+//  prtcls->diag_dry_rng(0, 0.8e-6);
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("rd_lt_0.8um_rw_mom0", prtcls->outbuf());
 
 //    // recording 1st mom of rw of gccns
 //    prtcls->diag_dry_rng(2e-6, 1);
@@ -68,24 +68,24 @@ void slvr_lgrngn<ct_params_t>::diag()
 //    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
 
   // recording 0th mom of rw of activated drops
-  prtcls->diag_rw_ge_rc();
-  prtcls->diag_wet_mom(0);
-  this->record_aux("actrw_rw_mom0", prtcls->outbuf());
+//  prtcls->diag_rw_ge_rc();
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("actrw_rw_mom0", prtcls->outbuf());
 
   // recording 1st mom of rw of activated drops
-  prtcls->diag_rw_ge_rc();
-  prtcls->diag_wet_mom(1);
-  this->record_aux("actrw_rw_mom1", prtcls->outbuf());
+//  prtcls->diag_rw_ge_rc();
+//  prtcls->diag_wet_mom(1);
+//  this->record_aux("actrw_rw_mom1", prtcls->outbuf());
 
   // recording 2nd mom of rw of activated drops
-  prtcls->diag_rw_ge_rc();
-  prtcls->diag_wet_mom(2);
-  this->record_aux("actrw_rw_mom2", prtcls->outbuf());
+//  prtcls->diag_rw_ge_rc();
+//  prtcls->diag_wet_mom(2);
+//  this->record_aux("actrw_rw_mom2", prtcls->outbuf());
 
   // recording 3rd mom of rw of activated drops
-  prtcls->diag_rw_ge_rc();
-  prtcls->diag_wet_mom(3);
-  this->record_aux("actrw_rw_mom3", prtcls->outbuf());
+//  prtcls->diag_rw_ge_rc();
+//  prtcls->diag_wet_mom(3);
+//  this->record_aux("actrw_rw_mom3", prtcls->outbuf());
 /*
   // recording 1st mom of rd of activated drops
   prtcls->diag_rw_ge_rc();
@@ -114,34 +114,44 @@ void slvr_lgrngn<ct_params_t>::diag()
   */
 
   // recording 0th wet mom of radius of rain drops (r>25um)
-  prtcls->diag_wet_rng(25.e-6, 1);
-  prtcls->diag_wet_mom(0);
-  this->record_aux("rain_rw_mom0", prtcls->outbuf());
-  
-  // recording 3rd wet mom of radius of rain drops (r>25um)
-  prtcls->diag_wet_rng(25.e-6, 1);
-  prtcls->diag_wet_mom(3);
-  this->record_aux("rain_rw_mom3", prtcls->outbuf());
+//  prtcls->diag_wet_rng(25.e-6, 1);
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("rain_rw_mom0", prtcls->outbuf());
+//  
+//  // recording 3rd wet mom of radius of rain drops (r>25um)
+//  prtcls->diag_wet_rng(25.e-6, 1);
+//  prtcls->diag_wet_mom(3);
+//  this->record_aux("rain_rw_mom3", prtcls->outbuf());
 
-  // recording 0th wet mom of radius of cloud drops (.5um< r < 25um)
-  prtcls->diag_wet_rng(.5e-6, 25.e-6);
+  // recording 0th wet mom of radius of cloud drops (3.5um< r < 1m)
+  prtcls->diag_wet_rng(3.5e-6, 1);
   prtcls->diag_wet_mom(0);
   this->record_aux("cloud_rw_mom0", prtcls->outbuf());
 
-  // recording 3rd wet mom of radius of cloud drops (.5um< r < 25um)
-  prtcls->diag_wet_rng(.5e-6, 25.e-6);
+  // recording 1st wet mom of radius of cloud drops (3.5um< r < 1m)
+  prtcls->diag_wet_rng(3.5e-6, 1);
+  prtcls->diag_wet_mom(1);
+  this->record_aux("cloud_rw_mom1", prtcls->outbuf());
+
+  // recording 2nd wet mom of radius of cloud drops (3.5um< r < 1m)
+  prtcls->diag_wet_rng(3.5e-6, 1);
+  prtcls->diag_wet_mom(2);
+  this->record_aux("cloud_rw_mom2", prtcls->outbuf());
+
+  // recording 3rd wet mom of radius of cloud drops (3.5um< r < 1m)
+  prtcls->diag_wet_rng(3.5e-6, 1);
   prtcls->diag_wet_mom(3);
   this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
-//    // recording 0th wet mom of radius of aerosols (r < .5um)
-//    prtcls->diag_wet_rng(0., .5e-6);
-//    prtcls->diag_wet_mom(0);
-//    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
+//    // recording 0th wet mom of radius of aerosols (r < 3.5um)
+    prtcls->diag_wet_rng(0., 3.5e-6);
+    prtcls->diag_wet_mom(0);
+    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
 
-//    // recording 3rd wet mom of radius of aerosols (r < .5um)
-//    prtcls->diag_wet_rng(0., .5e-6);
-//    prtcls->diag_wet_mom(3);
-//    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
+//    // recording 3rd wet mom of radius of aerosols (r < 3.5um)
+    prtcls->diag_wet_rng(0., 3.5e-6);
+    prtcls->diag_wet_mom(3);
+    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
 
 /*    
     // recording divergence of the velocity field
@@ -189,6 +199,7 @@ void slvr_lgrngn<ct_params_t>::diag()
 //  this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
 
   // recording requested statistical moments
+  if ((this->timestep ) % static_cast<int>(params.out_spec_freq) == 0)
   {
     // dry
     int rng_num = 0;

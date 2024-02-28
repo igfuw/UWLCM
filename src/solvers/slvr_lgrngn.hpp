@@ -93,6 +93,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   void set_rain(bool val) 
   { 
     params.cloudph_opts.coal = val ? params.flag_coal : false;
+    params.cloudph_opts.src = val;
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
   };
   
@@ -177,6 +178,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     outmom_t<real_t> out_dry, out_wet;
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
+    int out_spec_freq;
   };
 
   private:
