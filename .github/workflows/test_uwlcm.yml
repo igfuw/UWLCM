@@ -12,9 +12,10 @@ jobs:
 #  use the reusable workflow version from the PR code, doesn't work
 #  TODO: fix this so that changes to test_uwlcm_hlpr.yml proposed by a PR are tested...
 #    uses: ${{ github.event.pull_request.head.repo.full_name }}/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@${{github.head_ref}}
+    uses: ./.github/workflows/test_uwlcm_hlpr.yml
 ####################
 #  temp: we use the workflow from the master branch of the igfuw/uwlcm repo
-    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
+#    uses: igfuw/UWLCM/.github/workflows/test_uwlcm_hlpr.yml@master
 ####################
     with:
       UWLCM_sha: ${{ github.sha }} # merge PR SHA
