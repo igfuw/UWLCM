@@ -123,33 +123,33 @@ void slvr_lgrngn<ct_params_t>::diag()
 //  prtcls->diag_wet_mom(3);
 //  this->record_aux("rain_rw_mom3", prtcls->outbuf());
 
-  // recording 0th wet mom of radius of cloud drops (1.5um< r < 1m)
-  prtcls->diag_wet_rng(1.5e-6, 1);
+  // recording 0th wet mom of radius of cloud drops (3.5um< r < 1m)
+  prtcls->diag_wet_rng(3.5e-6, 1);
   prtcls->diag_wet_mom(0);
   this->record_aux("cloud_rw_mom0", prtcls->outbuf());
 
-  // recording 1st wet mom of radius of cloud drops (1.5um< r < 1m)
-  prtcls->diag_wet_rng(1.5e-6, 1);
+  // recording 1st wet mom of radius of cloud drops (3.5um< r < 1m)
+  prtcls->diag_wet_rng(3.5e-6, 1);
   prtcls->diag_wet_mom(1);
   this->record_aux("cloud_rw_mom1", prtcls->outbuf());
 
-  // recording 2nd wet mom of radius of cloud drops (1.5um< r < 1m)
-  prtcls->diag_wet_rng(1.5e-6, 1);
+  // recording 2nd wet mom of radius of cloud drops (3.5um< r < 1m)
+  prtcls->diag_wet_rng(3.5e-6, 1);
   prtcls->diag_wet_mom(2);
   this->record_aux("cloud_rw_mom2", prtcls->outbuf());
 
-  // recording 3rd wet mom of radius of cloud drops (1.5um< r < 1m)
-  prtcls->diag_wet_rng(1.5e-6, 1);
+  // recording 3rd wet mom of radius of cloud drops (3.5um< r < 1m)
+  prtcls->diag_wet_rng(3.5e-6, 1);
   prtcls->diag_wet_mom(3);
   this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
-//    // recording 0th wet mom of radius of aerosols (r < 1.5um)
-    prtcls->diag_wet_rng(0., 1.5e-6);
+//    // recording 0th wet mom of radius of aerosols (r < 3.5um)
+    prtcls->diag_wet_rng(0., 3.5e-6);
     prtcls->diag_wet_mom(0);
     this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
 
-//    // recording 3rd wet mom of radius of aerosols (r < 1.5um)
-    prtcls->diag_wet_rng(0., 1.5e-6);
+//    // recording 3rd wet mom of radius of aerosols (r < 3.5um)
+    prtcls->diag_wet_rng(0., 3.5e-6);
     prtcls->diag_wet_mom(3);
     this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
 
