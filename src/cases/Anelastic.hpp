@@ -27,7 +27,7 @@ namespace cases
       using libcloudphxx::common::moist_air::R_d_over_c_pd;
       using libcloudphxx::common::moist_air::c_pd;
       using libcloudphxx::common::moist_air::R_d;
-      using libcloudphxx::common::const_cp::l_tri;
+      using libcloudphxx::common::const_cp::ls_tri;
       using libcloudphxx::common::theta_std::p_1000;
 
       assert(p_0 > 0. * si::pascals);
@@ -47,9 +47,9 @@ namespace cases
       real_t rv = 461; // specific gas constant for vapor
       real_t ee0 = 611.;
       real_t a = R_d<real_t>() / rv / si::joules * si::kelvins * si::kilograms; // aka epsilon
-      real_t b = l_tri<real_t>() / si::joules * si::kilograms / rv / tt0;
-      real_t c = l_tri<real_t>() / c_pd<real_t>() / si::kelvins;
-      real_t d = l_tri<real_t>() / si::joules * si::kilograms / rv;
+      real_t b = ls_tri<real_t>() / si::joules * si::kilograms / rv / tt0;
+      real_t c = ls_tri<real_t>() / c_pd<real_t>() / si::kelvins;
+      real_t d = ls_tri<real_t>() / si::joules * si::kilograms / rv;
       real_t f = R_d_over_c_pd<real_t>(); 
 
       real_t lwp_env = 0;
@@ -66,7 +66,7 @@ namespace cases
         real_t qvs = a * ees / (profs.p_e(k) - ees);  // saturation vapor mixing ratio = R_d / R_v * ees / p_d
         // calculate linearized condensation rate
         real_t cf1 = thetme*thetme*thi*thi;  // T^{-2}
-        cf1 *= c * d * profs.p_e(k) / (profs.p_e(k) - ees); // = l_tri^2 / (C_pd * R_v * T^2) * p/p_d
+        cf1 *= c * d * profs.p_e(k) / (profs.p_e(k) - ees); // = ls_tri^2 / (C_pd * R_v * T^2) * p/p_d
         real_t delta = (r_t(k*dz) - qvs) / (1 + qvs * cf1); // how much supersaturated is the air (divided by sth)
         if(delta < 0.) delta = 0.;
         profs.rv_e(k) = r_t(k*dz) - delta;

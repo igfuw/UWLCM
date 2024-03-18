@@ -93,7 +93,27 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   void set_rain(bool val) 
   { 
     params.cloudph_opts.coal = val ? params.flag_coal : false;
+    params.cloudph_opts.src = val;
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
+
+    if(val)
+      params.cloudph_opts.src_dry_sizes.emplace(
+        std::pair<real_t, real_t>{1.28, 0}, // {kappa, ice}
+        std::map<setup::real_t, std::tuple<setup::real_t, int, int> > {
+          {0.0625e-6, {params.user_params.src_ccn_inj_rate, params.user_params.src_ccn_sd_no, params.user_params.src_ccn_supstp}}
+        }
+      );
+  };
+
+  void set_ice_src(bool val) 
+  { 
+    if(val)
+      params.cloudph_opts.src_dry_sizes.emplace(
+      std::pair<real_t, real_t>{0, 1}, // {kappa, ice}
+      std::map<setup::real_t, std::tuple<setup::real_t, int, int> > {
+        {2e-6, {params.user_params.src_ice_inj_rate, params.user_params.src_ice_sd_no, params.user_params.src_ice_supstp}}
+      }
+    );
   };
   
   // very similar to diag_rl, TODO: unify
@@ -177,6 +197,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     outmom_t<real_t> out_dry, out_wet;
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
+    int out_spec_freq;
   };
 
   private:

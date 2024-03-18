@@ -16,7 +16,6 @@ namespace cases
     namespace theta_dry   = libcloudphxx::common::theta_dry;
     namespace lognormal   = libcloudphxx::common::lognormal;
     namespace const_cp    = libcloudphxx::common::const_cp;
-
   
     const quantity<si::pressure, real_t> 
       p_0 = 101540 * si::pascals;
@@ -290,7 +289,7 @@ namespace cases
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
         using libcloudphxx::common::moist_air::R_d;
-        using libcloudphxx::common::const_cp::l_tri;
+        using libcloudphxx::common::const_cp::ls_tri;
         using libcloudphxx::common::theta_std::p_1000;
 
         blitz::firstIndex k;
