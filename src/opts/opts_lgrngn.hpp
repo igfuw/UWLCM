@@ -80,11 +80,12 @@ void setopts_micro(
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
     ("out_spec_freq", po::value<int>()->default_value(1), "frequency (in timesteps) of spectrum output")
-    ("supstp_src", po::value<int>()->default_value(100), "interval between time steps in which CCN from source are added")
     ("src_ccn_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ccn injected into specified cells, [1 / m^3 / s]")
     ("src_ccn_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected CCN")
+    ("src_ccn_supstp", po::value<unsigned long long>()->required() , "interval between time steps in which CCN from source are added")
     ("src_ice_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ice injected into specified cells, [1 / m^3 / s]")
     ("src_ice_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected ice")
+    ("src_ice_supstp", po::value<unsigned long long>()->required() , "interval between time steps in which ice from source is added")
     ("rd_min", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_min), "minimum dry radius of initialized droplets [m] (negative means automatic detection)")
     ("rd_max", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_max), "maximum dry radius of initialized droplets [m] (negative means automatic detection); sd_conc_large_tail==true may result in initialization of even larger droplets")
     ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
@@ -292,8 +293,6 @@ void setopts_micro(
 //      rt_params.cloudph_opts_init.src_z1 = case_ptr->Z / si::meters;
       rt_params.cloudph_opts_init.src_z1 = case_ptr->gccn_max_height / si::meters;// 700;
   //    rt_params.cloudph_opts_init.src_z1 = 200;
-
-      rt_params.cloudph_opts_init.src_sd_conc = 38;
 
 /*
       rt_params.cloudph_opts_init.src_dry_sizes.emplace(
@@ -529,12 +528,12 @@ void setopts_micro(
 
   rt_params.user_params.src_ccn_inj_rate = vm["src_ccn_inj_rate"].as<setup::real_t>();  // number/m^3 (@ STP) created per second in each source cell
   rt_params.user_params.src_ccn_sd_no = vm["src_ccn_sd_no"].as<unsigned long long>();  // number of SD to represent injected CCN in each cell, added per supstp_src steps
+  rt_params.user_params.src_ccn_supstp = vm["src_ccn_supstp"].as<unsigned long long>();
   // Keep in mind that multiplicity is an int, so we need (number/m^3/sec * supstp_src * dt * cell_vol * rhod/rhod@STP) to be close to an integer
   // e.g. in Pi chamber volume of cells (except walls) is ca. 30.52 cc
   rt_params.user_params.src_ice_inj_rate = vm["src_ice_inj_rate"].as<setup::real_t>();  // number/m^3 (@ STP) created per second in each source cell
   rt_params.user_params.src_ice_sd_no = vm["src_ice_sd_no"].as<unsigned long long>();  // number of SD to represent injected CCN in each cell, added per supstp_src steps
-
-  rt_params.cloudph_opts_init.supstp_src = vm["supstp_src"].as<int>();
+  rt_params.user_params.src_ice_supstp = vm["src_ice_supstp"].as<unsigned long long>();
 
   const double dx = 0.03125;
   // TODO: fix src_xyz01 for MPI (do it as x0 is done - in ante_loop)

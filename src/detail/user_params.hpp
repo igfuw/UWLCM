@@ -24,5 +24,7 @@ struct user_params_t
   setup::real_t src_ccn_inj_rate = 0, 
                 src_ice_inj_rate = 0;
   unsigned long long src_ccn_sd_no = 0, 
-                     src_ice_sd_no = 0;
+                     src_ice_sd_no = 0,
+                     src_ccn_supstp = 0,
+                     src_ice_supstp = 0;
 };
