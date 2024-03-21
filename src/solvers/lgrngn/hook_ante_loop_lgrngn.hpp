@@ -196,6 +196,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("rd_min", "lgrngn", params.cloudph_opts_init.rd_min);  
     this->record_aux_const("rd_max", "lgrngn", params.cloudph_opts_init.rd_max);  
     this->record_aux_const("relax_ccn", "user_params", params.user_params.relax_ccn);  
+    this->record_aux_const("outfreq_spec", "lgrngn", params.outfreq_spec);
   }
   this->mem->barrier();
 }
