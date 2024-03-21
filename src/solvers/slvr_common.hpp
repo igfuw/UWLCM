@@ -126,6 +126,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("Y", "user_params", params.user_params.Y);  
       this->record_aux_const("Z", "user_params", params.user_params.Z);  
       this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
+      this->record_aux_const("outstart", "user_params", params.user_params.outstart);  
       this->record_aux_const("outdir", "user_params", params.user_params.outdir);
       this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
       this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
@@ -518,6 +519,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   void record_all()
   {
     assert(this->rank == 0);
+    if(this->timestep < params.user_params.outstart) return;
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
