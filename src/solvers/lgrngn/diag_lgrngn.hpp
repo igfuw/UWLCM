@@ -189,7 +189,7 @@ void slvr_lgrngn<ct_params_t>::diag()
 //  this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
 
   // recording requested statistical moments
-  if ((this->timestep ) % static_cast<int>(params.out_spec_freq) == 0)
+  if ((this->timestep ) % static_cast<int>(params.outfreq_spec) == 0)
   {
     // dry
     int rng_num = 0;
