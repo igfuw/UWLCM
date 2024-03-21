@@ -144,17 +144,17 @@ void slvr_lgrngn<ct_params_t>::diag()
   this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
 
   // recording 1st wet mom of radius of all particles
-  prtcls->diag_all()
+  prtcls->diag_all();
   prtcls->diag_wet_mom(1);
   this->record_aux("all_rw_mom1", prtcls->outbuf());
 
   // recording 2nd wet mom of radius of all particles
-  prtcls->diag_all()
+  prtcls->diag_all();
   prtcls->diag_wet_mom(2);
   this->record_aux("all_rw_mom2", prtcls->outbuf());
 
   // recording 6th wet mom of radius of all particles
-  prtcls->diag_all()
+  prtcls->diag_all();
   prtcls->diag_wet_mom(6);
   this->record_aux("all_rw_mom6", prtcls->outbuf());
 
