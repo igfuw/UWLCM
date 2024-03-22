@@ -519,7 +519,6 @@ class slvr_common : public slvr_dim<ct_params_t>
   void record_all()
   {
     assert(this->rank == 0);
-    if(this->timestep < params.user_params.outstart) return;
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
