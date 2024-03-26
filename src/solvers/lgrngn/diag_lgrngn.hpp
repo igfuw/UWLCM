@@ -234,4 +234,6 @@ void slvr_lgrngn<ct_params_t>::diag()
       rng_num++;
     }
   }
+
+  diag_prev_step = 1;
 } 
