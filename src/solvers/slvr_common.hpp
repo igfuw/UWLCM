@@ -272,8 +272,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     const real_t top_wall_rv = 0.0009392216941182637; // saturated w.r.t. ice
     const real_t bot_wall_rv = 0.005094220163097267; // saturated w.r.t. water
     //const real_t side_wall_rv = 0.000609801765439481; // 45% RH w.r.t. ice
-    const real_t side_wall_rv = 0.0006775575171549789; // 50% RH w.r.t. ice
-    //const real_t side_wall_rv = 0.0007453132688704768; // 55% RH w.r.t. ice
+    //const real_t side_wall_rv = 0.0006775575171549789; // 50% RH w.r.t. ice
+    const real_t side_wall_rv = 0.00116; // 86% RH w.r.t. ice
 
     // hack to set temperature and moisture of top and bottom walls of a Pi chamber
     acc_mean_th_change_bot += bot_wall_th - blitz::mean(this->state(ix::th)(this->hrzntl_slice(this->ijk.lbound(parent_t::n_dims-1))));

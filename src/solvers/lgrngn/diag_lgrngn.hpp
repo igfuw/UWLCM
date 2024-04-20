@@ -248,6 +248,7 @@ void slvr_lgrngn<ct_params_t>::diag()
     {
       auto &rng(rng_moms.first);
       prtcls->diag_wet_rng(rng.first / si::metres, rng.second / si::metres);
+      prtcls->diag_water_cons();
       for (auto &mom : rng_moms.second)
       {
         prtcls->diag_wet_mom(mom);
@@ -256,4 +257,21 @@ void slvr_lgrngn<ct_params_t>::diag()
       rng_num++;
     }
   }
+  {
+    // ice
+    int rng_num = 0;
+    for (auto &rng_moms : params.out_ice)
+    {
+      auto &rng(rng_moms.first);
+      prtcls->diag_wet_rng(rng.first / si::metres, rng.second / si::metres);
+      prtcls->diag_ice_cons();
+      for (auto &mom : rng_moms.second)
+      {
+        prtcls->diag_wet_mom(mom);
+        this->record_aux(aux_name("ri", rng_num, mom), prtcls->outbuf());
+      }
+      rng_num++;
+    }
+  }
+
 } 

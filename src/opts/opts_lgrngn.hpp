@@ -70,6 +70,7 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value(""),  "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_ice", po::value<std::string>()->default_value(""),  "ice radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("gccn", po::value<setup::real_t>()->default_value(0) , "concentration of giant aerosols = gccn * VOCALS observations")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
@@ -79,6 +80,7 @@ void setopts_micro(
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
+    ("out_ice_spec", po::value<bool>()->default_value(false), "enable output for plotting ice spectrum")
     ("out_spec_freq", po::value<int>()->default_value(1), "frequency (in timesteps) of spectrum output")
     ("src_ccn_inj_rate", po::value<setup::real_t>()->required() , "injection rate of ccn injected into specified cells, [1 / m^3 / s]")
     ("src_ccn_sd_no", po::value<unsigned long long>()->required() , "number of SD to represent injected CCN")
@@ -446,9 +448,9 @@ void setopts_micro(
   rt_params.cloudph_opts_init.no_ccn_at_init = rt_params.no_ccn_at_init;
   rt_params.cloudph_opts_init.open_side_walls = rt_params.open_side_walls;
 
-  // parsing --out_dry and --out_wet options values
+  // parsing --out_dry, --out_wet and --out_ice options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
-  for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
+  for (auto &opt : std::set<std::string>({"out_dry", "out_wet","out_ice"}))
   {
     namespace qi = boost::spirit::qi;
     namespace phoenix = boost::phoenix;
@@ -458,10 +460,12 @@ void setopts_micro(
     auto last  = val.end();
 
     std::vector<std::pair<std::string, std::string>> min_maxnum;
-    outmom_t<thrust_real_t> &moms = 
-      opt == "out_dry"
-        ? rt_params.out_dry
-        : rt_params.out_wet;
+    outmom_t<thrust_real_t> &moms =
+      opt == "out_dry" ? rt_params.out_dry : (opt=="out_wet" ? rt_params.out_wet : rt_params.out_ice);
+    //if (opt=="out_dry") {&moms = rt_params.out_dry;}
+    //else if (opt=="out_wet") {&moms = rt_params.out_wet;}
+    //if (opt=="out_ice") {&moms = rt_params.out_ice;}
+
 
     const bool result = qi::phrase_parse(first, last, 
       *(
@@ -507,12 +511,27 @@ void setopts_micro(
     }
   } 
 
-  for (auto &opt : std::set<std::string>({"out_dry_spec", "out_wet_spec"}))
+  for (auto &opt : std::set<std::string>({"out_dry_spec", "out_wet_spec","out_ice_spec"}))
   {
     if(vm[opt].as<bool>())
     {
-      auto left_edges = opt == "out_dry_spec" ? bins_dry() : bins_wet();
-      auto &out = opt == "out_dry_spec" ? rt_params.out_dry : rt_params.out_wet;
+      auto left_edges = opt == "out_dry_spec" ? bins_dry() : (opt=="out_wet_spec" ? bins_wet() : bins_ice() );
+      auto &out = opt == "out_dry_spec" ? rt_params.out_dry : (opt=="out_wet_spec" ? rt_params.out_wet : rt_params.out_ice);
+      //if (opt=="out_dry_spec")
+	//{
+	//auto left_edges = bins_dry();
+	//auto &out = rt_params.out_dry;
+        //}
+      //else if (opt=="out_wet_spec")
+       // {
+        //auto left_edges = bins_wet();
+        //auto &out = rt_params.out_wet;
+        //}
+     // if (opt=="out_spec_ice")
+      //  {
+       // left_edges = bins_ice();
+       // &out = rt_params.out_ice;
+       // }
       for (int i = 0; i < left_edges.size()-1; ++i)
       {
         out.push_back(outmom_t<thrust_real_t>::value_type(
