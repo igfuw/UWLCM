@@ -180,7 +180,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     //concurr.reset(new concurr_openmp_rigid_gndsky_t(p));     // rigid horizontal boundaries
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case
   }
-  else if(user_params.model_case == "pi_chamber")
+  else if(user_params.model_case == "pi_chamber2020" || user_params.model_case == "pi_chamber2024")
   {
     concurr.reset(new concurr_openmp_rigid_t(p));     // rigid horizontal boundaries, zero sgs flux
   }
