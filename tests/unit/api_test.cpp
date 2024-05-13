@@ -41,7 +41,7 @@ int main(int ac, char** av)
     "--case=dry_pbl",
     "--case=moist_thermal",
     "--case=dycoms_rf02",
-    "--case=dycoms_rf02 --out_dry_spec=1 --out_wet_spec=1",
+    "--case=dycoms_rf02 --out_dry_spec=1 --out_wet_spec=1 --outfreq_spec=1000",
     "--case=dycoms_rf02 --relax_th_rv=1",
     "--case=dycoms_rf02 --window=1",
     "--case=rico11",

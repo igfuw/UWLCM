@@ -189,6 +189,7 @@ void slvr_lgrngn<ct_params_t>::diag()
 //  this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
 
   // recording requested statistical moments
+  if ((this->timestep ) % static_cast<int>(params.outfreq_spec) == 0)
   {
     // dry
     int rng_num = 0;
@@ -203,10 +204,9 @@ void slvr_lgrngn<ct_params_t>::diag()
       }
       rng_num++;
     }
-  }
-  {
+
     // wet
-    int rng_num = 0;
+    rng_num = 0;
     for (auto &rng_moms : params.out_wet)
     {
       auto &rng(rng_moms.first);
