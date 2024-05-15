@@ -25,7 +25,7 @@
   #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_loop_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_step_lgrngn.hpp" 
-  #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
+  #include "solvers/lgrngn/update_rhs_lgrngn.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)

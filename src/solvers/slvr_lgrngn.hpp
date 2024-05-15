@@ -124,7 +124,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   void hook_ante_loop(int nt);
   void hook_ante_step();
   void hook_ante_delayed_step();
-  void hook_mixed_rhs_ante_step();
+  void update_rhs(libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs, const typename parent_t::real_t &dt, const int &at);
 
   void hook_mixed_rhs_ante_loop()
   {
