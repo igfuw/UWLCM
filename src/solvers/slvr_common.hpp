@@ -463,6 +463,12 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_mixed_rhs_ante_step()
   {
+    // TODO: add th_e to get total theta here? then return to th_perturb after update_rhs? NOTE: negcheck theta after substracting th_e
+    // TODO: add the -w*dz(th_e) forcing
+    // TODO: initialize theta to perturbed value, or do it in ante loop
+    // TODO: turn to total theta before diag
+    // TODO: not total theta will also be needed in other places, e.g. in initializing surf fluxes in ante_loop
+    // NOTE: separate arrays for total theta, instead of adding and substracting all the time?
     this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero (?)
     this->apply_rhs(this->dt);
 
@@ -479,6 +485,8 @@ class slvr_common : public slvr_dim<ct_params_t>
   {
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after advection");
 
+    // TODO: add th_e to get total theta here? then return to th_perturb after update_rhs?
+    //       or simply move this transition to update_rhs?
     this->update_rhs(this->rhs, this->dt, 1);
     negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
     this->apply_rhs(this->dt);
