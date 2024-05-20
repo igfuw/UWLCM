@@ -65,6 +65,8 @@ class slvr_common : public slvr_dim<ct_params_t>
                                               // NOTE: these profiles hold the same values for all threads (and MPI processes),
                                               //       but each thread has it's own copy. We could have one per MPI process to save memory
 
+  setup::arr_1D_t dthe_dz; // gradient of the th_e profile
+
   // precip output
   std::map<cmn::output_t, real_t> puddle;
   const int n_puddle_scalars = cmn::output_names.size();
@@ -81,6 +83,18 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_loop(int nt)
   {
+    // calculate gradient of the th_e profile
+    {
+      int nz = this->vert_rng.length();
+      dthe_dz(0) = ((*params.th_e)(1) - (*params.th_e)(0)) / params.dz;
+      dthe_dz(nz-1) = ((*params.th_e)(nz-1) - (*params.th_e)(nz-2)) / params.dz;
+      dthe_dz(rng_t(1,nz-2)) = ((*params.th_e)(rng_t(2,nz-1)) - (*params.th_e)(rng_t(0,nz-3)) / (2*arams.dz);
+    }
+
+    // swtich from theta to theta perturbation
+    this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after substracting th_e");
+
     if (params.user_params.spinup > 0)
     {
       set_rain(false);
@@ -192,7 +206,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     
     this->mem->barrier();
     
-    // initialize surf fluxes with timestep==0
+    // initialize surf fluxes with timestep==0, done using total theta
+    this->state(ix::th)(this->ijk).reindex(this->zero) += (*params.th_e)(this->vert_idx);
     U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
 
     params.update_surf_flux_sens(
@@ -224,6 +239,8 @@ class slvr_common : public slvr_dim<ct_params_t>
         params.ForceParameters.uv_mean[1]
       );
     }
+    this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after substracting th_e");
   }
 
   void hook_ante_step()
@@ -463,12 +480,14 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_mixed_rhs_ante_step()
   {
-    // TODO: add th_e to get total theta here? then return to th_perturb after update_rhs? NOTE: negcheck theta after substracting th_e
-    // TODO: add the -w*dz(th_e) forcing
-    // TODO: initialize theta to perturbed value, or do it in ante loop
-    // TODO: turn to total theta before diag
-    // TODO: not total theta will also be needed in other places, e.g. in initializing surf fluxes in ante_loop
-    // NOTE: separate arrays for total theta, instead of adding and substracting all the time?
+    // where  total theta is needed:
+    // 1. in update_rhs() (DONE)
+    // 2. in calc_rcdsn_num() used in Smagorinsky multiply_sgs_visc in vip_rhs_expl_calc in hook_ante_step (DONE)
+    // 3. in initializing surf fluxes in ante_loop (DONE)
+    // 4. in diag (DONE)
+
+    // TODO: add an array that would store total theta, but that would require minor modifications in code that needs total theta
+    // NOTE: calc_full_theta function as in boussinesq_sgs_common
     
     this->state(ix::th)(this->ijk).reindex(this->zero) += (*params.th_e)(this->vert_idx);
     this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero (?)
@@ -535,12 +554,18 @@ class slvr_common : public slvr_dim<ct_params_t>
   void record_all()
   {
     assert(this->rank == 0);
+    // we want total theta in diag
+    this->mem->advectee(ix::th)(this->domain).reindex(this->zero) += (*params.th_e)(this->vert_idx);
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
     this->diag();
     // xmf markup
     this->write_xmfs();
+
+    // return to theta perturbation
+    this->mem->advectee(ix::th)(this->domain).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->domain), "th after substracting th_e");
   }
 
   public:
@@ -599,6 +624,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_zero = 0.;
     th_mean_prof.resize(this->vert_rng.length());
     rv_mean_prof.resize(this->vert_rng.length());
+    dthe_dz.resize(this->vert_rng.length());
   }
 
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)

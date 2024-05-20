@@ -21,6 +21,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
   
   void calc_rcdsn_num()
   {
+    // we need full theta here
+    this->state(ix::th)(this->ijk).reindex(this->zero) += (*this->params.th_e)(this->vert_idx);
+
     using libmpdataxx::arakawa_c::h;
 
     const auto g = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared);
@@ -78,6 +81,10 @@ class slvr_sgs : public slvr_common<ct_params_t>
     
     this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], rcdsn_num);
     rcdsn_num(this->ijk) /= max(1e-15, tdef_sq(this->ijk)); // TODO: is 1e-15 sensible epsilon here ?
+
+    // return to theta perturbation
+    this->state(ix::th)(this->ijk).reindex(this->zero) -= (*this->params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after substracting th_e");
   }
   
   template <int nd = ct_params_t::n_dims> 
