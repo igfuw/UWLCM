@@ -84,7 +84,7 @@ void slvr_lgrngn<ct_params_t>::update_rhs(
       using libcloudphxx::lgrngn::multi_CUDA;
 
       prtcls->sync_in(
-        make_arrinfo(this->full_th),
+        make_arrinfo(this->full_th(this->domain).reindex(this->origin)),
         make_arrinfo(this->mem->advectee(ix::rv)),
         libcloudphxx::lgrngn::arrinfo_t<real_t>(),
         make_arrinfo(Cx),
