@@ -18,7 +18,7 @@ void slvr_lgrngn<ct_params_t>::update_rhs(
   if(at==0)
   {
     rv_pre_cond(this->ijk) = this->state(ix::rv)(this->ijk); 
-    th_pre_cond(this->ijk) = this->state(ix::th)(this->ijk); 
+    th_pre_cond(this->ijk) = full_th(this->ijk); 
 
     this->mem->barrier();
 
@@ -84,7 +84,7 @@ void slvr_lgrngn<ct_params_t>::update_rhs(
       using libcloudphxx::lgrngn::multi_CUDA;
 
       prtcls->sync_in(
-        make_arrinfo(this->mem->advectee(ix::th)),
+        make_arrinfo(full_th),
         make_arrinfo(this->mem->advectee(ix::rv)),
         libcloudphxx::lgrngn::arrinfo_t<real_t>(),
         make_arrinfo(Cx),

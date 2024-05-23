@@ -27,8 +27,10 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
   void condevap()
   {
+    this->calc_full_th();
+
     auto
-      th   = this->state(ix::th)(this->ijk), // potential temperature
+      th   = full_th(this->ijk), // potential temperature
       rv   = this->state(ix::rv)(this->ijk), // water vapour mixing ratio
       rc   = this->state(ix::rc)(this->ijk), // cloud water mixing ratio
       rr   = this->state(ix::rr)(this->ijk); // rain water mixing ratio
