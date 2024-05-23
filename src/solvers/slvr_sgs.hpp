@@ -21,16 +21,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
   
   void calc_rcdsn_num()
   {
-    // we need full theta here
-    this->state(ix::th)(this->ijk).reindex(this->zero) += (*this->params.th_e)(this->vert_idx);
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after adding th_e");
-
     using libmpdataxx::arakawa_c::h;
 
     const auto g = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared);
 
     const auto dz = params.dz;
-    const auto& tht = this->state(ix::th);
+    const auto& tht = this->full_th;
     const auto& rv = this->state(ix::rv);
     // depending on microphysics we either have rc already (blk_m1) or have to diagnose it (lgrngn)
     const auto& rc = this->get_rc(rcdsn_num); // use rcdsn_num as temp storage for rc
@@ -82,9 +78,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
     
     this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], rcdsn_num);
     rcdsn_num(this->ijk) /= max(1e-15, tdef_sq(this->ijk)); // TODO: is 1e-15 sensible epsilon here ?
-
-    // return to theta perturbation
-    this->state(ix::th)(this->ijk).reindex(this->zero) -= (*this->params.th_e)(this->vert_idx);
   }
   
   template <int nd = ct_params_t::n_dims> 
@@ -222,7 +215,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   {
     for (const auto s : sclr_indices)
     {
-      auto& field = this->state(s);
+      auto& field(s == ix::th ? this->full_th : this->state(s));
 
       this->xchng_pres(field, this->ijk);
 

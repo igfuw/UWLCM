@@ -13,7 +13,7 @@ void slvr_blk_1m_common<ct_params_t>::rc_src()
   if(params.rc_src)
   {
     // large-scale vertical wind
-    parent_t::subsidence(ix::rc); 
+    parent_t::subsidence(this->state(ix::rc)); 
 
     this->alpha(ijk) = this->F(ijk);
   }
@@ -34,7 +34,7 @@ void slvr_blk_1m_common<ct_params_t>::rr_src()
   if(params.rr_src)
   {
     // large-scale vertical wind
-    parent_t::subsidence(ix::rr); 
+    parent_t::subsidence(this->state(ix::rr)); 
     
     this->alpha(ijk) = this->F(ijk);
   }

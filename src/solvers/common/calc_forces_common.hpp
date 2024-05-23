@@ -23,7 +23,7 @@ void slvr_common<ct_params_t>::rv_src()
     alpha(ijk) = F(ijk);
 
     // large-scale vertical wind
-    subsidence(ix::rv);
+    subsidence(this->state(ix::rv));
     alpha(ijk) += F(ijk);
 
     // large-scale horizontal advection
@@ -61,7 +61,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     alpha(ijk).reindex(this->zero) /=  calc_exner()((*params.p_e)(this->vert_idx)) *
       calc_c_p()(rv(ijk).reindex(this->zero)) *
       (*params.rhod)(this->vert_idx);
-    nancheck2(alpha(ijk), this->state(ix::th)(ijk), "change of theta");
+    nancheck2(alpha(ijk), full_th(ijk), "change of theta");
 
     // surf flux = d/dz mean(theta*w) [K/s]
     surf_sens();
@@ -69,7 +69,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     alpha(ijk) += F(ijk);
   
     // large-scale vertical wind
-    subsidence(ix::th);
+    subsidence(full_th);
     nancheck(F(ijk), "subsidence");
     alpha(ijk) += F(ijk);
     nancheck(alpha(ijk), "alpha in th_src");
@@ -103,7 +103,7 @@ void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename pare
   if(at == 0 && params.vel_subsidence) // subsidence added explicitly, so updated only at n
   {
     // large-scale vertical wind
-    subsidence(ix::w);
+    subsidence(this->state(ix::w));
     alpha(ijk) += F(ijk);
   }
 }
