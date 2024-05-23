@@ -23,6 +23,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   {
     // we need full theta here
     this->state(ix::th)(this->ijk).reindex(this->zero) += (*this->params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after adding th_e");
 
     using libmpdataxx::arakawa_c::h;
 
@@ -84,7 +85,6 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
     // return to theta perturbation
     this->state(ix::th)(this->ijk).reindex(this->zero) -= (*this->params.th_e)(this->vert_idx);
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after substracting th_e");
   }
   
   template <int nd = ct_params_t::n_dims> 

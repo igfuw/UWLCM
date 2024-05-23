@@ -88,12 +88,11 @@ class slvr_common : public slvr_dim<ct_params_t>
       int nz = this->vert_rng.length();
       dthe_dz(0) = ((*params.th_e)(1) - (*params.th_e)(0)) / params.dz;
       dthe_dz(nz-1) = ((*params.th_e)(nz-1) - (*params.th_e)(nz-2)) / params.dz;
-      dthe_dz(rng_t(1,nz-2)) = ((*params.th_e)(rng_t(2,nz-1)) - (*params.th_e)(rng_t(0,nz-3)) / (2*arams.dz);
+      dthe_dz(rng_t(1,nz-2)) = ((*params.th_e)(rng_t(2,nz-1)) - (*params.th_e)(rng_t(0,nz-3))) / (2*params.dz);
     }
 
     // swtich from theta to theta perturbation
     this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after substracting th_e");
 
     if (params.user_params.spinup > 0)
     {
@@ -208,6 +207,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     
     // initialize surf fluxes with timestep==0, done using total theta
     this->state(ix::th)(this->ijk).reindex(this->zero) += (*params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after adding th_e");
+
     U_ground(this->hrzntl_slice(0)) = this->calc_U_ground();
 
     params.update_surf_flux_sens(
@@ -240,7 +241,6 @@ class slvr_common : public slvr_dim<ct_params_t>
       );
     }
     this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after substracting th_e");
   }
 
   void hook_ante_step()
@@ -490,9 +490,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     // NOTE: calc_full_theta function as in boussinesq_sgs_common
     
     this->state(ix::th)(this->ijk).reindex(this->zero) += (*params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after adding th_e");
     this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero (?)
     this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after substracting th_e");
 
     this->apply_rhs(this->dt);
 
@@ -501,7 +501,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
+//    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_ante_step apply rhs");
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_ante_step apply rhs");
   }
 
@@ -513,9 +513,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     //       or simply move this transition to update_rhs?
     //       or update_rhs at=1 does nothing, so no need to turn into total theta?
     this->state(ix::th)(this->ijk).reindex(this->zero) += (*params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after adding th_e");
     this->update_rhs(this->rhs, this->dt, 1);
     this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after substracting th_e");
     negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
     this->apply_rhs(this->dt);
 
@@ -523,7 +523,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
-    negcheck2(this->mem->advectee(ix::th)(this->ijk), this->rhs.at(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs (+ output of th rhs)");
+//    negcheck2(this->mem->advectee(ix::th)(this->ijk), this->rhs.at(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs (+ output of th rhs)");
     negcheck2(this->mem->advectee(ix::rv)(this->ijk), this->rhs.at(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs (+ output of rv rhs)");
   }
 
@@ -556,6 +556,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     assert(this->rank == 0);
     // we want total theta in diag
     this->mem->advectee(ix::th)(this->domain).reindex(this->zero) += (*params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->domain), "th after adding th_e");
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
@@ -565,7 +566,6 @@ class slvr_common : public slvr_dim<ct_params_t>
 
     // return to theta perturbation
     this->mem->advectee(ix::th)(this->domain).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
-    negcheck(this->mem->advectee(ix::th)(this->domain), "th after substracting th_e");
   }
 
   public:
