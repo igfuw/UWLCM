@@ -60,7 +60,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &beta,    // 'implicit' rhs part - coefficient of the value at n+1
                            &radiative_flux,
                            &diss_rate, // TODO: move to slvr_sgs to save memory in iles simulations !;
-                           &th_full;
+                           &full_th;
 
   setup::arr_1D_t th_mean_prof, rv_mean_prof; // profiles with mean th/rv at each level
                                               // NOTE: these profiles hold the same values for all threads (and MPI processes),
@@ -84,7 +84,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   
   void calc_full_th()
   {
-    full_th(this->ijk) = this->state(ix::th)(this->ijk) + (*params.th_e)(this->vert_idx);
+    full_th(this->ijk).reindex(this->zero) = this->state(ix::th)(this->ijk).reindex(this->zero) + (*params.th_e)(this->vert_idx);
     negcheck(full_th(this->ijk), "full_th");
   }
 
@@ -553,14 +553,20 @@ class slvr_common : public slvr_dim<ct_params_t>
   void record_all()
   {
     assert(this->rank == 0);
-    // we want total theta in diag
-    calc_full_th();
+    // we want total theta in diag, not using full_th beause outvars would need to be changed, adding and sbstracting is not a problem since diag is done rarely
+    // however, this could be done by multiple threads...
+    this->mem->advectee(ix::th)(this->domain).reindex(this->zero) += (*params.th_e)(this->vert_idx);
+    negcheck(this->mem->advectee(ix::th)(this->domain), "th after adding th_e");
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
     this->diag();
     // xmf markup
     this->write_xmfs();
+
+    // return to theta perturbation
+    this->mem->advectee(ix::th)(this->domain).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
+
   }
 
   public:
@@ -605,7 +611,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     beta(args.mem->tmp[__FILE__][0][4]),
     radiative_flux(args.mem->tmp[__FILE__][0][5]),
     diss_rate(args.mem->tmp[__FILE__][0][6]),
-    th_full(args.mem->tmp[__FILE__][0][7]),
+    full_th(args.mem->tmp[__FILE__][0][7]),
     surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
     surf_flux_zero(args.mem->tmp[__FILE__][1][2]),
@@ -626,7 +632,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 8); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux, th_full
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 8); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux, full_th
     parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+3, "", true); // surf_flux sens/lat/hori_vel/zero/tmp, U_ground
   }
 };
