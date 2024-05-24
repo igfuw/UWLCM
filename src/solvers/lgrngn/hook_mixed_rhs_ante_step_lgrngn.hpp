@@ -39,7 +39,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     if (
       params.async && 
       this->timestep != 0 && // ... but not in first timestep ...
-      ((this->timestep ) % this->outfreq != 0) // ... and not after diag call, note: timestep is updated after ante_step
+      diag_prev_step == 0    // ... and not after diag call
     ) {
       assert(ftr.valid());
 #if defined(UWLCM_TIMING)
@@ -56,6 +56,8 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
 #endif
     } else assert(!ftr.valid()); 
 #endif
+
+    diag_prev_step = 0;
 
     // change src and rlx flags after the first step. needs to be done after async finished, because async uses opts reference
     if(this->timestep == 1)

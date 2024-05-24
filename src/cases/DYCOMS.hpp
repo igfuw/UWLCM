@@ -13,7 +13,6 @@ namespace cases
 
     const quantity<si::pressure, real_t> p_0 = 101780 * si::pascals;
     const quantity<si::length, real_t> 
-      z_0   = 0    * si::metres,
       Z_def = 1500 * si::metres;
     const quantity<si::length, real_t> X_def[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
     const quantity<si::length, real_t> Y_def[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};

@@ -196,7 +196,26 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("rd_min", "lgrngn", params.cloudph_opts_init.rd_min);  
     this->record_aux_const("rd_max", "lgrngn", params.cloudph_opts_init.rd_max);  
     this->record_aux_const("relax_ccn", "user_params", params.user_params.relax_ccn);  
+    if(params.cloudph_opts_init.aerosol_conc_factor.size() > 0)
+      this->record_prof_const("aerosol_conc_factor", params.cloudph_opts_init.aerosol_conc_factor.data()); // TODO: add it to "lgrngn" group (needs a new version of record_prof_const in libmpdata++) 
+    else
+      this->record_aux_const("aerosol_conc_factor", "uniform");  
     this->record_aux_const("outfreq_spec", "lgrngn", params.outfreq_spec);
+    // store left and right edges of bins for wet and dry radii moments
+    for (auto &out : std::set<std::pair<outmom_t<real_t>, std::string>>({{params.out_dry, "out_dry"}, {params.out_wet, "out_wet"}}))
+    {
+      if(!out.first.empty()) 
+      {
+        std::vector<real_t> bin_lft_edges, bin_rgt_edges;
+        for (auto &rng_moms : out.first)
+        {
+          bin_lft_edges.push_back(real_t(rng_moms.first.first / si::meters));
+          bin_rgt_edges.push_back(real_t(rng_moms.first.second / si::meters));
+        }
+        this->record_aux_const(out.second + "_lft_edges", bin_lft_edges.data(), bin_lft_edges.size());
+        this->record_aux_const(out.second + "_rgt_edges", bin_rgt_edges.data(), bin_rgt_edges.size());
+      }
+    }
   }
   this->mem->barrier();
 }
