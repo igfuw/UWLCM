@@ -82,15 +82,26 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   //void common_water_src(int, int);
   
+  // NOTE: th_prtrb could be compile-time option and we could add separate solvers for prtrb and normal, but it wouldn't save much memory or computations and would make the code more difficult to understand/manage
+  // where  total theta is needed:
+  // 1. in update_rhs()
+  // 2. in calc_rcdsn_num() used in Smagorinsky multiply_sgs_visc in vip_rhs_expl_calc in hook_ante_step
+  // 3. in initializing surf fluxes in ante_loop
+  // 4. in diag
   void calc_full_th()
   {
-    full_th(this->ijk).reindex(this->zero) = this->state(ix::th)(this->ijk).reindex(this->zero) + (*params.th_e)(this->vert_idx);
+    if(params.user_params.th_prtrb)
+      full_th(this->ijk).reindex(this->zero) = this->state(ix::th)(this->ijk).reindex(this->zero) + (*params.th_e)(this->vert_idx);
+    else
+      full_th(this->ijk) = this->state(ix::th)(this->ijk);
+
     negcheck(full_th(this->ijk), "full_th");
   }
 
   void hook_ante_loop(int nt)
   {
     // calculate gradient of the th_e profile
+    // TODO: more precise calculation?
     {
       int nz = this->vert_rng.length();
       dthe_dz(0) = ((*params.th_e)(1) - (*params.th_e)(0)) / params.dz;
@@ -99,7 +110,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
 
     // switch from theta to theta perturbation
-    this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
+    if(params.user_params.th_prtrb)
+      this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
 
     if (params.user_params.spinup > 0)
     {
@@ -152,6 +164,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("rng_seed_init", "user_params", params.user_params.rng_seed_init);  
       this->record_aux_const("sgs_delta", "user_params", params.user_params.sgs_delta);  
       this->record_aux_const("relax_th_rv", "user_params", params.user_params.relax_th_rv);  
+      this->record_aux_const("th_prtrb", "user_params", params.user_params.th_prtrb);  
       this->record_aux_const("case_n_stp_multiplier", "user_params", params.user_params.case_n_stp_multiplier);  
       this->record_aux_const("window", "user_params", params.user_params.window);  
 
@@ -484,13 +497,6 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_mixed_rhs_ante_step()
   {
-    // where  total theta is needed:
-    // 1. in update_rhs() (DONE)
-    // 2. in calc_rcdsn_num() used in Smagorinsky multiply_sgs_visc in vip_rhs_expl_calc in hook_ante_step (DONE)
-    // 3. in initializing surf fluxes in ante_loop (DONE)
-    // 4. in diag (DONE)
-
-    // TODO: th_prtrb as an option!
     
     calc_full_th();
     this->update_rhs(this->rhs, this->dt, 0); // TODO: update_rhs called twice per step causes halo filling twice (done by parent_t::update_rhs), probably not needed - we just need to set rhs to zero (?)
@@ -555,8 +561,11 @@ class slvr_common : public slvr_dim<ct_params_t>
     assert(this->rank == 0);
     // we want total theta in diag, not using full_th beause outvars would need to be changed, adding and sbstracting is not a problem since diag is done rarely
     // however, this could be done by multiple threads...
-    this->mem->advectee(ix::th)(this->domain).reindex(this->zero) += (*params.th_e)(this->vert_idx);
-    negcheck(this->mem->advectee(ix::th)(this->domain), "th after adding th_e");
+    if(params.user_params.th_prtrb)
+    {
+      this->mem->advectee(ix::th)(this->domain).reindex(this->zero) += (*params.th_e)(this->vert_idx);
+      negcheck(this->mem->advectee(ix::th)(this->domain), "th after adding th_e");
+    }
 
     // plain (no xdmf) hdf5 output
     parent_t::parent_t::parent_t::parent_t::record_all();
@@ -565,7 +574,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->write_xmfs();
 
     // return to theta perturbation
-    this->mem->advectee(ix::th)(this->domain).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
+    if(params.user_params.th_prtrb)
+      this->mem->advectee(ix::th)(this->domain).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
 
   }
 
