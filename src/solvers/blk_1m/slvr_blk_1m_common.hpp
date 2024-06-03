@@ -102,10 +102,10 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     // init the p_e array
     p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
 
+    parent_t::hook_ante_loop(nt); // forcings before adjustments
+
     // deal with initial supersaturation, TODO: don't do it here (vide slvr_lgrngn)
     condevap();
-
-    parent_t::hook_ante_loop(nt); // forcings after adjustments
 
     // recording parameters
     if(this->rank==0)
