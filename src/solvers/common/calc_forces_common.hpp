@@ -88,7 +88,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
   // -w*dthe_dz term when resolving perturbation from th_e
   // independent of th_src flag, because it in fact is advection
   if(params.user_params.th_prtrb)
-    alpha(ijk) += - this->state(ix::w)(this->ijk) * (this->dthe_dz)(this->vert_idx);
+    alpha(ijk) += - this->w_anelastic(this->ijk) * (this->dthe_dz)(this->vert_idx);
 
   beta(ijk) = 0.;
 }
