@@ -60,8 +60,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &beta,    // 'implicit' rhs part - coefficient of the value at n+1
                            &radiative_flux,
                            &diss_rate, // TODO: move to slvr_sgs to save memory in iles simulations !;
-                           &full_th,
-                           &w_anelastic;
+                           &full_th;
 
   setup::arr_1D_t th_mean_prof, rv_mean_prof; // profiles with mean th/rv at each level
                                               // NOTE: these profiles hold the same values for all threads (and MPI processes),
@@ -493,8 +492,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step");
     parent_t::hook_post_step(); // includes output
     this->mem->barrier();
-    w_anelastic(this->ijk) = this->state(ix::w)(this->ijk);
-    this->mem->barrier();
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv at end of slvr_common::hook_post_step");
   }
 
@@ -625,7 +622,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     radiative_flux(args.mem->tmp[__FILE__][0][5]),
     diss_rate(args.mem->tmp[__FILE__][0][6]),
     full_th(args.mem->tmp[__FILE__][0][7]),
-    w_anelastic(args.mem->tmp[__FILE__][0][8]),
     surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
     surf_flux_zero(args.mem->tmp[__FILE__][1][2]),
@@ -646,7 +642,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 9); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux, full_th, w_anelastic
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 8); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux, full_th
     parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+3, "", true); // surf_flux sens/lat/hori_vel/zero/tmp, U_ground
   }
 };
