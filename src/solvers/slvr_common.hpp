@@ -113,7 +113,6 @@ class slvr_common : public slvr_dim<ct_params_t>
     // switch from theta to theta perturbation
     if(params.user_params.th_prtrb)
       this->state(ix::th)(this->ijk).reindex(this->zero) -= (*params.th_e)(this->vert_idx);
-    w_anelastic(this->ijk) = this->state(ix::w)(this->ijk);
 
     if (params.user_params.spinup > 0)
     {
