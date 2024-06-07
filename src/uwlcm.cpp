@@ -91,7 +91,7 @@ int main(int argc, char** argv)
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model length scale [m]. If negative, sgs_delta = dz")
       ("help", "produce a help message (see also --micro X --help)")
       ("relax_th_rv", po::value<bool>()->default_value(false) , "relax per-level mean theta and rv to a desired (case-specific) profile")
-      ("th_prtrb", po::value<bool>()->default_value(true), "potential temperature perturbation from the environmental profile as the model variable instead of full potential temperature")
+      ("th_prtrb", po::value<bool>()->default_value(false), "potential temperature perturbation from the environmental profile as the model variable instead of full potential temperature. Removes oscillacions of vertical velocity, but has problems in some cases, e.g. with strong inversion...")
       // aerosol distribution params
       // default values are realistic params, except n1_stp=n2_stp=-1
       // if n1_stp<0 and n2_stp<0, the case-default aerosols distribution is used,
