@@ -66,7 +66,7 @@ class slvr_common : public slvr_dim<ct_params_t>
                                               // NOTE: these profiles hold the same values for all threads (and MPI processes),
                                               //       but each thread has it's own copy. We could have one per MPI process to save memory
 
-  setup::arr_1D_t dthe_dz; // gradient of the th_e profile
+  setup::arr_1D_t dthe_dz;
 
   // precip output
   std::map<cmn::output_t, real_t> puddle;
@@ -93,7 +93,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     if(params.user_params.th_prtrb)
       full_th(this->ijk).reindex(this->zero) = this->state(ix::th)(this->ijk).reindex(this->zero) + (*params.th_e)(this->vert_idx);
     else
-      full_th(this->ijk) = this->state(ix::th)(this->ijk);
+      full_th(this->ijk) = this->state(ix::th)(this->ijk); // TODO: optimize this to use ix::th, without a copy and without allocating full_th
 
     negcheck(full_th(this->ijk), "full_th");
   }
@@ -101,13 +101,31 @@ class slvr_common : public slvr_dim<ct_params_t>
   void hook_ante_loop(int nt)
   {
     // calculate gradient of the th_e profile
-    // TODO: more precise calculation?
+    // 2nd-order central
     {
       int nz = this->vert_rng.length();
       dthe_dz(0) = ((*params.th_e)(1) - (*params.th_e)(0)) / params.dz;
       dthe_dz(nz-1) = ((*params.th_e)(nz-1) - (*params.th_e)(nz-2)) / params.dz;
       dthe_dz(rng_t(1,nz-2)) = ((*params.th_e)(rng_t(2,nz-1)) - (*params.th_e)(rng_t(0,nz-3))) / (2*params.dz);
     }
+
+    /*
+    {
+      // 4th-order central
+      const auto vr = this->vert_rng;
+      setup::arr_1D_t th_e_h(rng_t(vr.first()-2, vr.last()+2)); // th_e with halo
+      // TODO: make all profiles have halo?
+      th_e_h(vr) = (*params.th_e)(vr);
+      // TODO: use boundary conditions from libmpdata++ solver, not hardocode them here...
+      th_e_h(rng_t(vr.first()-2, vr.first())) = th_e_h(vr.first()); 
+      th_e_h(rng_t(vr.last(), vr.last()+2)) = th_e_h(vr.last()); 
+
+      dthe_dz(vr) = (-th_e_h(vr+2) +8*th_e_h(vr+1) -8*th_e_h(vr-1) +th_e_h(vr-2)) / (12*params.dz);
+
+      std::cerr << "4th th_e_h: " << th_e_h << std::endl;
+      std::cerr << "4th dthe_dz: " << dthe_dz << std::endl;
+    }
+*/
 
     // switch from theta to theta perturbation
     if(params.user_params.th_prtrb)
@@ -523,8 +541,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     this->update_rhs(this->rhs, this->dt, 1);
     negcheck(this->rhs.at(ix::rv)(this->ijk), "RHS rv after update_rhs in mixed_rhs_post_step");
     this->apply_rhs(this->dt);
+    // NOTE: no negtozero after apply, because only w changed here
 
-    // no negtozero after apply, because only w changed here
     // TODO: add these nanchecks/negchecks to apply_rhs, since they are repeated twice now
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after mixed_rhs_post_step apply rhs");
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs");
@@ -621,7 +639,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     beta(args.mem->tmp[__FILE__][0][4]),
     radiative_flux(args.mem->tmp[__FILE__][0][5]),
     diss_rate(args.mem->tmp[__FILE__][0][6]),
-    full_th(args.mem->tmp[__FILE__][0][7]),
+    full_th(args.mem->tmp[__FILE__][0][7]), // TODO: only needed if th_prtrb==1...
     surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
     surf_flux_zero(args.mem->tmp[__FILE__][1][2]),
@@ -642,7 +660,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 8); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux, full_th
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 8);
     parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+3, "", true); // surf_flux sens/lat/hori_vel/zero/tmp, U_ground
   }
 };
