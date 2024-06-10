@@ -30,7 +30,7 @@ void slvr_blk_1m_common<ct_params_t>::update_rhs(
       dot_rc = rhs.at(ix::rc)(this->ijk),
       dot_rr = rhs.at(ix::rr)(this->ijk);
     const auto
-      th   = this->state(ix::th)(this->ijk),
+      th   = this->full_th(this->ijk),
       rv   = this->state(ix::rv)(this->ijk),
       rc   = this->state(ix::rc)(this->ijk),
       rr   = this->state(ix::rr)(this->ijk),

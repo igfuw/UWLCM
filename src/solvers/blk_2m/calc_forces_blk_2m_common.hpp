@@ -13,7 +13,7 @@ void slvr_blk_2m_common<ct_params_t>::rc_src()
   if(params.rc_src)
   {
     // large-scale vertical wind
-    parent_t::subsidence(ix::rc); 
+    parent_t::subsidence(this->state(ix::rc)); 
 
     this->alpha(ijk) = this->F(ijk);
   }
@@ -31,7 +31,7 @@ void slvr_blk_2m_common<ct_params_t>::nc_src()
   if(params.nc_src)
   {
     // large-scale vertical wind
-    parent_t::subsidence(ix::nc); 
+    parent_t::subsidence(this->state(ix::nc)); 
 
     this->alpha(ijk) = this->F(ijk);
   }
@@ -49,7 +49,7 @@ void slvr_blk_2m_common<ct_params_t>::rr_src()
   if(params.rr_src)
   {
     // large-scale vertical wind
-    parent_t::subsidence(ix::rr); 
+    parent_t::subsidence(this->state(ix::rr)); 
 
     this->alpha(ijk) = this->F(ijk);
   }
@@ -67,7 +67,7 @@ void slvr_blk_2m_common<ct_params_t>::nr_src()
   if(params.nr_src)
   {
     // large-scale vertical wind
-    parent_t::subsidence(ix::nr); 
+    parent_t::subsidence(this->state(ix::nr)); 
     
     this->alpha(ijk) = this->F(ijk);
   }

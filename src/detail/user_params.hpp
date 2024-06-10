@@ -19,5 +19,6 @@ struct user_params_t
 
   bool relax_th_rv,
        window,
+       th_prtrb,
        relax_ccn = false; // relevant only for lgrngn micro, hence needs a default value as otherwise it might be undefined in blk_1m/blk_2m
 };

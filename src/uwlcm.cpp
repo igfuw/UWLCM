@@ -25,7 +25,7 @@
   #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_loop_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_step_lgrngn.hpp" 
-  #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
+  #include "solvers/lgrngn/update_rhs_lgrngn.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model length scale [m]. If negative, sgs_delta = dz")
       ("help", "produce a help message (see also --micro X --help)")
       ("relax_th_rv", po::value<bool>()->default_value(false) , "relax per-level mean theta and rv to a desired (case-specific) profile")
-
+      ("th_prtrb", po::value<bool>()->default_value(false), "potential temperature perturbation from the environmental profile as the model variable instead of full potential temperature. Removes oscillacions of vertical velocity, but has problems in some cases, e.g. with strong inversion...")
       // aerosol distribution params
       // default values are realistic params, except n1_stp=n2_stp=-1
       // if n1_stp<0 and n2_stp<0, the case-default aerosols distribution is used,
@@ -172,6 +172,7 @@ int main(int argc, char** argv)
 
 //    user_params.relax_ccn = vm["relax_ccn"].as<bool>();
     user_params.relax_th_rv = vm["relax_th_rv"].as<bool>();
+    user_params.th_prtrb = vm["th_prtrb"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();
     bool sgs = vm["sgs"].as<bool>();

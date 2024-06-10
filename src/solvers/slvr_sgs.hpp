@@ -26,7 +26,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     const auto g = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared);
 
     const auto dz = params.dz;
-    const auto& tht = this->state(ix::th);
+    const auto& tht = this->full_th;
     const auto& rv = this->state(ix::rv);
     // depending on microphysics we either have rc already (blk_m1) or have to diagnose it (lgrngn)
     const auto& rc = this->get_rc(rcdsn_num); // use rcdsn_num as temp storage for rc
@@ -215,7 +215,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
   {
     for (const auto s : sclr_indices)
     {
-      auto& field = this->state(s);
+      auto& field(s == ix::th ? this->full_th : this->state(s));
 
       this->xchng_pres(field, this->ijk);
 

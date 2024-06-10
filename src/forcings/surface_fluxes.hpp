@@ -8,7 +8,7 @@ void slvr_common<ct_params_t>::surf_sens_impl(iles_tag)
 {
   params.update_surf_flux_sens(
     surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
-    this->state(ix::th)(this->hrzntl_slice(0)).reindex(this->origin),
+    full_th(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
     params.dz / 2, this->timestep, this->dt, this->di, this->dj
   ); // [ K kg / (m^2 s)]
@@ -24,7 +24,7 @@ void slvr_common<ct_params_t>::surf_sens_impl(smg_tag)
 {
   params.update_surf_flux_sens(
     surf_flux_sens(this->hrzntl_slice(0)).reindex(this->origin),
-    this->state(ix::th)(this->hrzntl_slice(0)).reindex(this->origin),
+    full_th(this->hrzntl_slice(0)).reindex(this->origin),
     U_ground(this->hrzntl_slice(0)).reindex(this->origin),
     params.dz / 2, this->timestep, this->dt, this->di, this->dj
   ); // [K kg / (m^2 s)]

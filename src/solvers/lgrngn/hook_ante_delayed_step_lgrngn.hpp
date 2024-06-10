@@ -47,7 +47,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
     nancheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
     nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
-    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
+//    negcheck(this->mem->advectee(ix::th)(this->ijk), "th after condensation");
     negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after condensation");
   }
 
