@@ -163,7 +163,7 @@ namespace cases
                                        const real_t &U_ground_z,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
-        parent_t::update_surf_flux_sens_hlpr(surf_flux_sens, th_ground, U_ground, U_ground_z, timestep, dt, dx, dy, 0.01, 3000, .3);
+        parent_t::update_surf_flux_sens_hlpr(surf_flux_sens, th_ground, U_ground, U_ground_z, timestep, dt, dx, dy, 0.01, 3000, .3, true);
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -172,7 +172,7 @@ namespace cases
                                        const real_t &U_ground_z,
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
-        parent_t::update_surf_flux_lat_hlpr(surf_flux_sens, th_ground, U_ground, U_ground_z, timestep, dt, dx, dy, 4e-5, 3000, 2.4e-4);
+        parent_t::update_surf_flux_lat_hlpr(surf_flux_sens, th_ground, U_ground, U_ground_z, timestep, dt, dx, dy, 4e-5, 3000, 2.4e-4, true);
       }
 
       // one function for updating u or v

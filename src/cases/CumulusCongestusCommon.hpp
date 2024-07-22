@@ -113,17 +113,20 @@ namespace cases
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy,
                                        const real_t &spinup_flux,      // [K m/s] 
                                        const real_t &gauss_half_width, // [m]    
-                                       const real_t &gauss_max_flux    // [K m/s]
+                                       const real_t &gauss_max_flux,   // [K m/s]
+                                       const bool add_spinup_flux = 0  // add spinup flux to the gaussian flux?
                                      ) 
       {
         if(timestep == 0) 
           surf_flux_sens = spinup_flux * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(this->p_0); // [K kg / (m^2 s)]; -1 because negative gradient of upward flux means inflow
         else if(int((3600. / dt) + 0.5) == timestep)
         {
+          if(!add_spinup_flux) surf_flux_sens=0;
+
           if(surf_flux_sens.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_sens = gauss_max_flux * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * this->Y / si::metres, 2) ) / (gauss_half_width * gauss_half_width) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(this->p_0);
+            surf_flux_sens += gauss_max_flux * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * this->Y / si::metres, 2) ) / (gauss_half_width * gauss_half_width) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(this->p_0);
           else if(surf_flux_sens.rank() == 2)
-            surf_flux_sens = gauss_max_flux * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2)  ) / (gauss_half_width * gauss_half_width) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(this->p_0);
+            surf_flux_sens += gauss_max_flux * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2)  ) / (gauss_half_width * gauss_half_width) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(this->p_0);
         }
       }
       
@@ -135,16 +138,20 @@ namespace cases
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy,
                                        const real_t &spinup_flux,      // [kg/kg m/s] 
                                        const real_t &gauss_half_width, // [m]         
-                                       const real_t &gauss_max_flux)   // [kg/kg m/s] 
+                                       const real_t &gauss_max_flux,  // [kg/kg m/s] 
+                                       const bool add_spinup_flux = 0  // add spinup flux to the gaussian flux?
+                                    )
       {
         if(timestep == 0)
           surf_flux_lat = spinup_flux * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters); // [m/s]
         else if(int((3600. / dt) + 0.5) == timestep)
         {
+          if(!add_spinup_flux) surf_flux_lat=0;
+
           if(surf_flux_lat.rank() == 3) // TODO: make it a compile-time decision
-            surf_flux_lat = gauss_max_flux * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * this->Y / si::metres, 2) ) / (gauss_half_width * gauss_half_width) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
+            surf_flux_lat += gauss_max_flux * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2) +  pow(blitz::tensor::j * dy - real_t(0.5) * this->Y / si::metres, 2) ) / (gauss_half_width * gauss_half_width) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
           else if(surf_flux_lat.rank() == 2)
-            surf_flux_lat = gauss_max_flux * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2)  ) / (gauss_half_width * gauss_half_width) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
+            surf_flux_lat += gauss_max_flux * exp( - ( pow(blitz::tensor::i * dx - real_t(0.5) * this->X / si::metres, 2)  ) / (gauss_half_width * gauss_half_width) ) * -1 * (this->rhod_0 / si::kilograms * si::cubic_meters);
         }
       }
 
