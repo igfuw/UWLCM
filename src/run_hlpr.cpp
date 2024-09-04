@@ -16,6 +16,7 @@
 #include "cases/DryThermalGMD2015.hpp"
 #include "cases/CumulusCongestus.hpp"
 #include "cases/DryPBL.hpp"
+#include "cases/BOMEX03.hpp"
 
 #include "opts/opts_common.hpp"
 #include "solvers/common/calc_forces_common.hpp"
@@ -106,6 +107,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else if (user_params.model_case == "dry_pbl")
     case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
+  else if (user_params.model_case == "bomex03")
+    case_ptr.reset(new cases::bomex::Bomex03<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else
     throw std::runtime_error("UWLCM: wrong case choice");
 
