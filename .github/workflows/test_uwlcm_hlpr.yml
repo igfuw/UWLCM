@@ -61,7 +61,7 @@ jobs:
       run: tar -cvf libcloudphxx.tar libcloudphxx/build libcloudphxx/include
 
     - name: Upload libcloudph++ dir
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
         path: libcloudphxx.tar
@@ -97,7 +97,7 @@ jobs:
         ref: ${{ inputs.UWLCM_sha }}
 
     - name: Download libcloudph++ dir
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
 
@@ -177,7 +177,7 @@ jobs:
         ref: ${{ inputs.UWLCM_sha }}
 
     - name: Download libcloudph++ dir
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
 
