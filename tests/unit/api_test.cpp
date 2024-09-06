@@ -48,7 +48,8 @@ int main(int ac, char** av)
     "--case=rico11 --window=1",
     "--case=dycoms_rf01",
     "--case=dycoms_rf01 --window=1",
-    "--case=cumulus_congestus"
+    "--case=cumulus_congestus",
+    "--case=bomex03"
   });
   vector<string> opts_piggy({
     "--piggy=0",
