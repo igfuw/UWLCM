@@ -46,7 +46,7 @@ namespace cases
 
     inline quantity<si::velocity, real_t> u_bomex(const real_t &z)
     {
-      return init_prof({0, 700, 3000}, {-8,75, -8.75, -4.61}, z) * si::meters / si::seconds;
+      return init_prof({0, 700, 3000}, {-8.75, -8.75, -4.61}, z) * si::meters / si::seconds;
     }
     inline quantity<si::velocity, real_t> v_bomex(const real_t &z)
     {
