@@ -97,7 +97,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_delayed_step()
 
   // subsidence of rl
   // TODO: very similar code to subsidence function in forcings.hppp
-  if(params.subsidence)
+  if(params.subsidence == subs_t::local || params.subsidence == subs_t::mean) // done locally either way
   {
     auto& tmp1(this->tmp1);
     auto& r_l(this->r_l);
