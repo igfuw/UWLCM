@@ -75,6 +75,7 @@ int main(int argc, char** argv)
       ("dt", po::value<setup::real_t>()->required() , "timestep length [s]")
       ("outdir", po::value<std::string>()->required(), "output directory name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>()->required(), "output rate (timestep interval)")
+      ("outwindow", po::value<int>()->default_value(1), "number of consecutive timesteps output is done, starts at outfreq")
       ("spinup", po::value<int>()->default_value(0) , "number of initial timesteps during which rain formation is to be turned off")
       ("serial", po::value<bool>()->default_value(false), "force CPU component of the model (dynamics and bulk microphysics) to be computed on single thread")
       ("window", po::value<bool>()->default_value(false), "moving-window simulation, i.e. mean horizontal velocity substracted from advectors")
@@ -129,6 +130,7 @@ int main(int argc, char** argv)
       if (!vm.count("outfreq")) throw po::required_option("outfreq");
       user_params.outdir = vm["outdir"].as<std::string>();
       user_params.outfreq = vm["outfreq"].as<int>();
+      user_params.outwindow = vm["outwindow"].as<int>();
     }
 
     int

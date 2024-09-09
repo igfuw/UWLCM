@@ -126,6 +126,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("Y", "user_params", params.user_params.Y);  
       this->record_aux_const("Z", "user_params", params.user_params.Z);  
       this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
+      this->record_aux_const("outwindow", "user_params", params.user_params.outwindow);  
       this->record_aux_const("outdir", "user_params", params.user_params.outdir);
       this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
       this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
@@ -140,6 +141,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("uv_src", "rt_params", params.uv_src);  
       this->record_aux_const("w_src",  "rt_params", params.w_src);  
       this->record_aux_const("outfreq", "rt_params", params.outfreq);  
+      this->record_aux_const("outwindow", "rt_params", params.outwindow);  
       this->record_aux_const("outdir", "rt_params", params.outdir);
 
       this->record_aux_const("subsidence", "rt_params", params.subsidence);  

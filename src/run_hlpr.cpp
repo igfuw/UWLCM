@@ -129,6 +129,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // some runtime parameters defined in libmpdata++ are passed via user_params
   p.outdir = user_params.outdir;
   p.outfreq = user_params.outfreq;
+  p.outwindow = user_params.outwindow;
   p.dt = user_params.dt;
 
   // output and simulation parameters

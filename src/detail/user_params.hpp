@@ -7,7 +7,7 @@
 // note: description and default values are in uwlcm.cpp, all parameters have to be handled there
 struct user_params_t
 {
-  int nt, outfreq, spinup, rng_seed, rng_seed_init;
+  int nt, outfreq, outwindow, spinup, rng_seed, rng_seed_init;
   setup::real_t X, Y, Z, dt;
   std::string outdir, model_case;
   setup::real_t sgs_delta;
