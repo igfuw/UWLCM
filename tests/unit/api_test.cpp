@@ -46,7 +46,7 @@ int main(int ac, char** av)
     "--case=dycoms_rf02 --window=1",
     "--case=rico11",
     "--case=rico11 --window=1",
-    "--case=dycoms_rf01",
+    "--case=dycoms_rf01 --outwindow=2",
     "--case=dycoms_rf01 --window=1",
     "--case=cumulus_congestus"
   });

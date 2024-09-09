@@ -39,7 +39,7 @@ void slvr_lgrngn<ct_params_t>::hook_mixed_rhs_ante_step()
     if (
       params.async && 
       this->timestep != 0 && // ... but not in first timestep ...
-      ((this->timestep ) % this->outfreq != 0) // ... and not after diag call, note: timestep is updated after ante_step
+      ((this->timestep ) % this->outfreq >= this->outwindow) // ... and not after diag call, note: timestep is updated after ante_step
     ) {
       assert(ftr.valid());
 #if defined(UWLCM_TIMING)
