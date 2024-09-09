@@ -15,6 +15,7 @@
 #include "../detail/concurr_types.hpp"
 #include "../detail/ForceParameters.hpp"
 #include "../detail/profiles.hpp"
+#include "../detail/subs_t.hpp"
 
 namespace cases
 {

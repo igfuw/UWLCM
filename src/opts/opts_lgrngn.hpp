@@ -431,8 +431,8 @@ void setopts_micro(
   rt_params.cloudph_opts.turb_adve = vm["turb_adve"].as<bool>();
   
   // subsidence of SDs
-  rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
-  rt_params.cloudph_opts.subs = rt_params.subsidence;
+  rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence == subs_t::local || rt_params.subsidence == subs_t::mean ? true : false;
+  rt_params.cloudph_opts.subs = rt_params.subsidence == subs_t::local || rt_params.subsidence == subs_t::mean ? true : false;
 
   // parsing --out_dry and --out_wet options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."

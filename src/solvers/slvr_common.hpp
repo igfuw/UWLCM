@@ -142,7 +142,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("outfreq", "rt_params", params.outfreq);  
       this->record_aux_const("outdir", "rt_params", params.outdir);
 
-      this->record_aux_const("subsidence", "rt_params", params.subsidence);  
+      this->record_aux_const("subsidence", "rt_params", int(params.subsidence));  
       this->record_aux_const("vel_subsidence", "rt_params", params.vel_subsidence);  
       this->record_aux_const("coriolis", "rt_params", params.coriolis);  
       this->record_aux_const("friction", "rt_params", params.friction);  
@@ -527,17 +527,18 @@ class slvr_common : public slvr_dim<ct_params_t>
   }
 
   public:
+
   // case-specific parameters
   // note dual inheritance to get profile pointers
   struct rt_params_t : parent_t::rt_params_t, detail::profile_ptrs_t
   {
+    subs_t subsidence = subs_t::none; // local - subsidence computed in each column, mean - subsidence of the horizontal mean; NOTE: subsidence of SDs is done locally both for 'mean' and for 'local'! 
     bool rv_src = true, th_src = true, uv_src = true, w_src = true;
-    bool subsidence = false,
-         coriolis = false, 
+    bool coriolis = false, 
          friction = false, 
          buoyancy_wet = false, 
          radiation = false,
-         vel_subsidence = false; // should subsidence be also applied to velocitiy fields - False eg. in RICO
+         vel_subsidence = false; // should subsidence be also applied to velocitiy fields; the way it is computed (local or mean) depends on subs_t subsidence 
     bool rc_src = true, rr_src = true; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
     bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size

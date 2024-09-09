@@ -1,7 +1,5 @@
 // BOMEX trade cumulus based on Siebesma et al. 2003
-//
-// TODO:  subsidence should be proportional to the gradient of HORIZONTALLLY AVERAGED fields, but
-//        it is the local gradient (same goes for SD subsidence) 
+// NOTE: with SDs, subsidence of liquid water is local, not done on the horizontal mean...
 
 #pragma once
 #include <random>
@@ -173,7 +171,7 @@ namespace cases
       void setopts_hlpr(T &params, const U &user_params)
       {
         params.buoyancy_wet = true;
-        params.subsidence = true;
+        params.subsidence = subs_t::mean;
         params.vel_subsidence = true;
         params.friction = true;
         params.coriolis = true;

@@ -154,7 +154,7 @@ namespace cases
       void setopts_hlpr(T &params, const U &user_params)
       {
         params.buoyancy_wet = false;
-        params.subsidence = false;
+        params.subsidence = subs_t::none;
         params.vel_subsidence = false;
         params.friction = true;
         params.coriolis = false;

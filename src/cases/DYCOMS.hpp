@@ -180,7 +180,7 @@ namespace cases
 //        params.nt = user_params.nt;
 //        params.relax_th_rv = user_params.relax_th_rv;
         params.buoyancy_wet = true;
-        params.subsidence = true;
+        params.subsidence = subs_t::local;
         params.vel_subsidence = true;
         params.friction = true;
         params.coriolis = true;
