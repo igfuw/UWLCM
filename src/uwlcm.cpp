@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     // note: all options should have default values here to make "--micro=? --help" work
     opts_main.add_options()
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn, none")
-      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02, cumulus_congestus, rico11, dry_pbl")
+      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02, cumulus_congestus_icmw20, cumulus_congestus_icmw24, rico11, dry_pbl")
       ("X", po::value<setup::real_t>()->default_value(-1) , "domain size in X [m] (set negative for case default)")
       ("Y", po::value<setup::real_t>()->default_value(-1) , "domain size in Y [m] (set negative for case default)")
       ("Z", po::value<setup::real_t>()->default_value(-1) , "domain size in Z [m] (set negative for case default)")
@@ -75,6 +75,7 @@ int main(int argc, char** argv)
       ("dt", po::value<setup::real_t>()->required() , "timestep length [s]")
       ("outdir", po::value<std::string>()->required(), "output directory name (netCDF-compatible HDF5)")
       ("outfreq", po::value<int>()->required(), "output rate (timestep interval)")
+      ("outstart", po::value<int>()->default_value(0), "output starts after this many timesteps")
       ("outwindow", po::value<int>()->default_value(1), "number of consecutive timesteps output is done, starts at outfreq (doesnt affect output of droplet spectra from lagrangian microphysics)")
       ("spinup", po::value<int>()->default_value(0) , "number of initial timesteps during which rain formation is to be turned off")
       ("serial", po::value<bool>()->default_value(false), "force CPU component of the model (dynamics and bulk microphysics) to be computed on single thread")
@@ -130,7 +131,11 @@ int main(int argc, char** argv)
       if (!vm.count("outfreq")) throw po::required_option("outfreq");
       user_params.outdir = vm["outdir"].as<std::string>();
       user_params.outfreq = vm["outfreq"].as<int>();
+<<<<<<< HEAD
       user_params.outwindow = vm["outwindow"].as<int>();
+=======
+      user_params.outstart = vm["outstart"].as<int>();
+>>>>>>> origin/icmw24_cc
     }
 
     int

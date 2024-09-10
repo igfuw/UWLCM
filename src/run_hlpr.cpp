@@ -14,7 +14,8 @@
 #include "cases/RICO11.hpp"
 #include "cases/MoistThermalGrabowskiClark99.hpp"
 #include "cases/DryThermalGMD2015.hpp"
-#include "cases/CumulusCongestus.hpp"
+#include "cases/CumulusCongestus_icmw20.hpp"
+#include "cases/CumulusCongestus_icmw24.hpp"
 #include "cases/DryPBL.hpp"
 
 #include "opts/opts_common.hpp"
@@ -100,8 +101,10 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
   else if (user_params.model_case == "dycoms_rf02")
     case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
-  else if (user_params.model_case == "cumulus_congestus")
-    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
+  else if (user_params.model_case == "cumulus_congestus_icmw20")
+    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw20<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
+  else if (user_params.model_case == "cumulus_congestus_icmw24")
+    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw24<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else if (user_params.model_case == "rico11")
     case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else if (user_params.model_case == "dry_pbl")
@@ -129,6 +132,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // some runtime parameters defined in libmpdata++ are passed via user_params
   p.outdir = user_params.outdir;
   p.outfreq = user_params.outfreq;
+  p.outstart = user_params.outstart;
   p.outwindow = user_params.outwindow;
   p.dt = user_params.dt;
 
@@ -138,17 +142,16 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     p.grid_size[d] = nps[d];
   }
 
-  case_ptr->setopts(p, nps, user_params);
-
   // reference profiles shared among threads
   detail::profiles_t profs(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
-
   // assign their values
   case_ptr->set_profs(profs, nz, user_params);
   // pass them to rt_params
   detail::copy_profiles(profs, p);
 
+  // set case-specific options, needs to be done after copy_profiles
+  case_ptr->setopts(p, nps, user_params);
   // set micro-specific options, needs to be done after copy_profiles
   setopts_micro<solver_t>(p, user_params, case_ptr);
 
