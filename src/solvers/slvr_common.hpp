@@ -142,6 +142,7 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("uv_src", "rt_params", params.uv_src);  
       this->record_aux_const("w_src",  "rt_params", params.w_src);  
       this->record_aux_const("outfreq", "rt_params", params.outfreq);  
+      this->record_aux_const("outstart", "rt_params", params.outstart);  
       this->record_aux_const("outwindow", "rt_params", params.outwindow);  
       this->record_aux_const("outdir", "rt_params", params.outdir);
 

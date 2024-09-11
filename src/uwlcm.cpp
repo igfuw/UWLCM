@@ -131,11 +131,8 @@ int main(int argc, char** argv)
       if (!vm.count("outfreq")) throw po::required_option("outfreq");
       user_params.outdir = vm["outdir"].as<std::string>();
       user_params.outfreq = vm["outfreq"].as<int>();
-<<<<<<< HEAD
-      user_params.outwindow = vm["outwindow"].as<int>();
-=======
       user_params.outstart = vm["outstart"].as<int>();
->>>>>>> origin/icmw24_cc
+      user_params.outwindow = vm["outwindow"].as<int>();
     }
 
     int

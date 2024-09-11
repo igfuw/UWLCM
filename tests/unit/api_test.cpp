@@ -33,7 +33,11 @@ int main(int ac, char** av)
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --relax_ccn=1",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1 --relax_ccn=1",
-    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --rd_min=1e-9 --rd_max=1e-6"
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --rd_min=1e-9 --rd_max=1e-6",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --aerosol_independent_of_rhod=1",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --aerosol_conc_factor=2",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --term_vel=beard76",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --coal_kernel=hall"
   });
   // keep dry tests first - they are ran only with micro==none
   vector<string> opts_case({
