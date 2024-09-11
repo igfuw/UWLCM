@@ -534,4 +534,7 @@ void setopts_micro(
 //      ));
 //    }
 //  }
+//
+  if(rt_params.subsidence == subs_t::mean)
+    std::cerr << "UWLCM warning: case requires that subsidence is done for horizontally-averaged fields, but that is not implemented for liquid water in Lagrangian microphysics. Subsidence of liquid water (super-droplets) will be done per column." << std::endl;
 }
