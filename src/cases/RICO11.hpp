@@ -23,7 +23,6 @@ namespace cases
     const quantity<si::temperature, real_t> 
       T_SST = real_t(299.8) * si::kelvins;
     const quantity<si::length, real_t> 
-      z_0  = 0    * si::metres,
       Z_def    = 4000 * si::metres, 
       X_def    = 12800 * si::metres, 
       Y_def    = 12800 * si::metres; 

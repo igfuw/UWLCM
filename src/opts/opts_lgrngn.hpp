@@ -82,6 +82,8 @@ void setopts_micro(
     ("rd_min", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_min), "minimum dry radius of initialized droplets [m] (negative means automatic detection)")
     ("rd_max", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_max), "maximum dry radius of initialized droplets [m] (negative means automatic detection); sd_conc_large_tail==true may result in initialization of even larger droplets")
     ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
+    ("coal_kernel", po::value<std::string>()->default_value("hall_davis"), "one of: hall, hall_davis")
+    ("term_vel", po::value<std::string>()->default_value("beard77fast"), "one of: beard76, beard77fast")
     ("outfreq_spec", po::value<int>()->default_value(0), "frequency (in timesteps) of spectrum output; 0 for outfreq_spec=outfreq")
     // TODO: MAC, HAC, vent_coef
   ;
@@ -119,6 +121,8 @@ void setopts_micro(
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
   rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
+  rt_params.cloudph_opts_init.aerosol_independent_of_rhod = rt_params.aerosol_independent_of_rhod;
+  rt_params.cloudph_opts_init.aerosol_conc_factor = rt_params.aerosol_conc_factor;
 
   {
     if(user_params.n1_stp*si::cubic_metres >= 0 && user_params.n2_stp*si::cubic_metres >= 0 && user_params.kappa1 == user_params.kappa2) {
@@ -409,17 +413,20 @@ void setopts_micro(
   rt_params.cloudph_opts_init.rng_seed_init_switch = true;
 
   // coalescence kernel choice
+  std::string kernel_str = vm["coal_kernel"].as<std::string>();
+
   if(!vm["turb_coal"].as<bool>())
-    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
+    rt_params.cloudph_opts_init.kernel = kernel_str == "hall" ? libcloudphxx::lgrngn::kernel_t::hall : libcloudphxx::lgrngn::kernel_t::hall_davis_no_waals;
   else
   {
-    rt_params.cloudph_opts_init.kernel = libcloudphxx::lgrngn::kernel_t::onishi_hall_davis_no_waals;
+    rt_params.cloudph_opts_init.kernel = kernel_str == "hall" ? libcloudphxx::lgrngn::kernel_t::onishi_hall : libcloudphxx::lgrngn::kernel_t::onishi_hall_davis_no_waals;
     rt_params.cloudph_opts_init.kernel_parameters.push_back(ReL);
     rt_params.cloudph_opts_init.turb_coal_switch = 1;
     rt_params.cloudph_opts.turb_coal = 1;
   }
   // terminal velocity choice
-  rt_params.cloudph_opts_init.terminal_velocity = libcloudphxx::lgrngn::vt_t::beard77fast;
+  std::string vt_str = vm["term_vel"].as<std::string>();
+  rt_params.cloudph_opts_init.terminal_velocity = vt_str == "beard76" ? libcloudphxx::lgrngn::vt_t::beard76 : libcloudphxx::lgrngn::vt_t::beard77fast;
 
   rt_params.cloudph_opts_init.RH_formula = libcloudphxx::lgrngn::RH_formula_t::rv_cc; // use rv to be consistent with Lipps Hemler
 

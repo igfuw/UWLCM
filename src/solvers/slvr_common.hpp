@@ -126,6 +126,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("Y", "user_params", params.user_params.Y);  
       this->record_aux_const("Z", "user_params", params.user_params.Z);  
       this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
+      this->record_aux_const("outstart", "user_params", params.user_params.outstart);  
+      this->record_aux_const("outwindow", "user_params", params.user_params.outwindow);  
       this->record_aux_const("outdir", "user_params", params.user_params.outdir);
       this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
       this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
@@ -140,6 +142,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("uv_src", "rt_params", params.uv_src);  
       this->record_aux_const("w_src",  "rt_params", params.w_src);  
       this->record_aux_const("outfreq", "rt_params", params.outfreq);  
+      this->record_aux_const("outstart", "rt_params", params.outstart);  
+      this->record_aux_const("outwindow", "rt_params", params.outwindow);  
       this->record_aux_const("outdir", "rt_params", params.outdir);
 
       this->record_aux_const("subsidence", "rt_params", int(params.subsidence));  
@@ -543,6 +547,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
 //    detail::ForceParameters_t ForceParameters;
+    bool aerosol_independent_of_rhod = false; // ==true currently works only with lgrngn micro
+    std::vector<real_t> aerosol_conc_factor; // currently works only with lgrngn micro
     user_params_t user_params; // copy od user_params
 
     // functions for updating surface fluxes per timestep

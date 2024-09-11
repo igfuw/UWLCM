@@ -33,7 +33,11 @@ int main(int ac, char** av)
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --relax_ccn=1",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1 --relax_ccn=1",
-    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --rd_min=1e-9 --rd_max=1e-6"
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --rd_min=1e-9 --rd_max=1e-6",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --aerosol_independent_of_rhod=1",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --aerosol_conc_factor=2",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --term_vel=beard76",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --coal_kernel=hall"
   });
   // keep dry tests first - they are ran only with micro==none
   vector<string> opts_case({
@@ -46,9 +50,10 @@ int main(int ac, char** av)
     "--case=dycoms_rf02 --window=1",
     "--case=rico11",
     "--case=rico11 --window=1",
-    "--case=dycoms_rf01",
+    "--case=dycoms_rf01 --outwindow=2",
     "--case=dycoms_rf01 --window=1",
-    "--case=cumulus_congestus",
+    "--case=cumulus_congestus_icmw20",
+    "--case=cumulus_congestus_icmw24",
     "--case=bomex03"
   });
   vector<string> opts_piggy({
