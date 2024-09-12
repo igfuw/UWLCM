@@ -24,14 +24,17 @@
   #include "detail/exec_timer.hpp"
 #endif
 
-#if !defined(UWLCM_DISABLE_2D_LGRNGN) || !defined(UWLCM_DISABLE_3D_LGRNGN)
+#if !defined(UWLCM_DISABLE_2D_LGRNGN) || !defined(UWLCM_DISABLE_3D_LGRNGN) || !defined(UWLCM_DISABLE_2D_LGRNGN_CHEM) || !defined(UWLCM_DISABLE_3D_LGRNGN_CHEM)
   #include "opts/opts_lgrngn.hpp"
   #include "solvers/slvr_lgrngn.hpp"
-  #include "solvers/lgrngn/diag_lgrngn.hpp" 
   #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_loop_lgrngn.hpp"
   #include "solvers/lgrngn/hook_ante_step_lgrngn.hpp" 
   #include "solvers/lgrngn/hook_mixed_rhs_ante_step_lgrngn.hpp"
+  #include "solvers/lgrngn/diag_lgrngn.hpp" 
+  #include "solvers/lgrngn/init_prtcls.hpp" 
+  #include "solvers/lgrngn/sync_in.hpp" 
+  #include "solvers/lgrngn/step_cond.hpp" 
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)
@@ -51,6 +54,18 @@
 #if !defined(UWLCM_DISABLE_2D_NONE) || !defined(UWLCM_DISABLE_3D_NONE)
   #include "opts/opts_dry.hpp"
   #include "solvers/slvr_dry.hpp"
+#endif
+
+#if !defined(UWLCM_DISABLE_2D_LGRNGN_CHEM) || !defined(UWLCM_DISABLE_3D_LGRNGN_CHEM)
+//  #include "opts/opts_lgrngn_chem.hpp"
+  #include "solvers/slvr_lgrngn_chem.hpp"
+  #include "solvers/lgrngn_chem/hook_ante_loop_lgrngn_chem.hpp"
+  #include "solvers/lgrngn_chem/hook_ante_delayed_step_lgrngn_chem.hpp"
+  #include "solvers/lgrngn_chem/hook_mixed_rhs_ante_step_lgrngn_chem.hpp"
+  #include "solvers/lgrngn_chem/diag_lgrngn_chem.hpp" 
+  #include "solvers/lgrngn_chem/init_prtcls_chem.hpp" 
+  #include "solvers/lgrngn_chem/sync_in_chem.hpp" 
+  #include "solvers/lgrngn_chem/step_cond_chem.hpp" 
 #endif
 
 #include "run_hlpr.hpp"
@@ -78,7 +93,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   {
     using rt_params_t = typename solver_t::rt_params_t;
     using ix = typename solver_t::ix;
-    enum {enable_sgs = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
+    enum {enable_sgs  = solver_t::ct_params_t_::sgs_scheme != libmpdataxx::solvers::iles};
   };
 
   using case_t = cases::CasesCommon<
@@ -161,6 +176,13 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     // WARNING: assumes certain ordering of variables to avoid tedious template programming !
     p.outvars.insert({1, {"v", "[m/s]"}});
   }
+
+  if constexpr(has_SO2g<ix>)  p.outvars.insert({ix::SO2g,  {"SO2g", "[dimensionless]"}});
+  if constexpr(has_O3g<ix>)   p.outvars.insert({ix::O3g,   {"O3g", "[dimensionless]"}});
+  if constexpr(has_H2O2g<ix>) p.outvars.insert({ix::H2O2g, {"H2O2g", "[dimensionless]"}});
+  if constexpr(has_CO2g<ix>)  p.outvars.insert({ix::CO2g,  {"CO2g", "[dimensionless]"}});
+  if constexpr(has_NH3g<ix>)  p.outvars.insert({ix::NH3g,  {"NH3g", "[dimensionless]"}});
+  if constexpr(has_HNO3g<ix>) p.outvars.insert({ix::HNO3g, {"HNO3g", "[dimensionless]"}});
 
   // solver instantiation
   std::unique_ptr<concurr_any_t> concurr;

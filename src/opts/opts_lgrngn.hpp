@@ -58,6 +58,8 @@ void setopts_micro(
     ("chem_dsl", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsl) , "dissolving trace gases (1=on, 0=off)")
     ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
+    ("chem_rho", po::value<setup::real_t>()->default_value(1.8e3),    "dry particle density (used in chemistry) [kg/m3]")
+
     ("dev_count", po::value<int>()->default_value(0), "no. of CUDA devices")
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
     // free parameters
@@ -70,6 +72,8 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value(""),  "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_wet_pH", po::value<std::string>()->default_value("0:1|0"), "wet radius ranges for output of H+ and S_VI)")
+    ("out_chem", po::value<std::string>()->default_value("0:1|0"),   "dry radius ranges for which chem mass is outputted")
     ("gccn", po::value<setup::real_t>()->default_value(0) , "concentration of giant aerosols = gccn * VOCALS observations")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
@@ -102,6 +106,7 @@ void setopts_micro(
 //  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
 
+  rt_params.cloudph_opts_init.chem_switch = user_params.chem;
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();
 
@@ -393,6 +398,7 @@ void setopts_micro(
   rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();
   rt_params.cloudph_opts.chem_dsc = vm["chem_dsc"].as<bool>();
   rt_params.cloudph_opts.chem_rct = vm["chem_rct"].as<bool>();
+  rt_params.cloudph_opts_init.chem_rho = vm["chem_rho"].as<thrust_real_t>();
 
   rt_params.cloudph_opts_init.dev_count = vm["dev_count"].as<int>();
   rt_params.cloudph_opts_init.dev_id = vm["dev_id"].as<int>();
@@ -434,27 +440,28 @@ void setopts_micro(
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence;
   rt_params.cloudph_opts.subs = rt_params.subsidence;
 
-  // parsing --out_dry and --out_wet options values
+  // parsing binned output options
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
-  for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
+  for (auto &opt : std::set<std::string>({"out_dry", "out_wet", "out_chem", "out_wet_pH"}))
   {
     namespace qi = boost::spirit::qi;
     namespace phoenix = boost::phoenix;
+
+    if(!user_params.chem && (opt == "out_chem" || opt == "out_wet_pH")) 
+      continue;
+
+    outmom_t<thrust_real_t> moms;
 
     std::string val = vm[opt].as<std::string>();
     auto first = val.begin();
     auto last  = val.end();
 
     std::vector<std::pair<std::string, std::string>> min_maxnum;
-    outmom_t<thrust_real_t> &moms = 
-      opt == "out_dry"
-        ? rt_params.out_dry
-        : rt_params.out_wet;
 
     const bool result = qi::phrase_parse(first, last, 
       *(
-	*(qi::char_-":")  >>  qi::lit(":") >>  
-	*(qi::char_-";")  >> -qi::lit(";") 
+        *(qi::char_-":")  >>  qi::lit(":") >>  
+        *(qi::char_-";")  >> -qi::lit(";") 
       ),
       boost::spirit::ascii::space, min_maxnum
     );    
@@ -483,14 +490,27 @@ void setopts_micro(
       const bool result = qi::phrase_parse(
         nums_first, 
         nums_last, 
-	(
-	  qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)]
-	      >> *(',' >> qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)])
-	),
-	boost::spirit::ascii::space
+        (
+          qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)]
+              >> *(',' >> qi::int_[phoenix::push_back(phoenix::ref(moms.back().second), qi::_1)])
+        ),
+        boost::spirit::ascii::space
       );    
+
+      if(opt == "out_dry")
+        rt_params.out_dry = moms;
+      if(opt == "out_wet")
+        rt_params.out_wet = moms;
+      if constexpr(has_SO2g<typename solver_t::ix>) // with chemistry
+      {
+        if(opt == "out_chem")
+          rt_params.out_chem = moms;
+        if(opt == "out_wet_pH")
+          rt_params.out_wet_pH = moms;
+      }
+
       if (!result || nums_first != nums_last) BOOST_THROW_EXCEPTION(po::validation_error(
-	  po::validation_error::invalid_option_value, opt, val // TODO: report only the relevant part?
+          po::validation_error::invalid_option_value, opt, val // TODO: report only the relevant part?
       ));  
     }
   } 

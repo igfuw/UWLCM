@@ -2,6 +2,7 @@
 #include "slvr_sgs.hpp"
 #include "../detail/outmom.hpp"
 #include <libcloudph++/lgrngn/factory.hpp>
+#include <libcloudph++/common/chem.hpp>
 
 #if defined(STD_FUTURE_WORKS)
 #  include <future>
@@ -23,14 +24,15 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   using real_t = typename ct_params_t::real_t;
   using arr_sub_t = typename parent_t::arr_sub_t;
 
-  private:
+  protected:
 
-#if defined(UWLCM_TIMING)
-  setup::clock::time_point tbeg, tend;
-#endif
+  using prtcls_t = std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>>;
 
   // member fields
-  std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
+  prtcls_t prtcls;
+
+  // helpers for passing Courant numbers from libmpdata to libcloud
+  typename parent_t::arr_t Cx, Cy, Cz;
 
   // helpers for calculating RHS from condensation, probably some of the could be avoided e.g. if step_cond returnd deltas and not changed fields 
   // or if change in theta was calculated from change in rv  
@@ -39,6 +41,12 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
                            &th_pre_cond,
                            &th_post_cond,
                            &r_c;  // temp storate for r_c to be used in SMG, separate storage for it allows more concurrency (like r_l)
+
+  private:
+
+#if defined(UWLCM_TIMING)
+  setup::clock::time_point tbeg, tend;
+#endif
 
   void diag_rl()
   {
@@ -65,16 +73,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->puddle = prtcls->diag_puddle();
   }
 
-  void diag();
-
-  libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(
-    typename parent_t::arr_t arr
-  ) {
-    return libcloudphxx::lgrngn::arrinfo_t<real_t>(
-      arr.data(), 
-      arr.stride().data()
-    );
-  }
+  protected:
 
   std::string aux_name(
     const std::string pfx, 
@@ -87,7 +86,16 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     return tmp.str();
   }
 
-  protected:
+  void diag();
+
+  libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(
+    typename parent_t::arr_t arr
+  ) {
+    return libcloudphxx::lgrngn::arrinfo_t<real_t>(
+      arr.data(), 
+      arr.stride().data()
+    );
+  }
 
   bool get_rain() { return params.cloudph_opts.coal; }
   void set_rain(bool val) 
@@ -120,6 +128,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   {
     return r_c;
   }
+
+  virtual void init_prtcls();
+  virtual void sync_in();
+  virtual void step_cond();
 
   void hook_ante_loop(int nt);
   void hook_ante_step();
@@ -199,7 +211,10 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     rv_post_cond(args.mem->tmp[__FILE__][0][1]),
     th_pre_cond(args.mem->tmp[__FILE__][0][2]),
     th_post_cond(args.mem->tmp[__FILE__][0][3]),
-    r_c(args.mem->tmp[__FILE__][1][0])
+    r_c(args.mem->tmp[__FILE__][1][0]),
+    Cx(this->extent(this->Cx_domain)),
+    Cy(this->extent(this->Cy_domain)),
+    Cz(this->extent(this->Cz_domain))
   {
     r_c = 0.;
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
