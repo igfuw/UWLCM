@@ -38,14 +38,14 @@ void slvr_lgrngn<ct_params_t>::diag()
   this->record_aux("precip_rate", prtcls->outbuf());
 
   // recording 0th mom of rw of rd>=0.8um
-  prtcls->diag_dry_rng(0.7999e-6, 1);
-  prtcls->diag_wet_mom(0);
-  this->record_aux("rd_geq_0.8um_rw_mom0", prtcls->outbuf());
-
-  // recording 0th mom of rw of rd>=0.8um
-  prtcls->diag_dry_rng(0, 0.8e-6);
-  prtcls->diag_wet_mom(0);
-  this->record_aux("rd_lt_0.8um_rw_mom0", prtcls->outbuf());
+//  prtcls->diag_dry_rng(0.7999e-6, 1);
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("rd_geq_0.8um_rw_mom0", prtcls->outbuf());
+//
+//  // recording 0th mom of rw of rd>=0.8um
+//  prtcls->diag_dry_rng(0, 0.8e-6);
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("rd_lt_0.8um_rw_mom0", prtcls->outbuf());
 
 //    // recording 1st mom of rw of gccns
 //    prtcls->diag_dry_rng(2e-6, 1);
@@ -133,15 +133,30 @@ void slvr_lgrngn<ct_params_t>::diag()
   prtcls->diag_wet_mom(3);
   this->record_aux("cloud_rw_mom3", prtcls->outbuf());
 
-//    // recording 0th wet mom of radius of aerosols (r < .5um)
-//    prtcls->diag_wet_rng(0., .5e-6);
-//    prtcls->diag_wet_mom(0);
-//    this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
-
-//    // recording 3rd wet mom of radius of aerosols (r < .5um)
-//    prtcls->diag_wet_rng(0., .5e-6);
-//    prtcls->diag_wet_mom(3);
-//    this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
+  // recording 0th wet mom of radius of aerosols (r < .5um)
+//  prtcls->diag_wet_rng(0., .5e-6);
+//  prtcls->diag_wet_mom(0);
+//  this->record_aux("aerosol_rw_mom0", prtcls->outbuf());
+//
+//  // recording 3rd wet mom of radius of aerosols (r < .5um)
+//  prtcls->diag_wet_rng(0., .5e-6);
+//  prtcls->diag_wet_mom(3);
+//  this->record_aux("aerosol_rw_mom3", prtcls->outbuf());
+//
+//  // recording 1st wet mom of radius of all particles
+//  prtcls->diag_all();
+//  prtcls->diag_wet_mom(1);
+//  this->record_aux("all_rw_mom1", prtcls->outbuf());
+//
+//  // recording 2nd wet mom of radius of all particles
+//  prtcls->diag_all();
+//  prtcls->diag_wet_mom(2);
+//  this->record_aux("all_rw_mom2", prtcls->outbuf());
+//
+//  // recording 6th wet mom of radius of all particles
+//  prtcls->diag_all();
+//  prtcls->diag_wet_mom(6);
+//  this->record_aux("all_rw_mom6", prtcls->outbuf());
 
 /*    
     // recording divergence of the velocity field
@@ -219,4 +234,6 @@ void slvr_lgrngn<ct_params_t>::diag()
       rng_num++;
     }
   }
+
+  diag_prev_step = 1;
 } 

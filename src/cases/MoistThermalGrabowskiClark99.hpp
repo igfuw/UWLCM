@@ -156,7 +156,7 @@ namespace cases
         params.nc_src = false;
         params.nr_src = false;
         params.buoyancy_wet = true;
-        params.subsidence = false;
+        params.subsidence = subs_t::none;
         params.vel_subsidence = false;
         params.friction = false;
         params.coriolis = false;

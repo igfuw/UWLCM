@@ -84,4 +84,9 @@ void setopts_micro(
   rt_params.outvars.insert({solver_t::ix::rr, {"rr", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::nc, {"nc", "[kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::nr, {"nr", "[kg-1]"}});
+
+  if(rt_params.aerosol_independent_of_rhod)
+    std::cerr << "UWLCM warning: aerosol_independent_of_rhod has no effect on blk_2m microphysics" << std::endl;
+  if(rt_params.aerosol_conc_factor.size()!=0)
+    std::cerr << "UWLCM warning: aerosol_conc_factor has no effect on blk_2m microphysics" << std::endl;
 }

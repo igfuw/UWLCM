@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Xdmf>
+	<Domain>
+		<Grid Name="Grid" GridType="Uniform" xml:id="gid">
+			<Time Value="1.000000"/>
+			<Topology TopologyType="2DSMesh" Dimensions="5 5 "/>
+			<Geometry GeometryType="X_Y">
+				<DataItem Dimensions="5 5 " NumberType="Float" Format="HDF">const.h5:/X</DataItem>
+				<DataItem Dimensions="5 5 " NumberType="Float" Format="HDF">const.h5:/Y</DataItem>
+			</Geometry>
+			<Attribute Name="latent surface flux" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 0 " NumberType="Float" Format="HDF">timestep0000000001.h5:/latent surface flux</DataItem>
+			</Attribute>
+			<Attribute Name="nc" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000001.h5:/nc</DataItem>
+			</Attribute>
+			<Attribute Name="nr" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000001.h5:/nr</DataItem>
+			</Attribute>
+			<Attribute Name="precip_rate_nr" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000001.h5:/precip_rate_nr</DataItem>
+			</Attribute>
+			<Attribute Name="precip_rate_rr" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000001.h5:/precip_rate_rr</DataItem>
+			</Attribute>
+			<Attribute Name="radiative_flux" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000001.h5:/radiative_flux</DataItem>
+			</Attribute>
+			<Attribute Name="rc" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000001.h5:/rc</DataItem>
+			</Attribute>
+			<Attribute Name="rr" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000001.h5:/rr</DataItem>
+			</Attribute>
+			<Attribute Name="rv" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000001.h5:/rv</DataItem>
+			</Attribute>
+			<Attribute Name="sensible surface flux" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 0 " NumberType="Float" Format="HDF">timestep0000000001.h5:/sensible surface flux</DataItem>
+			</Attribute>
+			<Attribute Name="th" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000001.h5:/th</DataItem>
+			</Attribute>
+			<Attribute Name="u" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000001.h5:/u</DataItem>
+			</Attribute>
+			<Attribute Name="w" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">timestep0000000001.h5:/w</DataItem>
+			</Attribute>
+			<Attribute Name="G" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="4 4 " NumberType="Float" Format="HDF">const.h5:/G</DataItem>
+			</Attribute>
+		</Grid>
+	</Domain>
+</Xdmf>
