@@ -11,17 +11,20 @@
 			<Attribute Name="RH" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/RH</DataItem>
 			</Attribute>
-			<Attribute Name="actrw_rw_mom0" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom0</DataItem>
+			<Attribute Name="aerosol_rw_mom0" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/aerosol_rw_mom0</DataItem>
 			</Attribute>
-			<Attribute Name="actrw_rw_mom1" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom1</DataItem>
+			<Attribute Name="aerosol_rw_mom3" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/aerosol_rw_mom3</DataItem>
 			</Attribute>
-			<Attribute Name="actrw_rw_mom2" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom2</DataItem>
+			<Attribute Name="all_rw_mom1" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/all_rw_mom1</DataItem>
 			</Attribute>
-			<Attribute Name="actrw_rw_mom3" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/actrw_rw_mom3</DataItem>
+			<Attribute Name="all_rw_mom2" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/all_rw_mom2</DataItem>
+			</Attribute>
+			<Attribute Name="all_rw_mom6" AttributeType="Scalar" Center="Cell">
+				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/all_rw_mom6</DataItem>
 			</Attribute>
 			<Attribute Name="cloud_rw_mom0" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/cloud_rw_mom0</DataItem>
@@ -43,12 +46,6 @@
 			</Attribute>
 			<Attribute Name="rain_rw_mom3" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/rain_rw_mom3</DataItem>
-			</Attribute>
-			<Attribute Name="rd_geq_0.8um_rw_mom0" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/rd_geq_0.8um_rw_mom0</DataItem>
-			</Attribute>
-			<Attribute Name="rd_lt_0.8um_rw_mom0" AttributeType="Scalar" Center="Cell">
-				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/rd_lt_0.8um_rw_mom0</DataItem>
 			</Attribute>
 			<Attribute Name="rd_rng000_mom0" AttributeType="Scalar" Center="Cell">
 				<DataItem Dimensions="3 3 " NumberType="Float" Format="HDF">timestep0000000000.h5:/rd_rng000_mom0</DataItem>
