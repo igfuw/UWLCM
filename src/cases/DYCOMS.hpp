@@ -18,7 +18,7 @@ namespace cases
     const quantity<si::length, real_t> Y_def[] = {/*RF1*/3360 * si::metres, /*RF2*/6400 * si::metres};
     const real_t z_abs = 1250;
     const real_t z_i[] = {/*RF1*/840, /*RF2*/795}; //initial inversion height
-    const quantity<si::length, real_t> z_rlx = 25 * si::metres;
+    const quantity<si::length, real_t> z_rlx = 100 * si::metres;
     const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud
     const quantity<si::frequency, real_t> D = real_t(3.75e-6) / si::seconds; // large-scale wind horizontal divergence
 
