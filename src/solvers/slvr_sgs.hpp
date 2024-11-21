@@ -281,7 +281,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
       for(int d = 0; d < parent_t::n_dims; ++d)
         nancheck(tmp_grad[d](this->ijk), "tmp_grad in sgs_scalar_forces after xchng_sgs_vctr");
 
-      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
+      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) < this->outwindow)) // timstep is increased after ante_step, i.e after update_rhs(at=0) that calls sgs_scalar_forces
         calc_sgs_flux(s);
     
       if (s == ix::th) // dth/dt = dT/dt / exner
@@ -317,7 +317,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     // explicit application of subgrid forcings
     if(at == 0)
     {
-      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) == 0)) // timstep is increased after ante_step, i.e after update_rhs(at=0)
+      if (this->timestep == 0 || ((this->timestep + 1) % static_cast<int>(this->outfreq) < this->outwindow)) // timstep is increased after ante_step, i.e after update_rhs(at=0)
         calc_sgs_diag_fields();
 
       sgs_scalar_forces({ix::th, ix::rv});

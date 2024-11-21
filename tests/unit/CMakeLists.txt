@@ -12,7 +12,14 @@ add_test(api_test_iles_diff bash -c "
   cd ${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/ && find ./* -maxdepth 0 -type d -print0 |            
     while IFS= read -rd '' dir; do 
       echo \"\\n============== working with $dir ===============\";
-      grep $(echo \"$dir\" | sed 's/..//') hash_dict.txt
+      params=$(grep $(echo \"$dir\" | sed 's/..//') hash_dict.txt)
+      echo \"$params\"
+      
+      # useful for skipping some tests
+      #if [[ $params == *\"cumulus\"* ]]; then
+      #  echo \"skipping\"
+      #  continue
+      #fi
 
       echo   'comparing const.h5'                                                                                                                          
       h5diff -v2 --relative=2e-4 --exclude-path \"/misc\" --exclude-path \"/git_revisions\" --exclude-path \"/MPI details\" \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/const.h5\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/$dir/const.h5\"                 &&

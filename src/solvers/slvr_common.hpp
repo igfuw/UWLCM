@@ -126,6 +126,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("Y", "user_params", params.user_params.Y);  
       this->record_aux_const("Z", "user_params", params.user_params.Z);  
       this->record_aux_const("outfreq", "user_params", params.user_params.outfreq);  
+      this->record_aux_const("outstart", "user_params", params.user_params.outstart);  
+      this->record_aux_const("outwindow", "user_params", params.user_params.outwindow);  
       this->record_aux_const("outdir", "user_params", params.user_params.outdir);
       this->record_aux_const("spinup", "user_params", params.user_params.spinup);  
       this->record_aux_const("rng_seed", "user_params", params.user_params.rng_seed);  
@@ -140,9 +142,11 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("uv_src", "rt_params", params.uv_src);  
       this->record_aux_const("w_src",  "rt_params", params.w_src);  
       this->record_aux_const("outfreq", "rt_params", params.outfreq);  
+      this->record_aux_const("outstart", "rt_params", params.outstart);  
+      this->record_aux_const("outwindow", "rt_params", params.outwindow);  
       this->record_aux_const("outdir", "rt_params", params.outdir);
 
-      this->record_aux_const("subsidence", "rt_params", params.subsidence);  
+      this->record_aux_const("subsidence", "rt_params", int(params.subsidence));  
       this->record_aux_const("vel_subsidence", "rt_params", params.vel_subsidence);  
       this->record_aux_const("coriolis", "rt_params", params.coriolis);  
       this->record_aux_const("friction", "rt_params", params.friction);  
@@ -527,21 +531,24 @@ class slvr_common : public slvr_dim<ct_params_t>
   }
 
   public:
+
   // case-specific parameters
   // note dual inheritance to get profile pointers
   struct rt_params_t : parent_t::rt_params_t, detail::profile_ptrs_t
   {
+    subs_t subsidence = subs_t::none; // local - subsidence computed in each column, mean - subsidence of the horizontal mean; NOTE: subsidence of SDs is done locally both for 'mean' and for 'local'! 
     bool rv_src = true, th_src = true, uv_src = true, w_src = true;
-    bool subsidence = false,
-         coriolis = false, 
+    bool coriolis = false, 
          friction = false, 
          buoyancy_wet = false, 
          radiation = false,
-         vel_subsidence = false; // should subsidence be also applied to velocitiy fields - False eg. in RICO
+         vel_subsidence = false; // should subsidence be also applied to velocitiy fields; the way it is computed (local or mean) depends on subs_t subsidence 
     bool rc_src = true, rr_src = true; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
     bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
 //    detail::ForceParameters_t ForceParameters;
+    bool aerosol_independent_of_rhod = false; // ==true currently works only with lgrngn micro
+    std::vector<real_t> aerosol_conc_factor; // currently works only with lgrngn micro
     user_params_t user_params; // copy od user_params
 
     // functions for updating surface fluxes per timestep
