@@ -47,14 +47,6 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
     params.cloudph_opts.hetB = val ? params.flag_hetB : false;
   };
 
-  // TODO
-  /*
-  virtual typename parent_t::arr_t get_rc(typename parent_t::arr_t&) final
-  {
-    return this->state(ix::rc);
-  }
-  */
-
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
