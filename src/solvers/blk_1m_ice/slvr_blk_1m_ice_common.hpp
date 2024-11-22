@@ -41,8 +41,8 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
   void ria_src();
   void rib_src();
 
-  bool get_rain() { return params.cloudph_opts.hetB; }
-  void set_rain(bool val) 
+  bool get_graupel() { return params.cloudph_opts.hetB; }
+  void set_graupel(bool val)
   { 
     params.cloudph_opts.hetB = val ? params.flag_hetB : false;
   };
@@ -65,21 +65,28 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
     // recording parameters
     if(this->rank==0)
     {
-      this->record_aux_const("microphysics", "single-moment bulk ice");  
-      // TODO
-      /*
+      this->record_aux_const("microphysics", "single-moment bulk ice");
       this->record_aux_const("cond",   "blk_1m", params.cloudph_opts.cond);  
       this->record_aux_const("cevp",   "blk_1m", params.cloudph_opts.cevp);  
       this->record_aux_const("revp",   "blk_1m", params.cloudph_opts.revp);  
       this->record_aux_const("conv",   "blk_1m", params.flag_conv);  
       this->record_aux_const("accr",   "blk_1m", params.cloudph_opts.accr);  
-      this->record_aux_const("sedi",   "blk_1m", params.cloudph_opts.sedi);  
+      this->record_aux_const("sedi",   "blk_1m", params.cloudph_opts.sedi);
+      this->record_aux_const("homA1",   "blk_1m", params.cloudph_opts.homA1);
+      this->record_aux_const("homA2",   "blk_1m", params.cloudph_opts.homA2);
+      this->record_aux_const("hetA",   "blk_1m", params.cloudph_opts.hetA);
+      this->record_aux_const("hetB",   "blk_1m", params.cloudph_opts.hetB);
+      this->record_aux_const("depA",   "blk_1m", params.cloudph_opts.depA);
+      this->record_aux_const("depB",   "blk_1m", params.cloudph_opts.depB);
+      this->record_aux_const("rimA",   "blk_1m", params.cloudph_opts.rimA);
+      this->record_aux_const("rimB",   "blk_1m", params.cloudph_opts.rimB);
+      this->record_aux_const("melA",   "blk_1m", params.cloudph_opts.melA);
+      this->record_aux_const("melB",   "blk_1m", params.cloudph_opts.melB);
       this->record_aux_const("r_c0",   "blk_1m", params.cloudph_opts.r_c0);  
       this->record_aux_const("k_acnv", "blk_1m", params.cloudph_opts.k_acnv);  
       this->record_aux_const("r_eps",  "blk_1m", params.cloudph_opts.r_eps);  
       this->record_aux_const("rc_src", "rt_params", params.rc_src);  
-      this->record_aux_const("rr_src", "rt_params", params.rr_src);  
-      */
+      this->record_aux_const("rr_src", "rt_params", params.rr_src);
     }
     this->mem->barrier();
   }
