@@ -1,5 +1,5 @@
 #pragma once
-#include "slvr_blk_1m_common.hpp"
+#include "../blk_1m/slvr_blk_1m_common.hpp"
 
 template <class ct_params_t>
 class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
@@ -41,8 +41,11 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
   void ria_src();
   void rib_src();
 
-  bool get_graupel() { return params.cloudph_opts.hetB; }
-  void set_graupel(bool val)
+
+  void rc_src();
+  void rr_src();
+  bool get_rain() { return params.cloudph_opts.hetB; }
+  void set_rain(bool val)
   { 
     params.cloudph_opts.hetB = val ? params.flag_hetB : false;
   };
@@ -119,6 +122,12 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
     parent_t::alloc(mem, n_iters);
     parent_t::alloc_tmp_sclr(mem, __FILE__, 2); // precipitation_rate for iceA and iceB
   }
+
+  void update_rhs(
+    libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
+    const typename parent_t::real_t &dt,
+    const int &at
+  );
 
   // ctor
   slvr_blk_1m_ice_common(
