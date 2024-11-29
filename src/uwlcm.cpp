@@ -251,7 +251,7 @@ int main(int argc, char** argv)
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
 #if !defined(UWLCM_DISABLE_3D_BLK_1M)
       //run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
-        run_hlpr<slvr_blk_1m_ice, ct_params_3D_blk_1m_ice>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+        run_hlpr<slvr_blk_1m_ice, ct_params_3D_blk_1m_ice>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
       throw std::runtime_error("UWLCM: 3D Bulk 1-moment option was disabled at compile time");
 #endif

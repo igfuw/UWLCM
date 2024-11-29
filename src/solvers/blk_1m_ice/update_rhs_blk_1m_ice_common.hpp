@@ -17,7 +17,7 @@ void slvr_blk_1m_ice_common<ct_params_t>::update_rhs(
   // zero-out precipitation rate, will be set in columnwise
   if(at ==0)
   {
-    precipitation_rate(this->ijk) = 0;
+    this->precipitation_rate(this->ijk) = 0;
     iceA_precipitation_rate(this->ijk) = 0;
     iceB_precipitation_rate(this->ijk) = 0;
   }
@@ -43,7 +43,7 @@ void slvr_blk_1m_ice_common<ct_params_t>::update_rhs(
       ria   = this->state(ix::ria)(this->ijk),
       rib   = this->state(ix::rib)(this->ijk),
       rhod = (*this->mem->G)(this->ijk),
-      &p_e_arg = p_e(this->ijk);
+      &p_e_arg = this->p_e(this->ijk);
     libcloudphxx::blk_1m::rhs_cellwise_nwtrph_ice<real_t>(
         params.cloudph_opts,
         dot_th, dot_rv, dot_rc, dot_rr, dot_ria, dot_rib,
@@ -67,12 +67,12 @@ void slvr_blk_1m_ice_common<ct_params_t>::update_rhs(
     case (0):
     {
       // ---- cloud water sources ----
-      rc_src();
+      parent_t::rc_src();
       rhs.at(ix::rc)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
       nancheck(rhs.at(ix::rc)(this->ijk), "RHS of rc after rc_src");
 
       // ---- rain water sources ----
-      rr_src();
+      parent_t::rr_src();
       rhs.at(ix::rr)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::rr)(this->ijk);
       nancheck(rhs.at(ix::rr)(this->ijk), "RHS of rr after rr_src");
 

@@ -4,10 +4,9 @@
 template <class ct_params_t>
 class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
 {
-  using parent_t =slvr_blk_1m_common<ct_params_t>;
-
   public:
 
+  using parent_t = slvr_blk_1m_common<ct_params_t>;
   using ix = typename ct_params_t::ix; 
   using real_t = typename ct_params_t::real_t;
 
@@ -40,8 +39,8 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
 
   void ria_src();
   void rib_src();
-  void rc_src();
-  void rr_src();
+  //void rc_src();
+  //void rr_src();
   bool get_rain() { return params.cloudph_opts.hetB; }
   void set_rain(bool val)
   { 
@@ -80,6 +79,8 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
       this->record_aux_const("r_eps",  "blk_1m", params.cloudph_opts.r_eps);  
       this->record_aux_const("rc_src", "rt_params", params.rc_src);  
       this->record_aux_const("rr_src", "rt_params", params.rr_src);
+      // this->record_aux_const("ria_src", "rt_params", params.ria_src);
+      // this->record_aux_const("rib_src", "rt_params", params.rib_src);
     }
     this->mem->barrier();
   }
