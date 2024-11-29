@@ -40,8 +40,6 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
 
   void ria_src();
   void rib_src();
-
-
   void rc_src();
   void rr_src();
   bool get_rain() { return params.cloudph_opts.hetB; }

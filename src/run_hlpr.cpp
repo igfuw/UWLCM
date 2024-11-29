@@ -44,7 +44,7 @@
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M_ICE) || !defined(UWLCM_DISABLE_3D_BLK_1M_ICE)
-  //#include "opts/opts_blk_1m.hpp"
+  #include "opts/opts_blk_1m.hpp"
   #include "solvers/slvr_blk_1m_ice.hpp"
   #include "solvers/blk_1m_ice/calc_forces_blk_1m_ice_common.hpp"
   #include "solvers/blk_1m_ice/update_rhs_blk_1m_ice_common.hpp"
