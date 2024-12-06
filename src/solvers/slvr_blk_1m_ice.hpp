@@ -55,11 +55,11 @@ class slvr_blk_1m_ice<
         this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(
           this->params.cloudph_opts, precipitation_rate_arg, rhod, rr, this->params.dz
         );
-        // TODO: ice puddle
-        libcloudphxx::blk_1m::rhs_columnwise_ice<real_t>(
+
+        this->ice_puddle += - libcloudphxx::blk_1m::rhs_columnwise_ice<real_t>(
           this->params.cloudph_opts, iceA_precipitation_rate_arg, rhod, ria, this->params.dz, ice_t::iceA);
 
-        libcloudphxx::blk_1m::rhs_columnwise_ice<real_t>(
+        this->ice_puddle += - libcloudphxx::blk_1m::rhs_columnwise_ice<real_t>(
           this->params.cloudph_opts, iceB_precipitation_rate_arg, rhod, rib, this->params.dz, ice_t::iceB);
 
       }
@@ -123,12 +123,11 @@ class slvr_blk_1m_ice<
            this->liquid_puddle += - libcloudphxx::blk_1m::rhs_columnwise<real_t>(
              this->params.cloudph_opts, precipitation_rate_arg, rhod, rr, this->params.dz
            );
-           // TODO: ice puddle
 
-           libcloudphxx::blk_1m::rhs_columnwise_ice<real_t>(
+           this->ice_puddle += - libcloudphxx::blk_1m::rhs_columnwise_ice<real_t>(
              this->params.cloudph_opts, iceA_precipitation_rate_arg, rhod, ria, this->params.dz, ice_t::iceA);
 
-           libcloudphxx::blk_1m::rhs_columnwise_ice<real_t>(
+           this->ice_puddle += - libcloudphxx::blk_1m::rhs_columnwise_ice<real_t>(
              this->params.cloudph_opts, iceB_precipitation_rate_arg, rhod, rib, this->params.dz, ice_t::iceB);
 
          }
