@@ -14,6 +14,9 @@ struct iles_tag {};
 
 struct uwlcm_blk_1m_family_tag {};
 struct uwlcm_blk_1m_ice_family_tag {};
+struct uwlcm_blk_2m_family_tag {};
+struct uwlcm_lgrngn_family_tag {};
+struct uwlcm_dry_family_tag {};
 
 namespace cmn = libcloudphxx::common;
 
