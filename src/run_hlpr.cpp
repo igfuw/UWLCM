@@ -44,7 +44,7 @@
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M_ICE) || !defined(UWLCM_DISABLE_3D_BLK_1M_ICE)
-  #include "opts/opts_blk_1m.hpp"
+  #include "opts/opts_blk_1m_ice.hpp"
   #include "solvers/slvr_blk_1m_ice.hpp"
   #include "solvers/blk_1m_ice/calc_forces_blk_1m_ice_common.hpp"
   #include "solvers/blk_1m_ice/update_rhs_blk_1m_ice_common.hpp"
@@ -163,7 +163,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // set case-specific options, needs to be done after copy_profiles
   case_ptr->setopts(p, nps, user_params);
   // set micro-specific options, needs to be done after copy_profiles
-  setopts_micro<solver_t>(p, user_params, case_ptr);
+  setopts_micro<solver_t>(p, user_params, case_ptr, typename solver_t::solver_family {});
 
   // set outvars
   p.outvars.insert({ix::rv, {"rv", "[kg kg-1]"}});

@@ -12,6 +12,9 @@
 struct smg_tag  {};
 struct iles_tag {};
 
+struct uwlcm_blk_1m_family_tag {};
+struct uwlcm_blk_1m_ice_family_tag {};
+
 namespace cmn = libcloudphxx::common;
 
 template <class ct_params_t>

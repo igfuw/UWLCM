@@ -9,6 +9,7 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using ix = typename ct_params_t::ix; 
   using real_t = typename ct_params_t::real_t;
+  using solver_family = uwlcm_blk_1m_ice_family_tag;
 
   protected:
   typename parent_t::arr_t &iceA_precipitation_rate, &iceB_precipitation_rate; 

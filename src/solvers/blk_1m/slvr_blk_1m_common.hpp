@@ -10,11 +10,13 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
                                                     >
 {
   public:
+
   using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
                                     slvr_common<ct_params_t>,
                                     slvr_sgs<ct_params_t>
                                    >;
 
+  using solver_family = uwlcm_blk_1m_family_tag;
 
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
