@@ -18,7 +18,7 @@
 #include "cases/CumulusCongestus_icmw24.hpp"
 #include "cases/DryPBL.hpp"
 #include "cases/BOMEX03.hpp"
-#include "cases/ConvectionWithIce.hpp"
+#include "cases/Convection.hpp"
 
 #include "opts/opts_common.hpp"
 #include "solvers/common/calc_forces_common.hpp"

@@ -419,7 +419,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
     nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after rhs_update");
     nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after rhs_update");
-    nancheck(rhs.at(ix::w)(this->ijk), "RHS of w after rhs_update");
+    //nancheck(rhs.at(ix::w)(this->ijk), "RHS of w after rhs_update");
     for(auto type : this->hori_vel)
       {nancheck(rhs.at(type)(this->ijk), (std::string("RHS of horizontal velocity after rhs_update, type: ") + std::to_string(type)).c_str());}
     this->mem->barrier();

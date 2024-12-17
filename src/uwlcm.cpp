@@ -33,6 +33,12 @@
   #include "solvers/slvr_blk_1m.hpp"
   #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
   #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
+#endif
+
+#if !defined(UWLCM_DISABLE_2D_BLK_1M_ICE) || !defined(UWLCM_DISABLE_3D_BLK_1M_ICE)
+  #include "solvers/slvr_blk_1m.hpp"
+  #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
+  #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
 
   #include "solvers/slvr_blk_1m_ice.hpp"
   #include "solvers/blk_1m_ice/calc_forces_blk_1m_ice_common.hpp"
@@ -242,18 +248,30 @@ int main(int argc, char** argv)
 
     else if (micro == "blk_1m" && ny == 0) // 2D one-moment
 #if !defined(UWLCM_DISABLE_2D_BLK_1M)
-//      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
-      run_hlpr<slvr_blk_1m_ice, ct_params_2D_blk_1m_ice>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+      run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
 #else
       throw std::runtime_error("UWLCM: 2D Bulk 1-moment option was disabled at compile time");
 #endif
 
     else if (micro == "blk_1m" && ny > 0) // 3D one-moment
 #if !defined(UWLCM_DISABLE_3D_BLK_1M)
-      //run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
-        run_hlpr<slvr_blk_1m_ice, ct_params_3D_blk_1m_ice>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+      run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
       throw std::runtime_error("UWLCM: 3D Bulk 1-moment option was disabled at compile time");
+#endif
+
+    else if (micro == "blk_1m_ice" && ny == 0) // 2D one-moment with ice
+#if !defined(UWLCM_DISABLE_2D_BLK_1M_ICE)
+        run_hlpr<slvr_blk_1m_ice, ct_params_2D_blk_1m_ice>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+    throw std::runtime_error("UWLCM: 2D Bulk 1-moment with ice option was disabled at compile time");
+#endif
+
+    else if (micro == "blk_1m_ice" && ny > 0) // 3D one-moment with ice
+#if !defined(UWLCM_DISABLE_3D_BLK_1M_ICE)
+        run_hlpr<slvr_blk_1m_ice, ct_params_3D_blk_1m_ice>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+    throw std::runtime_error("UWLCM: 3D Bulk 1-moment with ice option was disabled at compile time");
 #endif
 
     else if (micro == "blk_2m" && ny == 0) // 2D two-moment
