@@ -7,7 +7,7 @@
 #include "detail/formulas.hpp"
 #include "detail/LBA_sounding/input_sounding.hpp"
 
-namespace cases 
+namespace cases
 {
   namespace convection
   {
@@ -28,10 +28,10 @@ namespace cases
     const quantity<si::temperature, real_t> 
       T_SST = real_t(296.85) * si::kelvins;
     const quantity<si::length, real_t> 
-      Z_def    = 20000 * si::metres,
-      X_def    = 5000 * si::metres,
-      Y_def    = 5000 * si::metres;
-    const real_t z_abs = 16000;
+      Z_def    = 4000 * si::metres,
+      X_def    = 10000 * si::metres,
+      Y_def    = 10000 * si::metres;
+    const real_t z_abs = 3000;
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
     //const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud base
