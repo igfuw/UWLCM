@@ -22,6 +22,15 @@
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
 #include <boost/fusion/adapted/std_pair.hpp> 
+
+/*
+  with boost 1.81 to 1.83 we get multiple definition of
+  `boost::phoenix::placeholders::uargX` errors. A solution
+  suggested in https://github.com/boostorg/phoenix/issues/111
+  is to define BOOST_PHOENIX_STL_TUPLE_H_ so that
+  boost/stl/tuple.h is not included in boost/phoenix.hpp
+*/
+#define BOOST_PHOENIX_STL_TUPLE_H_
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
