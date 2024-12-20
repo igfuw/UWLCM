@@ -22,6 +22,15 @@
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
 #include <boost/fusion/adapted/std_pair.hpp> 
+
+/*
+  with boost 1.81 to 1.83 we get multiple definition of
+  `boost::phoenix::placeholders::uargX` errors. A solution
+  suggested in https://github.com/boostorg/phoenix/issues/111
+  is to define BOOST_PHOENIX_STL_TUPLE_H_ so that
+  boost/stl/tuple.h is not included in boost/phoenix.hpp
+*/
+#define BOOST_PHOENIX_STL_TUPLE_H_
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
@@ -120,7 +129,7 @@ void setopts_micro(
   neg_w_LS *= -1.; // libcloudphxx defines w_LS>0 for downward direction
   std::vector<setup::real_t> vneg_w_LS(neg_w_LS.begin(), neg_w_LS.end());
   rt_params.cloudph_opts_init.w_LS = vneg_w_LS;
-  rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end());
+  rt_params.cloudph_opts_init.SGS_mix_len = std::vector<setup::real_t>(rt_params.mix_len->begin(), rt_params.mix_len->end()); // TODO: after switching to anisotropic SMG, mix_len is now a different thing! fix it here
   rt_params.cloudph_opts_init.aerosol_independent_of_rhod = rt_params.aerosol_independent_of_rhod;
   rt_params.cloudph_opts_init.aerosol_conc_factor = rt_params.aerosol_conc_factor;
 
