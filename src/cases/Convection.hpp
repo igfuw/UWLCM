@@ -28,10 +28,10 @@ namespace cases
     const quantity<si::temperature, real_t> 
       T_SST = real_t(296.85) * si::kelvins;
     const quantity<si::length, real_t> 
-      Z_def    = 4000 * si::metres,
+      Z_def    = 20000 * si::metres,
       X_def    = 10000 * si::metres,
       Y_def    = 10000 * si::metres;
-    const real_t z_abs = 3000;
+    const real_t z_abs = 16000;
 //    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
     //const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud base
@@ -157,15 +157,15 @@ namespace cases
 //        BZ_DECLARE_FUNCTOR(w_LS_fctr);
 //      };
 //
-//      // large-scale horizontal advection of th + radiative cooling [K/s]
-//      struct th_LS_fctr
-//      {
-//        real_t operator()(const real_t &z) const
-//        {
-//          return -2.5 / 86400;
-//        }
-//        BZ_DECLARE_FUNCTOR(th_LS_fctr);
-//      };
+      // large-scale horizontal advection of th + radiative cooling [K/s]
+      struct th_LS_fctr
+      {
+        real_t operator()(const real_t &z) const
+        {
+          return -2.5 / 86400;
+        }
+        BZ_DECLARE_FUNCTOR(th_LS_fctr);
+      };
 //
 //      // large-scale horizontal advection of rv [1/s]
 //      struct rv_LS_fctr
@@ -196,7 +196,10 @@ namespace cases
         }
         BZ_DECLARE_FUNCTOR(rv_LS_var_fctr);
       };
-      // time-varying version
+      */
+
+      // time-varying radiative cooling [K/s]
+      //TODO: interpolate from data
       struct th_LS_var_fctr
       {
         real_t t;
@@ -209,7 +212,7 @@ namespace cases
         }
         BZ_DECLARE_FUNCTOR(th_LS_var_fctr);
       };
-      */
+
     
       // density profile as a function of altitude
       // hydrostatic and assuming constant theta (not used now)
@@ -334,7 +337,7 @@ namespace cases
 //        // subsidence rate
 //        profs.w_LS = w_LS_fctr()(k * dz);
 //        // large-scale horizontal advection
-//        profs.th_LS = th_LS_fctr()(k * dz);
+        profs.th_LS = th_LS_fctr()(k * dz);
 //        profs.rv_LS = rv_LS_fctr()(k * dz);
       }
 
@@ -374,14 +377,14 @@ namespace cases
         blitz::firstIndex k;
         rv_LS = rv_LS_var_fctr(timestep * dt)(k * dz);
       };
-
+      */
       void update_th_LS(blitz::Array<real_t, 1> th_LS,
                         int timestep, const real_t dt, real_t dz)
       {
         blitz::firstIndex k;
         th_LS = th_LS_var_fctr(timestep * dt)(k * dz);
       };
-      */
+
 
       void init()
       {

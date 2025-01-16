@@ -27,7 +27,6 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   // a 2D/3D array with copy of the environmental total pressure of dry air 
   typename parent_t::arr_t &p_e;
 
-private:
 
   void condevap()
   {

@@ -49,6 +49,10 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
   {
+
+    this->state(ix::ria)(this->ijk) = 0;
+    this->state(ix::rib)(this->ijk) = 0;
+
     parent_t::hook_ante_loop(nt); 
 
     params.flag_hetB = params.cloudph_opts.hetB;
