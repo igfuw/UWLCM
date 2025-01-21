@@ -94,7 +94,7 @@ class slvr_piggy<
       opts.add_options()
         ("prs_tol", po::value<setup::real_t>()->default_value(1e-6) , "pressure solver tolerance"); // not really related to piggybacking, but convenient to put here as it is the first solver to inherit from libmpdata++
       po::variables_map vm;
-      handle_opts(opts, vm);
+      handle_opts(opts, vm, false);
       save_vel_flag = vm["save_vel"].as<bool>();
       this->prs_tol = vm["prs_tol"].as<setup::real_t>();
     }
