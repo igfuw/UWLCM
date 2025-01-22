@@ -6,6 +6,7 @@
 #include "Anelastic.hpp"
 #include "detail/formulas.hpp"
 #include "detail/LBA_sounding/input_sounding.hpp"
+#include "detail/LBA_sounding/radiative_cooling.hpp"
 
 namespace cases
 {
@@ -99,6 +100,49 @@ namespace cases
       //std::cerr << "interpolated p at z = " << z << " : " << tmp << std::endl;
       return quantity<si::pressure, real_t>(tmp * si::pascals);
       //return interpolate_LBA_sounding("p", z) * real_t(100) * si::pascals; //converting hPa to Pa
+    }
+
+
+    // returned units: [K/day]
+    inline real_t interpolate_rad_cooling(real_t pos, real_t t)
+    {
+      assert(pos>=0); //height in m
+      assert(t>=0);  //time in s
+
+      t = t / real_t(60); // converting to minutes to match the rad_cooling_time
+
+      const auto &heights = rad_cooling_z;
+      const auto &times = rad_cooling_time;
+      const auto &sounding = rad_cooling;
+
+      auto pos_up = std::upper_bound(heights.begin(), heights.end(), pos); // pos_up is the height index above pos
+      auto pos_low = pos_up - 1; // pos_up-1 will be the index below
+
+      auto t_up = std::upper_bound(times.begin(), times.end(), t); // t_up is the time index after t
+      auto t_low = t_up - 1; // t_up-1 will be the index before
+
+      if(pos_up == heights.end())
+        throw std::runtime_error("UWLCM: Incorrect height for radiative cooling interpolation");
+      if(pos_up == heights.begin())
+        throw std::runtime_error("UWLCM: Incorrect height for radiative cooling interpolation");
+
+      if(t_up == times.end())
+        throw std::runtime_error("UWLCM: Incorrect time for radiative cooling interpolation");
+      if(t_up == times.begin())
+        throw std::runtime_error("UWLCM: Incorrect time for radiative cooling interpolation");
+
+
+      const auto next_time_data_iter = sounding.begin() + std::distance(times.begin(), t_up);
+      const auto previous_time_data_iter = sounding.begin() + std::distance(times.begin(), t_low);
+      const auto &next_time_data = *next_time_data_iter;
+      const auto &previous_time_data = *previous_time_data_iter;
+      const auto pos_up_next_time = next_time_data.begin() + std::distance(heights.begin(), pos_up);
+      const auto pos_up_prevoius_time = previous_time_data.begin() + std::distance(heights.begin(), pos_up);
+
+      const auto interp_next_time = real_t(*(pos_up_next_time-1) + (pos - *(pos_low)) / (*pos_up - *(pos_low)) * (*pos_up_next_time - *(pos_up_next_time-1)));
+      const auto interp_previous_time = real_t(*(pos_up_prevoius_time-1) + (pos - *(pos_low)) / (*pos_up - *(pos_low)) * (*pos_up_prevoius_time - *(pos_up_prevoius_time-1)));
+
+      return real_t(interp_previous_time + (t - *(t_low)) / (*t_up - *(t_low)) * (interp_next_time - interp_previous_time));
     }
 
 
