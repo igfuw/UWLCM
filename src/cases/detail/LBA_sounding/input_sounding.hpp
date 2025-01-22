@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-Sounding from Large-Scale Biosphere–Atmosphere (LBA) experiment, described in Grabowski et al. (2006)
+Initial sounding from Large-Scale Biosphere–Atmosphere (LBA) experiment, described in Grabowski et al. (2006)
 */
 
 namespace
