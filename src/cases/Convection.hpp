@@ -20,7 +20,9 @@ namespace cases
      // RH T and p to rv assuming RH = r_v / r_vs
     inline quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
     {
-      return  RH * const_cp::r_vs<real_t>(T, p);
+      double rv =  RH * const_cp::r_vs<real_t>(T, p);
+      //std::cerr << "rv = " << rv << " for RH, T, p: " << RH << " " << T << " " << p << std::endl;
+      return rv;
     }
   
     const quantity<si::pressure, real_t> 
@@ -77,17 +79,26 @@ namespace cases
 
     inline quantity<si::temperature, real_t> T_conv(const real_t &z)
     {
-      return (interpolate_LBA_sounding("T", z) + real_t(273.15)) * si::kelvins; //converting celsius to kelvins
+      double tmp = interpolate_LBA_sounding("T", z) + real_t(273.15); //converting celsius to kelvins
+      //std::cerr << "interpolated T at z = " << z << " : " << tmp << std::endl;
+      return quantity<si::temperature, real_t>(tmp * si::kelvins);
+      //return (interpolate_LBA_sounding("T", z) + real_t(273.15)) * si::kelvins; //converting celsius to kelvins
     }
 
     inline quantity<si::dimensionless, real_t> RH_conv(const real_t &z)
     {
-      return interpolate_LBA_sounding("RH", z) / real_t(100); //converting % to dimensionless
+      double tmp = interpolate_LBA_sounding("RH", z) / real_t(100); //converting celsius to kelvins
+      //std::cerr << "interpolated RH at z = " << z << " : " << tmp << std::endl;
+      return quantity<si::dimensionless, real_t>(tmp);
+      //return interpolate_LBA_sounding("RH", z) / real_t(100); //converting % to dimensionless
     }
 
     inline quantity<si::pressure, real_t> p_conv(const real_t &z)
     {
-      return interpolate_LBA_sounding("p", z) * real_t(100) * si::pascals; //converting hPa to Pa
+      double tmp = interpolate_LBA_sounding("p", z) * real_t(100); //converting celsius to kelvins
+      //std::cerr << "interpolated p at z = " << z << " : " << tmp << std::endl;
+      return quantity<si::pressure, real_t>(tmp * si::pascals);
+      //return interpolate_LBA_sounding("p", z) * real_t(100) * si::pascals; //converting hPa to Pa
     }
 
 
@@ -296,6 +307,7 @@ namespace cases
           auto th_global = concurr.advectee_global(ix::th);
           decltype(concurr.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it
+          prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
           th_global += prtrb;
           this->make_cyclic(th_global);
           concurr.advectee_global_set(th_global, ix::th);
@@ -308,6 +320,7 @@ namespace cases
           auto rv_global = concurr.advectee_global(ix::rv);
           decltype(concurr.advectee(ix::rv)) prtrb(rv_global.shape()); // array to store perturbation
           std::generate(prtrb.begin(), prtrb.end(), rand); // fill it
+          prtrb = where(index * dz >= 1000., 0., prtrb); // no perturbation above 1km
           rv_global += prtrb;
           this->make_cyclic(rv_global);
           concurr.advectee_global_set(rv_global, ix::rv);

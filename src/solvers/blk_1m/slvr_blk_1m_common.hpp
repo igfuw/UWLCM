@@ -50,6 +50,12 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     libcloudphxx::blk_1m::adj_cellwise_nwtrph<real_t>( 
       params.cloudph_opts, p_e_arg, th, rv, rc, this->dt
     );
+
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after adj_cellwise_nwtrph");
+    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after adj_cellwise_nwtrph");
+    nancheck(this->mem->advectee(ix::rc)(this->ijk), "rc after adj_cellwise_nwtrph");
+    negcheck(this->mem->advectee(ix::rc)(this->ijk), "rc after adj_cellwise_nwtrph");
+
     this->mem->barrier();
   }
 
@@ -102,6 +108,9 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
     // init the p_e array
     p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
+
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv in hook_ante_loop");
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv in hook_ante_loop");
 
     // deal with initial supersaturation, TODO: don't do it here (vide slvr_lgrngn)
     condevap();
