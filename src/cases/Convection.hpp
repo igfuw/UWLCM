@@ -21,9 +21,7 @@ namespace cases
      // RH T and p to rv assuming RH = r_v / r_vs
     inline quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
     {
-      double rv =  RH * const_cp::r_vs<real_t>(T, p);
-      //std::cerr << "rv = " << rv << " for RH, T, p: " << RH << " " << T << " " << p << std::endl;
-      return rv;
+      return RH * const_cp::r_vs<real_t>(T, p);
     }
   
     const quantity<si::pressure, real_t> 
@@ -35,9 +33,7 @@ namespace cases
       X_def    = 10000 * si::metres,
       Y_def    = 10000 * si::metres;
     const real_t z_abs = 16000;
-//    const real_t z_i = 795; //initial inversion height
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
-    //const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud base
 
 
     // returned units: [Celsius], [%], [m/s], [hPa]
@@ -80,26 +76,17 @@ namespace cases
 
     inline quantity<si::temperature, real_t> T_conv(const real_t &z)
     {
-      double tmp = interpolate_LBA_sounding("T", z) + real_t(273.15); //converting celsius to kelvins
-      //std::cerr << "interpolated T at z = " << z << " : " << tmp << std::endl;
-      return quantity<si::temperature, real_t>(tmp * si::kelvins);
-      //return (interpolate_LBA_sounding("T", z) + real_t(273.15)) * si::kelvins; //converting celsius to kelvins
+      return (interpolate_LBA_sounding("T", z) + real_t(273.15)) * si::kelvins; //converting celsius to kelvins
     }
 
     inline quantity<si::dimensionless, real_t> RH_conv(const real_t &z)
     {
-      double tmp = interpolate_LBA_sounding("RH", z) / real_t(100); //converting celsius to kelvins
-      //std::cerr << "interpolated RH at z = " << z << " : " << tmp << std::endl;
-      return quantity<si::dimensionless, real_t>(tmp);
-      //return interpolate_LBA_sounding("RH", z) / real_t(100); //converting % to dimensionless
+      return interpolate_LBA_sounding("RH", z) / real_t(100); //converting % to dimensionless
     }
 
     inline quantity<si::pressure, real_t> p_conv(const real_t &z)
     {
-      double tmp = interpolate_LBA_sounding("p", z) * real_t(100); //converting celsius to kelvins
-      //std::cerr << "interpolated p at z = " << z << " : " << tmp << std::endl;
-      return quantity<si::pressure, real_t>(tmp * si::pascals);
-      //return interpolate_LBA_sounding("p", z) * real_t(100) * si::pascals; //converting hPa to Pa
+      return interpolate_LBA_sounding("p", z) * real_t(100) * si::pascals; //converting hPa to Pa
     }
 
 
@@ -121,16 +108,20 @@ namespace cases
       auto t_up = std::upper_bound(times.begin(), times.end(), t); // t_up is the time index after t
       auto t_low = t_up - 1; // t_up-1 will be the index before
 
-      if(pos_up == heights.end())
-        throw std::runtime_error("UWLCM: Incorrect height for radiative cooling interpolation");
-      if(pos_up == heights.begin())
-        throw std::runtime_error("UWLCM: Incorrect height for radiative cooling interpolation");
-
       if(t_up == times.end())
-        throw std::runtime_error("UWLCM: Incorrect time for radiative cooling interpolation");
-      if(t_up == times.begin())
-        throw std::runtime_error("UWLCM: Incorrect time for radiative cooling interpolation");
+        throw std::runtime_error("UWLCM: Time too long for radiative cooling interpolation");
 
+      if(t_up == times.begin())
+      {
+        const auto &time_data = *sounding.begin();
+        const auto sounding_upper = time_data.begin() + std::distance(heights.begin(), pos_up);
+        return real_t(*(sounding_upper-1) + (pos - *(pos_up-1)) / (*pos_up - *(pos_up-1)) * (*sounding_upper - *(sounding_upper-1)));
+      }
+
+      if(pos_up == heights.end()) //radiative heating above the last level provided should be set to zero
+        return real_t(0);
+      if(pos_up == heights.begin())
+        throw std::runtime_error("UWLCM: Height too low for radiative cooling interpolation");
 
       const auto next_time_data_iter = sounding.begin() + std::distance(times.begin(), t_up);
       const auto previous_time_data_iter = sounding.begin() + std::distance(times.begin(), t_low);
@@ -198,63 +189,9 @@ namespace cases
       };
 
       u_t u;
-    
-//      // large-scale vertical wind
-//      struct w_LS_fctr
-//      {
-//        real_t operator()(const real_t &z) const
-//        {
-//          real_t sub_vel = z < 2260 ?
-//            -(0.005 / 2260) * z :
-//            -0.005;
-//          return sub_vel;
-//        }
-//        BZ_DECLARE_FUNCTOR(w_LS_fctr);
-//      };
-//
-      // large-scale horizontal advection of th + radiative cooling [K/s]
-      struct th_LS_fctr
-      {
-        real_t operator()(const real_t &z) const
-        {
-          return -2.5 / 86400;
-        }
-        BZ_DECLARE_FUNCTOR(th_LS_fctr);
-      };
-//
-//      // large-scale horizontal advection of rv [1/s]
-//      struct rv_LS_fctr
-//      {
-//        real_t operator()(const real_t &z) const
-//        {
-//          real_t rv_LS = z < 2980 ?
-//            -1. / 86400 + (1.3456 / 86400) * z / 2980 :
-//            4e-6;
-//          return rv_LS * 1e-3;
-//        }
-//        BZ_DECLARE_FUNCTOR(rv_LS_fctr);
-//      };
 
-
-      // examples of time-varying large-scale forcings
-      /*
-      // time-varying version
-      struct rv_LS_var_fctr
-      {
-        real_t t;
-
-        rv_LS_var_fctr(const real_t &t): t(t) {}
-
-        real_t operator()(const real_t &z) const // height in [m], time in [s]
-        {
-          return rv_LS_fctr()(z) + t * 1e-9;
-        }
-        BZ_DECLARE_FUNCTOR(rv_LS_var_fctr);
-      };
-      */
 
       // time-varying radiative cooling [K/s]
-      //TODO: interpolate from data
       struct th_LS_var_fctr
       {
         real_t t;
@@ -263,33 +200,11 @@ namespace cases
 
         real_t operator()(const real_t &z) const // height in [m], time in [s]
         {
-          return th_LS_fctr()(z) + t * 1e-5;
+          return interpolate_rad_cooling(z, t) / real_t(86400); //converting from K/day to K/s
         }
         BZ_DECLARE_FUNCTOR(th_LS_var_fctr);
       };
 
-    
-      // density profile as a function of altitude
-      // hydrostatic and assuming constant theta (not used now)
-  /*    struct rhod_fctr
-      {
-        real_t operator()(real_t z) const
-        {
-          quantity<si::pressure, real_t> p = hydrostatic::p(
-    	z * si::metres, th_dry_fctr()(0.) * si::kelvins, r_t()(0.), z_0, p_0
-          );
-          
-          quantity<si::mass_density, real_t> rhod = theta_std::rhod(
-    	p, th_dry_fctr()(0.) * si::kelvins, r_t()(0.)
-          );
-    
-          return rhod / si::kilograms * si::cubic_metres;
-        }
-    
-        // to make the rhod() functor accept Blitz arrays as arguments
-        BZ_DECLARE_FUNCTOR(rhod_fctr);
-      };
-  */
 
       template<bool enable_sgs = case_ct_params_t::enable_sgs>
       void setopts_sgs(rt_params_t &params,
@@ -394,7 +309,7 @@ namespace cases
 //        // subsidence rate
 //        profs.w_LS = w_LS_fctr()(k * dz);
 //        // large-scale horizontal advection
-        profs.th_LS = th_LS_fctr()(k * dz);
+//        profs.th_LS = th_LS_fctr()(k * dz);
 //        profs.rv_LS = rv_LS_fctr()(k * dz);
       }
 
@@ -427,14 +342,7 @@ namespace cases
         surf_flux_uv = real_t(0); // [ kg m/s / (m^2 s) ]
       }
 
-/*
-      void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
-                        int timestep, const real_t dt, real_t dz)
-      {
-        blitz::firstIndex k;
-        rv_LS = rv_LS_var_fctr(timestep * dt)(k * dz);
-      };
-      */
+
       void update_th_LS(blitz::Array<real_t, 1> th_LS,
                         int timestep, const real_t dt, real_t dz)
       {
@@ -452,9 +360,8 @@ namespace cases
         this->sdev_rd2 = real_t(1.75);
         this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
         this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
-        this->ForceParameters.coriolis_parameter = 0.; // [1/s] @ 18.0 deg N
+        this->ForceParameters.coriolis_parameter = 0.; // [1/s]
         this->z_rlx = z_rlx;
-        //this->gccn_max_height = gccn_max_height;
       }
 
       public:
