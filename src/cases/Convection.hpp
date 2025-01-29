@@ -91,8 +91,7 @@ namespace cases
 
 
     // returned units: [K/day]
-    inline real_t interpolate_rad_cooling(real_t pos, real_t t)
-    {
+    inline real_t interpolate_rad_cooling(real_t pos, real_t t) {
       assert(pos>=0); //height in m
       assert(t>=0);  //time in s
 
@@ -114,25 +113,36 @@ namespace cases
       if(t_up == times.begin())
       {
         const auto &time_data = *sounding.begin();
+        if(pos_up == heights.end()) //radiative heating above the last level provided should be set to zero
+        {
+          return real_t(0);
+        }
+        if(pos_up == heights.begin())
+        {
+          return real_t(*time_data.begin());
+        }
         const auto sounding_upper = time_data.begin() + std::distance(heights.begin(), pos_up);
         return real_t(*(sounding_upper-1) + (pos - *(pos_up-1)) / (*pos_up - *(pos_up-1)) * (*sounding_upper - *(sounding_upper-1)));
       }
-
-      if(pos_up == heights.end()) //radiative heating above the last level provided should be set to zero
-        return real_t(0);
-      if(pos_up == heights.begin())
-        throw std::runtime_error("UWLCM: Height too low for radiative cooling interpolation");
 
       const auto next_time_data_iter = sounding.begin() + std::distance(times.begin(), t_up);
       const auto previous_time_data_iter = sounding.begin() + std::distance(times.begin(), t_low);
       const auto &next_time_data = *next_time_data_iter;
       const auto &previous_time_data = *previous_time_data_iter;
+
+      if(pos_up == heights.end()) //radiative heating above the last level provided should be set to zero
+        return real_t(0);
+      if(pos_up == heights.begin())
+      {
+        const auto sounding_next_time = real_t(*next_time_data.begin());
+        const auto sounding_previous_time = real_t(*previous_time_data.begin());
+        return real_t(sounding_previous_time + (t - *(t_low)) / (*t_up - *(t_low)) * (sounding_next_time - sounding_previous_time));
+      }
+
       const auto pos_up_next_time = next_time_data.begin() + std::distance(heights.begin(), pos_up);
       const auto pos_up_prevoius_time = previous_time_data.begin() + std::distance(heights.begin(), pos_up);
-
       const auto interp_next_time = real_t(*(pos_up_next_time-1) + (pos - *(pos_low)) / (*pos_up - *(pos_low)) * (*pos_up_next_time - *(pos_up_next_time-1)));
       const auto interp_previous_time = real_t(*(pos_up_prevoius_time-1) + (pos - *(pos_low)) / (*pos_up - *(pos_low)) * (*pos_up_prevoius_time - *(pos_up_prevoius_time-1)));
-
       return real_t(interp_previous_time + (t - *(t_low)) / (*t_up - *(t_low)) * (interp_next_time - interp_previous_time));
     }
 
@@ -309,7 +319,7 @@ namespace cases
 //        // subsidence rate
 //        profs.w_LS = w_LS_fctr()(k * dz);
 //        // large-scale horizontal advection
-//        profs.th_LS = th_LS_fctr()(k * dz);
+        profs.th_LS = th_LS_var_fctr(real_t(0))(k * dz);
 //        profs.rv_LS = rv_LS_fctr()(k * dz);
       }
 
