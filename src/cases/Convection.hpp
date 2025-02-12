@@ -30,8 +30,8 @@ namespace cases
       T_SST = real_t(296.85) * si::kelvins;
     const quantity<si::length, real_t> 
       Z_def    = 20000 * si::metres,
-      X_def    = 10000 * si::metres,
-      Y_def    = 10000 * si::metres;
+      X_def    = 64000 * si::metres,
+      Y_def    = 64000 * si::metres;
     const real_t z_abs = 16000;
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
 
