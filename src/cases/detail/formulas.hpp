@@ -15,7 +15,7 @@ namespace formulas
   real_t surf_flux_function(const real_t &t) //[s]
   {
     static const real_t t_hours = t / real_t(3600);
-    return std::max(real_t(0), cos(boost::math::constants::pi<real_t>() * (real_t(5.25) - t_hours) / real_t(10.5)));
+    return std::max(real_t(0), real_t(cos(boost::math::constants::pi<real_t>() * (real_t(5.25) - t_hours) / real_t(10.5))));
   }
 
 };
