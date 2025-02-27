@@ -330,8 +330,8 @@ namespace cases
                                  const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         using libcloudphxx::common::moist_air::c_pd;
-        surf_flux_sens = -  real_t(270) * std::pow(formulas::surf_flux_function(timestep*dt), real_t(1.5)) / (c_pd<real_t>() / si::joules * si::kilogram * si::kelvin ); // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
-        //std::cerr << "surf_flux_sens = " << surf_flux_sens << std::endl;
+        real_t flux = formulas::surf_flux_function(timestep * dt);
+        surf_flux_sens = -  real_t(270) * std::pow(flux, real_t(1.5)) / (c_pd<real_t>() / si::joules * si::kilogram * si::kelvin ); // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
       }
 
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
@@ -341,8 +341,8 @@ namespace cases
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy) override
       {
         using libcloudphxx::common::const_cp::l_tri;
-        surf_flux_lat =  - real_t(554) * std::pow(formulas::surf_flux_function(timestep*dt), real_t(1.3)) / (l_tri<real_t>() / si::joules * si::kilograms); // [kg / (m^2 s)]
-        //std::cerr << "surf_flux_lat = " << surf_flux_lat << std::endl;
+        real_t flux = formulas::surf_flux_function(timestep * dt);
+        surf_flux_lat =  - real_t(554) * std::pow(flux, real_t(1.3)) / (l_tri<real_t>() / si::joules * si::kilograms); // [kg / (m^2 s)]
       }
 
       // one function for updating u or v
