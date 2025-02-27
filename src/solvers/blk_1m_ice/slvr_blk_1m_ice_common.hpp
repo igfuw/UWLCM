@@ -81,8 +81,8 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
 
     parent_t::hook_ante_step();
 
-    //negtozero(this->mem->advectee(ix::ria)(this->ijk), "ria after first half of rhs");
-    //negtozero(this->mem->advectee(ix::rib)(this->ijk), "rib after first half of rhs");
+    negtozero(this->mem->advectee(ix::ria)(this->ijk), "ria after first half of rhs");
+    negtozero(this->mem->advectee(ix::rib)(this->ijk), "rib after first half of rhs");
 
     nancheck(this->mem->advectee(ix::ria)(this->ijk), "ria after first half of rhs");
     negcheck(this->mem->advectee(ix::ria)(this->ijk), "ria after first half of rhs");
