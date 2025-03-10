@@ -40,11 +40,11 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
   void rib_src();
   //void rc_src();
   //void rr_src();
-  bool get_rain() { return params.cloudph_opts.hetB; }
-  void set_rain(bool val)
-  { 
-    params.cloudph_opts.hetB = val ? params.flag_hetB : false;
-  };
+  //bool get_rain() { return params.cloudph_opts.hetB; }
+  //void set_rain(bool val)
+  //{
+  //  params.cloudph_opts.hetB = val ? params.flag_hetB : false;
+  //};
 
   // deals with initial supersaturation
   void hook_ante_loop(int nt)
@@ -55,7 +55,7 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
 
     parent_t::hook_ante_loop(nt); 
 
-    params.flag_hetB = params.cloudph_opts.hetB;
+    //params.flag_hetB = params.cloudph_opts.hetB;
 
     // recording parameters
     if(this->rank==0)
@@ -96,7 +96,7 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
 
   struct rt_params_t : parent_t::rt_params_t
   {
-    bool flag_hetB; // do we want hetB after spinup
+   // bool flag_hetB; // do we want hetB after spinup
   };
 
   protected:
