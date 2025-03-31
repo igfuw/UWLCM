@@ -110,16 +110,16 @@ namespace cases
       if(t_up == times.end())
         throw std::runtime_error("UWLCM: Time too long for radiative cooling interpolation");
 
-      if(t_up == times.begin())
+      if(t_up == times.begin()) //use radiative cooling at 10 min between model start and t=10 min
       {
         const auto &time_data = *sounding.begin();
-        if(pos_up == heights.end()) //radiative heating above the last level provided should be set to zero
+        if(pos_up == heights.end()) //radiative cooling above the last level provided should be set to zero
         {
           return real_t(0);
         }
         if(pos_up == heights.begin())
         {
-          return real_t(*time_data.begin());
+          return real_t(*time_data.begin()); //radiative cooling at the first level can be used as the rate below this level
         }
         const auto sounding_upper = time_data.begin() + std::distance(heights.begin(), pos_up);
         return real_t(*(sounding_upper-1) + (pos - *(pos_up-1)) / (*pos_up - *(pos_up-1)) * (*sounding_upper - *(sounding_upper-1)));
@@ -132,7 +132,7 @@ namespace cases
 
       if(pos_up == heights.end()) //radiative heating above the last level provided should be set to zero
         return real_t(0);
-      if(pos_up == heights.begin())
+      if(pos_up == heights.begin()) //radiative heating at the first level can be used as the rate below this level
       {
         const auto sounding_next_time = real_t(*next_time_data.begin());
         const auto sounding_previous_time = real_t(*previous_time_data.begin());
@@ -283,7 +283,7 @@ namespace cases
         }
         {
           std::mt19937 gen(rng_seed+1); // different seed than in th. NOTE: if the same instance of gen is used in th and rv, for some reason it gives the same sequence in rv as in th despite being advanced in th prtrb
-          std::uniform_real_distribution<> dis(-0.025e-3, 0.025e-3);
+          std::uniform_real_distribution<> dis(-1e-4, 1e-4);
           auto rand = std::bind(dis, gen);
   
           auto rv_global = concurr.advectee_global(ix::rv);
