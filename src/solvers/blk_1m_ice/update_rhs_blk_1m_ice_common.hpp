@@ -11,6 +11,7 @@ void slvr_blk_1m_ice_common<ct_params_t>::update_rhs(
 {
   // store rl for buoyancy
   this->r_l(this->ijk) = this->state(ix::rc)(this->ijk) + this->state(ix::rr)(this->ijk) + this->state(ix::ria)(this->ijk) + this->state(ix::rib)(this->ijk);
+  this->mem->barrier();
 
   parent_t::parent_t::update_rhs(rhs, dt, at);
 
@@ -51,6 +52,8 @@ void slvr_blk_1m_ice_common<ct_params_t>::update_rhs(
         dt
     );
 
+    this->mem->barrier();
+
     nancheck(rhs.at(ix::th)(this->ijk), "RHS of th after rhs_cellwise");
     nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after rhs_cellwise");
     nancheck2(rhs.at(ix::rc)(this->ijk), this->state(ix::rc)(this->ijk), "RHS of rc after rhs_cellwise (+ output of rc)");
@@ -85,6 +88,7 @@ void slvr_blk_1m_ice_common<ct_params_t>::update_rhs(
       rib_src();
       rhs.at(ix::rib)(this->ijk) += this->alpha(this->ijk);// + this->beta(this->ijk) * this->state(ix::rc)(this->ijk);
       nancheck(rhs.at(ix::rib)(this->ijk), "RHS of rib after rib_src");
+
   
       // when using explicit turbulence model add subgrid forces to rc and rr
       // (th and rv were already applied in slvr_sgs)
