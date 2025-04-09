@@ -24,8 +24,8 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
     {
         this->puddle[static_cast<cmn::output_t>(i)] = 0;
     }
-    this->puddle[static_cast<cmn::output_t>(8)] = parent_t::liquid_puddle;
-    this->puddle[static_cast<cmn::output_t>(11)] = ice_puddle;
+    this->puddle[cmn::get_output_enum("liquid_volume")] = parent_t::liquid_puddle;
+    this->puddle[cmn::get_output_enum("ice_volume")] = ice_puddle;
   }
 
   void diag()
