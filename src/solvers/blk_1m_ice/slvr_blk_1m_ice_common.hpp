@@ -21,10 +21,11 @@ class slvr_blk_1m_ice_common : public slvr_blk_1m_common<ct_params_t>
   {
     // storing puddle
     for(int i=0; i < this->n_puddle_scalars; ++i)
-    {   
-      this->puddle[static_cast<cmn::output_t>(i)] = (i == 8 ? parent_t::liquid_puddle : 0);
-      this->puddle[static_cast<cmn::output_t>(i)] = (i == 11 ? ice_puddle : 0);
+    {
+        this->puddle[static_cast<cmn::output_t>(i)] = 0;
     }
+    this->puddle[static_cast<cmn::output_t>(8)] = parent_t::liquid_puddle;
+    this->puddle[static_cast<cmn::output_t>(11)] = ice_puddle;
   }
 
   void diag()
