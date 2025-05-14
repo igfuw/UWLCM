@@ -15,14 +15,15 @@ po::options_description opts_main("General options");
 
 void handle_opts(
   po::options_description &opts_micro,
-  po::variables_map &vm 
+  po::variables_map &vm,
+  const bool check_help
 )
 {
   opts_main.add(opts_micro);
     po::store(po::command_line_parser(ac, av).options(opts_main).allow_unregistered().run(), vm); // ignores unknown, could be exchanged with a config file parser
 
   // hendling the "help" option
-  if (vm.count("help"))
+  if (check_help && vm.count("help"))
   {
     std::cout << opts_main;
     exit(EXIT_SUCCESS);

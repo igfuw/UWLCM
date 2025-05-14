@@ -36,6 +36,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 #include "../detail/outmom.hpp"
+#include "../detail/subs_t.hpp"
 #include <UWLCM/output_bins.hpp>
 
 // simulation and output parameters for micro=lgrngn
