@@ -104,7 +104,7 @@ make install
 
 # Install odeint thrust v2 fix (and clean up after)
 git clone -b Thrust_2 --depth=1 https://github.com/pdziekan/odeint.git
-cp -r odeint/include/boost/numeric/odeint/* /usr/include/boost/numeric/odeint/
+cp -r odeint/include/boost/numeric/odeint/* /usr/local/include/boost/numeric/odeint/
 rm -rf odeint
 
 # Final cleanup
