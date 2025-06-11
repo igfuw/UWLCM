@@ -46,7 +46,7 @@ jobs:
         path: libcloudphxx
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@v0.2
+      uses: igfuw/libcloudphxx_build@v0.6
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
@@ -192,7 +192,7 @@ jobs:
 #        path: libcloudphxx
 #
 #    - name: build libcloudph++
-#      uses: igfuw/libcloudphxx_build@v0.2
+#      uses: igfuw/libcloudphxx_build@v0.6
 #      with:
 #        disable_cuda: ${{matrix.disable_cuda}}
 #        build_type: ${{matrix.build_type}}
