@@ -46,7 +46,7 @@ jobs:
         path: libcloudphxx
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@v0.2
+      uses: igfuw/libcloudphxx_build@master
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
@@ -116,7 +116,7 @@ jobs:
         path: libmpdataxx
 
     - name: Install libmpdata++
-      uses: igfuw/libmpdataxx_install@v0.4
+      uses: igfuw/libmpdataxx_install@master
       with:
         build_type: ${{matrix.build_type}}
         threads: 4
@@ -207,14 +207,14 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++
-      uses: actions/checkout@v2
+      uses: actions/checkout@master
       with:
         repository: igfuw/libmpdataxx
         ref: ${{ inputs.libmpdataxx_sha }}
         path: libmpdataxx
 
     - name: Install libmpdata++
-      uses: igfuw/libmpdataxx_install@v0.4
+      uses: igfuw/libmpdataxx_install@master
       with:
         build_type: ${{matrix.build_type}}
         threads: 4
