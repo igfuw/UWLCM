@@ -16,7 +16,7 @@ on:
 jobs:
   # TODO: cache built libcloudphxx? Use libcloudphxx git revision as name?
   build_libcloudphxx:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         name: ["no_CUDA"]
@@ -27,10 +27,10 @@ jobs:
           disable_cuda: true
           threads: 4
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
           cxx: "g++"
         - mpi: "mvapich2"
-          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"
           cxx: "mpic++"
         - build_type: "RelWithDebInfoPortable"
           tar_name: "RelDbgPort"
@@ -68,7 +68,7 @@ jobs:
 
   unit:
     needs: build_libcloudphxx
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         build_type: ["RelWithDebInfo", "Debug"]
@@ -77,7 +77,7 @@ jobs:
         disable_cuda: ["true"]
         include:
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
           cxx: "g++"
         - sgs: "iles"
           cmake_flags: "-DUWLCM_DISABLE='SGS'"
@@ -151,7 +151,7 @@ jobs:
   # TODO: generate refdata using RelWithDebInfoPortable ?
   moist_thermal:
     needs: build_libcloudphxx
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -161,11 +161,11 @@ jobs:
         tar_name: ["RelDbgPort"]
         include:
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
           cxx: "g++"
           omp_threads: 6
         - mpi: "mvapich2"
-          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"
           cxx: "mpic++"
           omp_threads: 3
 
