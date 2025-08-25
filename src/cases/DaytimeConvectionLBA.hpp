@@ -10,7 +10,7 @@
 
 namespace cases
 {
-  namespace convection
+  namespace daytime_convection
   {
     namespace hydrostatic = libcloudphxx::common::hydrostatic;
     namespace theta_std   = libcloudphxx::common::theta_std;
@@ -64,27 +64,27 @@ namespace cases
     }
 
 
-    inline quantity<si::velocity, real_t> u_conv(const real_t &z)
+    inline quantity<si::velocity, real_t> u_lba(const real_t &z)
     {
       return interpolate_LBA_sounding("u", z) * si::meters / si::seconds;
     }
 
-    inline quantity<si::velocity, real_t> v_conv(const real_t &z)
+    inline quantity<si::velocity, real_t> v_lba(const real_t &z)
     {
       return interpolate_LBA_sounding("v", z) * si::meters / si::seconds;
     }
 
-    inline quantity<si::temperature, real_t> T_conv(const real_t &z)
+    inline quantity<si::temperature, real_t> T_lba(const real_t &z)
     {
       return (interpolate_LBA_sounding("T", z) + real_t(273.15)) * si::kelvins; //converting celsius to kelvins
     }
 
-    inline quantity<si::dimensionless, real_t> RH_conv(const real_t &z)
+    inline quantity<si::dimensionless, real_t> RH_lba(const real_t &z)
     {
       return interpolate_LBA_sounding("RH", z) / real_t(100); //converting % to dimensionless
     }
 
-    inline quantity<si::pressure, real_t> p_conv(const real_t &z)
+    inline quantity<si::pressure, real_t> p_lba(const real_t &z)
     {
       return interpolate_LBA_sounding("p", z) * real_t(100) * si::pascals; //converting hPa to Pa
     }
@@ -148,7 +148,7 @@ namespace cases
 
 
     template<class case_ct_params_t, int n_dims>
-    class Convection_common : public Anelastic<case_ct_params_t, n_dims>
+    class DaytimeConvection_common : public Anelastic<case_ct_params_t, n_dims>
     {
       protected:
       using parent_t = Anelastic<case_ct_params_t, n_dims>;
@@ -157,12 +157,12 @@ namespace cases
 
       quantity<si::temperature, real_t> th_l(const real_t &z) override
       {
-        return T_conv(z) / theta_std::exner(p_conv(z));
+        return T_lba(z) / theta_std::exner(p_lba(z));
       }
 
       quantity<si::dimensionless, real_t> r_t(const real_t &z) override
       {
-        return RH_T_p_to_rv(RH_conv(z), T_conv(z), p_conv(z));
+        return RH_T_p_to_rv(RH_lba(z), T_lba(z), p_lba(z));
       }
 
       // water mixing ratio at height z
@@ -170,7 +170,7 @@ namespace cases
       {
         quantity<si::dimensionless, real_t> operator()(const real_t &z) const
         {
-          return RH_T_p_to_rv(RH_conv(z), T_conv(z), p_conv(z));
+          return RH_T_p_to_rv(RH_lba(z), T_lba(z), p_lba(z));
         }
         BZ_DECLARE_FUNCTOR(r_t_fctr);
       };
@@ -180,7 +180,7 @@ namespace cases
       {
         real_t operator()(const real_t &z) const
         {
-          return T_conv(z) / theta_std::exner(p_conv(z)) / si::kelvins;
+          return T_lba(z) / theta_std::exner(p_lba(z)) / si::kelvins;
         }
         BZ_DECLARE_FUNCTOR(th_std_fctr);
       };
@@ -193,7 +193,7 @@ namespace cases
           return hori_vel_t::operator()(z);
         }
 
-        u_t() : hori_vel_t(&u_conv) {}
+        u_t() : hori_vel_t(&u_lba) {}
 
         BZ_DECLARE_FUNCTOR(u_t);
       };
@@ -382,7 +382,7 @@ namespace cases
 
         // TODO: we can delete the "window" option?
       // ctor
-      Convection_common(const real_t _X, const real_t _Y, const real_t _Z, const bool window)
+      DaytimeConvection_common(const real_t _X, const real_t _Y, const real_t _Z, const bool window)
       {
         init();
 
@@ -398,13 +398,13 @@ namespace cases
     };
     
     template<class case_ct_params_t, int n_dims>
-    class Convection;
+    class DaytimeConvection;
 
 
     template<class case_ct_params_t>
-    class Convection<case_ct_params_t, 2> : public Convection_common<case_ct_params_t, 2>
+    class DaytimeConvection<case_ct_params_t, 2> : public DaytimeConvection_common<case_ct_params_t, 2>
     {
-      using parent_t = Convection_common<case_ct_params_t, 2>;
+      using parent_t = DaytimeConvection_common<case_ct_params_t, 2>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
       using parent_t::parent_t;
@@ -425,9 +425,9 @@ namespace cases
     };
 
     template<class case_ct_params_t>
-    class Convection<case_ct_params_t, 3> : public Convection_common<case_ct_params_t, 3>
+    class DaytimeConvection<case_ct_params_t, 3> : public DaytimeConvection_common<case_ct_params_t, 3>
     {
-      using parent_t = Convection_common<case_ct_params_t, 3>;
+      using parent_t = DaytimeConvection_common<case_ct_params_t, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
@@ -439,7 +439,7 @@ namespace cases
           return hori_vel_t::operator()(z);
         }
 
-        v_t() : hori_vel_t(&v_conv) {}
+        v_t() : hori_vel_t(&v_lba) {}
 
         BZ_DECLARE_FUNCTOR(v_t);
       };
@@ -478,7 +478,7 @@ namespace cases
       }
 
       public:
-      Convection(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
+      DaytimeConvection(const real_t _X, const real_t _Y, const real_t _Z, const bool window):
         parent_t(_X, _Y, _Z, window)
         {
           v.init(window, this->Z);
