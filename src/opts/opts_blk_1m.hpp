@@ -48,6 +48,10 @@ void setopts_micro(
   rt_params.cloudph_opts.k_acnv = vm["k_acnv"].as<setup::real_t>();
   rt_params.cloudph_opts.r_eps = vm["r_eps"].as<setup::real_t>();
 
+  rt_params.cloudph_opts.th_dry = false;
+  rt_params.cloudph_opts.const_p = true;
+  rt_params.cloudph_opts.adj_nwtrph = true;
+
   // output variables
   rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::rr, {"rr", "[kg kg-1]"}});
