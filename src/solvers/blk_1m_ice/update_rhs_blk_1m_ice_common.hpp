@@ -45,7 +45,7 @@ void slvr_blk_1m_ice_common<ct_params_t>::update_rhs(
       rib   = this->state(ix::rib)(this->ijk),
       rhod = (*this->mem->G)(this->ijk),
       &p_e_arg = this->p_e(this->ijk);
-    libcloudphxx::blk_1m::rhs_cellwise_nwtrph_ice<real_t>(
+    libcloudphxx::blk_1m::rhs_cellwise_ice<real_t>(
         params.cloudph_opts,
         dot_th, dot_rv, dot_rc, dot_rr, dot_ria, dot_rib,
         rhod, p_e_arg, th, rv, rc, rr, ria, rib,
