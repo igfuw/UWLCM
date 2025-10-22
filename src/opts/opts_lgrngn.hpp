@@ -22,11 +22,21 @@
 // string parsing
 #include <boost/spirit/include/qi.hpp>    
 #include <boost/fusion/adapted/std_pair.hpp> 
+
+/*
+  with boost 1.81 to 1.83 we get multiple definition of
+  `boost::phoenix::placeholders::uargX` errors. A solution
+  suggested in https://github.com/boostorg/phoenix/issues/111
+  is to define BOOST_PHOENIX_STL_TUPLE_H_ so that
+  boost/stl/tuple.h is not included in boost/phoenix.hpp
+*/
+#define BOOST_PHOENIX_STL_TUPLE_H_
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 #include "../detail/outmom.hpp"
+#include "../detail/subs_t.hpp"
 #include <UWLCM/output_bins.hpp>
 
 // simulation and output parameters for micro=lgrngn
@@ -100,6 +110,9 @@ void setopts_micro(
   assert((rt_params.outfreq_spec % user_params.outfreq == 0) && "outfreq_spec needs to be a multiple of outfreq");
 //  bool unit_test = vm["unit_test"].as<bool>();
   setup::real_t ReL = vm["ReL"].as<setup::real_t>();
+
+  rt_params.cloudph_opts_init.th_dry = false;
+  rt_params.cloudph_opts_init.const_p = true;
 
   rt_params.cloudph_opts_init.sd_conc = vm["sd_conc"].as<unsigned long long>();
   rt_params.cloudph_opts_init.sd_const_multi = vm["sd_const_multi"].as<double>();

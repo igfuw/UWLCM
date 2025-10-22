@@ -21,6 +21,7 @@ extern po::options_description opts_main;
 
 void handle_opts(
   po::options_description &opts_micro,
-  po::variables_map &vm 
+  po::variables_map &vm,
+  const bool check_help=true
 );
 

@@ -39,23 +39,9 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
       rhod = (*this->mem->G)(this->ijk),
       &p_e_arg = p_e(this->ijk);
 
-/*
     libcloudphxx::blk_1m::adj_cellwise<real_t>( 
-      params.cloudph_opts, rhod, th, rv, rc, rr, this->dt
-    );
-    libcloudphxx::blk_1m::adj_cellwise_constp<real_t>( 
       params.cloudph_opts, rhod, p_e_arg, th, rv, rc, rr, this->dt
     );
-*/
-    libcloudphxx::blk_1m::adj_cellwise_nwtrph<real_t>( 
-      params.cloudph_opts, p_e_arg, th, rv, rc, this->dt
-    );
-
-    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv after adj_cellwise_nwtrph");
-    negcheck(this->mem->advectee(ix::rv)(this->ijk), "rv after adj_cellwise_nwtrph");
-    nancheck(this->mem->advectee(ix::rc)(this->ijk), "rc after adj_cellwise_nwtrph");
-    negcheck(this->mem->advectee(ix::rc)(this->ijk), "rc after adj_cellwise_nwtrph");
-
     this->mem->barrier();
   }
 

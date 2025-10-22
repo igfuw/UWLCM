@@ -76,6 +76,9 @@ void setopts_micro(
     });
   }
 
+  rt_params.cloudph_opts.th_dry = false;
+  rt_params.cloudph_opts.const_p = true;
+
   // output variables
   rt_params.outvars.insert({solver_t::ix::rc, {"rc", "[kg kg-1]"}});
   rt_params.outvars.insert({solver_t::ix::rr, {"rr", "[kg kg-1]"}});

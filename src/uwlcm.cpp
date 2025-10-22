@@ -19,7 +19,6 @@
 #include "detail/ct_params.hpp"
 
 #if !defined(UWLCM_DISABLE_2D_LGRNGN) || !defined(UWLCM_DISABLE_3D_LGRNGN)
-//  #include "opts/opts_lgrngn.hpp"
   #include "solvers/slvr_lgrngn.hpp"
   #include "solvers/lgrngn/diag_lgrngn.hpp" 
   #include "solvers/lgrngn/hook_ante_delayed_step_lgrngn.hpp"
@@ -29,7 +28,6 @@
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_1M) || !defined(UWLCM_DISABLE_3D_BLK_1M)
-//  #include "opts/opts_blk_1m.hpp"
   #include "solvers/slvr_blk_1m.hpp"
   #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
   #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
@@ -46,7 +44,6 @@
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_2M) || !defined(UWLCM_DISABLE_3D_BLK_2M)
-//  #include "opts/opts_blk_2m.hpp"
   #include "solvers/slvr_blk_2m.hpp"
   #include "solvers/blk_2m/calc_forces_blk_2m_common.hpp"
   #include "solvers/blk_2m/update_rhs_blk_2m_common.hpp"
@@ -69,22 +66,23 @@ int main(int argc, char** argv)
   av = argv;
 
   {
-    // note: all options should have default values here to make "--micro=? --help" work
+    // note: all options except micro should have default values here to make "--micro=? --help" work
     opts_main.add_options()
+      //("micro", po::value<std::string>()->default_value("blk_1m"), "one of: blk_1m, blk_2m, lgrngn, none")
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn, none")
-      ("case", po::value<std::string>()->required(), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02, cumulus_congestus_icmw20, cumulus_congestus_icmw24, rico11, dry_pbl")
+      ("case", po::value<std::string>()->default_value("moist_thermal"), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02, cumulus_congestus_icmw20, cumulus_congestus_icmw24, rico11, dry_pbl")
       ("X", po::value<setup::real_t>()->default_value(-1) , "domain size in X [m] (set negative for case default)")
       ("Y", po::value<setup::real_t>()->default_value(-1) , "domain size in Y [m] (set negative for case default)")
       ("Z", po::value<setup::real_t>()->default_value(-1) , "domain size in Z [m] (set negative for case default)")
-      ("nx", po::value<int>()->required() , "grid cell count in horizontal")
+      ("nx", po::value<int>()->default_value(1) , "grid cell count in horizontal")
       ("ny", po::value<int>()->default_value(0) , "grid cell count in horizontal, 0 for 2D simulation")
-      ("nz", po::value<int>()->required() , "grid cell count in vertical")
-      ("nt", po::value<int>()->required() , "timestep count")
+      ("nz", po::value<int>()->default_value(1) , "grid cell count in vertical")
+      ("nt", po::value<int>()->default_value(0) , "timestep count")
       ("rng_seed", po::value<int>()->default_value(0) , "rng seed for randomness post initialization (currently only in Lagrangian microphysics), 0 for random")
       ("rng_seed_init", po::value<int>()->default_value(0) , "rng seed for initial conditions (perturbations of th and rv and initialization of Lagrangian microphysics), 0 for rng_seed_init=rng_seed")
-      ("dt", po::value<setup::real_t>()->required() , "timestep length [s]")
-      ("outdir", po::value<std::string>()->required(), "output directory name (netCDF-compatible HDF5)")
-      ("outfreq", po::value<int>()->required(), "output rate (timestep interval)")
+      ("dt", po::value<setup::real_t>()->default_value(1) , "timestep length [s]")
+      ("outdir", po::value<std::string>()->default_value(""), "output directory name (netCDF-compatible HDF5)")
+      ("outfreq", po::value<int>()->default_value(0), "output rate (timestep interval)")
       ("outstart", po::value<int>()->default_value(0), "output starts after this many timesteps")
       ("outwindow", po::value<int>()->default_value(1), "number of consecutive timesteps output is done, starts at outfreq (doesnt affect output of droplet spectra from lagrangian microphysics)")
       ("spinup", po::value<int>()->default_value(0) , "number of initial timesteps during which rain formation is to be turned off")

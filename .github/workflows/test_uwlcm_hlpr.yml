@@ -16,7 +16,7 @@ on:
 jobs:
   # TODO: cache built libcloudphxx? Use libcloudphxx git revision as name?
   build_libcloudphxx:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         name: ["no_CUDA"]
@@ -27,10 +27,10 @@ jobs:
           disable_cuda: true
           threads: 4
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
           cxx: "g++"
         - mpi: "mvapich2"
-          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"
           cxx: "mpic++"
         - build_type: "RelWithDebInfoPortable"
           tar_name: "RelDbgPort"
@@ -39,14 +39,14 @@ jobs:
 
     steps:
     - name: checkout libcloudph++ 
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/libcloudphxx
         ref: ${{ inputs.libcloudphxx_sha }}
         path: libcloudphxx
 
     - name: build libcloudph++
-      uses: igfuw/libcloudphxx_build@v0.2
+      uses: igfuw/libcloudphxx_build@master
       with:
         disable_cuda: ${{matrix.disable_cuda}}
         build_type: ${{matrix.build_type}}
@@ -68,7 +68,7 @@ jobs:
 
   unit:
     needs: build_libcloudphxx
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         build_type: ["RelWithDebInfo", "Debug"]
@@ -77,7 +77,7 @@ jobs:
         disable_cuda: ["true"]
         include:
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
           cxx: "g++"
         - sgs: "iles"
           cmake_flags: "-DUWLCM_DISABLE='SGS'"
@@ -91,13 +91,13 @@ jobs:
           tar_name: "Dbg"
     steps:
     - name: checkout UWLCM 
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
 
     - name: Download libcloudph++ dir
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
 
@@ -109,14 +109,14 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/libmpdataxx
         ref: ${{ inputs.libmpdataxx_sha }}
         path: libmpdataxx
 
     - name: Install libmpdata++
-      uses: igfuw/libmpdataxx_install@v0.4
+      uses: igfuw/libmpdataxx_install@master
       with:
         build_type: ${{matrix.build_type}}
         threads: 4
@@ -151,7 +151,7 @@ jobs:
   # TODO: generate refdata using RelWithDebInfoPortable ?
   moist_thermal:
     needs: build_libcloudphxx
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -161,23 +161,23 @@ jobs:
         tar_name: ["RelDbgPort"]
         include:
         - mpi: "none"
-          tag: "ubuntu_20_04_cuda_11_4"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
           cxx: "g++"
           omp_threads: 6
         - mpi: "mvapich2"
-          tag: "ubuntu_20_04_cuda_11_4_mvapich2"
+          tag: "uwlcm_ubuntu_24_04_cuda_12_9_0_mvapich2"
           cxx: "mpic++"
           omp_threads: 3
 
     steps:
     - name: checkout UWLCM 
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
 
     - name: Download libcloudph++ dir
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
 
@@ -185,7 +185,7 @@ jobs:
       run: tar -xvf libcloudphxx.tar
 
 #    - name: checkout libcloudph++ 
-#      uses: actions/checkout@v2
+#      uses: actions/checkout@v5
 #      with:
 #        repository: igfuw/libcloudphxx
 #        ref: ${{ inputs.libcloudphxx_sha }}
@@ -207,14 +207,14 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/libmpdataxx
         ref: ${{ inputs.libmpdataxx_sha }}
         path: libmpdataxx
 
     - name: Install libmpdata++
-      uses: igfuw/libmpdataxx_install@v0.4
+      uses: igfuw/libmpdataxx_install@master
       with:
         build_type: ${{matrix.build_type}}
         threads: 4
@@ -237,7 +237,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout UWLCM_plotting repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         repository: igfuw/UWLCM_plotting
         path: UWLCM_plotting
