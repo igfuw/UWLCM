@@ -33,6 +33,16 @@
   #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
 #endif
 
+#if !defined(UWLCM_DISABLE_2D_BLK_1M_ICE) || !defined(UWLCM_DISABLE_3D_BLK_1M_ICE)
+  #include "solvers/slvr_blk_1m.hpp"
+  #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
+  #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
+
+  #include "solvers/slvr_blk_1m_ice.hpp"
+  #include "solvers/blk_1m_ice/calc_forces_blk_1m_ice_common.hpp"
+  #include "solvers/blk_1m_ice/update_rhs_blk_1m_ice_common.hpp"
+#endif
+
 #if !defined(UWLCM_DISABLE_2D_BLK_2M) || !defined(UWLCM_DISABLE_3D_BLK_2M)
   #include "solvers/slvr_blk_2m.hpp"
   #include "solvers/blk_2m/calc_forces_blk_2m_common.hpp"
@@ -60,7 +70,7 @@ int main(int argc, char** argv)
     opts_main.add_options()
       //("micro", po::value<std::string>()->default_value("blk_1m"), "one of: blk_1m, blk_2m, lgrngn, none")
       ("micro", po::value<std::string>()->required(), "one of: blk_1m, blk_2m, lgrngn, none")
-      ("case", po::value<std::string>()->default_value("moist_thermal"), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02, cumulus_congestus_icmw20, cumulus_congestus_icmw24, rico11, dry_pbl")
+      ("case", po::value<std::string>()->default_value("moist_thermal"), "one of: dry_thermal, moist_thermal, dycoms_rf01, dycoms_rf02, cumulus_congestus_icmw20, cumulus_congestus_icmw24, rico11, dry_pbl, bomex03, daytime_convection_LBA")
       ("X", po::value<setup::real_t>()->default_value(-1) , "domain size in X [m] (set negative for case default)")
       ("Y", po::value<setup::real_t>()->default_value(-1) , "domain size in Y [m] (set negative for case default)")
       ("Z", po::value<setup::real_t>()->default_value(-1) , "domain size in Z [m] (set negative for case default)")
@@ -246,6 +256,20 @@ int main(int argc, char** argv)
       run_hlpr<slvr_blk_1m, ct_params_3D_blk_1m>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
 #else
       throw std::runtime_error("UWLCM: 3D Bulk 1-moment option was disabled at compile time");
+#endif
+
+    else if (micro == "blk_1m_ice" && ny == 0) // 2D one-moment with ice
+#if !defined(UWLCM_DISABLE_2D_BLK_1M_ICE)
+        run_hlpr<slvr_blk_1m_ice, ct_params_2D_blk_1m_ice>(piggy, sgs, user_params.model_case, {nx, nz}, user_params);
+#else
+    throw std::runtime_error("UWLCM: 2D Bulk 1-moment with ice option was disabled at compile time");
+#endif
+
+    else if (micro == "blk_1m_ice" && ny > 0) // 3D one-moment with ice
+#if !defined(UWLCM_DISABLE_3D_BLK_1M_ICE)
+        run_hlpr<slvr_blk_1m_ice, ct_params_3D_blk_1m_ice>(piggy, sgs, user_params.model_case, {nx, ny, nz}, user_params);
+#else
+    throw std::runtime_error("UWLCM: 3D Bulk 1-moment with ice option was disabled at compile time");
 #endif
 
     else if (micro == "blk_2m" && ny == 0) // 2D two-moment

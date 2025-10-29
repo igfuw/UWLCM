@@ -12,6 +12,12 @@
 struct smg_tag  {};
 struct iles_tag {};
 
+struct uwlcm_blk_1m_family_tag {};
+struct uwlcm_blk_1m_ice_family_tag {};
+struct uwlcm_blk_2m_family_tag {};
+struct uwlcm_lgrngn_family_tag {};
+struct uwlcm_dry_family_tag {};
+
 namespace cmn = libcloudphxx::common;
 
 template <class ct_params_t>
@@ -544,6 +550,7 @@ class slvr_common : public slvr_dim<ct_params_t>
          radiation = false,
          vel_subsidence = false; // should subsidence be also applied to velocitiy fields; the way it is computed (local or mean) depends on subs_t subsidence 
     bool rc_src = true, rr_src = true; // these two are only relevant for blk schemes, but need to be here so that Cases can have access to it
+    bool ria_src = true, rib_src = true;
     bool nc_src = true, nr_src = true; // these two are only relevant for blk_2m, but need to be here so that Cases can have access to them
     typename ct_params_t::real_t dz; // vertical grid size
 //    detail::ForceParameters_t ForceParameters;

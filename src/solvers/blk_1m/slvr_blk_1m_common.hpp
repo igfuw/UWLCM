@@ -9,21 +9,24 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
                                                      slvr_sgs<ct_params_t>
                                                     >
 {
+  public:
+
   using parent_t = std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
                                     slvr_common<ct_params_t>,
                                     slvr_sgs<ct_params_t>
                                    >;
 
-  public:
+  using solver_family = uwlcm_blk_1m_family_tag;
+
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
 
   protected:
   typename parent_t::arr_t &precipitation_rate; 
 
-  private:
   // a 2D/3D array with copy of the environmental total pressure of dry air 
   typename parent_t::arr_t &p_e;
+
 
   void condevap()
   {
@@ -91,6 +94,9 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
 
     // init the p_e array
     p_e(this->ijk).reindex(this->zero) = (*params.p_e)(this->vert_idx);
+
+    nancheck(this->mem->advectee(ix::rv)(this->ijk), "rv in hook_ante_loop");
+    negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv in hook_ante_loop");
 
     // deal with initial supersaturation, TODO: don't do it here (vide slvr_lgrngn)
     condevap();
