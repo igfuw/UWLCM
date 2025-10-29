@@ -124,7 +124,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else if (user_params.model_case == "bomex03")
     case_ptr.reset(new cases::bomex::Bomex03<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
-  else if (user_params.model_case == "daytime_convection")
+  else if (user_params.model_case == "daytime_convection_LBA")
     case_ptr.reset(new cases::daytime_convection::DaytimeConvection<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else
     throw std::runtime_error("UWLCM: wrong case choice");
