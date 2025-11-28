@@ -39,7 +39,7 @@ jobs:
 
     steps:
     - name: checkout libcloudph++ 
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/libcloudphxx
         ref: ${{ inputs.libcloudphxx_sha }}
@@ -91,7 +91,7 @@ jobs:
           tar_name: "Dbg"
     steps:
     - name: checkout UWLCM 
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
@@ -109,7 +109,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/libmpdataxx
         ref: ${{ inputs.libmpdataxx_sha }}
@@ -171,7 +171,7 @@ jobs:
 
     steps:
     - name: checkout UWLCM 
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
@@ -185,7 +185,7 @@ jobs:
       run: tar -xvf libcloudphxx.tar
 
 #    - name: checkout libcloudph++ 
-#      uses: actions/checkout@v5
+#      uses: actions/checkout@v6
 #      with:
 #        repository: igfuw/libcloudphxx
 #        ref: ${{ inputs.libcloudphxx_sha }}
@@ -207,7 +207,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/libmpdataxx
         ref: ${{ inputs.libmpdataxx_sha }}
@@ -237,7 +237,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout UWLCM_plotting repo
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: igfuw/UWLCM_plotting
         path: UWLCM_plotting
