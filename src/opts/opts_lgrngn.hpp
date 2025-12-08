@@ -93,6 +93,7 @@ void setopts_micro(
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
+    ("out_ice_spec", po::value<bool>()->default_value(false), "enable output for plotting ice spectrum")
     ("rd_min", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_min), "minimum dry radius of initialized droplets [m] (negative means automatic detection)")
     ("rd_max", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_max), "maximum dry radius of initialized droplets [m] (negative means automatic detection); sd_conc_large_tail==true may result in initialization of even larger droplets")
     ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
@@ -364,8 +365,8 @@ void setopts_micro(
             log(10e-6),   // maximum radius
             rt_params.gccn / rt_params.dt // concenctration multiplier
           ),
-          rt_params.cloudph_opts.src_sd_conc,
-          rt_params.cloudph_opts.supstp_src
+          38, // number of SD created per cell (src_sd_conc)
+          1 // timestep interval at which source will be applied
           )
       );
 
@@ -465,9 +466,9 @@ void setopts_micro(
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence == subs_t::local || rt_params.subsidence == subs_t::mean ? true : false;
   rt_params.cloudph_opts.subs = rt_params.subsidence == subs_t::local || rt_params.subsidence == subs_t::mean ? true : false;
 
-  // parsing --out_dry and --out_wet options values
+  // parsing --out_dry and --out_wet --out_ice options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
-  for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
+  for (auto &opt : std::set<std::string>({"out_dry", "out_wet", "out_ice"}))
   {
     namespace qi = boost::spirit::qi;
     namespace phoenix = boost::phoenix;
@@ -477,10 +478,11 @@ void setopts_micro(
     auto last  = val.end();
 
     std::vector<std::pair<std::string, std::string>> min_maxnum;
-    outmom_t<thrust_real_t> &moms = 
-      opt == "out_dry"
-        ? rt_params.out_dry
-        : rt_params.out_wet;
+    outmom_t<thrust_real_t>* moms_ptr = nullptr;
+    if (opt == "out_dry")       moms_ptr = &rt_params.out_dry;
+    else if (opt == "out_wet")  moms_ptr = &rt_params.out_wet;
+    else                        moms_ptr = &rt_params.out_ice;
+    outmom_t<thrust_real_t>& moms = *moms_ptr;
 
     const bool result = qi::phrase_parse(first, last, 
       *(
@@ -526,12 +528,22 @@ void setopts_micro(
     }
   } 
 
-  for (auto &opt : std::set<std::string>({"out_dry_spec", "out_wet_spec"}))
+  for (auto &opt : std::set<std::string>({"out_dry_spec", "out_wet_spec", "out_ice_spec"}))
   {
     if(vm[opt].as<bool>())
     {
-      auto left_edges = opt == "out_dry_spec" ? bins_dry() : bins_wet();
-      auto &out = opt == "out_dry_spec" ? rt_params.out_dry : rt_params.out_wet;
+
+      std::vector<thrust_real_t> left_edges;
+      if (opt == "out_dry_spec")      left_edges = bins_dry();
+      else if (opt == "out_wet_spec") left_edges = bins_wet();
+      else                             left_edges = bins_ice();
+
+      outmom_t<thrust_real_t>* out_ptr = nullptr;
+      if (opt == "out_dry_spec")       out_ptr = &rt_params.out_dry;
+      else if (opt == "out_wet_spec")  out_ptr = &rt_params.out_wet;
+      else                             out_ptr = &rt_params.out_ice;
+      auto &out = *out_ptr;
+
       for (int i = 0; i < left_edges.size()-1; ++i)
       {
         out.push_back(outmom_t<thrust_real_t>::value_type(

@@ -42,8 +42,12 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
         n_sd_from_dry_sizes += rcm.second.second;
 
     // src_dry_distros is used only in the first step to add GCCN below some level
-    int n_sd_from_src_dry_distros = params.cloudph_opts.src_sd_conc * params.cloudph_opts_init.src_z1 / params.cloudph_opts_init.z1 + 0.5;
-      
+    //int n_sd_from_src_dry_distros = params.cloudph_opts.src_sd_conc * params.cloudph_opts_init.src_z1 / params.cloudph_opts_init.z1 + 0.5;
+    int n_sd_from_src_dry_distros = 0;
+    for (auto const& kv : params.cloudph_opts.src_dry_distros)
+      n_sd_from_src_dry_distros += std::get<1>(kv.second); // src_sd_conc
+    n_sd_from_src_dry_distros *= params.cloudph_opts_init.src_z1 / params.cloudph_opts_init.z1;
+
     const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes + n_sd_from_src_dry_distros;
 
     if(parent_t::n_dims == 2) // 2D
@@ -183,9 +187,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("chem_rct", "lgrngn", params.cloudph_opts.chem_rct);  
     this->record_aux_const("chem_rho", "lgrngn", params.cloudph_opts_init.chem_rho);  
     this->record_aux_const("opts_init RH_max", "lgrngn", params.cloudph_opts_init.RH_max);
-    this->record_aux_const("supstp_src", "lgrngn", params.cloudph_opts.supstp_src);
     this->record_aux_const("supstp_rlx", "lgrngn", params.cloudph_opts_init.supstp_rlx);
-    this->record_aux_const("src_sd_conc", "lgrngn", params.cloudph_opts.src_sd_conc);
     this->record_aux_const("src_z1", "lgrngn", params.cloudph_opts_init.src_z1);
     this->record_aux_const("rlx_bins", "lgrngn", params.cloudph_opts_init.rlx_bins);  
     this->record_aux_const("rlx_sd_per_bin", "lgrngn", params.cloudph_opts_init.rlx_sd_per_bin);  
@@ -204,8 +206,9 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     else
       this->record_aux_const("aerosol_conc_factor", "uniform");  
     this->record_aux_const("outfreq_spec", "lgrngn", params.outfreq_spec);
-    // store left and right edges of bins for wet and dry radii moments
-    for (auto &out : std::set<std::pair<outmom_t<real_t>, std::string>>({{params.out_dry, "out_dry"}, {params.out_wet, "out_wet"}}))
+    // store left and right edges of bins for wet, dry and ice radii moments
+    for (auto &out : std::set<std::pair<outmom_t<real_t>, std::string>>({{params.out_dry, "out_dry"}, {params.out_wet, "out_wet"},
+      {params.out_ice, "out_ice_a"}, {params.out_ice, "out_ice_c"}}))
     {
       if(!out.first.empty()) 
       {
