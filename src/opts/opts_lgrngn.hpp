@@ -70,6 +70,9 @@ void setopts_micro(
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
     ("dev_count", po::value<int>()->default_value(0), "no. of CUDA devices")
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
+    ("ice_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.ice_switch) , "enable ice microphysics (1=on, 0=off)")
+    ("ice_nucl", po::value<bool>()->default_value(rt_params.cloudph_opts.ice_nucl) , "ice nucleation (1=on, 0=off)")
+    ("time_dep_ice_nucl", po::value<bool>()->default_value(rt_params.cloudph_opts_init.time_dep_ice_nucl) , "time dependent ice nucleation (1=on, 0=off)")
     // free parameters
     ("exact_sstp_cond", po::value<bool>()->default_value(rt_params.cloudph_opts_init.exact_sstp_cond), "exact(per-particle) logic for substeps for condensation")
     ("diag_incloud_time", po::value<bool>()->default_value(rt_params.cloudph_opts_init.diag_incloud_time), "diagnose incloud time of droplets")
