@@ -14,7 +14,7 @@ struct user_params_t
   quantity<si::length, setup::real_t> mean_rd1, mean_rd2;		
   quantity<si::dimensionless, setup::real_t> sdev_rd1, sdev_rd2;		
   quantity<power_typeof_helper<si::length, static_rational<-3>>::type, setup::real_t> n1_stp, n2_stp;		
-  quantity<si::dimensionless, setup::real_t> kappa1, kappa2;
+  quantity<si::dimensionless, setup::real_t> kappa1, kappa2, rd_insol1, rd_insol2;
   quantity<si::dimensionless, setup::real_t> case_n_stp_multiplier;
 
   bool relax_th_rv,

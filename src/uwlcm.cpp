@@ -100,10 +100,12 @@ int main(int argc, char** argv)
       ("sdev_rd1", po::value<setup::real_t>()->default_value(1.2) , "aerosol distirbution lognormal mode 1: geometric standard deviation (lgrngn and blk_2m microphysics only)")
       ("n1_stp", po::value<setup::real_t>()->default_value(-1.0) , "aerosol distirbution lognormal mode 1: concentration at STP [1/m^3] (lgrngn and blk_2m microphysics only). If n1_stp<0 and n2_stp<0, case-specific aerosol distribution is used.")
       ("kappa1", po::value<setup::real_t>()->default_value(0.61) , "aerosol distirbution lognormal mode 1: hygroscopicity parameter (lgrngn and blk_2m microphysics only)")
+      ("rd_insol1", po::value<setup::real_t>()->default_value(0.) , "aerosol distirbution lognormal mode 1: insoluble dry radius (lgrngn microphysics only)")
       ("mean_rd2", po::value<setup::real_t>()->default_value(1.0e-6) , "aerosol distirbution lognormal mode 2: mean radius [m] (lgrngn and blk_2m microphysics only)")
       ("sdev_rd2", po::value<setup::real_t>()->default_value(1.2) , "aerosol distirbution lognormal mode 2: geometric standard deviation (lgrngn and blk_2m microphysics only)")
       ("n2_stp", po::value<setup::real_t>()->default_value(-1.0) , "aerosol distirbution lognormal mode 2: concentration at STP [1/m^3] (lgrngn and blk_2m microphysics only). If n1_stp<0 and n2_stp<0, case-specific aerosol distribution is used.")
       ("kappa2", po::value<setup::real_t>()->default_value(0.61) , "aerosol distirbution lognormal mode 2: hygroscopicity parameter (lgrngn and blk_2m microphysics only)")
+      ("rd_insol2", po::value<setup::real_t>()->default_value(0.) , "aerosol distirbution lognormal mode 2: insoluble dry radius (lgrngn microphysics only)")
       ("case_n_stp_multiplier", po::value<setup::real_t>()->default_value(1.0) , "if case-specific aerosol distribution is used, multiply the case-default aerosols concentration by this value.")
 //      ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
     ;
@@ -200,10 +202,12 @@ int main(int argc, char** argv)
     user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
     user_params.n1_stp = vm["n1_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa1 = vm["kappa1"].as<setup::real_t>();
+    user_params.rd_insol1 = vm["rd_insol1"].as<setup::real_t>();
     user_params.mean_rd2 = vm["mean_rd2"].as<setup::real_t>() * si::metres;
     user_params.sdev_rd2 = vm["sdev_rd2"].as<setup::real_t>();
     user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
+    user_params.rd_insol2 = vm["rd_insol2"].as<setup::real_t>();
 
     user_params.case_n_stp_multiplier = vm["case_n_stp_multiplier"].as<setup::real_t>();
 

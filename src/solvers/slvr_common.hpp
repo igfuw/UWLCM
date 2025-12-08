@@ -169,10 +169,12 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("sdev_rd1", "user_params", params.user_params.sdev_rd1);
       this->record_aux_const("n1_stp", "user_params", params.user_params.n1_stp * si::cubic_metres);
       this->record_aux_const("kappa1", "user_params", params.user_params.kappa1);
+      this->record_aux_const("rd_insol1", "user_params", params.user_params.rd_insol1);
       this->record_aux_const("mean_rd2", "user_params", params.user_params.mean_rd2 / si::metres);  
       this->record_aux_const("sdev_rd2", "user_params", params.user_params.sdev_rd2);
       this->record_aux_const("n2_stp", "user_params", params.user_params.n2_stp * si::cubic_metres);
       this->record_aux_const("kappa2", "user_params", params.user_params.kappa2);
+      this->record_aux_const("rd_insol2", "user_params", params.user_params.rd_insol2);
 
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
