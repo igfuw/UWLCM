@@ -83,6 +83,7 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value(""),  "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_ice", po::value<std::string>()->default_value(""),  "ice radius (polar and equatorial) ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("gccn", po::value<setup::real_t>()->default_value(0) , "concentration of giant aerosols = gccn * VOCALS observations")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
@@ -310,8 +311,8 @@ void setopts_micro(
 
 
 /*
-      rt_params.cloudph_opts_init.src_dry_sizes.emplace(
-        1.28, // kappa
+      rt_params.cloudph_opts.src_dry_sizes.emplace(
+      libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>{thrust_real_t(1.28), thrust_real_t(0.)},
         std::map<setup::real_t, std::pair<setup::real_t, int> > {
           {0.8e-6, {rt_params.gccn / rt_params.dt * 111800, 1}},
           {1.0e-6, {rt_params.gccn / rt_params.dt * 68490,  1}},
@@ -357,11 +358,15 @@ void setopts_micro(
 
       rt_params.cloudph_opts.src_dry_distros.emplace(
         libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>{thrust_real_t(1.28), thrust_real_t(0.)},
-        std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
-          log(0.8e-6),      // minimum radius  
-          log(10e-6),   // maximum radius
-          rt_params.gccn / rt_params.dt // concenctration multiplier
-        )
+        std::make_tuple(
+          std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+            log(0.8e-6),      // minimum radius
+            log(10e-6),   // maximum radius
+            rt_params.gccn / rt_params.dt // concenctration multiplier
+          ),
+          rt_params.cloudph_opts.src_sd_conc,
+          rt_params.cloudph_opts.supstp_src
+          )
       );
 
       // GCCN relaxation stuff
