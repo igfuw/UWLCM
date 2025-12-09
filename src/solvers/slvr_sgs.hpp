@@ -114,7 +114,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
     tdef_sq(this->ijk) = formulae::stress::calc_tdef_sq_cmpct<ct_params_t::n_dims>(this->tau, this->ijk);
     calc_rcdsn_num();
 
-    // Simon and Chow 2021, eqs. 14a, 14b
+    // Simon and Chow 2021, eqs. 14a, 14b, but using mixing length along, not normal!
     // l^-2 = (kz)^-2 + (Cs dl)^-2 = A
     // l = A^(-1/2)
     // l^2 = 1/A
