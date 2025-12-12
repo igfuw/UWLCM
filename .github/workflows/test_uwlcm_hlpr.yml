@@ -61,7 +61,7 @@ jobs:
       run: tar -cvf libcloudphxx.tar libcloudphxx/build libcloudphxx/include
 
     - name: Upload libcloudph++ dir
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
         path: libcloudphxx.tar
