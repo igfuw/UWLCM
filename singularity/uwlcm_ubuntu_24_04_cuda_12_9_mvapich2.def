@@ -50,6 +50,8 @@ update-locale LANG=en_US.UTF-8
 # Consider using a minimal texlive bundle or installing just what you need
 # apt-get install -y --no-install-recommends texlive-latex-base
 
+mkdir /tmp/build && cd /tmp/build # compile in /tmp/build to simplify cleanup
+
 # Build blitz
 git clone --depth=1 https://github.com/blitzpp/blitz.git
 cd blitz
@@ -58,13 +60,12 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/usr
 make -j$(nproc)
 make install
 cd ../..
-rm -rf blitz
+# rm -rf blitz
 
 # Install python-gnuplot deb
 wget http://ftp.pl.debian.org/debian/pool/main/p/python-gnuplot/python3-gnuplot_1.8-8_all.deb
 apt install -y ./python3-gnuplot_1.8-8_all.deb
-rm python3-gnuplot_1.8-8_all.deb
-
+#rm python3-gnuplot_1.8-8_all.deb
 
 # MPI - mvapich2-2.3.6
 #export CXX=g++
@@ -105,7 +106,8 @@ make install
 # Install odeint thrust v2 fix (and clean up after)
 git clone -b Thrust_2 --depth=1 https://github.com/pdziekan/odeint.git
 cp -r odeint/include/boost/numeric/odeint/* /usr/local/include/boost/numeric/odeint/
-rm -rf odeint
+# rm -rf odeint
 
 # Final cleanup
+rm -rf /tmp/build
 apt-get clean
