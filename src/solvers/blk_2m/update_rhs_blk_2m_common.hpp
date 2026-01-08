@@ -52,7 +52,7 @@ void slvr_blk_2m_common<ct_params_t>::update_rhs(
      libcloudphxx::blk_2m::rhs_cellwise<real_t>(
       params.cloudph_opts, dot_th,  dot_rv, dot_rc, dot_nc, dot_rr, dot_nr,
       rhod, th,     rv,     rc,     nc,     rr,     nr,
-      this->dt, true, p_e_arg
+      this->dt, p_e_arg
     );
       nancheck(nc, "nc after blk_2m rhs_cellwise call");
       negcheck(nc, "nc after blk_2m rhs_cellwise call");

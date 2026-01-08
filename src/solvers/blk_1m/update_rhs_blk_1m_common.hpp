@@ -36,7 +36,7 @@ void slvr_blk_1m_common<ct_params_t>::update_rhs(
       rr   = this->state(ix::rr)(this->ijk),
       rhod = (*this->mem->G)(this->ijk),
       &p_e_arg = p_e(this->ijk);
-    libcloudphxx::blk_1m::rhs_cellwise_nwtrph<real_t>(
+    libcloudphxx::blk_1m::rhs_cellwise_revap<real_t>(
         params.cloudph_opts,
         dot_th, dot_rv, dot_rc, dot_rr,
         rhod, p_e_arg, th, rv, rc, rr,
