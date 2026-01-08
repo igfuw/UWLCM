@@ -87,7 +87,8 @@ int main(int argc, char** argv)
 //      ("uv_src", po::value<bool>()->default_value(true) , "horizontal vel src")
 //      ("w_src", po::value<bool>()->default_value(true) , "vertical vel src")
       ("piggy", po::value<bool>()->default_value(false) , "do piggybacking from a velocity field stored on a disk")
-      ("sgs", po::value<bool>()->default_value(false) , "turn Eulerian SGS model on/off")
+      // ("sgs", po::value<bool>()->default_value(false) , "turn Eulerian SGS model on/off")
+      ("sgs", po::value<std::string>()->default_value("smg"), "Eulerian SGS model; one of: iles, smg, smgani")
       ("sgs_delta", po::value<setup::real_t>()->default_value(-1) , "subgrid-scale turbulence model length scale [m]. If negative, sgs_delta = dz")
       ("help", "produce a help message (see also --micro X --help)")
       ("relax_th_rv", po::value<bool>()->default_value(false) , "relax per-level mean theta and rv to a desired (case-specific) profile")
@@ -176,7 +177,8 @@ int main(int argc, char** argv)
     user_params.relax_th_rv = vm["relax_th_rv"].as<bool>();
 
     bool piggy = vm["piggy"].as<bool>();
-    bool sgs = vm["sgs"].as<bool>();
+//     bool sgs = vm["sgs"].as<bool>();
+    std::string sgs = vm["sgs"].as<std::string>();
     user_params.sgs_delta = vm["sgs_delta"].as<setup::real_t>();
     
 // sanity check if desired options were compiled
@@ -186,14 +188,17 @@ int main(int argc, char** argv)
 #if defined(UWLCM_DISABLE_DRIVER)
     if(!piggy)  throw std::runtime_error("UWLCM: Driver option was disabled at compile time");
 #endif
-#if defined(UWLCM_DISABLE_SGS)
-    if(sgs)  throw std::runtime_error("UWLCM: SGS option was disabled at compile time");
+#if defined(UWLCM_DISABLE_SMG)
+    if(sgs == "smg")  throw std::runtime_error("UWLCM: SMG option was disabled at compile time");
+#endif
+#if defined(UWLCM_DISABLE_SMGANI)
+    if(sgs == "smgani")  throw std::runtime_error("UWLCM: SMGANI option was disabled at compile time");
 #endif
 #if defined(UWLCM_DISABLE_ILES)
-    if(!sgs)  throw std::runtime_error("UWLCM: ILES option was disabled at compile time");
+    if(sgs == "iles")  throw std::runtime_error("UWLCM: ILES option was disabled at compile time");
 #endif
 
-    if(piggy && sgs) throw std::runtime_error("UWLCM: SGS does not work in a piggybacker run");
+    if(piggy && sgs!="iles") throw std::runtime_error("UWLCM: piggybacker works only with ILES (sgs=iles)");
 
     // set aerosol params to user_params data structure
     user_params.mean_rd1 = vm["mean_rd1"].as<setup::real_t>() * si::metres;
