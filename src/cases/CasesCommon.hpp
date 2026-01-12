@@ -104,7 +104,7 @@ namespace cases
       params.c_m = 0.0856;
       params.smg_c = 0.165;
       params.prandtl_num = 0.42;
-      params.karman_c = 0.41;
+      // params.karman_c = 0.41;
       params.cdrag = 0;
       params.fricvelsq = 0;
     }
