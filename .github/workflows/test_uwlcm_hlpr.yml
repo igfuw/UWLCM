@@ -74,7 +74,7 @@ jobs:
       matrix:
         build_type: ["RelWithDebInfo", "Debug"]
         mpi: ["none"]
-        sgs: ["iles", "smg"]
+        sgs: ["iles", "smg", "smgani"]
         disable_cuda: ["true"]
         include:
         - mpi: "none"
