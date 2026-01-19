@@ -13,8 +13,10 @@ using std::string;
 
 int main(int ac, char** av)
 {
-  if (ac != 3 && ac != 4) error_macro("expecting two or three arguments: 1. CMAKE_BINARY_DIR 2. should piggybacking be tested (bool) 3. additional command line options (optional)");
-  string opts_additional = ac == 4 ? av[3] : "";
+  if (ac != 4 && ac != 5) error_macro("expecting three or four arguments: 1. CMAKE_BINARY_DIR 2. should piggybacking be tested (bool) 3. test name 4. additional command line options (optional)");
+  string test_name = av[3];
+  string outdir_root = "output_"+test_name;
+  string opts_additional = ac == 5 ? av[4] : "";
   bool run_piggy = std::stoi(av[2]);
 
   string opts_common = 
@@ -68,10 +70,10 @@ int main(int ac, char** av)
   if(run_piggy)
     opts_piggy.push_back("--piggy=1 --vel_in=.");  // take vel file from blk, cause it's ran first
 
-  system("mkdir output");
+  system((string("mkdir ") + outdir_root).c_str());
 
   // file with a dict translating hashed outdir into options
-  std::ofstream ofdict("hash_dict"+opts_additional+".txt");
+  std::ofstream ofdict("hash_dict_"+test_name+".txt");
 
   for (auto &opts_d : opts_dim)
     for (auto &opts_m : opts_micro)
@@ -103,7 +105,7 @@ int main(int ac, char** av)
             auto outdir = std::hash<std::string>{}(opts.str());
             ofdict << outdir << " : " << opts.str() << std::endl;
 
-            cmd << av[1] <<  "/../../build/uwlcm " << opts.str() << " --outdir=\"output/" << outdir << "\"";
+            cmd << av[1] <<  "/../../build/uwlcm " << opts.str() << " --outdir=\"" << outdir_root <<"/" << outdir << "\"";
  
             cerr << endl << "=========" << endl;
             notice_macro("about to call: " << cmd.str())
@@ -115,7 +117,7 @@ int main(int ac, char** av)
             if(opts_p == opts_piggy[1] && run_piggy)
             {
               ostringstream cpcmd;
-              cpcmd << "cp -r \"output/" << outdir << "/velocities\" .";
+              cpcmd << "cp -r \"" << outdir_root << "/" << outdir << "/velocities\" .";
               notice_macro("about to call: " << cpcmd.str())
               system(cpcmd.str().c_str());
             }
