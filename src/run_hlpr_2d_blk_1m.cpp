@@ -9,4 +9,4 @@
 
 // explicit instantiation
 template
-void run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m, 2>(bool piggy, bool sgs, const std::string &type, const int (&nps)[2], const user_params_t &user_params);
+void run_hlpr<slvr_blk_1m, ct_params_2D_blk_1m, 2>(bool piggy, const std::string &sgs, const std::string &type, const int (&nps)[2], const user_params_t &user_params);

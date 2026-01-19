@@ -58,6 +58,9 @@ namespace cases
   template<class case_ct_params_t, int n_dims>
   class CasesCommon
   {
+    static constexpr real_t karman_c = 0.41; // von Karman constant
+    static constexpr real_t smg_c = 0.165; // Smagorinsky constant
+
     public: 
 
     using ix = typename case_ct_params_t::ix;
@@ -102,8 +105,9 @@ namespace cases
                      typename std::enable_if<enable_sgs>::type* = 0)
     {
       params.c_m = 0.0856;
-      params.smg_c = 0.165;
+      params.smg_c = smg_c;
       params.prandtl_num = 0.42;
+      params.karman_c = karman_c;
       params.cdrag = 0;
       params.fricvelsq = 0;
     }
@@ -113,23 +117,72 @@ namespace cases
 
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
     virtual void intcond(concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
-    virtual void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
+
+    // virtual void set_profs(detail::profiles_t &profs, int nx, int nz, const user_params_t &user_params)
+    virtual void set_profs(detail::profiles_t &profs, const int nps[n_dims], const user_params_t &user_params)
     {
-      real_t dz = (Z / si::metres) / (nz-1);
+      static_assert(n_dims == 2 || n_dims == 3, "set_profs: n_dims must be 2 or 3");
+      // TODO: get these constants from user_params (or rt_params_t)
+      // const real_t smg_c = 0.165; // Smagornsky constant
+      // const real_t karman_c = 0.41; // von Karman constant
+
+      const int nz = nps[n_dims-1];
+
+      // grid spacing
+      real_t dx, dy, dz;
+      if constexpr (n_dims == 2)
+      {
+        dx = (X / si::metres) / (nps[0]-1);
+        dy = dx; // used in horizontal mixing length...
+        dz = (Z / si::metres) / (nps[1]-1);
+      }
+      else if (n_dims == 3)
+      {
+        dx = (X / si::metres) / (nps[0]-1);
+        dy = (Y / si::metres) / (nps[1]-1);
+        dz = (Z / si::metres) / (nps[2]-1);    
+      }             
+
       // set SGS mixing length
       {
+        using blitz::pow2;
         blitz::firstIndex k;
 
-        real_t sgs_delta;
+        real_t sgs_delta; // size of a grid cell used as characteristic length scale in SGS models
         if (user_params.sgs_delta > 0)
         {
           sgs_delta = user_params.sgs_delta;
         }
         else
         {
-          sgs_delta = dz;
+          sgs_delta = dz; // default
         }
-        profs.mix_len = min(max(k, 1) * dz * 0.845, sgs_delta);
+
+        // size of SGS eddies, used in SD SGS models (note that they are isotropic!)
+        profs.sgs_eddy_size = min(max(k, 0.5) * dz * 0.845, sgs_delta);
+
+        // isotropic mixing length - used in isotropic SMG and in SD SGS models
+        // like in Smagorinsky 1963, but with default characteristic length scale (sgs_delta) equal to dz (not dx*dy*dz)^(1/3))
+        // similar approach used e.g. in the SAM model
+        // also there's a reduction near ground 
+        // NOTE: it's not multiplied by the smagorinsky constant here (that is done in slvr_sgs), because mix_len_iso is used also in SD SGS (opts_lgrngn.hpp) where no such constant is used
+        // profs.mix_len_iso = min(max(k, 0.5) * dz * 0.845, sgs_delta);
+        // profs.mix_len_iso_sq = pow2(smg_c * min(max(k, 0.5) * dz * 0.845, sgs_delta));
+        profs.mix_len_iso_sq = pow2(smg_c * profs.sgs_eddy_size);
+
+        // anisotropic mixing length - used in anisotropic SMG
+        // based on Mason & Thomson 1992, but anisotropic, like in Simon & Chow 2021 (https://doi.org/10.1007/s10546-021-00642-0)
+        // but we do not use grid size in the normal direction, only along (i.e. dx, dy for horizontal and dz for vertical)
+        // TODO: to be consistent, setting user_params.sgs_delta or turning on SD SGS models should not be allowed with anisotropic SMG (?)
+        // NOTE: it's not really mixing length, but grid size used to calculate mixing length; mixing length calculation is in slvr_sgs.hpp; 
+        //       here we just set the characteristic grid size along each direction to simplify potential future option to override it (as with isotropic sgs_delta)
+        real_t dxy = pow(dx * dy, real_t(1./2));
+        profs.mix_len_hori_sq = pow2(real_t(1) / (real_t(1) / pow2(karman_c * max(k, 1) * dz) + real_t(1) / pow2(smg_c * dxy)));
+        profs.mix_len_vert_sq = pow2(real_t(1) / (real_t(1) / pow2(karman_c * max(k, 1) * dz) + real_t(1) / pow2(smg_c * dz)));
+        // real_t(1) / (real_t(1) / pow(this->smg_c * params.di, 2) + (*this->params.mix_len)(this->vert_idx))
+        // profs.mix_len_vert_sq = dz; // real_t(1) / pow2(karman_c * max(k, 1) * dz);
+        // add dx dy terms; also add sgs_delta, from user params...
+        // TODO: save these, use them in slvr_sgs, ...
       }
 
       // set profile of vertical distribution of surface fluxes
