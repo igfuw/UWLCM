@@ -18,6 +18,7 @@
 #include "cases/CumulusCongestus_icmw24.hpp"
 #include "cases/DryPBL.hpp"
 #include "cases/BOMEX03.hpp"
+#include "cases/DaytimeConvectionLBA.hpp"
 
 #include "opts/opts_common.hpp"
 #include "solvers/common/calc_forces_common.hpp"
@@ -41,6 +42,17 @@
   #include "solvers/slvr_blk_1m.hpp"
   #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
   #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
+#endif
+
+#if !defined(UWLCM_DISABLE_2D_BLK_1M_ICE) || !defined(UWLCM_DISABLE_3D_BLK_1M_ICE)
+  #include "solvers/slvr_blk_1m.hpp"
+  #include "solvers/blk_1m/calc_forces_blk_1m_common.hpp"
+  #include "solvers/blk_1m/update_rhs_blk_1m_common.hpp"
+
+  #include "opts/opts_blk_1m_ice.hpp"
+  #include "solvers/slvr_blk_1m_ice.hpp"
+  #include "solvers/blk_1m_ice/calc_forces_blk_1m_ice_common.hpp"
+  #include "solvers/blk_1m_ice/update_rhs_blk_1m_ice_common.hpp"
 #endif
 
 #if !defined(UWLCM_DISABLE_2D_BLK_2M) || !defined(UWLCM_DISABLE_3D_BLK_2M)
@@ -112,6 +124,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else if (user_params.model_case == "bomex03")
     case_ptr.reset(new cases::bomex::Bomex03<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
+  else if (user_params.model_case == "daytime_convection_LBA")
+    case_ptr.reset(new cases::daytime_convection::DaytimeConvection<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
   else
     throw std::runtime_error("UWLCM: wrong case choice");
 
@@ -156,7 +170,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   // set case-specific options, needs to be done after copy_profiles
   case_ptr->setopts(p, nps, user_params);
   // set micro-specific options, needs to be done after copy_profiles
-  setopts_micro<solver_t>(p, user_params, case_ptr);
+  setopts_micro<solver_t>(p, user_params, case_ptr, typename solver_t::solver_family {});
 
   // set outvars
   p.outvars.insert({ix::rv, {"rv", "[kg kg-1]"}});
