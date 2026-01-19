@@ -185,7 +185,10 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("th_LS", params.th_LS->data()); 
       this->record_prof_const("rv_LS", params.rv_LS->data()); 
       this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
-      this->record_prof_const("mix_len", params.mix_len->data());
+      this->record_prof_const("sgs_eddy_size", params.sgs_eddy_size->data());
+      this->record_prof_const("mix_len_iso_sq", params.mix_len_iso_sq->data());
+      this->record_prof_const("mix_len_hori_sq", params.mix_len_hori_sq->data());
+      this->record_prof_const("mix_len_vert_sq", params.mix_len_vert_sq->data());
       this->record_prof_const("relax_th_rv_coeff", params.relax_th_rv_coeff->data()); 
       if(parent_t::n_dims==3)
       {

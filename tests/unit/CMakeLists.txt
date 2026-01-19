@@ -6,7 +6,8 @@ add_executable(api_test api_test.cpp)
 target_compile_features(api_test PRIVATE cxx_std_11)
 
 add_test(api_test_iles api_test ${CMAKE_BINARY_DIR} 1)
-add_test(api_test_smg  api_test ${CMAKE_BINARY_DIR} 0 " --sgs=1 ")
+add_test(api_test_smg  api_test ${CMAKE_BINARY_DIR} 0 " --sgs='smg' ")
+add_test(api_test_smgani  api_test ${CMAKE_BINARY_DIR} 0 " --sgs='smgani' ")
 
 add_test(api_test_iles_diff bash -c " 
   cd ${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/ && find ./* -maxdepth 0 -type d -print0 |            
@@ -50,3 +51,5 @@ add_test(api_test_smg_diff bash -c "
       diff \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/timestep0000000000.xmf\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_smg/$dir/timestep0000000000.xmf\"                              || exit 1; 
     done  
 ")
+
+#TODO: api_test_smgani_diff

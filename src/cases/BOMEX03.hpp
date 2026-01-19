@@ -237,7 +237,7 @@ namespace cases
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: same in DYCOMS (and others?), move to a common function
-      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, const int nps[n_dims], const user_params_t &user_params)
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -246,9 +246,10 @@ namespace cases
         using libcloudphxx::common::theta_std::p_1000;
 
         blitz::firstIndex k;
+        const int nz = nps[n_dims - 1];
         real_t dz = (this->Z / si::metres) / (nz-1);
 
-        parent_t::set_profs(profs, nz, user_params);
+        parent_t::set_profs(profs, nps, user_params);
         parent_t::env_prof(profs, nz);
         parent_t::ref_prof(profs, nz);
   
@@ -414,11 +415,12 @@ namespace cases
         concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
-      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, const int nps[3], const user_params_t &user_params)
       {
-        parent_t::set_profs(profs, nz, user_params);
+        parent_t::set_profs(profs, nps, user_params);
         // geostrophic wind used in Coriolis force
         blitz::firstIndex k;
+        const int nz = nps[2];
         real_t dz = (this->Z / si::metres) / (nz-1);
         profs.geostr[0] = -10 + 1.8e-3 * k * dz;
         profs.geostr[1] = 0;

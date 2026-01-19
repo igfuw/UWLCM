@@ -149,7 +149,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   detail::profiles_t profs(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
   // assign their values
-  case_ptr->set_profs(profs, nz, user_params);
+  // case_ptr->set_profs(profs, nz, user_params);
+  case_ptr->set_profs(profs, nps, user_params);
   // pass them to rt_params
   detail::copy_profiles(profs, p);
 

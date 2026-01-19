@@ -16,7 +16,7 @@ class slvr_sgs_smg_common : public slvr_common<ct_params_t>
 
   protected:
 
-  real_t prandtl_num;
+  real_t prandtl_num, karman_c; // karman_c used only in aniso...
 
   typename parent_t::arr_t &rcdsn_num, &tdef_sq, &tke, &sgs_th_flux, &sgs_rv_flux;
   arrvec_t<typename parent_t::arr_t> &tmp_grad, &sgs_momenta_fluxes;
@@ -27,7 +27,7 @@ class slvr_sgs_smg_common : public slvr_common<ct_params_t>
 
     const auto g = (libcloudphxx::common::earth::g<setup::real_t>() / si::metres_per_second_squared);
 
-    const auto dz = params.dz;
+    const auto dz = this->params.dz;
     const auto& tht = this->state(ix::th);
     const auto& rv = this->state(ix::rv);
     // depending on microphysics we either have rc already (blk_m1) or have to diagnose it (lgrngn)
@@ -278,6 +278,8 @@ class slvr_sgs_smg_common : public slvr_common<ct_params_t>
     if(this->rank==0)
     {
       this->record_aux_const("fricvelsq", "sgs", params.fricvelsq);  
+      this->record_aux_const("prandtl_num", "sgs", prandtl_num);  
+      this->record_aux_const("karman_c", "sgs", karman_c);  
     }
 
     if(!params.cdrag && !params.fricvelsq) // no drag - fill tau with 0's
@@ -290,7 +292,7 @@ class slvr_sgs_smg_common : public slvr_common<ct_params_t>
 
   struct rt_params_t : parent_t::rt_params_t 
   { 
-    real_t prandtl_num;
+    real_t prandtl_num, karman_c;
     real_t fricvelsq = 0; // square of friction velocity [m^2 / s^2]
   };
 
@@ -305,6 +307,7 @@ class slvr_sgs_smg_common : public slvr_common<ct_params_t>
     parent_t(args, p),
     params(p),
     prandtl_num(p.prandtl_num),
+    karman_c(p.karman_c),
     rcdsn_num(args.mem->tmp[__FILE__][0][0]),
     tdef_sq(args.mem->tmp[__FILE__][0][1]),
     tke(args.mem->tmp[__FILE__][0][2]),
@@ -333,6 +336,7 @@ template <class ct_params_t>
 class slvr_sgs_smg_iso : public slvr_sgs_smg_common<ct_params_t>
 {
   using parent_t = slvr_sgs_smg_common<ct_params_t>;
+  using parent_t::parent_t; // inheriting constructors
 
   public:
   using real_t = typename ct_params_t::real_t;
@@ -348,7 +352,7 @@ class slvr_sgs_smg_iso : public slvr_sgs_smg_common<ct_params_t>
   
     this->k_m(this->ijk).reindex(this->zero) = where(
                                  this->rcdsn_num(this->ijk).reindex(this->zero) / this->prandtl_num < 1,
-                                   pow2(this->smg_c * (*this->params.mix_len)(this->vert_idx))
+                                   (*this->params.mix_len_iso_sq)(this->vert_idx)
                                    * sqrt(this->tdef_sq(this->ijk).reindex(this->zero)
                                    * (1 - this->rcdsn_num(this->ijk).reindex(this->zero) / this->prandtl_num)),
                                    0
@@ -362,8 +366,8 @@ class slvr_sgs_smg_iso : public slvr_sgs_smg_common<ct_params_t>
     // TODO: c_eps should be an adjustable parameter for different cases
     real_t c_eps = 0.845;
     this->diss_rate(this->ijk).reindex(this->zero) = c_eps *
-      pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
-      / (*this->params.mix_len)(this->vert_idx);
+      pow3(this->k_m(this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len_iso_sq)(this->vert_idx)))
+      * (*this->params.mix_len_iso_sq)(this->vert_idx);
 
     formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, this->ijkm_sep);
 
@@ -393,7 +397,7 @@ class slvr_sgs_smg_iso : public slvr_sgs_smg_common<ct_params_t>
   void calc_sgs_diag_fields() override
   {
     this->tke(this->ijk).reindex(this->zero) = pow2(this->k_m(this->ijk).reindex(this->zero)
-                                                  / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
+                                                  / (this->c_m)) / (*this->params.mix_len_iso_sq)(this->vert_idx);
     this->calc_sgs_momenta_fluxes();
   }
 
@@ -412,14 +416,13 @@ template <class ct_params_t>
 class slvr_sgs_smg_ani : public slvr_sgs_smg_common<ct_params_t>
 {
   using parent_t = slvr_sgs_smg_common<ct_params_t>;
+  using parent_t::parent_t; // inheriting constructors
 
   public:
   using real_t = typename ct_params_t::real_t;
   using ix = typename ct_params_t::ix;
 
   protected:
-
-  real_t karman_c; // TODO: output karman_c
 
   void multiply_sgs_visc() override
   {
@@ -436,15 +439,15 @@ class slvr_sgs_smg_ani : public slvr_sgs_smg_common<ct_params_t>
     // horizontal assuming dx=dy in 3D
     this->k_m[0](this->ijk).reindex(this->zero) = where(
                                  this->rcdsn_num(this->ijk).reindex(this->zero) / this->prandtl_num < 1,
-                                   real_t(1) / (real_t(1) / pow(this->smg_c * params.di, 2) + (*this->params.mix_len)(this->vert_idx)) 
+                                   (*this->params.mix_len_hori_sq)(this->vert_idx)
                                    * sqrt(this->tdef_sq(this->ijk).reindex(this->zero)
                                    * (1 - this->rcdsn_num(this->ijk).reindex(this->zero) / this->prandtl_num)),
                                    0
                                 );
     // min/max as in Simon and Chow 2021
     // TODO: do it all in the single loop above
-    this->k_m[0](this->ijk) = where(this->k_m[0](this->ijk) > 0.1 * pow(params.di, 2) / params.dt, 0.1 * pow(params.di, 2) / params.dt, this->k_m[0](this->ijk));
-    this->k_m[0](this->ijk) = where(this->k_m[0](this->ijk) < 1e-6 * pow(params.di, 2),  1e-6 * pow(params.di, 2), this->k_m[0](this->ijk));
+    this->k_m[0](this->ijk) = where(this->k_m[0](this->ijk) > 0.1 * pow(this->params.di, 2) / this->dt, 0.1 * pow(this->params.di, 2) / this->dt, this->k_m[0](this->ijk));
+    this->k_m[0](this->ijk) = where(this->k_m[0](this->ijk) < 1e-6 * pow(this->params.di, 2),  1e-6 * pow(this->params.di, 2), this->k_m[0](this->ijk));
 
     this->k_m[0](this->hrzntl_slice(0)) = this->k_m[0](this->hrzntl_slice(1));
     this->xchng_sclr(this->k_m[0], this->ijk, 1);
@@ -452,15 +455,15 @@ class slvr_sgs_smg_ani : public slvr_sgs_smg_common<ct_params_t>
     // vertical
     this->k_m[1](this->ijk).reindex(this->zero) = where(
                                  this->rcdsn_num(this->ijk).reindex(this->zero) / this->prandtl_num < 1,
-                                   real_t(1) / (real_t(1) / pow(this->smg_c * params.dz, 2) + (*this->params.mix_len)(this->vert_idx)) 
+                                   (*this->params.mix_len_vert_sq)(this->vert_idx)
                                    * sqrt(this->tdef_sq(this->ijk).reindex(this->zero)
                                    * (1 - this->rcdsn_num(this->ijk).reindex(this->zero) / this->prandtl_num)),
                                    0
                                 );
     // min/max as in Simon and Chow 2021
     // TODO: do it all in the single loop above
-    this->k_m[1](this->ijk) = where(this->k_m[1](this->ijk) > 0.1 * pow(params.dz, 2) / params.dt, 0.1 * pow(params.dz, 2) / params.dt, this->k_m[1](this->ijk));
-    this->k_m[1](this->ijk) = where(this->k_m[1](this->ijk) < 1e-6 * pow(params.dz, 2),  1e-6 * pow(params.dz, 2), this->k_m[1](this->ijk));
+    this->k_m[1](this->ijk) = where(this->k_m[1](this->ijk) > 0.1 * pow(this->params.dz, 2) / this->dt, 0.1 * pow(this->params.dz, 2) / this->dt, this->k_m[1](this->ijk));
+    this->k_m[1](this->ijk) = where(this->k_m[1](this->ijk) < 1e-6 * pow(this->params.dz, 2),  1e-6 * pow(this->params.dz, 2), this->k_m[1](this->ijk));
 
     this->k_m[1](this->hrzntl_slice(0)) = this->k_m[1](this->hrzntl_slice(1));
     this->xchng_sclr(this->k_m[1], this->ijk, 1);
@@ -471,11 +474,11 @@ class slvr_sgs_smg_ani : public slvr_sgs_smg_common<ct_params_t>
     // calculate dissipation rate
 
     // TODO: c_eps should be an adjustable parameter for different cases
-    // TODO2: use k_m[0] or k_m[1] ? mix_len has changed!
+    // NOTE: diss rate is calculated only using horizontal turbulence, which is assumed to dominate (as dz is expected to be smaller)
     real_t c_eps = 0.845;
     this->diss_rate(this->ijk).reindex(this->zero) = c_eps *
-      pow3(this->k_m[0](this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len)(this->vert_idx)))
-      / (*this->params.mix_len)(this->vert_idx);
+      pow3(this->k_m[0](this->ijk).reindex(this->zero) / (this->c_m * (*this->params.mix_len_hori_sq)(this->vert_idx)))
+      * (*this->params.mix_len_hori_sq)(this->vert_idx);
 
     formulae::stress::multiply_tnsr_cmpct<ct_params_t::n_dims, ct_params_t::opts>(this->tau, 1.0, this->k_m, *this->mem->G, this->ijkm_sep);
 
@@ -485,10 +488,10 @@ class slvr_sgs_smg_ani : public slvr_sgs_smg_common<ct_params_t>
 
   void calc_sgs_diag_fields() override
   {
-    // TODO: include k_m[1]; mix_len is different now! 
-    // tke(this->ijk).reindex(this->zero) = pow2(this->k_m[0](this->ijk).reindex(this->zero)
-                                                  // / (this->c_m * (*this->params.mix_len)(this->vert_idx)));
-    // calc_sgs_momenta_fluxes();
+    // NOTE: calculated only using horizontal turbulence, which is assumed to dominate (as dz is expected to be smaller)
+    this->tke(this->ijk).reindex(this->zero) = pow2(this->k_m[0](this->ijk).reindex(this->zero)
+                                                  / (this->c_m)) / (*this->params.mix_len_hori_sq)(this->vert_idx);
+    this->calc_sgs_momenta_fluxes();
   }
 
   void record_k_m() override
@@ -496,26 +499,6 @@ class slvr_sgs_smg_ani : public slvr_sgs_smg_common<ct_params_t>
     this->record_aux_dsc("k_m[0]", this->k_m[0]);
     this->record_aux_dsc("k_m[1]", this->k_m[1]);
   }
-
-  public:
-
-  struct rt_params_t : parent_t::rt_params_t 
-  { 
-    real_t karman_c;
-  };
-
-  // per-thread copy of params
-  rt_params_t params;
-
-  // ctor
-  slvr_sgs_smg_ani( 
-    typename parent_t::ctor_args_t args, 
-    const rt_params_t &p
-  ) : 
-    parent_t(args, p),
-    params(p),
-    karman_c(p.karman_c)
-  {}
 };
 
 

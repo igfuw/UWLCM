@@ -229,7 +229,7 @@ namespace cases
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: move hgt_fctrs from cases to main code
-      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params) override
+      void set_profs(detail::profiles_t &profs, const int nps[n_dims], const user_params_t &user_params) override
       {
         using libcloudphxx::common::moist_air::R_d_over_c_pd;
         using libcloudphxx::common::moist_air::c_pd;
@@ -238,9 +238,10 @@ namespace cases
         using libcloudphxx::common::theta_std::p_1000;
 
         blitz::firstIndex k;
+        const int nz = nps[n_dims - 1];
         real_t dz = (this->Z / si::metres) / (nz-1);
 
-        parent_t::set_profs(profs, nz, user_params);
+        parent_t::set_profs(profs, nps, user_params);
         parent_t::env_prof(profs, nz);
         parent_t::ref_prof(profs, nz);
 
@@ -403,12 +404,12 @@ namespace cases
         concurr.vab_relaxed_state(1) = concurr.advectee(ix::v);
       }
 
-      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, const int nps[3], const user_params_t &user_params)
       {
-        parent_t::set_profs(profs, nz, user_params);
+        parent_t::set_profs(profs, nps, user_params);
         // geostrophic wind equal to the initial velocity profile
         blitz::firstIndex k;
-        real_t dz = (this->Z / si::metres) / (nz-1);
+        real_t dz = (this->Z / si::metres) / (nps[2]-1);
         profs.geostr[0] = this->u(k * dz); 
         profs.geostr[1] = v(k * dz); 
       }

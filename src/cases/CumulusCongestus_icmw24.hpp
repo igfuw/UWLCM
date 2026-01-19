@@ -144,10 +144,11 @@ namespace cases
 
       // calculate the initial environmental theta and rv profiles
       // alse set w_LS and hgt_fctrs
-      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, const int nps[n_dims], const user_params_t &user_params)
       {
-        parent_t::set_profs(profs, nz, user_params);
+        parent_t::set_profs(profs, nps, user_params);
 
+        const int nz = nps[n_dims - 1];
         this->env_prof(profs, nz);
         this->ref_prof(profs, nz);
 
