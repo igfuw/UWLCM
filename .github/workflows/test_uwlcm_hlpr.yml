@@ -52,6 +52,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
         path: ${{ github.workspace }}/libcloudphxx
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
         cxx: ${{ matrix.cxx }}
@@ -121,6 +122,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: 4
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
         cxx: ${{ matrix.cxx }}
@@ -219,6 +221,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: 4
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
         cxx: ${{ matrix.cxx }}
