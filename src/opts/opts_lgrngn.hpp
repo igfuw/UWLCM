@@ -533,16 +533,13 @@ void setopts_micro(
     if(vm[opt].as<bool>())
     {
 
-      std::vector<thrust_real_t> left_edges;
-      if (opt == "out_dry_spec")      left_edges = bins_dry();
-      else if (opt == "out_wet_spec") left_edges = bins_wet();
-      else                             left_edges = bins_ice();
+      auto left_edges = opt == "out_dry_spec" ? bins_dry() :
+                        opt == "out_wet_spec" ? bins_wet() :
+                        bins_ice();
 
-      outmom_t<thrust_real_t>* out_ptr = nullptr;
-      if (opt == "out_dry_spec")       out_ptr = &rt_params.out_dry;
-      else if (opt == "out_wet_spec")  out_ptr = &rt_params.out_wet;
-      else                             out_ptr = &rt_params.out_ice;
-      auto &out = *out_ptr;
+      auto &out = opt == "out_dry_spec" ? rt_params.out_dry :
+                  opt == "out_wet_spec" ? rt_params.out_wet :
+                                          rt_params.out_ice;
 
       for (int i = 0; i < left_edges.size()-1; ++i)
       {
