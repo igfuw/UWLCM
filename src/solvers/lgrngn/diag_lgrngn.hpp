@@ -37,7 +37,7 @@ void slvr_lgrngn<ct_params_t>::diag()
   prtcls->diag_precip_rate();
   this->record_aux("precip_rate", prtcls->outbuf());
   prtcls->diag_ice();
-  prtcls->diag_precip_rate_ice();
+  prtcls->diag_precip_rate_ice_mass();
   this->record_aux("precip_rate_ice_mass", prtcls->outbuf());
 
   // recording 0th mom of rw of rd>=0.8um
