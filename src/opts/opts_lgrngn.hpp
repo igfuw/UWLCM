@@ -240,7 +240,7 @@ void setopts_micro(
 
       if(user_params.n1_stp*si::cubic_metres >= 0) {
         rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
-          libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(user_params.kappa1, user_params.rd_insol1),
+          user_params.kappa1,
           std::make_tuple(
             std::make_shared<setup::log_dry_radii<thrust_real_t>> (
               user_params.mean_rd1,
@@ -257,7 +257,7 @@ void setopts_micro(
       } 
       if(user_params.n2_stp*si::cubic_metres >= 0) {
         rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
-          libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(user_params.kappa2, user_params.rd_insol2),
+          user_params.kappa2,
           std::make_tuple(
             std::make_shared<setup::log_dry_radii<thrust_real_t>> (
               thrust_real_t(1.0e-6) * si::metres,
@@ -275,7 +275,7 @@ void setopts_micro(
 
       if(user_params.n1_stp*si::cubic_metres < 0 && user_params.n2_stp*si::cubic_metres < 0) {
         rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
-          libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(case_ptr->kappa, case_ptr->rd_insol),
+          case_ptr->kappa,
           std::make_tuple(
             std::make_shared<setup::log_dry_radii<thrust_real_t>> (
               case_ptr->mean_rd1,
@@ -374,7 +374,7 @@ void setopts_micro(
       if(rt_params.user_params.relax_ccn)
       {
         rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
-          libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(thrust_real_t(1.28), thrust_real_t(0.)),
+          thrust_real_t(1.28),
           std::make_tuple(
             std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
               log(0.8e-6),      // minimum radius  
