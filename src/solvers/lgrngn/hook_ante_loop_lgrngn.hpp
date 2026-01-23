@@ -42,8 +42,12 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
         n_sd_from_dry_sizes += rcm.second.second;
 
     // src_dry_distros is used only in the first step to add GCCN below some level
-    int n_sd_from_src_dry_distros = params.cloudph_opts_init.src_sd_conc * params.cloudph_opts_init.src_z1 / params.cloudph_opts_init.z1 + 0.5;
-      
+    //int n_sd_from_src_dry_distros = params.cloudph_opts.src_sd_conc * params.cloudph_opts_init.src_z1 / params.cloudph_opts_init.z1 + 0.5;
+    int n_sd_from_src_dry_distros = 0;
+    for (auto const& kv : params.cloudph_opts.src_dry_distros)
+      n_sd_from_src_dry_distros += std::get<1>(kv.second); // src_sd_conc
+    n_sd_from_src_dry_distros *= params.cloudph_opts_init.src_z1 / params.cloudph_opts_init.z1;
+
     const int n_sd_per_cell = params.cloudph_opts_init.sd_conc + n_sd_from_dry_sizes + n_sd_from_src_dry_distros;
 
     if(parent_t::n_dims == 2) // 2D
@@ -160,13 +164,16 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("subs", "lgrngn", params.cloudph_opts.subs);  
     this->record_aux_const("cond", "lgrngn", params.cloudph_opts.cond);  
     this->record_aux_const("coal", "lgrngn", params.flag_coal);  // cloudph_opts.coal could be 0 here due to spinup
+    this->record_aux_const("ice_nucl", "lgrngn", params.cloudph_opts.ice_nucl);
     this->record_aux_const("rcyc", "lgrngn", params.cloudph_opts.rcyc);  
     this->record_aux_const("src", "lgrngn", params.cloudph_opts.src);  
     this->record_aux_const("rlx", "lgrngn", params.cloudph_opts.rlx);  
     this->record_aux_const("gccn", "lgrngn", params.gccn);  
     this->record_aux_const("turb_adve", "lgrngn", params.cloudph_opts.turb_adve);  
     this->record_aux_const("turb_cond", "lgrngn", params.cloudph_opts.turb_cond);  
-    this->record_aux_const("turb_coal", "lgrngn", params.cloudph_opts.turb_coal);  
+    this->record_aux_const("turb_coal", "lgrngn", params.cloudph_opts.turb_coal);
+    this->record_aux_const("ice_switch", "lgrngn", params.cloudph_opts_init.ice_switch);
+    this->record_aux_const("time_dep_ice_nucl", "lgrngn", params.cloudph_opts_init.time_dep_ice_nucl);
     this->record_aux_const("chem_switch", "lgrngn", params.cloudph_opts_init.chem_switch);  
     this->record_aux_const("coal_switch", "lgrngn", params.cloudph_opts_init.coal_switch);  
     this->record_aux_const("sedi_switch", "lgrngn", params.cloudph_opts_init.sedi_switch);  
@@ -179,10 +186,8 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("chem_dsc", "lgrngn", params.cloudph_opts.chem_dsc);  
     this->record_aux_const("chem_rct", "lgrngn", params.cloudph_opts.chem_rct);  
     this->record_aux_const("chem_rho", "lgrngn", params.cloudph_opts_init.chem_rho);  
-    this->record_aux_const("opts_init RH_max", "lgrngn", params.cloudph_opts_init.RH_max);  
-    this->record_aux_const("supstp_src", "lgrngn", params.cloudph_opts_init.supstp_src);  
-    this->record_aux_const("supstp_rlx", "lgrngn", params.cloudph_opts_init.supstp_rlx);  
-    this->record_aux_const("src_sd_conc", "lgrngn", params.cloudph_opts_init.src_sd_conc);  
+    this->record_aux_const("opts_init RH_max", "lgrngn", params.cloudph_opts_init.RH_max);
+    this->record_aux_const("supstp_rlx", "lgrngn", params.cloudph_opts_init.supstp_rlx);
     this->record_aux_const("src_z1", "lgrngn", params.cloudph_opts_init.src_z1);
     this->record_aux_const("rlx_bins", "lgrngn", params.cloudph_opts_init.rlx_bins);  
     this->record_aux_const("rlx_sd_per_bin", "lgrngn", params.cloudph_opts_init.rlx_sd_per_bin);  
@@ -201,8 +206,9 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     else
       this->record_aux_const("aerosol_conc_factor", "uniform");  
     this->record_aux_const("outfreq_spec", "lgrngn", params.outfreq_spec);
-    // store left and right edges of bins for wet and dry radii moments
-    for (auto &out : std::set<std::pair<outmom_t<real_t>, std::string>>({{params.out_dry, "out_dry"}, {params.out_wet, "out_wet"}}))
+    // store left and right edges of bins for wet, dry and ice radii moments
+    for (auto &out : std::set<std::pair<outmom_t<real_t>, std::string>>({{params.out_dry, "out_dry"}, {params.out_wet, "out_wet"},
+      {params.out_ice, "out_ice_a"}, {params.out_ice, "out_ice_c"}}))
     {
       if(!out.first.empty()) 
       {

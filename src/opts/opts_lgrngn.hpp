@@ -70,6 +70,9 @@ void setopts_micro(
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
     ("dev_count", po::value<int>()->default_value(0), "no. of CUDA devices")
     ("dev_id", po::value<int>()->default_value(-1), "CUDA backend - id of device to be used")
+    ("ice_switch", po::value<bool>()->default_value(rt_params.cloudph_opts_init.ice_switch) , "enable ice microphysics (1=on, 0=off)")
+    ("ice_nucl", po::value<bool>()->default_value(rt_params.cloudph_opts.ice_nucl) , "ice nucleation (1=on, 0=off)")
+    ("time_dep_ice_nucl", po::value<bool>()->default_value(rt_params.cloudph_opts_init.time_dep_ice_nucl) , "time dependent ice nucleation (1=on, 0=off)")
     // free parameters
     ("exact_sstp_cond", po::value<bool>()->default_value(rt_params.cloudph_opts_init.exact_sstp_cond), "exact(per-particle) logic for substeps for condensation")
     ("diag_incloud_time", po::value<bool>()->default_value(rt_params.cloudph_opts_init.diag_incloud_time), "diagnose incloud time of droplets")
@@ -80,6 +83,7 @@ void setopts_micro(
     // 
     ("out_dry", po::value<std::string>()->default_value(""),  "dry radius ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("out_wet", po::value<std::string>()->default_value(""),  "wet radius ranges and moment numbers (r1:r2|n1,n2...;...)")
+    ("out_ice", po::value<std::string>()->default_value(""),  "ice radius (polar and equatorial) ranges and moment numbers (r1:r2|n1,n2...;...)")
     ("gccn", po::value<setup::real_t>()->default_value(0) , "concentration of giant aerosols = gccn * VOCALS observations")
 //    ("unit_test", po::value<bool>()->default_value(false) , "very low number concentration for unit tests")
     ("adve_scheme", po::value<std::string>()->default_value("euler") , "one of: euler, implicit, pred_corr")
@@ -89,6 +93,7 @@ void setopts_micro(
     ("ReL", po::value<setup::real_t>()->default_value(100) , "taylor-microscale reynolds number (onishi kernel)")
     ("out_dry_spec", po::value<bool>()->default_value(false), "enable output for plotting dry spectrum")
     ("out_wet_spec", po::value<bool>()->default_value(false), "enable output for plotting wet spectrum")
+    ("out_ice_spec", po::value<bool>()->default_value(false), "enable output for plotting ice spectrum")
     ("rd_min", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_min), "minimum dry radius of initialized droplets [m] (negative means automatic detection)")
     ("rd_max", po::value<setup::real_t>()->default_value(rt_params.cloudph_opts_init.rd_max), "maximum dry radius of initialized droplets [m] (negative means automatic detection); sd_conc_large_tail==true may result in initialization of even larger droplets")
     ("relax_ccn", po::value<bool>()->default_value(false) , "add CCN if per-level mean of CCN concentration is lower than (case-specific) desired concentration")
@@ -143,7 +148,7 @@ void setopts_micro(
     }
     if(user_params.n1_stp*si::cubic_metres >= 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        user_params.kappa1,
+        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(user_params.kappa1, user_params.rd_insol1),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           user_params.mean_rd1,
           thrust_real_t(1.0e-6) * si::metres,
@@ -156,7 +161,7 @@ void setopts_micro(
     } 
     if(user_params.n2_stp*si::cubic_metres >= 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        user_params.kappa2,
+        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(user_params.kappa2, user_params.rd_insol2),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           thrust_real_t(1.0e-6) * si::metres,
           user_params.mean_rd2,
@@ -169,7 +174,7 @@ void setopts_micro(
     } 
     if(user_params.n1_stp*si::cubic_metres < 0 && user_params.n2_stp*si::cubic_metres < 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        case_ptr->kappa,
+        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(case_ptr->kappa, case_ptr->rd_insol),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           case_ptr->mean_rd1,
           case_ptr->mean_rd2,
@@ -305,11 +310,10 @@ void setopts_micro(
       rt_params.cloudph_opts_init.src_z1 = case_ptr->gccn_max_height / si::meters;// 700;
   //    rt_params.cloudph_opts_init.src_z1 = 200;
 
-      rt_params.cloudph_opts_init.src_sd_conc = 38;
 
 /*
-      rt_params.cloudph_opts_init.src_dry_sizes.emplace(
-        1.28, // kappa
+      rt_params.cloudph_opts.src_dry_sizes.emplace(
+      libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(thrust_real_t(1.28), thrust_real_t(0.)),
         std::map<setup::real_t, std::pair<setup::real_t, int> > {
           {0.8e-6, {rt_params.gccn / rt_params.dt * 111800, 1}},
           {1.0e-6, {rt_params.gccn / rt_params.dt * 68490,  1}},
@@ -353,20 +357,24 @@ void setopts_micro(
       );
       */
 
-      rt_params.cloudph_opts_init.src_dry_distros.emplace(
-        1.28, // kappa
-        std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
-          log(0.8e-6),      // minimum radius  
-          log(10e-6),   // maximum radius
-          rt_params.gccn / rt_params.dt // concenctration multiplier
-        )
+      rt_params.cloudph_opts.src_dry_distros.emplace(
+        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(thrust_real_t(1.28), thrust_real_t(0.)),
+        std::make_tuple(
+          std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
+            log(0.8e-6),      // minimum radius
+            log(10e-6),   // maximum radius
+            rt_params.gccn / rt_params.dt // concenctration multiplier
+          ),
+          38, // number of SD created per cell (src_sd_conc)
+          1 // timestep interval at which source will be applied
+          )
       );
 
       // GCCN relaxation stuff
       if(rt_params.user_params.relax_ccn)
       {
         rt_params.cloudph_opts_init.rlx_dry_distros.emplace(
-          1.28, // kappa
+          thrust_real_t(1.28),
           std::make_tuple(
             std::make_shared<setup::log_dry_radii_gccn<thrust_real_t>> (
               log(0.8e-6),      // minimum radius  
@@ -405,6 +413,7 @@ void setopts_micro(
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
   rt_params.cloudph_opts.cond = vm["cond"].as<bool>();
   rt_params.cloudph_opts.coal = vm["coal"].as<bool>();
+  rt_params.cloudph_opts.ice_nucl = vm["ice_nucl"].as<bool>();
 
   rt_params.cloudph_opts.rcyc = vm["rcyc"].as<bool>();
   rt_params.cloudph_opts.chem_dsl = vm["chem_dsl"].as<bool>();
@@ -424,6 +433,9 @@ void setopts_micro(
   rt_params.cloudph_opts_init.rng_seed = user_params.rng_seed;
   rt_params.cloudph_opts_init.rng_seed_init = user_params.rng_seed_init;
   rt_params.cloudph_opts_init.rng_seed_init_switch = true;
+
+  rt_params.cloudph_opts_init.ice_switch = vm["ice_switch"].as<bool>();
+  rt_params.cloudph_opts_init.time_dep_ice_nucl = vm["time_dep_ice_nucl"].as<bool>();
 
   // coalescence kernel choice
   std::string kernel_str = vm["coal_kernel"].as<std::string>();
@@ -454,9 +466,9 @@ void setopts_micro(
   rt_params.cloudph_opts_init.subs_switch = rt_params.subsidence == subs_t::local || rt_params.subsidence == subs_t::mean ? true : false;
   rt_params.cloudph_opts.subs = rt_params.subsidence == subs_t::local || rt_params.subsidence == subs_t::mean ? true : false;
 
-  // parsing --out_dry and --out_wet options values
+  // parsing --out_dry and --out_wet --out_ice options values
   // the format is: "rmin:rmax|0,1,2;rmin:rmax|3;..."
-  for (auto &opt : std::set<std::string>({"out_dry", "out_wet"}))
+  for (auto &opt : std::set<std::string>({"out_dry", "out_wet", "out_ice"}))
   {
     namespace qi = boost::spirit::qi;
     namespace phoenix = boost::phoenix;
@@ -466,10 +478,11 @@ void setopts_micro(
     auto last  = val.end();
 
     std::vector<std::pair<std::string, std::string>> min_maxnum;
-    outmom_t<thrust_real_t> &moms = 
-      opt == "out_dry"
-        ? rt_params.out_dry
-        : rt_params.out_wet;
+    outmom_t<thrust_real_t>* moms_ptr = nullptr;
+    if (opt == "out_dry")       moms_ptr = &rt_params.out_dry;
+    else if (opt == "out_wet")  moms_ptr = &rt_params.out_wet;
+    else                        moms_ptr = &rt_params.out_ice;
+    outmom_t<thrust_real_t>& moms = *moms_ptr;
 
     const bool result = qi::phrase_parse(first, last, 
       *(
@@ -515,12 +528,19 @@ void setopts_micro(
     }
   } 
 
-  for (auto &opt : std::set<std::string>({"out_dry_spec", "out_wet_spec"}))
+  for (auto &opt : std::set<std::string>({"out_dry_spec", "out_wet_spec", "out_ice_spec"}))
   {
     if(vm[opt].as<bool>())
     {
-      auto left_edges = opt == "out_dry_spec" ? bins_dry() : bins_wet();
-      auto &out = opt == "out_dry_spec" ? rt_params.out_dry : rt_params.out_wet;
+
+      auto left_edges = opt == "out_dry_spec" ? bins_dry() :
+                        opt == "out_wet_spec" ? bins_wet() :
+                        bins_ice();
+
+      auto &out = opt == "out_dry_spec" ? rt_params.out_dry :
+                  opt == "out_wet_spec" ? rt_params.out_wet :
+                                          rt_params.out_ice;
+
       for (int i = 0; i < left_edges.size()-1; ++i)
       {
         out.push_back(outmom_t<thrust_real_t>::value_type(
