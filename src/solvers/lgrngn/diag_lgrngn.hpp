@@ -36,9 +36,6 @@ void slvr_lgrngn<ct_params_t>::diag()
   prtcls->diag_water();
   prtcls->diag_precip_rate();
   this->record_aux("precip_rate", prtcls->outbuf());
-  prtcls->diag_ice();
-  prtcls->diag_precip_rate_ice_mass();
-  this->record_aux("precip_rate_ice_mass", prtcls->outbuf());
 
   // recording 0th mom of rw of rd>=0.8um
 //  prtcls->diag_dry_rng(0.7999e-6, 1);
@@ -227,6 +224,10 @@ void slvr_lgrngn<ct_params_t>::diag()
     // recording 1st moment of ice_c
     prtcls->diag_ice_c_mom(1);
     this->record_aux("ice_c_mom1", prtcls->outbuf());
+
+    prtcls->diag_precip_rate_ice_mass();
+    this->record_aux("precip_rate_ice_mass", prtcls->outbuf());
+
   }
   // recording requested statistical moments
   if ((this->timestep ) % static_cast<int>(params.outfreq_spec) == 0)
