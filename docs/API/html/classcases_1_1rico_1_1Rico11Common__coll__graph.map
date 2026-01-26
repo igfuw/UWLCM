@@ -1,7 +1,0 @@
-<map id="Rico11Common&lt; case_ct_params_t, n_dims &gt;" name="Rico11Common&lt; case_ct_params_t, n_dims &gt;">
-<area shape="rect" id="Node000001" title="Common base for RICO 11 cases." alt="" coords="9,187,172,229"/>
-<area shape="rect" id="Node000002" href="$classcases_1_1Anelastic.html" title="Base class for anelastic cloud simulation cases." alt="" coords="18,96,163,139"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,154,93,186,88,186,88,154"/>
-<area shape="rect" id="Node000003" href="$classcases_1_1CasesCommon.html" title="Base class for cloud simulation cases." alt="" coords="5,5,176,48"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,64,93,96,88,96,88,64"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classcases_1_1CasesCommon.html" title="Base class for cloud simulation cases." alt="" coords="5,5,176,48"/>
-<area shape="rect" id="Node000001" href="$classcases_1_1Anelastic.html" title="Base class for anelastic cloud simulation cases." alt="" coords="224,5,368,48"/>
-<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="191,24,223,24,223,29,191,29"/>
-<area shape="rect" id="Node000002" href="$classcases_1_1rico_1_1Rico11Common.html" title="Common base for RICO 11 cases." alt="" coords="416,5,578,48"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="384,24,415,24,415,29,384,29"/>
-</map>
