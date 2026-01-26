@@ -50,6 +50,8 @@ update-locale LANG=en_US.UTF-8
 # Consider using a minimal texlive bundle or installing just what you need
 # apt-get install -y --no-install-recommends texlive-latex-base
 
+mkdir /tmp/build && cd /tmp/build # compile in /tmp/build to simplify cleanup
+
 # Install odeint thrust v2 fix (and clean up after)
 git clone -b Thrust_2 --depth=1 https://github.com/pdziekan/odeint.git
 cp -r odeint/include/boost/numeric/odeint/* /usr/include/boost/numeric/odeint/
@@ -71,6 +73,7 @@ apt install -y ./python3-gnuplot_1.8-8_all.deb
 rm python3-gnuplot_1.8-8_all.deb
 
 # Final cleanup
+rm -rf /tmp/build
 apt-get clean
 
 
