@@ -202,12 +202,12 @@ int main(int argc, char** argv)
     user_params.sdev_rd1 = vm["sdev_rd1"].as<setup::real_t>();
     user_params.n1_stp = vm["n1_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa1 = vm["kappa1"].as<setup::real_t>();
-    user_params.rd_insol1 = vm["rd_insol1"].as<setup::real_t>();
+    user_params.rd_insol1 = vm["rd_insol1"].as<setup::real_t>() * si::metres;
     user_params.mean_rd2 = vm["mean_rd2"].as<setup::real_t>() * si::metres;
     user_params.sdev_rd2 = vm["sdev_rd2"].as<setup::real_t>();
     user_params.n2_stp = vm["n2_stp"].as<setup::real_t>() / si::cubic_metres;
     user_params.kappa2 = vm["kappa2"].as<setup::real_t>();
-    user_params.rd_insol2 = vm["rd_insol2"].as<setup::real_t>();
+    user_params.rd_insol2 = vm["rd_insol2"].as<setup::real_t>() * si::metres;
 
     user_params.case_n_stp_multiplier = vm["case_n_stp_multiplier"].as<setup::real_t>();
 

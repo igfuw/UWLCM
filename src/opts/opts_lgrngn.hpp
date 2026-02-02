@@ -148,7 +148,7 @@ void setopts_micro(
     }
     if(user_params.n1_stp*si::cubic_metres >= 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(user_params.kappa1, user_params.rd_insol1),
+        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(user_params.kappa1, user_params.rd_insol1 / si::metres),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           user_params.mean_rd1,
           thrust_real_t(1.0e-6) * si::metres,
@@ -161,7 +161,7 @@ void setopts_micro(
     } 
     if(user_params.n2_stp*si::cubic_metres >= 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(user_params.kappa2, user_params.rd_insol2),
+        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(user_params.kappa2, user_params.rd_insol2 / si::metres),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           thrust_real_t(1.0e-6) * si::metres,
           user_params.mean_rd2,
@@ -174,7 +174,7 @@ void setopts_micro(
     } 
     if(user_params.n1_stp*si::cubic_metres < 0 && user_params.n2_stp*si::cubic_metres < 0) {
       rt_params.cloudph_opts_init.dry_distros.emplace(
-        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(case_ptr->kappa, case_ptr->rd_insol),
+        libcloudphxx::lgrngn::kappa_rd_insol_t<thrust_real_t>(case_ptr->kappa, case_ptr->rd_insol / si::metres),
         std::make_shared<setup::log_dry_radii<thrust_real_t>> (
           case_ptr->mean_rd1,
           case_ptr->mean_rd2,
