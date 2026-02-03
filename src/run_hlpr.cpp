@@ -18,6 +18,7 @@
 #include "cases/CumulusCongestus_icmw24.hpp"
 #include "cases/DryPBL.hpp"
 #include "cases/BOMEX03.hpp"
+#include "cases/ContrailCLEAN.hpp"
 
 #include "opts/opts_common.hpp"
 #include "solvers/common/calc_forces_common.hpp"
@@ -72,6 +73,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   using concurr_openmp_rigid_t = typename concurr_openmp_rigid<solver_t, n_dims>::type;
   using concurr_openmp_cyclic_gndsky_t = typename concurr_openmp_cyclic_gndsky<solver_t, n_dims>::type;
   using concurr_openmp_rigid_gndsky_t = typename concurr_openmp_rigid_gndsky<solver_t, n_dims>::type;
+  using concurr_openmp_open_fixed_open_t = typename concurr_openmp_open_fixed_open<solver_t, n_dims>::type;
   
   using rt_params_t = typename solver_t::rt_params_t;
   using ix = typename solver_t::ix;
@@ -112,6 +114,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
     case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else if (user_params.model_case == "bomex03")
     case_ptr.reset(new cases::bomex::Bomex03<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
+  else if (user_params.model_case == "contrail")
+    case_ptr.reset(new cases::contrail_CLEAN::ContrailCLEAN<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else
     throw std::runtime_error("UWLCM: wrong case choice");
 
@@ -180,6 +184,10 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   {
     //concurr.reset(new concurr_openmp_rigid_gndsky_t(p));     // rigid horizontal boundaries
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case
+  }
+  else if(user_params.model_case == "contrail")
+  {
+    concurr.reset(new concurr_openmp_open_fixed_open_t(p));
   }
   else
   {
