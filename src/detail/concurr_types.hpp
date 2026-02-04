@@ -127,7 +127,10 @@ struct concurr_openmp_open_fixed_open<solver_t, 2>
 {
   using type = libmpdataxx::concurr::openmp<
     solver_t, 
-    libmpdataxx::bcond::open, libmpdataxx::bcond::fixed,
+    libmpdataxx::bcond::fixed, libmpdataxx::bcond::open,
+    // libmpdataxx::bcond::open, libmpdataxx::bcond::fixed,
+    // libmpdataxx::bcond::open, libmpdataxx::bcond::open,
+
     libmpdataxx::bcond::open, libmpdataxx::bcond::open
   >;
 };

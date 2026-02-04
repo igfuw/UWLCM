@@ -113,15 +113,30 @@ namespace cases
       rhod_0 = rho_surf * si::kilograms / si::cubic_meters;
 //      rho_surf /= (1 + rv_e(0)); // turn it into dry air density! TODO: is this correct? TODO2: approp change in the paper
 
+std::cerr << "p_0: " << p_0 / si::pascals << std::endl;
+std::cerr << "T_virt_surf: " << T_virt_surf << std::endl;
+std::cerr << "rho_surf: " << rho_surf << std::endl;
+
    //   real_t rho_surf = (p_0 / si::pascals) / T_surf / (1. + 29. / 18. * rv_e(0)) / 287. ; // dry air density at the surface TODO: R_d instead of 287
 
-      // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf; // this is from Wojtek
-       real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / (profs.th_e(0)
-           * (1. + 0.608 * profs.rv_e(0))); 
       // rhod profile
-      profs.rhod = rho_surf * exp(- st_avg * k * dz) * pow(
-               1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);
+      if(st_avg != 0)
+      {
+        // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf; // this is from Wojtek
+        real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / (profs.th_e(0)
+           * (1. + 0.608 * profs.rv_e(0))); 
+        profs.rhod = rho_surf * exp(- st_avg * k * dz); * pow(
+                      1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);    
+      }
+      else
+        profs.rhod = rho_surf;
 
+
+               std::cerr << "st_avg:" << st_avg << std::endl;
+               std::cerr << "st:" << st << std::endl;
+               std::cerr << "profs.th_e:" << profs.th_e << std::endl;
+               std::cerr << "profs.rv_e:" << profs.rv_e << std::endl;
+               std::cerr << "profs.rhod:" << profs.rhod << std::endl;
 
       // theta_std env prof to theta_dry_e
 //      for(int k=1; k<nz; ++k)
