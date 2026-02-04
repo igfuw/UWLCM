@@ -88,6 +88,9 @@ namespace cases
     // hygroscopicity kappa of the aerosol 
     quantity<si::dimensionless, real_t> kappa = .61; // defaults to ammonium sulphate; CCN-derived value from Table 1 in Petters and Kreidenweis 2007
 
+    // insoluble dry radius
+    quantity<si::length, real_t> rd_insol = 0 * si::metres;
+
     real_t div_LS = 0.; // large-scale wind divergence (same as ForceParameters::D), 0. to turn off large-scale subsidence of SDs, TODO: add a process switch in libcloudph++ like for coal/cond/etc
 
     quantity<si::length, real_t> gccn_max_height; // GCCN added (at init and via relaxation) only up to this level

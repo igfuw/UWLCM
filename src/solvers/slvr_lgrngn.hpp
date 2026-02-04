@@ -176,7 +176,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     bool async = true;
     libcloudphxx::lgrngn::opts_t<real_t> cloudph_opts;
     libcloudphxx::lgrngn::opts_init_t<real_t> cloudph_opts_init;
-    outmom_t<real_t> out_dry, out_wet;
+    outmom_t<real_t> out_dry, out_wet, out_ice;
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
     int outfreq_spec;
