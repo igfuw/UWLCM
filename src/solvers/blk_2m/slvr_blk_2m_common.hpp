@@ -16,6 +16,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   public:
   using ix = typename ct_params_t::ix; // TODO: it's now in solver_common - is it needed here?
   using real_t = typename ct_params_t::real_t;
+  using solver_family = uwlcm_blk_2m_family_tag;
   
   protected:
   typename parent_t::arr_t &rr_flux;

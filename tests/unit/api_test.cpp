@@ -28,6 +28,7 @@ int main(int ac, char** av)
   vector<string> opts_micro({
     "--micro=none"  ,
     "--micro=blk_1m"  ,
+    "--micro=blk_1m_ice"  ,
     "--micro=blk_2m"  ,
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1",
@@ -54,7 +55,8 @@ int main(int ac, char** av)
     "--case=dycoms_rf01 --window=1",
     "--case=cumulus_congestus_icmw20",
     "--case=cumulus_congestus_icmw24",
-    "--case=bomex03"
+    "--case=bomex03",
+    "--case=daytime_convection_LBA"
   });
   vector<string> opts_piggy({
     "--piggy=0",
