@@ -422,7 +422,7 @@ class slvr_sgs : public slvr_common<ct_params_t>
  *
  * @param mem Memory manager.
  * @param n_iters Number of iterations to allocate for.
- */uwlcm_dry_family_tag
+ */
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
