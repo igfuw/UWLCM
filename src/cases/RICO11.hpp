@@ -17,11 +17,13 @@ namespace cases
     namespace lognormal   = libcloudphxx::common::lognormal;
     namespace const_cp    = libcloudphxx::common::const_cp;
 
-  
+    /// @brief Standard pressure at sea level
     const quantity<si::pressure, real_t> 
       p_0 = 101540 * si::pascals;
+    /// @brief Sea surface temperature
     const quantity<si::temperature, real_t> 
       T_SST = real_t(299.8) * si::kelvins;
+    /// @brief Default domain dimensions
     const quantity<si::length, real_t> 
       Z_def    = 4000 * si::metres, 
       X_def    = 12800 * si::metres, 
@@ -31,15 +33,29 @@ namespace cases
     const quantity<si::length, real_t> z_rlx = 100 * si::metres;
     const quantity<si::length, real_t> gccn_max_height = 450 * si::metres; // below cloud base
 
+    /**
+ * @brief Westerly wind profile
+ * @param z Height in meters
+ * @return Horizontal wind component u (m/s)
+ */
     inline quantity<si::velocity, real_t> u_rico(const real_t &z)
     {
       return real_t(-9.9 + 2e-3 * z) * si::meters / si::seconds;
     }
+    /**
+ * @brief Southerly wind profile
+ * @param z Height in meters
+ * @return Horizontal wind component v (m/s)
+ */
     inline quantity<si::velocity, real_t> v_rico(const real_t &z)
     {
       return real_t(-3.8) * si::meters / si::seconds;
     }
-
+    /**
+     * @brief Liquid water potential temperature profile
+     * @param z Height in meters
+     * @return Potential temperature (K)
+     */
     inline quantity<si::temperature, real_t> th_l_rico(const real_t &z)
     {
       quantity<si::temperature, real_t> ret;
@@ -48,7 +64,11 @@ namespace cases
         (297.9 + (317. - 297.9)/(4000. - 740) * (z-740)) * si::kelvins;
       return ret;
     }
-
+    /**
+     * @brief Total water mixing ratio profile
+     * @param z Height in meters
+     * @return Water mixing ratio (dimensionless)
+     */
     inline quantity<si::dimensionless, real_t> r_t_rico(const real_t &z)
     {
       const quantity<si::dimensionless, real_t> q_t = z < 740 ?
@@ -59,6 +79,14 @@ namespace cases
       return q_t;
     }
 
+    /**
+ * @brief Common base for RICO 11 cases.
+ *
+ * Provides initialization of thermodynamic profiles, wind profiles,
+ * surface fluxes, and SGS options for both 2D and 3D cases.
+ * @tparam case_ct_params_t Compile-time parameters
+ * @tparam n_dims Number of dimensions (2 or 3)
+ */
     template<class case_ct_params_t, int n_dims>
     class Rico11Common : public Anelastic<case_ct_params_t, n_dims>
     {
@@ -67,17 +95,18 @@ namespace cases
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
+      /// @brief Override of theta_l function
       quantity<si::temperature, real_t> th_l(const real_t &z) override
       {
         return th_l_rico(z);
       }
-
+      /// @brief Override of total water mixing ratio function
       quantity<si::dimensionless, real_t> r_t(const real_t &z) override
       {
         return r_t_rico(z);
       }
-
-      // water mixing ratio at height z
+      /// @cond HIDDEN
+      /// @brief Functor for total water mixing ratio at height z
       struct r_t_fctr
       {
         quantity<si::dimensionless, real_t> operator()(const real_t &z) const
@@ -87,7 +116,7 @@ namespace cases
         BZ_DECLARE_FUNCTOR(r_t_fctr);
       };
 
-      // initial dry air potential temp at height z, assuming theta_std = theta_l (spinup needed)
+      /// @brief Functor for dry air potential temperature at height z, assuming theta_std = theta_l (spinup needed)
       struct th_std_fctr
       {
         real_t operator()(const real_t &z) const
@@ -97,7 +126,7 @@ namespace cases
         BZ_DECLARE_FUNCTOR(th_std_fctr);
       };
     
-      // westerly wind
+      /// @brief Westerly wind profile functor
       struct u_t : hori_vel_t
       {
         real_t operator()(const real_t &z) const
@@ -112,7 +141,7 @@ namespace cases
 
       u_t u;
     
-      // large-scale vertical wind
+      /// @brief Large-scale vertical wind profile functor
       struct w_LS_fctr
       {
         real_t operator()(const real_t &z) const
@@ -124,8 +153,8 @@ namespace cases
         }
         BZ_DECLARE_FUNCTOR(w_LS_fctr);
       };
-    
-      // large-scale horizontal advection of th + radiative cooling [K/s]
+
+      /// @brief Large-scale horizontal advection of theta + radiative cooling [K/s]
       struct th_LS_fctr
       {
         real_t operator()(const real_t &z) const
@@ -134,8 +163,8 @@ namespace cases
         }
         BZ_DECLARE_FUNCTOR(th_LS_fctr);
       };
-    
-      // large-scale horizontal advection of rv [1/s]
+
+      /// @brief Large-scale horizontal advection of rv [1/s]
       struct rv_LS_fctr
       {
         real_t operator()(const real_t &z) const
@@ -147,7 +176,7 @@ namespace cases
         }
         BZ_DECLARE_FUNCTOR(rv_LS_fctr);
       };
-
+      /// @endcond
 
       // examples of time-varying large-scale forcings
       /*
@@ -201,6 +230,7 @@ namespace cases
       };
   */
 
+ /// @brief Setting SGS options depending on enable_sgs template parameter
       template<bool enable_sgs = case_ct_params_t::enable_sgs>
       void setopts_sgs(rt_params_t &params,
                        typename std::enable_if<!enable_sgs>::type* = 0) 
@@ -215,7 +245,8 @@ namespace cases
         parent_t::setopts_sgs(params);
         params.cdrag = 0.001229; // NOTE: in SMG simulations, we do not apply the height correction to drag coefficient (i.e. it is assumed that U ground is at 20 m)
       }
-  
+
+      /// @brief Runtime options (switching forcings)
       template <class T, class U>
       void setopts_hlpr(T &params, const U &user_params)
       {
@@ -228,7 +259,14 @@ namespace cases
 
         this->setopts_sgs(params);
       }
-  
+
+      /**
+ * @brief Initialize velocity, thermodynamic, and density fields
+ * @param concurr Concurrency object with advectee arrays
+ * @param rhod 1D dry air density profile
+ * @param rng_seed Random number seed for perturbations
+ * @param index Blitz index used for vertical slicing
+ */
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
@@ -277,10 +315,9 @@ namespace cases
           concurr.advectee_global_set(rv_global, ix::rv);
         }
       }
-  
-  
-  
-      // calculate the initial environmental theta and rv profiles
+
+
+     /// @brief Compute initial profiles for theta, rv, and large-scale forcings
       // like in Wojtek's BabyEulag
       // alse set w_LS and hgt_fctrs
       // TODO: same in DYCOMS (and others?), move to a common function
@@ -306,6 +343,7 @@ namespace cases
         profs.rv_LS = rv_LS_fctr()(k * dz);
       }
 
+ /// @brief Update surface sensible heat flux
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
                                  blitz::Array<real_t, n_dims> th_ground,    // value of th on the ground
                                  blitz::Array<real_t, n_dims> U_ground,     // magnitude of horizontal ground wind
@@ -315,7 +353,7 @@ namespace cases
         static const real_t th_0 = (T_SST / si::kelvins) / theta_std::exner(p_0);
         surf_flux_sens =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001094) * U_ground * (th_ground - th_0) * (this->rhod_0 / si::kilograms * si::cubic_meters) * theta_std::exner(p_0); // [K kg / (m^2 s)]; *= -1 because gradient is taken later and negative gradient of upward flux means inflow
       }
-
+/// @brief Update surface latent heat flux
       void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
                                        blitz::Array<real_t, n_dims> rt_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
@@ -325,7 +363,7 @@ namespace cases
         static const real_t rsat_0 = const_cp::r_vs(T_SST, p_0); // if we wanted to use the Tetens formula, this would need to be changed
         surf_flux_lat =   formulas::surf_flux_coeff_scaling<real_t>(U_ground_z, 20) * real_t(0.001133) * U_ground * (rt_ground - rsat_0) * (this->rhod_0 / si::kilograms * si::cubic_meters); // [kg / (m^2 s)]
       }
-
+      /// @brief Update surface momentum flux (u or v)
       // one function for updating u or v
       // the n_dims arrays have vertical extent of 1 - ground calculations only in here
       void update_surf_flux_uv(blitz::Array<real_t, n_dims>  surf_flux_uv, // output array
@@ -353,6 +391,7 @@ namespace cases
       };
       */
 
+      /// @brief Initialize case-specific parameters (e.g. droplet size spectrum, GCCN)
       void init()
       {
         this->p_0 = p_0;
@@ -369,7 +408,13 @@ namespace cases
 
       public:
 
-      // ctor
+      /**
+ * @brief Constructor for RICO 11 case
+ * @param _X Domain length in x-direction (meters)
+ * @param _Y Domain length in y-direction (meters)
+ * @param _Z Domain height (meters)
+ * @param window Window flag
+ */
       Rico11Common(const real_t _X, const real_t _Y, const real_t _Z, const bool window)
       {
         init();
@@ -388,7 +433,7 @@ namespace cases
     template<class case_ct_params_t, int n_dims>
     class Rico11;
 
-
+    /// Specialized 2D and 3D cases inherit from Rico11Common
     // TODO: stuff from 2D can be moved to common? 
     template<class case_ct_params_t>
     class Rico11<case_ct_params_t, 2> : public Rico11Common<case_ct_params_t, 2>

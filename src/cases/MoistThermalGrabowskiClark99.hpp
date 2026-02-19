@@ -77,7 +77,7 @@ namespace cases
 
     const real_t z_abs = 125000; // [m] height above which absorber works, no absorber
 
-///WARNING: these functors, taken from Clark Farley 1984, are for dry air!!
+//WARNING: these functors, taken from Clark Farley 1984, are for dry air!!
 
     struct th_std_fctr
     {

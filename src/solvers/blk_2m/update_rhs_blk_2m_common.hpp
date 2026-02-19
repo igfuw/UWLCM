@@ -2,6 +2,27 @@
 #include <libcloudph++/blk_2m/rhs_cellwise.hpp>
 #include "../slvr_blk_2m.hpp"
 
+/**
+ * @brief Update the right-hand side (RHS) of prognostic equations for 2-moment microphysics.
+ *
+ * This function updates the RHS arrays for all cloud and rain scalars, including
+ * temperature (th), water vapor (rv), cloud water (rc), cloud droplet number (nc),
+ * rain water (rr), and rain droplet number (nr). The updates include:
+ *
+ * - Storing total liquid water (cloud + rain) for buoyancy calculations.
+ * - Calling the parent RHS update routine.
+ * - Zeroing precipitation fluxes at the first substep.
+ * - Applying cell-wise microphysics updates using `libcloudph++::blk_2m::rhs_cellwise`.
+ * - Applying source terms and nudging forcings for cloud and rain water and number concentrations.
+ * - Optionally adding subgrid-scale forces if using an explicit turbulence model.
+ * - Ensuring that the RHS does not remove more mass than is present (prevents negative values).
+ *
+ * @param rhs Array of RHS fields for all scalars. Updated in-place.
+ * @param dt Time step size.
+ * @param at Substep index.
+ *           - 0: Eulerian integration or initial step for trapezoidal method
+ *           - 1: trapezoidal n+1 step
+ */
 template <class ct_params_t>
 void slvr_blk_2m_common<ct_params_t>::update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,

@@ -7,6 +7,14 @@
 #  include <future>
 #endif
 
+/**
+ * \class slvr_lgrngn
+ * @brief Lagrangian solver class coupling Eulerian fields with super-droplet model.
+ *
+ * Template specialization depends on the chosen SGS (subgrid-scale) scheme.
+ *
+ * @tparam ct_params_t compile-time parameters
+ */
 template <class ct_params_t>
 class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
                                               slvr_common<ct_params_t>,
@@ -26,10 +34,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   private:
 
 #if defined(UWLCM_TIMING)
+  /// @brief Start and end timestamps for performance measurements.
   setup::clock::time_point tbeg, tend;
 #endif
 
-  // member fields
+  /// @brief Pointer to particle (super-droplet) system.
   std::unique_ptr<libcloudphxx::lgrngn::particles_proto_t<real_t>> prtcls;
 
   // helpers for calculating RHS from condensation, probably some of the could be avoided e.g. if step_cond returnd deltas and not changed fields 
@@ -42,6 +51,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   bool diag_prev_step; // flag saying if diag was done in the previous step
 
+  /// @brief Diagnostic: update liquid water mixing ratio from superdroplets.
   void diag_rl()
   {
     // fill with rl values from superdroplets
@@ -62,6 +72,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     this->avg_edge_sclr(this->r_l, this->ijk); // in case of cyclic bcond, rl on edges needs to be the same
   }
 
+  /// @brief Get puddle water amount (overrides parent implementation).
   void get_puddle() override
   {
     this->puddle = prtcls->diag_puddle();
@@ -69,6 +80,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   void diag();
 
+  /**
+ * @brief Create arrinfo descriptor for Lagrangian arrays.
+ * @param arr array reference
+ * @return array information descriptor
+ */
   libcloudphxx::lgrngn::arrinfo_t<real_t> make_arrinfo(
     typename parent_t::arr_t arr
   ) {
@@ -98,7 +114,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     params.cloudph_opts.RH_max = val ? 44 : 1.01; // TODO: specify it somewhere else, dup in blk_2m
   };
   
-  // very similar to diag_rl, TODO: unify
+  /// @brief Diagnostic: update cloud water mixing ratio from superdroplets.
   void diag_rc()
   {
     // fill with rc values from superdroplets
@@ -122,12 +138,16 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
   {
     return r_c;
   }
-
+  /// @brief Hook called before time loop starts.
   void hook_ante_loop(int nt);
+  /// @brief Hook called before each time step.
   void hook_ante_step();
+  /// @brief Hook called before delayed step operations.
   void hook_ante_delayed_step();
+  /// @brief Hook called before computing RHS in mixed solver.
   void hook_mixed_rhs_ante_step();
 
+  /// @brief Hook called before loop in mixed RHS solver (initial diagnostics).
   void hook_mixed_rhs_ante_loop()
   {
     diag_rl(); // init r_l
@@ -170,6 +190,9 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   public:
 
+  /**
+ * @brief Runtime parameters for Lagrangian solver.
+ */
   struct rt_params_t : parent_t::rt_params_t 
   { 
     libcloudphxx::lgrngn::backend_t backend = libcloudphxx::lgrngn::undefined;
@@ -190,7 +213,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   public:
 
-  // ctor
+  /**
+ * @brief Constructor.
+ * @param args constructor arguments passed to parent solver
+ * @param p runtime parameters
+ */
   slvr_lgrngn( 
     typename parent_t::ctor_args_t args, 
     const rt_params_t &p
@@ -208,6 +235,11 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     // TODO: equip rank() in libmpdata with an assert() checking if not in serial block
   }  
 
+  /**
+ * @brief Allocate memory for solver arrays.
+ * @param mem memory manager
+ * @param n_iters number of iterations
+ */
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);

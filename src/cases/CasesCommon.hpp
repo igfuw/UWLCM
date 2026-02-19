@@ -26,7 +26,12 @@ namespace cases
   using real_t = setup::real_t;
   using arr_1D_t = setup::arr_1D_t;
 
-  // helper, could be moved somewhere else
+  /**
+   * @brief Structure representing a horizontal velocity profile.
+   *
+   * This struct allows initialization of a velocity profile with a given function
+   * and computes the deviation from the mean horizontal velocity.
+   */
   struct hori_vel_t
   {
     bool initialized;
@@ -55,6 +60,17 @@ namespace cases
     hori_vel_t(std::function<quantity<si::velocity, real_t>(real_t)> f): f_vel_prof(f), initialized(false) {}
   };
 
+
+  /**
+ * \class CasesCommon
+ * @brief Base class for cloud simulation cases.
+ *
+ * Provides common parameters and utilities for cloud microphysics simulations,
+ * including domain size, aerosol properties, surface fluxes, and forcing parameters.
+ *
+ * @tparam case_ct_params_t Case-specific compile-time parameters
+ * @tparam n_dims Number of spatial dimensions (2 or 3)
+ */
   template<class case_ct_params_t, int n_dims>
   class CasesCommon
   {
@@ -95,6 +111,10 @@ namespace cases
 
     quantity<si::length, real_t> gccn_max_height; // GCCN added (at init and via relaxation) only up to this level
 
+    /**
+* @brief Set SGS options if SGS turbulence is enabled.
+* @param params Runtime parameters
+*/
     template<bool enable_sgs = case_ct_params_t::enable_sgs>
     void setopts_sgs(rt_params_t &params,
                      typename std::enable_if<!enable_sgs>::type* = 0)
@@ -114,8 +134,19 @@ namespace cases
 
     detail::ForceParameters_t ForceParameters;
 
+    /**
+     * @brief Virtual function to set case-specific options.
+     */
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
+
+    /**
+     * @brief Virtual function to set case-specific initial conditions.
+     */
     virtual void intcond(concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
+
+    /**
+ * @brief Initialize profiles for SGS and surface fluxes.
+ */
     virtual void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
     {
       real_t dz = (Z / si::metres) / (nz-1);
@@ -160,7 +191,9 @@ namespace cases
 */
       }
     }
-
+    /**
+     * @brief Update surface fluxes (sensible heat).
+     */
     virtual void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
                                        blitz::Array<real_t, n_dims> th_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
@@ -168,6 +201,9 @@ namespace cases
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_sens = 0.;};
 
+    /**
+ * @brief Update surface fluxes (latent heat).
+ */
     virtual void update_surf_flux_lat(blitz::Array<real_t, n_dims> surf_flux_lat,
                                        blitz::Array<real_t, n_dims> rt_ground,   
                                        blitz::Array<real_t, n_dims> U_ground,   
@@ -175,6 +211,9 @@ namespace cases
                                        const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0)
     {if(timestep==0) surf_flux_lat = 0.;};
 
+    /**
+ * @brief Update surface fluxes (momentum).
+ */
     virtual void update_surf_flux_uv(blitz::Array<real_t, n_dims> surf_flux_uv,
                                      blitz::Array<real_t, n_dims> uv_ground,   
                                      blitz::Array<real_t, n_dims> U_ground,   
@@ -182,16 +221,23 @@ namespace cases
                                      const int &timestep, const real_t &dt, const real_t &dx, const real_t &dy = 0, const real_t &uv_mean = 0)
     {if(timestep==0) surf_flux_uv = 0.;};
 
+    /**
+ * @brief Update large-scale water vapor tendencies.
+ */
     virtual void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
                               int timestep, real_t dt, real_t dz)
     {};
 
+    /**
+     * @brief Update large-scale potential temperature tendencies.
+     */
     virtual void update_th_LS(blitz::Array<real_t, 1> th_LS,
                               int timestep, real_t dt, real_t dz)
     {};
 
-    // ctor
-    // TODO: these are DYCOMS definitions, move them there
+    /**
+     * @brief Constructor: sets default DYCOMS parameters.
+     */
     CasesCommon()
     {
       ForceParameters.heating_kappa = 85; // m^2/kg
@@ -213,14 +259,17 @@ namespace cases
 
     protected:
 
-    // function enforcing cyclic values in horizontal directions
-    // 2D version
+    /**
+     * @brief Enforce cyclic boundary conditions in horizontal directions (2D).
+     */
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 2>::type* = 0)
     { arr(arr.extent(0) - 1, blitz::Range::all()) = arr(0, blitz::Range::all()); }
 
-    // 3D version
+    /**
+     * @brief Enforce cyclic boundary conditions in horizontal directions (3D).
+     */
     template<class arr_t>
     void make_cyclic(arr_t arr,
       typename std::enable_if<arr_t::rank_ == 3>::type* = 0)

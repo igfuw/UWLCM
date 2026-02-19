@@ -9,7 +9,12 @@ class slvr_blk_1m
 using libmpdataxx::arakawa_c::h;
 using namespace libmpdataxx; // TODO: get rid of it?
 
-// 2D version
+/**
+ * \class slvr_blk_1m_2D
+ * @brief Solver for 2D simulations using the bulk 1-moment scheme.
+ *
+ * @tparam ct_params_t Compile-time parameters (must define n_dims == 2).
+ */
 template <class ct_params_t>
 class slvr_blk_1m<
   ct_params_t,
@@ -20,7 +25,12 @@ class slvr_blk_1m<
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
 
-  // ctor
+  /**
+ * @brief Constructor.
+ *
+ * @param args Arguments forwarded to the parent solver.
+ * @param p Runtime parameters.
+ */
   slvr_blk_1m(
     typename parent_t::ctor_args_t args,
     const typename parent_t::rt_params_t &p
@@ -29,6 +39,14 @@ class slvr_blk_1m<
   {}
 
   protected:
+  /**
+   * @brief Updates the right-hand side (RHS) tendencies for 2D case.
+   * Includes condensation and precipitation source terms.
+   *
+   * @param rhs Reference to RHS array vector to be updated.
+   * @param dt Time step size.
+   * @param at Substep index (applied only for at == 0).
+   */
   void update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
@@ -59,7 +77,12 @@ class slvr_blk_1m<
   }
 };
 
-// 3D version
+/**
+ *\class slvr_blk_1m_3D
+ * @brief Solver for 3D simulations using the bulk 1-moment scheme.
+ *
+ * @tparam ct_params_t Compile-time parameters (must define n_dims == 3).
+ */
 template <class ct_params_t>
 class slvr_blk_1m<
   ct_params_t,
@@ -71,7 +94,12 @@ class slvr_blk_1m<
   using parent_t = slvr_blk_1m_common<ct_params_t>;
   using real_t = typename ct_params_t::real_t;
 
-  // ctor
+  /**
+ * @brief Constructor.
+ *
+ * @param args Arguments forwarded to the parent solver.
+ * @param p Runtime parameters.
+ */
   slvr_blk_1m(
     typename parent_t::ctor_args_t args,
     const typename parent_t::rt_params_t &p
@@ -80,6 +108,15 @@ class slvr_blk_1m<
   {}
 
   protected:
+  /**
+ * @brief Updates the right-hand side (RHS) tendencies for 3D case.
+ *
+ * Includes condensation and precipitation source terms.
+ *
+ * @param rhs Reference to RHS array vector to be updated.
+ * @param dt Time step size.
+ * @param at Substep index (applied only for at == 0).
+ */
   void update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,

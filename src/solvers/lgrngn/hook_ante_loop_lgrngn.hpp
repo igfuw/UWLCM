@@ -1,6 +1,32 @@
 #pragma once
 #include "../slvr_lgrngn.hpp"
 
+/**
+ * @brief Prepares the super-droplet microphysics model before the main time-stepping loop.
+ *
+ * @param nt Current number of timesteps.
+ *
+ * @details
+ * This function performs several critical steps before the simulation loop:
+ * 1. Sets flags and options for microphysics.
+ * 2. Initializes domain and grid parameters for the super-droplet model (nx, ny, dx, dy, nz, dz).
+ * 3. Computes the maximum number of super-droplets (`n_sd_max`) per cell based on
+ *    initial SD concentration, dry size distributions, and relaxation sources.
+ *    Special adjustments are made for large tails, multiple CUDA devices, or distributed memory.
+ * 4. Creates the `prtcls` (super-droplet) object using the `libcloudphxx::lgrngn` factory.
+ * 5. Initializes temporary arrays for air density (`rhod`) and pressure (`p_e`) to allow
+ *    super-droplet initialization over a 1D profile.
+ * 6. Calls `prtcls->init()` to initialize the particle arrays with the thermodynamic
+ *    and microphysical state.
+ * 7. Records microphysics configuration parameters.
+ *
+ * @note
+ * - The function uses MPI-style barriers (`mem->barrier()`) to synchronize ranks during
+ *   parallel initialization.
+ * - `rank == 0` is responsible for assertions, setting up options, and recording auxiliary data.
+ * - CUDA backend-specific options are adjusted automatically, including async mode.
+ * - Microphysics options are recorded into groups like "lgrngn" and "user_params".
+ */
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
 {
@@ -60,7 +86,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
       if(params.cloudph_opts_init.sd_conc)
       {
         if(params.cloudph_opts_init.sd_conc_large_tail)
-          params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell; /// 1.2 to make space for large tail
+          params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell; // 1.2 to make space for large tail
         else
           params.cloudph_opts_init.n_sd_max = params.cloudph_opts_init.nx * params.cloudph_opts_init.nz * n_sd_per_cell;
       }
@@ -85,7 +111,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
       if(params.cloudph_opts_init.sd_conc)
       {
         if(params.cloudph_opts_init.sd_conc_large_tail)
-          params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; /// 1.2 to make space for large tail
+          params.cloudph_opts_init.n_sd_max = 1.2 * params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; // 1.2 to make space for large tail
         else
           params.cloudph_opts_init.n_sd_max =       params.cloudph_opts_init.nx * params.cloudph_opts_init.ny * params.cloudph_opts_init.nz * n_sd_per_cell; 
       }

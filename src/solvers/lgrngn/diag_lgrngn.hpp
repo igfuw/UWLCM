@@ -1,6 +1,25 @@
 #pragma once
 #include "../slvr_lgrngn.hpp"
 
+/**
+ * @brief Performs diagnostics and records microphysical quantities for the super-droplet model.
+ *
+ * @details
+ * This function extends the base class diagnostics by recording:
+ *  - Super-droplet concentration per grid cell
+ *  - Concentration of activated droplets
+ *  - Relative humidity
+ *  - Precipitation rates
+ *  - Statistical moments of wet and dry droplet radii
+ *  - Moments of activated drops
+ *  - Moments of cloud and rain drops in specific size ranges
+ *
+ * The diagnostics can optionally include temperature, pressure, aerosol properties, and
+ * specialized moments if uncommented. Periodically, user-requested statistical moments
+ * specified in `params.out_dry` and `params.out_wet` are also recorded.
+ *
+ * The recorded quantities are stored via the `record_aux` method.
+ */
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::diag()
 {
