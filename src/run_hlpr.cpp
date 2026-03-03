@@ -74,6 +74,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   using concurr_openmp_cyclic_gndsky_t = typename concurr_openmp_cyclic_gndsky<solver_t, n_dims>::type;
   using concurr_openmp_rigid_gndsky_t = typename concurr_openmp_rigid_gndsky<solver_t, n_dims>::type;
   using concurr_openmp_open_fixed_open_t = typename concurr_openmp_open_fixed_open<solver_t, n_dims>::type;
+  using concurr_openmp_open_t = typename concurr_openmp_open<solver_t, n_dims>::type;
   
   using rt_params_t = typename solver_t::rt_params_t;
   using ix = typename solver_t::ix;
@@ -189,6 +190,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   {
     // concurr.reset(new concurr_openmp_cyclic_t(p));
     concurr.reset(new concurr_openmp_open_fixed_open_t(p));
+    // concurr.reset(new concurr_openmp_open_t(p)); // open copies values from edges, so should work fine when exhaust speed is modeled using relaxation
+    //concurr.reset(new concurr_openmp_cyclic_t(p));
   }
   else
   {

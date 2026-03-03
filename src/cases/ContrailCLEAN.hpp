@@ -25,7 +25,8 @@ namespace cases
      X_def    ( 500 * si::metres), 
      Y_def    ( 500 * si::metres);
 
-    const real_t z_abs = 100000; // no absorber
+    const real_t z_abs = 20; // velocity absorbers working 200 meters from top bottom edges; 
+    const real_t x_abs = 1000; // velocity absorbers working 1000 meters right edge TODO: left edge as well?
 
     inline quantity<si::temperature, real_t> th_l_CLEAN(const real_t &z)
     {
@@ -90,8 +91,10 @@ namespace cases
         concurr.advectee(ix::w) = 0;  
        
         // absorbers; TODO: they are needed, because gravity waves are reflected from boundaries?
-        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->Z / si::metres - z_abs)), 2), 0);
-        concurr.vab_relaxed_state(0) = 0;
+//        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->z / si::metres - z_abs)), 2), 0);
+//        concurr.vab_relaxed_state(0) = 0; 
+
+
         concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
     
         // density profile
@@ -199,32 +202,86 @@ namespace cases
 
         int mid_k = nz / 2;
 
-        concurr.advectee(ix::u) = 0 
+        // TODO: vab_coefficient and vab_relaxed_state should be set only in the 0-th MPI process, similarly to advectee_global_set (otherwise MPI runs wont work well)
+        //concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->z / si::metres - z_abs)), 2), 0);
+        
+        // relaxation that works toward exhaust velocity
+        concurr.vab_coefficient() = 0 
           + where(
             // if
             // i == 0 && k > mid_k && k <= mid_k + 1, 
-            // (i == 0 || i == 1) && k == mid_k, 
-            i == 0 && k == mid_k, 
+            (i == 0 || i == 1) && k == mid_k, 
+            // i == 0 && k == mid_k, 
+            // i == 1 && k == mid_k, 
             // k == mid_k, 
             // then
-            1,
-            // 67.5, 
+            10, // [1/s]
             // else
             0
           );
-        // concurr.advectee(ix::w) = 0 
-        //   + where(
-        //     // if
-        //     // i == 0 && k > mid_k && k <= mid_k + 1, 
-        //     // (i == 0 || i == 1) && k == mid_k, 
-        //     i == 0 && k == mid_k, 
-        //     // k == mid_k, 
-        //     // then
-        //     -67.5, 
-        //     // else
-        //     0
-        //   );
 
+        // gravity wave absorber
+       double gw_abs_mag = 1.;///100; // absorber strength
+       // bottom edge
+       concurr.vab_coefficient() += where(k * dz <= z_abs,  gw_abs_mag * (z_abs - k * dz) / (z_abs), 0);
+       // top
+       concurr.vab_coefficient() += where(k * dz >= this->Z / si::metres - z_abs,  gw_abs_mag * (k * dz - (this->Z / si::metres - z_abs)) / (z_abs), 0);
+       // right
+       concurr.vab_coefficient() += where(i * dx >= this->X / si::metres - x_abs,  gw_abs_mag * (i * dx - (this->X / si::metres - x_abs)) / (x_abs), 0);
+
+        // relaxed state for horizontal velocity
+        concurr.vab_relaxed_state(0) = 223.5 
+          + where(
+            // if
+            // i == 0 && k > mid_k && k <= mid_k + 1, 
+            (i == 0 || i == 1) && k == mid_k, 
+            // i == 0 && k == mid_k, 
+            // i == 1 && k == mid_k, 
+            // k == mid_k, 
+            // then
+            //1,
+            67.5, 
+            // else
+            0
+          );
+
+        // set initial horizontal velocity
+        // TODO: use advectee_global_set (e.g. DryPBL) here
+        // NOTE: set here only for the fixed bcond to have 67.5 at the left boundary; initial velocity is set to 223.5 anyway in ante_loop (pretty hacky)
+        concurr.advectee(ix::u) = 223.5 + 
+          + where(
+            // if
+            // i == 0 && k > mid_k && k <= mid_k + 1, 
+            // (i == 0 || i == 1), 
+            (i == 0 || i == 1) && k == mid_k, 
+            // (i == 1 || i == 2) && k == mid_k, 
+            // i == 1 && k == mid_k, 
+            // i == 0 && k == mid_k, 
+            // k == mid_k, 
+            // then
+            //1,
+            67.5, 
+            // else
+            0
+          ); 
+
+          concurr.advectee(ix::th) += 
+          + where(
+            // if
+            // i == 0 && k > mid_k && k <= mid_k + 1, 
+            // (i == 0 || i == 1), 
+            (i == 0 || i == 1) && (k > mid_k - 3 && k <= mid_k + 3), 
+            // (i == 0 || i == 1) && k == mid_k, 
+            // (i == 1 || i == 2) && k == mid_k, 
+            // i == 1 && k == mid_k, 
+            // i == 0 && k == mid_k, 
+            // k == mid_k, 
+            // then
+            //1,
+            58.3,
+            // else
+            0
+          ); 
       }
 
       public:

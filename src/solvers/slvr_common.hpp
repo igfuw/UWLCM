@@ -81,6 +81,21 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   void hook_ante_loop(int nt)
   {
+
+    // Contrail hack: intcond sets boundary ix::u so that it is stored in fixed, now we set it to uniform as actual init condition
+    {
+             // save initial edge values for fixed bcond
+         for (int e = 0; e < this->n_eqns; ++e) // equations
+           for (int n = 0; n < this->n_tlev; ++n) // time levels
+             this->save_edges(this->mem->psi[e][n], this->mem->psi[e][0], this->ijk);
+
+         if (opts::isset(ct_params_t::opts, opts::nug))
+           this->save_edges(*this->mem->G, *this->mem->G, this->ijk);
+
+        this->mem->advectee(ix::u)(this->ijk) = 223.5; 
+    }
+
+
     if (params.user_params.spinup > 0)
     {
       set_rain(false);
