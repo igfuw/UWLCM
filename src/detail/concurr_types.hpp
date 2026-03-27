@@ -4,11 +4,13 @@
 #include <libmpdata++/bcond/rigid_2d.hpp>
 #include <libmpdata++/bcond/open_2d.hpp>
 #include <libmpdata++/bcond/gndsky_2d.hpp>
+#include <libmpdata++/bcond/fixed_2d.hpp>
 
 #include <libmpdata++/bcond/cyclic_3d.hpp>
 #include <libmpdata++/bcond/rigid_3d.hpp>
 #include <libmpdata++/bcond/open_3d.hpp>
 #include <libmpdata++/bcond/gndsky_3d.hpp>
+#include <libmpdata++/bcond/fixed_3d.hpp>
 
 #include <libmpdata++/concurr/openmp.hpp>
 
@@ -113,5 +115,60 @@ struct concurr_openmp_rigid_gndsky<solver_t, 3>
     libmpdataxx::bcond::rigid, libmpdataxx::bcond::rigid,
     libmpdataxx::bcond::rigid, libmpdataxx::bcond::rigid,
     libmpdataxx::bcond::gndsky, libmpdataxx::bcond::gndsky
+  >;
+};
+
+template <class solver_t, int n_dims>
+struct concurr_openmp_open_fixed_open;
+
+// 2D
+template <class solver_t>
+struct concurr_openmp_open_fixed_open<solver_t, 2>
+{
+  using type = libmpdataxx::concurr::openmp<
+    solver_t, 
+    libmpdataxx::bcond::fixed, libmpdataxx::bcond::open,
+    // libmpdataxx::bcond::open, libmpdataxx::bcond::fixed,
+    // libmpdataxx::bcond::open, libmpdataxx::bcond::open,
+    libmpdataxx::bcond::open, libmpdataxx::bcond::open
+  >;
+};
+
+// 3D
+template <class solver_t>
+struct concurr_openmp_open_fixed_open<solver_t, 3>
+{
+  using type = libmpdataxx::concurr::openmp<
+    solver_t, 
+    //libmpdataxx::bcond::open, libmpdataxx::bcond::fixed,
+    libmpdataxx::bcond::fixed, libmpdataxx::bcond::open,
+    libmpdataxx::bcond::open, libmpdataxx::bcond::open,
+    libmpdataxx::bcond::open, libmpdataxx::bcond::open
+  >;
+};
+
+template <class solver_t, int n_dims>
+struct concurr_openmp_open;
+
+// 2D
+template <class solver_t>
+struct concurr_openmp_open<solver_t, 2>
+{
+  using type = libmpdataxx::concurr::openmp<
+    solver_t, 
+    libmpdataxx::bcond::open, libmpdataxx::bcond::open,
+    libmpdataxx::bcond::open, libmpdataxx::bcond::open
+  >;
+};
+
+// 3D
+template <class solver_t>
+struct concurr_openmp_open<solver_t, 3>
+{
+  using type = libmpdataxx::concurr::openmp<
+    solver_t, 
+    libmpdataxx::bcond::open, libmpdataxx::bcond::open,
+    libmpdataxx::bcond::open, libmpdataxx::bcond::open,
+    libmpdataxx::bcond::open, libmpdataxx::bcond::open
   >;
 };
