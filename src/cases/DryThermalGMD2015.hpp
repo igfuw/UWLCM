@@ -16,6 +16,7 @@ namespace cases
       X_def    = 2000 * si::metres;
   
     const real_t z_abs = 100000; // no absorber
+    const real_t r0 = 250; // radius of the thermal
 
     template<class case_ct_params_t, int n_dims>
     class DryThermalCommon : public CasesCommon<case_ct_params_t, n_dims>
@@ -66,18 +67,7 @@ namespace cases
         // density profile
         concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
     
-        // initial potential temperature
-        real_t r0 = 250;
         concurr.advectee(ix::rv) = 1e-3; // some rv, but no actual wet physics
-        concurr.advectee(ix::th) = 300. + where(
-          // if
-          pow(blitz::tensor::i * dx - 4    * r0 , 2) + 
-          pow(blitz::tensor::j * dz - 1.04 * r0 , 2) <= pow(r0, 2), 
-          // then
-          .5, 
-          // else
-          0
-        );
       }
   
       // calculate the initial environmental theta and rv profiles
@@ -145,6 +135,22 @@ namespace cases
       {
         blitz::secondIndex k;
         this->intcond_hlpr(concurr, rhod, rng_seed, k);
+
+        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        real_t dz = (this->Z / si::metres) / (nz-1); 
+        int nx = concurr.advectee_global().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
+        real_t dx = (this->X / si::metres) / (nx-1); 
+
+        // potential temperature with peturbation
+        concurr.advectee(ix::th) = 300. + where(
+          // if
+          pow(blitz::tensor::i * dx - 4    * r0 , 2) + 
+          pow(blitz::tensor::j * dz - 1.04 * r0 , 2) <= pow(r0, 2), 
+          // then
+          .5, 
+          // else
+          0
+        );
       }
 
       public:
@@ -161,6 +167,7 @@ namespace cases
       using parent_t = DryThermalCommon<case_ct_params_t, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       // function expecting a libmpdata concurr parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -177,16 +184,36 @@ namespace cases
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(concurr, rhod, rng_seed, k);
+
+        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        real_t dz = (this->Z / si::metres) / (nz-1); 
+        int nx = concurr.advectee_global().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
+        real_t dx = (this->X / si::metres) / (nx-1); 
+        int ny = concurr.advectee_global().extent(1);  // ix::w is the index of vertical domension both in 2D and 3D
+        real_t dy = (this->Y / si::metres) / (ny-1); 
     
         concurr.advectee(ix::v) = 0;
         concurr.vab_relaxed_state(1) = 0;
+
+        // potential temperature with peturbation
+        concurr.advectee(ix::th) = 300. + where(
+          // if
+          pow(blitz::tensor::i * dx - 4    * r0 , 2) + 
+          pow(blitz::tensor::j * dy - 4    * r0 , 2) + 
+          pow(blitz::tensor::k * dz - 1.04 * r0 , 2) <= pow(r0, 2), 
+          // then
+          .5, 
+          // else
+          0
+        );
       }
 
       public:
-      // TODO: make it work in 3d?
       DryThermal(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1)
       {
-        throw std::runtime_error("UWLCM: Dry Thermal doesn't work in 3d yet");
+        this->X = _X < 0 ? X_def : _X * si::meters;
+        this->Y = _Y < 0 ? Y_def : _Y * si::meters;
+        this->Z = _Z < 0 ? Z_def : _Z * si::meters;
       }
     };
   };
