@@ -92,7 +92,7 @@ class slvr_common : public slvr_dim<ct_params_t>
          if (opts::isset(ct_params_t::opts, opts::nug))
            this->save_edges(*this->mem->G, *this->mem->G, this->ijk);
 
-        this->mem->advectee(ix::u)(this->ijk) = 223.5; 
+//        this->mem->advectee(ix::u)(this->ijk) = 223.5; 
     }
 
 
