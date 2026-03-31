@@ -112,6 +112,11 @@ void setopts_micro(
   else if (backend_str == "serial") rt_params.backend = libcloudphxx::lgrngn::serial;
 
   rt_params.async = vm["async"].as<bool>();
+  if (rt_params.async && (backend_str != "CUDA" && backend_str != "multi_CUDA")) throw std::runtime_error("async==1 only makes sense for CUDA and multi_CUDA backends, set async=0 for other backends");
+  #if defined(USE_MPI) && !defined(LIBMPDATAXX_MPI_THREAD_MULTIPLE)
+    if(rt_params.async) throw std::runtime_error("async==1 doesn't work for MPI builds without multiple threading. Set async=0 or compile with -DLIBMPDATAXX_MPI_THREAD_MULTIPLE=1.");
+    if(backend_str == "multi_CUDA") throw std::runtime_error("multi_CUDA backend with MPI requires multiple threading support. Set async=0 or compile with -DLIBMPDATAXX_MPI_THREAD_MULTIPLE=1.");
+  #endif
   rt_params.gccn = vm["gccn"].as<setup::real_t>();
   rt_params.outfreq_spec = vm["outfreq_spec"].as<int>();
   if(rt_params.outfreq_spec == 0) rt_params.outfreq_spec = user_params.outfreq;
