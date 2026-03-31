@@ -1,6 +1,25 @@
 #pragma once
 #include "../slvr_lgrngn.hpp"
 
+/**
+ * @brief Performs diagnostics and records microphysical quantities for the super-droplet model.
+ *
+ * @details
+ * This function extends the base class diagnostics by recording:
+ *  - Super-droplet concentration per grid cell
+ *  - Concentration of activated droplets
+ *  - Relative humidity
+ *  - Precipitation rates
+ *  - Statistical moments of wet and dry droplet radii
+ *  - Moments of activated drops
+ *  - Moments of cloud and rain drops in specific size ranges
+ *
+ * The diagnostics can optionally include temperature, pressure, aerosol properties, and
+ * specialized moments if uncommented. Periodically, user-requested statistical moments
+ * specified in `params.out_dry` and `params.out_wet` are also recorded.
+ *
+ * The recorded quantities are stored via the `record_aux` method.
+ */
 template <class ct_params_t>
 void slvr_lgrngn<ct_params_t>::diag()
 {
@@ -33,7 +52,7 @@ void slvr_lgrngn<ct_params_t>::diag()
   */
 
   // recording precipitation rate per grid cel
-  prtcls->diag_all();
+  prtcls->diag_water();
   prtcls->diag_precip_rate();
   this->record_aux("precip_rate", prtcls->outbuf());
 
@@ -66,6 +85,8 @@ void slvr_lgrngn<ct_params_t>::diag()
 //    prtcls->diag_dry_rng(0., 2e-6);
 //    prtcls->diag_wet_mom(0);
 //    this->record_aux("non_gccn_rw_mom0", prtcls->outbuf());
+
+  prtcls->diag_water();
 
   // recording 0th mom of rw of activated drops
   prtcls->diag_rw_ge_rc();
@@ -203,6 +224,30 @@ void slvr_lgrngn<ct_params_t>::diag()
 //  prtcls->diag_wet_mom(0);
 //  this->record_aux("bigrain_gccn_rw_mom0", prtcls->outbuf());
 
+  if (params.cloudph_opts_init.ice_switch)
+  {
+    prtcls->diag_ice();
+
+    // recording ice mixing ratio
+    prtcls->diag_ice_mix_ratio();
+    this->record_aux("r_i", prtcls->outbuf());
+
+    // recording 0th moment of ice
+    prtcls->diag_ice_a_mom(0);
+    this->record_aux("ice_mom0", prtcls->outbuf());
+
+    // recording 1st moment of ice_a
+    prtcls->diag_ice_a_mom(1);
+    this->record_aux("ice_a_mom1", prtcls->outbuf());
+
+    // recording 1st moment of ice_c
+    prtcls->diag_ice_c_mom(1);
+    this->record_aux("ice_c_mom1", prtcls->outbuf());
+
+    prtcls->diag_precip_rate_ice_mass();
+    this->record_aux("precip_rate_ice_mass", prtcls->outbuf());
+
+  }
   // recording requested statistical moments
   if ((this->timestep ) % static_cast<int>(params.outfreq_spec) == 0)
   {
@@ -221,6 +266,7 @@ void slvr_lgrngn<ct_params_t>::diag()
     }
 
     // wet
+    prtcls->diag_water();
     rng_num = 0;
     for (auto &rng_moms : params.out_wet)
     {
@@ -232,6 +278,37 @@ void slvr_lgrngn<ct_params_t>::diag()
         this->record_aux(aux_name("rw", rng_num, mom), prtcls->outbuf());
       }
       rng_num++;
+    }
+
+    if (params.cloudph_opts_init.ice_switch)
+    {
+      prtcls->diag_ice();
+      // ice_a
+      rng_num = 0;
+      for (auto &rng_moms : params.out_ice)
+      {
+        auto &rng(rng_moms.first);
+        prtcls->diag_ice_a_rng(rng.first / si::metres, rng.second / si::metres);
+        for (auto &mom : rng_moms.second)
+        {
+          prtcls->diag_ice_a_mom(mom);
+          this->record_aux(aux_name("ice_a", rng_num, mom), prtcls->outbuf());
+        }
+        rng_num++;
+      }
+      // ice_c
+      rng_num = 0;
+      for (auto &rng_moms : params.out_ice)
+      {
+        auto &rng(rng_moms.first);
+        prtcls->diag_ice_c_rng(rng.first / si::metres, rng.second / si::metres);
+        for (auto &mom : rng_moms.second)
+        {
+          prtcls->diag_ice_c_mom(mom);
+          this->record_aux(aux_name("ice_c", rng_num, mom), prtcls->outbuf());
+        }
+        rng_num++;
+      }
     }
   }
 

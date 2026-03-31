@@ -4,8 +4,17 @@
 #include "../common/calc_forces_common.hpp"
 #include "../slvr_blk_1m.hpp"
 
-// single-moment bulk forcing functions
-// rc_src
+/**
+ * @brief Source term for cloud water mixing ratio (rc) due to large-scale forcings
+ *
+ * Applies large-scale vertical wind (subsidence) and optional nudging to the
+ * cloud water field. Updates the `alpha` and `beta` arrays that are used in
+ * the solver for forcing calculations.
+ *
+ * - If `params.rc_src` is true, applies subsidence from parent class and
+ *   sets `alpha` from forcing array `F`.
+ * - Otherwise, `alpha` is set to zero.
+ */
 template <class ct_params_t>
 void slvr_blk_1m_common<ct_params_t>::rc_src()
 {
@@ -26,7 +35,17 @@ void slvr_blk_1m_common<ct_params_t>::rc_src()
 //  this->beta(ijk) = - (*this->mem->vab_coeff)(ijk);
 }
 
-// rr_src
+/**
+ * @brief Source term for rain water mixing ratio (rr) due to large-scale forcings
+ *
+ * Applies large-scale vertical wind (subsidence) and optional nudging to the
+ * rain water field. Updates the `alpha` and `beta` arrays that are used in
+ * the solver for forcing calculations.
+ *
+ * - If `params.rr_src` is true, applies subsidence from parent class and
+ *   sets `alpha` from forcing array `F`.
+ * - Otherwise, `alpha` is set to zero.
+ */
 template <class ct_params_t>
 void slvr_blk_1m_common<ct_params_t>::rr_src()
 {

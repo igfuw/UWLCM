@@ -3,6 +3,14 @@
 #include "../detail/blitz_hlpr_fctrs.hpp"
 #include "../formulae/stress_formulae.hpp"
 
+/**
+ * @brief Subgrid-scale (SGS) turbulence solver with Smagorinsky closure.
+ *
+ * This class extends the common solver (@ref slvr_common) with SGS turbulence
+ * parameterizations including momentum fluxes, turbulent diffusivity, and drag.
+ *
+ * @tparam ct_params_t Compile-time parameters controlling solver configuration.
+ */
 template <class ct_params_t>
 class slvr_sgs : public slvr_common<ct_params_t>
 {
@@ -16,9 +24,21 @@ class slvr_sgs : public slvr_common<ct_params_t>
 
   real_t prandtl_num;
 
-  typename parent_t::arr_t &rcdsn_num, &tdef_sq, &tke, &sgs_th_flux, &sgs_rv_flux;
-  arrvec_t<typename parent_t::arr_t> &tmp_grad, &sgs_momenta_fluxes;
-  
+  // diagnostic and temporary arrays
+  typename parent_t::arr_t
+    &rcdsn_num,     ///< Richardson number
+    &tdef_sq,       ///< Squared strain tensor norm
+    &tke,           ///< Turbulent kinetic energy
+    &sgs_th_flux,   ///< SGS heat flux
+    &sgs_rv_flux;   ///< SGS water vapor flux
+
+  arrvec_t<typename parent_t::arr_t>
+  &tmp_grad,           ///< Temporary gradient storage
+  &sgs_momenta_fluxes; ///< SGS momentum fluxes
+
+  /**
+  * @brief Computes Richardson number.
+  */
   void calc_rcdsn_num()
   {
     using libmpdataxx::arakawa_c::h;
@@ -79,7 +99,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
     this->vert_aver_cmpct(tmp_grad[ct_params_t::n_dims - 1], rcdsn_num);
     rcdsn_num(this->ijk) /= max(1e-15, tdef_sq(this->ijk)); // TODO: is 1e-15 sensible epsilon here ?
   }
-  
+  /**
+ * @brief Computes SGS momentum fluxes in 2D.
+ */
   template <int nd = ct_params_t::n_dims> 
   void calc_sgs_momenta_fluxes(typename std::enable_if<nd == 2>::type* = 0)
   {
@@ -89,7 +111,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                + this->tau[2](this->i - h, this->j + h)
                                ) / 4;
   }
-  
+  /**
+   * @brief Computes SGS momentum fluxes in 3D.
+   */
   template <int nd = ct_params_t::n_dims> 
   void calc_sgs_momenta_fluxes(typename std::enable_if<nd == 3>::type* = 0)
   {
@@ -105,7 +129,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
                                ) / 4;
   }
 
-
+  /**
+   * @brief Computes turbulent viscosity using the Smagorinsky model.
+   */
   void multiply_sgs_visc()
   {
     static_assert(static_cast<libmpdataxx::solvers::stress_diff_t>(ct_params_t::stress_diff) == libmpdataxx::solvers::compact,
@@ -276,7 +302,13 @@ class slvr_sgs : public slvr_common<ct_params_t>
       }
     }
   }
-
+  /**
+   * @brief Updates the right-hand side (RHS) with explicit SGS contributions.
+   *
+   * @param rhs RHS storage array.
+   * @param dt Time step length.
+   * @param at Stage of time-stepping
+   */
   void update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
@@ -295,7 +327,9 @@ class slvr_sgs : public slvr_common<ct_params_t>
       nancheck(rhs.at(ix::rv)(this->ijk), "RHS of rv after sgs_scalar_forces");
     }
   }
-
+  /**
+   * @brief Records diagnostics related to SGS turbulence (TKE, fluxes, etc.).
+   */
   void diag() override
   {
     assert(this->rank == 0);
@@ -324,7 +358,13 @@ class slvr_sgs : public slvr_common<ct_params_t>
     this->record_aux_dsc("sgs_th_flux", sgs_th_flux);
     this->record_aux_dsc("sgs_rv_flux", sgs_rv_flux);
   } 
-
+  /**
+   * @brief Hook executed before the time loop.
+   *
+   * Records auxiliary constants and initializes drag terms if needed.
+   *
+   * @param nt Number of timesteps.
+   */
   void hook_ante_loop(int nt) 
   {
     parent_t::hook_ante_loop(nt); 
@@ -351,7 +391,13 @@ class slvr_sgs : public slvr_common<ct_params_t>
   // per-thread copy of params
   rt_params_t params;
 
-  // ctor
+  /**
+ * @brief Constructor of an SGS solver.
+ *
+ * @param args Constructor arguments forwarded to parent class.
+ * @param p Runtime parameters.
+ * @throws std::runtime_error if both `cdrag` and `fricvelsq` are > 0.
+ */
   slvr_sgs( 
     typename parent_t::ctor_args_t args, 
     const rt_params_t &p
@@ -371,6 +417,12 @@ class slvr_sgs : public slvr_common<ct_params_t>
       throw std::runtime_error("UWLCM: in SGS simulation either cdrag or fricvelsq need to be positive, not both");
   }
 
+  /**
+ * @brief Allocates temporary storage required by SGS computations.
+ *
+ * @param mem Memory manager.
+ * @param n_iters Number of iterations to allocate for.
+ */
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);

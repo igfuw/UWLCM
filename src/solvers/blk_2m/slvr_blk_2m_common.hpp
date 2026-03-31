@@ -2,6 +2,15 @@
 #include "../slvr_sgs.hpp"
 #include <libcloudph++/blk_2m/options.hpp>
 
+/**
+ * @brief Common base class for 2-moment bulk microphysics solver.
+ *
+ * Double-moment cloud microphysics,
+ * including handling of rain and cloud water mixing ratios, fluxes. Inherits from either slvr_common
+ * or slvr_sgs depending on the SGS scheme.
+ *
+ * @tparam ct_params_t Compile-time parameter struct defining solver options.
+ */
 template <class ct_params_t>
 class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
                                                      slvr_common<ct_params_t>,
@@ -48,10 +57,10 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->record_aux_dsc("precip_rate_nr", nr_flux);    
   }
 
-  void rc_src();
-  void nc_src();
-  void rr_src();
-  void nr_src();
+  void rc_src(); ///< Cloud water source term
+  void nc_src(); ///< Cloud droplet concentration source term
+  void rr_src(); ///< Rain source term
+  void nr_src(); ///< Rain drop concentration source term
   bool get_rain() { return params.cloudph_opts.acnv; }
   void set_rain(bool val) 
   {
@@ -180,13 +189,23 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     parent_t::alloc_tmp_sclr(mem, __FILE__, 3); // p_e, rr_flux, nr_flux
   }
 
+  /**
+ * @brief Update the right-hand-side of the prognostic equations.
+ * @param rhs RHS arrays for all scalars
+ * @param dt Time step
+ * @param at Current step index
+ */
   void update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
     const int &at
   );
 
-  // ctor
+  /**
+ * @brief Constructor.
+ * @param args Constructor arguments for parent class
+ * @param p Runtime parameters
+ */
   slvr_blk_2m_common(
     typename parent_t::ctor_args_t args,
     const rt_params_t &p
