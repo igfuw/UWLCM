@@ -8,6 +8,13 @@ target_compile_features(api_test PRIVATE cxx_std_11)
 add_test(api_test_iles api_test ${CMAKE_BINARY_DIR} 1)
 add_test(api_test_smg  api_test ${CMAKE_BINARY_DIR} 0 " --sgs=1 ")
 
+# reference data decompression
+add_test(NAME SetupReferenceData
+         COMMAND tar --zstd -xf ${CMAKE_CURRENT_SOURCE_DIR}/reference_data.tar.zst
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(SetupReferenceData PROPERTIES FIXTURES_SETUP "RefDataFixture")
+
+
 add_test(api_test_iles_diff bash -c " 
   cd ${CMAKE_CURRENT_SOURCE_DIR}/refdata_iles/ && find ./* -maxdepth 0 -type d -print0 |            
     while IFS= read -rd '' dir; do 
@@ -50,3 +57,15 @@ add_test(api_test_smg_diff bash -c "
       diff \"${CMAKE_CURRENT_BINARY_DIR}/output/$dir/timestep0000000000.xmf\"     \"${CMAKE_CURRENT_SOURCE_DIR}/refdata_smg/$dir/timestep0000000000.xmf\"                              || exit 1; 
     done  
 ")
+
+# Mark that these tests need the decompressed data
+set_tests_properties(api_test_iles_diff api_test_smg_diff
+                     PROPERTIES FIXTURES_REQUIRED "RefDataFixture")
+
+
+# 3. Define the Cleanup Test (Delete the extracted folder)
+add_test(NAME CleanupReferenceData 
+         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/reference_data)
+
+# Mark this test as the cleanup step for the fixture
+set_tests_properties(CleanupReferenceData PROPERTIES FIXTURES_CLEANUP "RefDataFixture")
