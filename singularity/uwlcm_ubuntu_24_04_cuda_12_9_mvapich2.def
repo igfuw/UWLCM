@@ -39,7 +39,8 @@ apt-get update -qq && apt-get install -yq --no-install-recommends \
     xz-utils \
     unzip \
     software-properties-common \
-    bison # for yacc
+    zstd \
+    bison  # for yacc
 
 
 # Set up locale
