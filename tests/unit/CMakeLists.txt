@@ -65,7 +65,7 @@ set_tests_properties(api_test_iles_diff api_test_smg_diff
 
 # 3. Define the Cleanup Test (Delete the extracted folder)
 add_test(NAME CleanupReferenceData 
-         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/reference_data)
+         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_CURRENT_BINARY_DIR}/refdata_iles ${CMAKE_CURRENT_BINARY_DIR}/refdata_smg)
 
 # Mark this test as the cleanup step for the fixture
 set_tests_properties(CleanupReferenceData PROPERTIES FIXTURES_CLEANUP "RefDataFixture")
