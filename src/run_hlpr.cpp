@@ -189,8 +189,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   else if(user_params.model_case == "contrail")
   {
     // concurr.reset(new concurr_openmp_cyclic_t(p));
-    concurr.reset(new concurr_openmp_open_fixed_open_t(p));
-    // concurr.reset(new concurr_openmp_open_t(p)); // open copies values from edges, so should work fine when exhaust speed is modeled using relaxation
+    // concurr.reset(new concurr_openmp_open_fixed_open_t(p));
+    concurr.reset(new concurr_openmp_open_t(p)); // open copies values from edges, so should work fine when exhaust speed is modeled using relaxation
     //concurr.reset(new concurr_openmp_cyclic_t(p));
   }
   else
