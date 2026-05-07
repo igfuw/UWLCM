@@ -3,6 +3,19 @@
 
 struct uwlcm_dry_family_tag {};
 
+
+/// @brief Dry solver class (no condensation/evaporation).
+/// @details
+/// It derives either from:
+/// - slvr_common (when using ILES scheme), or
+/// - slvr_sgs (when using SGS scheme).
+///
+/// The solver provides dry-specific overrides for:
+/// - Cloud water content (always zero).
+/// - Rain flag handling.
+/// - Puddle (surface water) diagnostics.
+///
+/// @tparam ct_params_t Compile-time parameters structure.
 template <class ct_params_t>
 class slvr_dry : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
                                               slvr_common<ct_params_t>,

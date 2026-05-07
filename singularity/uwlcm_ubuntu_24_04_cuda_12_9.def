@@ -40,7 +40,8 @@ apt-get update -qq && apt-get install -yq --no-install-recommends \
     locales \
     xz-utils \
     unzip \
-    software-properties-common
+    software-properties-common \
+    zstd
 
 # Set up locale
 locale-gen en_US.UTF-8
