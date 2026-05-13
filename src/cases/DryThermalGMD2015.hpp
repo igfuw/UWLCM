@@ -49,12 +49,10 @@ namespace cases
       template <class index_t>
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr, arr_1D_t &rhod, int rng_seed, index_t index)
       {
-        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dz = (this->Z / si::metres) / (nz-1); 
-        int nx = concurr.advectee_global().extent(0);  // ix::w is the index of vertical domension both in 2D and 3D
-        real_t dx = (this->X / si::metres) / (nx-1); 
-    
-    //    concurr.advectee(ix::rv) = r_t()(index * dz); 
+        int nz = rhod.extent(0);
+        real_t dz = (this->Z / si::metres) / (nz-1);
+
+    //    concurr.advectee(ix::rv) = r_t()(index * dz);
         concurr.advectee(ix::u)= 0;// setup::u()(index * dz);
         concurr.advectee(ix::w) = 0;  
        
@@ -66,18 +64,7 @@ namespace cases
         // density profile
         concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
     
-        // initial potential temperature
-        real_t r0 = 250;
         concurr.advectee(ix::rv) = 1e-3; // some rv, but no actual wet physics
-        concurr.advectee(ix::th) = 300. + where(
-          // if
-          pow(blitz::tensor::i * dx - 4    * r0 , 2) + 
-          pow(blitz::tensor::j * dz - 1.04 * r0 , 2) <= pow(r0, 2), 
-          // then
-          .5, 
-          // else
-          0
-        );
       }
   
       // calculate the initial environmental theta and rv profiles
@@ -141,10 +128,27 @@ namespace cases
   
       // function expecting a libmpdata++ concurr as argument
       void intcond(typename parent_t::concurr_any_t &concurr,
-                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed, const int nps[2]) override
       {
         blitz::secondIndex k;
         this->intcond_hlpr(concurr, rhod, rng_seed, k);
+
+        int nx = nps[0],
+            nz = nps[1];
+        real_t dz = (this->Z / si::metres) / (nz-1);
+        real_t dx = (this->X / si::metres) / (nx-1);
+
+        // initial potential temperature
+        real_t r0 = 250;
+        concurr.advectee(ix::th) = 300. + where(
+          // if
+          pow(blitz::tensor::i * dx - 4    * r0 , 2) + 
+          pow(blitz::tensor::j * dz - 1.04 * r0 , 2) <= pow(r0, 2), 
+          // then
+          .5, 
+          // else
+          0
+        );
       }
 
       public:
