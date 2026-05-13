@@ -23,12 +23,6 @@ https://github.com/igfuw/libmpdataxx
 
 https://github.com/igfuw/libcloudphxx
 
-Build instructions can be found in build_instructions.rtf.
+Build instructions can be found in build_instructions.md (model dependencies can be manually installed, installed with Spack or the model can be ran in a Singularity image).
 
-Singularity images for building and running UWLCM are available at:
-
-https://zenodo.org/records/15591478
- 
-Visualization of a modeled stratocumulus cloud deck:
-
-https://youtu.be/EZf260ZKqq0
+Scripts for building and running the model on specific clusters can be found in https://github.com/iguw/UWLCM-recipies

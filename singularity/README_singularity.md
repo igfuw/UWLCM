@@ -1,23 +1,21 @@
-Use Singularity: https://sylabs.io/singularity/ to create image for UWLCM
+Use Apptainer or Singularity
 
-Built images are available at: https://cloud.sylabs.io/library/pdziekan/
+Built images are available at: https://zenodo.org/records/15591478 https://cloud.sylabs.io/library/pdziekan/
 
-Build the image remotely here: https://cloud.sylabs.io/builder
+Alternatively, build you own image using one od the .def files in this folder
 
 ```bash
-$ singularity build --remote sng_ubuntu_18_04_cuda_10_0.sif sng_ubuntu_18_04_cuda_10_0
+$ singularity build X.sif X.def
 ```
 
-The image works with CUDA Driver Version: 410.79 and CUDA Version: 10.0
-
-To run the image with GPU support use --nv flag:
+To run a shell within the image (the --nv flag is needed for GPUs to work):
 ```bash
-$ singularity shell --nv sng_ubuntu_18_04_cuda_10_0.sif
+$ singularity shell --nv X.sif
 ```
 
 It may be necessary to run the image in a clean environment: 
 ```bash
-$ env -i singularity shell --nv sng_ubuntu_18_04_cuda_10_0.sif
+$ env -i singularity shell --nv X.sif
 ```
 
 Follow the libmpdata and libcloud readme on how to compile them and run tests.
@@ -34,5 +32,3 @@ $ cmake .. -Dlibmpdata++_DIR=/local_folder/usr/local/share/libmpdata++ -Dlibclou
 $ make
 ```
 
-Prepare to wait as UWLCM and libcloudph++ take long time to compile.
-After that youre done.
