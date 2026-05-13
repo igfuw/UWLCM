@@ -13,45 +13,11 @@ spack:
     unify: true
     reuse: true
 
-    #   cxx:
-           #     prefer:
-           #        - fj
-
   # 3. Use Fugaku's pre-installed high-performance libraries
   packages:
-          #    boost:
-          #      require:
-          #        compiler: [fj]
     all:
       require:
         - "%gcc@12.2.0" 
-              #- "%fcc@4.7.0"  # Force all packages to use Fujitsu compiler
-              # compiler: [fj, gcc]
       target: [a64fx]
       providers:
         mpi: [fujitsu-mpi]
-        #
-      # Tell Spack NOT to build a new compiler if it can avoid it
-      #      compiler: [fcc@4.7.0]
-      #      compiler: [gcc@12]
-    
-    # Do not let Spack build its own MPI; use the one on Fugaku
-    #    fujitsu-mpi:
-    #      buildable: false
-    #      externals:
-              #- spec: fujitsu-mpi%gcc@12.2.0
-              #      - spec: fujitsu-mpi@head-gcc12
-        #      - spec: fujitsu-mpi@4.7.0
-        #        prefix: /opt/FJSVxtclanga/tcsds-1.2.37 # Check actual path on Fugaku with 'module show'
-    
-    # Use the system-optimized BLAS/LAPACK (Fujitsu SSL2)
-    # blas:
-    #   buildable: false
-    #   externals:
-    #   - spec: fujitsu-ssl2
-    #     prefix: /opt/FJSVxtclanga/tcsds-1.2.37
-
-
-    # Force Spack to use this exact hash for Python
-    #    python:
-            #      require: "/qhm66vh"
