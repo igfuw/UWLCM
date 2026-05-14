@@ -16,7 +16,7 @@ $ git clone https://github.com/igfuw/libmpdataxx.git
 - in the build direcory issue:
 
 ```bash
-$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} .. ; make install
+$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} .. ; make install
 ```
 
 4. Build and install libcloudph++, e.g.:
@@ -24,7 +24,7 @@ $ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc -DCMAKE_INSTALL_PREF
 - in the build direcory issue:
 
 ```bash
-$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True .. ; make -j4 install
+$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -DLIBCLOUDPHXX_FORCE_MULTI_CUDA=True .. ; make -j4 install
 ```
 
 5. Build and install UWLCM using the Singularity image:
@@ -32,7 +32,7 @@ $ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc -DCMAKE_INSTALL_PREF
 - in the build direcory issue:
 
 ```bash
-$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=gcc
+$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++
 -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
 -Dlibmpdata++_DIR=${INSTALL_DIR}/share/libmpdata++
 -Dlibcloudph++_DIR=${INSTALL_DIR}/share/libcloudph++ .. ; make -j4 install
