@@ -25,4 +25,4 @@ https://github.com/igfuw/libcloudphxx
 
 Build instructions can be found in [build_instructions.md](https://github.com/igfuw/UWLCM/blob/master/build_instructions.md) (model dependencies can be manually installed, installed with Spack or the model can be ran in a Singularity image).
 
-Scripts for building and running the model on specific clusters can be found in https://github.com/iguw/UWLCM-recipies
+Scripts for building and running the model on specific clusters can be found in https://github.com/igfuw/UWLCM-recipies
