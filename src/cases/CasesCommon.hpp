@@ -142,7 +142,7 @@ namespace cases
     /**
      * @brief Virtual function to set case-specific initial conditions.
      */
-    virtual void intcond(concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed) =0;
+    virtual void intcond(concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed, const int nps[n_dims]) =0;
 
     /**
  * @brief Initialize profiles for SGS and surface fluxes.
