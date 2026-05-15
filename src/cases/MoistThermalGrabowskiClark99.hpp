@@ -170,7 +170,7 @@ namespace cases
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr,
                         arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
       {
-        int nz = rhod.extent(0);
+        int nz = rhod.extent(0) - 1;
         real_t dz = (this->Z / si::metres) / (nz-1); 
     
         concurr.advectee(ix::u) = 0;
