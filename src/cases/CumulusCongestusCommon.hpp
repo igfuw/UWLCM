@@ -56,7 +56,7 @@ namespace cases
                         const real_t &z_abs)    // [m]
       {
         // we assume here that set_profs was called already, so that *_env profiles are initialized
-        int nz = rhod.extent(0);
+        int nz = rhod.extent(0) - 1;
         real_t dz = (this->Z / si::metres) / (nz-1); 
         // copy the env profiles into 2D/3D arrays
         //concurr.advectee(ix::rv) = rv_env(index); 
