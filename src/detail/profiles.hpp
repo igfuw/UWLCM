@@ -49,7 +49,6 @@ namespace detail
       {p.th_ref        , profs.th_ref        },
       {p.rhod          , profs.rhod          },
       {p.w_LS          , profs.w_LS          },
-      {p.rv_LS         , profs.rv_LS         },
       {p.geostr[0]     , profs.geostr[0]     },
       {p.geostr[1]     , profs.geostr[1]     },
       {p.mix_len       , profs.mix_len       },

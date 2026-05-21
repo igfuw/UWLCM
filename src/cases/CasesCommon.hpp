@@ -224,16 +224,20 @@ namespace cases
     /**
  * @brief Update large-scale water vapor tendencies.
  */
-    virtual void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
-                              int timestep, real_t dt, real_t dz)
-    {};
+    virtual void update_rv_LS(blitz::Array<real_t, n_dims> rv_LS, const real_t t, const real_t dx, const real_t dy, const real_t dz)
+    {
+      if(t>0) return; // rv_LS is constant in time
+      rv_LS = 0.; // default is no large-scale advection of water vapor
+    };
 
     /**
      * @brief Update large-scale potential temperature tendencies.
      */
-    virtual void update_th_LS(blitz::Array<real_t, 1> th_LS,
-                              int timestep, real_t dt, real_t dz)
-    {};
+    virtual void update_th_LS(blitz::Array<real_t, n_dims> th_LS, const real_t t, const real_t dx, const real_t dy, const real_t dz)
+    {
+      if(t>0) return; // th_LS is constant in time
+      th_LS = 0.; // default is no large-scale advection of potential temperature
+    };
 
     /**
      * @brief Constructor: sets default DYCOMS parameters.

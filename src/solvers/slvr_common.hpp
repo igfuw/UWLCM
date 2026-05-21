@@ -65,7 +65,9 @@ class slvr_common : public slvr_dim<ct_params_t>
                            &alpha,   // 'explicit' rhs part - does not depend on the value at n+1
                            &beta,    // 'implicit' rhs part - coefficient of the value at n+1
                            &radiative_flux,
-                           &diss_rate; // TODO: move to slvr_sgs to save memory in iles simulations !;
+                           &diss_rate, // TODO: move to slvr_sgs to save memory in iles simulations !;
+                           &th_LS,
+                           &rv_LS;
 
   setup::arr_1D_t th_mean_prof, rv_mean_prof; // profiles with mean th/rv at each level
                                               // NOTE: these profiles hold the same values for all threads (and MPI processes),
@@ -221,8 +223,8 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_prof_const("th_ref", params.th_ref->data()); 
       this->record_prof_const("rhod", params.rhod->data()); 
       this->record_prof_const("w_LS", params.w_LS->data()); 
-      this->record_prof_const("th_LS", params.th_LS->data()); 
-      this->record_prof_const("rv_LS", params.rv_LS->data()); 
+//      this->record_prof_const("th_LS", params.th_LS->data()); 
+//      this->record_prof_const("rv_LS", params.rv_LS->data()); 
       this->record_prof_const("hgt_fctr", params.hgt_fctr->data()); 
       this->record_prof_const("mix_len", params.mix_len->data());
       this->record_prof_const("relax_th_rv_coeff", params.relax_th_rv_coeff->data()); 
@@ -320,8 +322,8 @@ class slvr_common : public slvr_dim<ct_params_t>
   void coriolis(const int&);
   void relax_th_rv(const int&);
 
-  void rv_LS();
-  void th_LS();
+  void calc_rv_LS();
+  void calc_th_LS();
 
   /**
  * @brief Update RHS terms.
@@ -562,8 +564,10 @@ class slvr_common : public slvr_dim<ct_params_t>
     surf_flux_tmp = - surf_flux_lat * conv_fctr_lat;
     this->record_aux_dsc("latent surface flux", surf_flux_tmp, true); 
 
-    this->record_aux_prof("rv_LS", params.rv_LS->data());
-    this->record_aux_prof("th_LS", params.th_LS->data());
+//    this->record_aux_prof("rv_LS", params.rv_LS->data());
+//    this->record_aux_prof("th_LS", params.th_LS->data());
+    this->record_aux_dsc("rv_LS", rv_LS); 
+    this->record_aux_dsc("th_LS", th_LS); 
 
     get_puddle();
     for(int i=0; i < n_puddle_scalars; ++i)
@@ -615,7 +619,7 @@ class slvr_common : public slvr_dim<ct_params_t>
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&)> update_surf_flux_sens, update_surf_flux_lat;
     std::function<void(typename parent_t::arr_t, typename parent_t::arr_t, typename parent_t::arr_t, const real_t&, int, const real_t&, const real_t&, const real_t&, const real_t&)> update_surf_flux_uv;
     // functions for updating large-scale forcings
-    std::function<void(typename setup::arr_1D_t, const int&, const real_t&, const real_t&)> update_rv_LS, update_th_LS;
+    std::function<void(typename parent_t::arr_t, const real_t, const real_t, const real_t, const real_t)> update_rv_LS, update_th_LS;
   };
 
   // per-thread copy of params
@@ -635,6 +639,8 @@ class slvr_common : public slvr_dim<ct_params_t>
     beta(args.mem->tmp[__FILE__][0][4]),
     radiative_flux(args.mem->tmp[__FILE__][0][5]),
     diss_rate(args.mem->tmp[__FILE__][0][6]),
+    th_LS(args.mem->tmp[__FILE__][0][7]),
+    rv_LS(args.mem->tmp[__FILE__][0][8]),
     surf_flux_sens(args.mem->tmp[__FILE__][1][0]),
     surf_flux_lat(args.mem->tmp[__FILE__][1][1]),
     surf_flux_zero(args.mem->tmp[__FILE__][1][2]),
@@ -654,7 +660,7 @@ class slvr_common : public slvr_dim<ct_params_t>
   static void alloc(typename parent_t::mem_t *mem, const int &n_iters)
   {
     parent_t::alloc(mem, n_iters);
-    parent_t::alloc_tmp_sclr(mem, __FILE__, 7); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux
+    parent_t::alloc_tmp_sclr(mem, __FILE__, 9); // tmp1, tmp2, r_l, alpha, beta, F, diss_rate, radiative_flux, th_LS, rv_LS
     parent_t::alloc_tmp_sclr(mem, __FILE__, n_flxs+3, "", true); // surf_flux sens/lat/hori_vel/zero/tmp, U_ground
   }
 };

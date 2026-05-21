@@ -163,7 +163,7 @@ std::cerr << "rho_surf: " << rho_surf << std::endl;
         // real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / T_surf; // this is from Wojtek
         real_t cs = 9.81 / (c_pd<real_t>() / si::joules * si::kilograms * si::kelvins) / st_avg / (profs.th_e(0)
            * (1. + 0.608 * profs.rv_e(0))); 
-        profs.rhod = rho_surf * exp(- st_avg * k * dz); * pow(
+        profs.rhod = rho_surf * exp(- st_avg * k * dz) * pow(
                       1. - cs * (1 - exp(- st_avg * k * dz)), (1. / R_d_over_c_pd<real_t>()) - 1);    
       }
       else

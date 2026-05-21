@@ -12,7 +12,7 @@ namespace cases
     namespace theta_std = libcloudphxx::common::theta_std;
 
     // RH T and p to rv assuming RH = p_v / p_vs
-    quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
+    inline quantity<si::dimensionless, real_t> RH_T_p_to_rv(const real_t &RH, const quantity<si::temperature, real_t> &T, const quantity<si::pressure, real_t> &p)
     {
       return moist_air::eps<real_t>() * RH * const_cp::p_vs<real_t>(T) / (p - RH * const_cp::p_vs<real_t>(T));
     }
@@ -25,8 +25,8 @@ namespace cases
      X_def    ( 500 * si::metres), 
      Y_def    ( 500 * si::metres);
 
-    const real_t z_abs = 20; // velocity absorbers working 200 meters from top bottom edges; 
-    const real_t x_abs = 1000; // velocity absorbers working 1000 meters right edge TODO: left edge as well?
+    const real_t z_abs = 20; // velocity absorbers working z_abs meters from top bottom edges; 
+    // const real_t x_abs = 1000; // velocity absorbers working 1000 meters right edge TODO: left edge as well?
 
     inline quantity<si::temperature, real_t> th_l_CLEAN(const real_t &z)
     {
@@ -48,6 +48,8 @@ namespace cases
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
 
+      real_t spinup_time; // time to turn on large-scale sources after spinup
+
       quantity<si::temperature, real_t> th_l(const real_t &z) override
       {
         return th_l_CLEAN(z);
@@ -62,8 +64,8 @@ namespace cases
       {
         params.w_src = true;
         params.uv_src = false;
-        params.th_src = false;
-        params.rv_src = false;
+        params.th_src = true;
+        params.rv_src = true;
         params.rc_src = false;
         params.rr_src = false;
         params.nc_src = false;
@@ -77,6 +79,8 @@ namespace cases
         params.radiation = false;
     //    params.n_iters=1;
 
+        spinup_time = user_params.spinup * user_params.dt; // save spinup time to turn on large-scale sources after spinup
+
         this->setopts_sgs(params);
       }
     
@@ -84,29 +88,63 @@ namespace cases
       void intcond_hlpr(typename parent_t::concurr_any_t &concurr,
                         arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, int rng_seed, index_t index)
       {
-        int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        // int nz = concurr.advectee_global().extent(ix::w);  // ix::w is the index of vertical domension both in 2D and 3D
+        int nz = rhod.extent(0)-1;
         real_t dz = (this->Z / si::metres) / (nz-1); 
     
-        // concurr.advectee(ix::u) = 0;
+        // zero
+        concurr.advectee(ix::u) = 0;
         concurr.advectee(ix::w) = 0;  
-       
-        // absorbers; TODO: they are needed, because gravity waves are reflected from boundaries?
-//        concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->z / si::metres - z_abs)), 2), 0);
-//        concurr.vab_relaxed_state(0) = 0; 
+        concurr.vab_relaxed_state(0) = 0; // horizontal velocity (x) relaxed state
+        concurr.vab_relaxed_state(ix::w) = 0; // vertical velocity relaxed state
+        concurr.vab_coefficient() = 0; // no velocity absorber by default
 
-
-        concurr.vab_relaxed_state(ix::w) = 0; // vertical relaxed state
+        // gravity wave absorber
+        double gw_abs_mag = 1.;///100; // absorber strength
+        std::conditional_t<n_dims==2, blitz::secondIndex, blitz::thirdIndex> k; // vertical index for iterating over vertical levels; works both for 2D and 3D
+        // bottom edge
+        concurr.vab_coefficient() += where(k * dz <= z_abs,  gw_abs_mag * (z_abs - k * dz) / (z_abs), 0);
+        // top
+        concurr.vab_coefficient() += where(k * dz >= this->Z / si::metres - z_abs,  gw_abs_mag * (k * dz - (this->Z / si::metres - z_abs)) / (z_abs), 0);
     
         // density profile
         concurr.g_factor() = rhod(index); // copy the 1D profile into 2D/3D array
     
+        // initial water vapor mixing ratio
         concurr.advectee(ix::rv) = rv_e(index); 
         // initial potential temperature
         concurr.advectee(ix::th) = th_e(index); 
 
-        std::cerr << "th_e:" << th_e << std::endl;
-        std::cerr << "rv_e:" << rv_e << std::endl;
-        std::cerr << "rhod:" << rhod << std::endl;
+        // randomly prtrb tht and rv
+        // TODO: make it a function cause its used in many cases
+        // TODO2: dont use advectee_global
+        // NOTE: all processes do this, but ultimately only perturbation calculated by MPI rank 0 is used
+        {
+          std::mt19937 gen(rng_seed);
+          std::uniform_real_distribution<> dis(-0.1, 0.1);
+          auto rand = std::bind(dis, gen);
+  
+          auto th_global = concurr.advectee_global(ix::th);
+          decltype(concurr.advectee(ix::th)) prtrb(th_global.shape()); // array to store perturbation
+          std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          // prtrb = where(index * dz >= 1600., 0., prtrb); // no perturbation above 1.6km
+          th_global += prtrb;
+          this->make_cyclic(th_global);
+          concurr.advectee_global_set(th_global, ix::th);
+        }
+        {
+          std::mt19937 gen(rng_seed+1); // different seed than in th. NOTE: if the same instance of gen is used in th and rv, for some reason it gives the same sequence in rv as in th despite being advanced in th prtrb
+          std::uniform_real_distribution<> dis(-0.025e-3, 0.025e-3);
+          auto rand = std::bind(dis, gen);
+  
+          auto rv_global = concurr.advectee_global(ix::rv);
+          decltype(concurr.advectee(ix::rv)) prtrb(rv_global.shape()); // array to store perturbation
+          std::generate(prtrb.begin(), prtrb.end(), rand); // fill it, TODO: is it officialy stl compatible?
+          // prtrb = where(index * dz >= 1600., 0., prtrb); // no perturbation above 1.6km
+          rv_global += prtrb;
+          this->make_cyclic(rv_global);
+          concurr.advectee_global_set(rv_global, ix::rv);
+        }
       }
     
     
@@ -134,9 +172,6 @@ namespace cases
   
         // subsidence rate
         profs.w_LS = 0;
-        // large-scale horizontal advection
-        profs.th_LS = 0;
-        profs.rv_LS = 0;
       }
 
       // ctor
@@ -154,15 +189,6 @@ namespace cases
       void init()
       {
         this->p_0 = p_0;
-        // this->mean_rd1 = real_t(.03e-6) * si::metres,
-        // this->mean_rd2 = real_t(.14e-6) * si::metres;
-        // this->sdev_rd1 = real_t(1.28),
-        // this->sdev_rd2 = real_t(1.75);
-        // this->n1_stp = real_t(90e6) / si::cubic_metres, // 125 || 31
-        // this->n2_stp = real_t(15e6) / si::cubic_metres;  // 65 || 16
-        // this->ForceParameters.coriolis_parameter = 0.376e-4; // [1/s] 
-        // this->z_rlx = z_rlx;
-        // this->gccn_max_height = gccn_max_height;
       }
     };
 
@@ -188,101 +214,40 @@ namespace cases
 
       // function expecting a libmpdata++ concurr as argument
       void intcond(typename parent_t::concurr_any_t &concurr,
-                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed, const int nps[2]) override
       {
         blitz::secondIndex k;
         this->intcond_hlpr(concurr, rhod, th_e, rv_e, rl_e, rng_seed, k);
 
-        int nx = concurr.advectee_global().extent(0);
-        real_t dx = (this->X / si::metres) / (nx-1); 
-        int nz = concurr.advectee_global().extent(ix::w);
-        real_t dz = (this->Z / si::metres) / (nz-1); 
-
-        blitz::firstIndex i;
-
-        int mid_k = nz / 2;
-
-        // TODO: vab_coefficient and vab_relaxed_state should be set only in the 0-th MPI process, similarly to advectee_global_set (otherwise MPI runs wont work well)
-        //concurr.vab_coefficient() = where(index * dz >= z_abs,  1. / 100 * pow(sin(3.1419 / 2. * (index * dz - z_abs)/ (this->z / si::metres - z_abs)), 2), 0);
-        
-        // relaxation that works toward exhaust velocity
-        concurr.vab_coefficient() = 0 
-          + where(
-            // if
-            // i == 0 && k > mid_k && k <= mid_k + 1, 
-            (i == 0 || i == 1) && k == mid_k, 
-            // i == 0 && k == mid_k, 
-            // i == 1 && k == mid_k, 
-            // k == mid_k, 
-            // then
-            10, // [1/s]
-            // else
-            0
-          );
-
-        // gravity wave absorber
-       double gw_abs_mag = 1.;///100; // absorber strength
-       // bottom edge
-       concurr.vab_coefficient() += where(k * dz <= z_abs,  gw_abs_mag * (z_abs - k * dz) / (z_abs), 0);
-       // top
-       concurr.vab_coefficient() += where(k * dz >= this->Z / si::metres - z_abs,  gw_abs_mag * (k * dz - (this->Z / si::metres - z_abs)) / (z_abs), 0);
-       // right
-       concurr.vab_coefficient() += where(i * dx >= this->X / si::metres - x_abs,  gw_abs_mag * (i * dx - (this->X / si::metres - x_abs)) / (x_abs), 0);
-
-        // relaxed state for horizontal velocity
-        concurr.vab_relaxed_state(0) = 223.5 
-          + where(
-            // if
-            // i == 0 && k > mid_k && k <= mid_k + 1, 
-            (i == 0 || i == 1) && k == mid_k, 
-            // i == 0 && k == mid_k, 
-            // i == 1 && k == mid_k, 
-            // k == mid_k, 
-            // then
-            //1,
-            67.5, 
-            // else
-            0
-          );
-
-        // set initial horizontal velocity
-        // TODO: use advectee_global_set (e.g. DryPBL) here
-        // NOTE: set here only for the fixed bcond to have 67.5 at the left boundary; initial velocity is set to 223.5 anyway in ante_loop (pretty hacky)
-        concurr.advectee(ix::u) = 223.5 + 
-          + where(
-            // if
-            // i == 0 && k > mid_k && k <= mid_k + 1, 
-            // (i == 0 || i == 1), 
-            (i == 0 || i == 1) && k == mid_k, 
-            // (i == 1 || i == 2) && k == mid_k, 
-            // i == 1 && k == mid_k, 
-            // i == 0 && k == mid_k, 
-            // k == mid_k, 
-            // then
-            //1,
-            67.5, 
-            // else
-            0
-          ); 
-
-          concurr.advectee(ix::th) += 
-          + where(
-            // if
-            // i == 0 && k > mid_k && k <= mid_k + 1, 
-            // (i == 0 || i == 1), 
-            (i == 0 || i == 1) && (k > mid_k - 3 && k <= mid_k + 3), 
-            // (i == 0 || i == 1) && k == mid_k, 
-            // (i == 1 || i == 2) && k == mid_k, 
-            // i == 1 && k == mid_k, 
-            // i == 0 && k == mid_k, 
-            // k == mid_k, 
-            // then
-            //1,
-            58.3,
-            // else
-            0
-          ); 
+        // int nx = nps[0];
+        // real_t dx = (this->X / si::metres) / (nx-1); 
+        // int nz = nps[1];
+        // real_t dz = (this->Z / si::metres) / (nz-1); 
       }
+
+      virtual void update_rv_LS(blitz::Array<real_t, 2> rv_LS, const real_t t, const real_t dx, const real_t dy, const real_t dz)
+      {
+        if(t==0) rv_LS=0;
+        else if (t > this->spinup_time)
+        {
+          blitz::firstIndex i;
+          blitz::secondIndex k;
+
+          // define a large-scale source of water vapor to represent the exhaust
+          // dx is in meters, so i*dx is x position of given cell
+          // t is in seconds
+          // rv_LS is in [1/s] 
+          rv_LS = where(
+            (i * dx > 100 && i*dx < 400 && k * dz > 20 && k*dz < 80), // condition
+            1e-4, // if true
+            0     // if false
+          );
+        }
+      };
+
+      // same as above, but for potential temperature source [K/s]
+      // virtual void update_th_LS(blitz::Array<real_t, 2> th_LS, const real_t t, const real_t dx, const real_t dy, const real_t dz)
+      // {}
 
       public:
       ContrailCLEAN(const real_t _X=-1, const real_t _Y=-1, const real_t _Z=-1):
@@ -309,7 +274,7 @@ namespace cases
 
       // function expecting a libmpdata++ concurr as argument
       void intcond(typename parent_t::concurr_any_t &concurr,
-                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed)
+                   arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed, const int nps[3]) override
       {
         blitz::thirdIndex k;
         this->intcond_hlpr(concurr, rhod, th_e, rv_e, rl_e, rng_seed, k);
