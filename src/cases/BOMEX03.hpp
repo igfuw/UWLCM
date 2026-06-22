@@ -255,8 +255,8 @@ namespace cases
         // subsidence rate
         profs.w_LS = w_LS_fctr()(k * dz);
         // large-scale horizontal advection
-        profs.th_LS = th_LS_fctr()(k * dz);
-        profs.rv_LS = rv_LS_fctr()(k * dz);
+        // profs.th_LS = th_LS_fctr()(k * dz);
+        // profs.rv_LS = rv_LS_fctr()(k * dz);
       }
 
       void update_surf_flux_sens(blitz::Array<real_t, n_dims> surf_flux_sens,
@@ -293,21 +293,19 @@ namespace cases
           );
       }
 
-/*
-      void update_rv_LS(blitz::Array<real_t, 1> rv_LS,
-                        int timestep, const real_t dt, real_t dz)
+      void update_rv_LS(blitz::Array<real_t, n_dims> rv_LS, const real_t t, const real_t dx, const real_t dy, const real_t dz) override
       {
-        blitz::firstIndex k;
-        rv_LS = rv_LS_var_fctr(timestep * dt)(k * dz);
+        if(t>0) return; // rv_LS is constant in time
+        std::conditional_t<n_dims == 3, blitz::thirdIndex, blitz::secondIndex> k;
+        rv_LS = rv_LS_fctr()(k * dz);
       };
 
-      void update_th_LS(blitz::Array<real_t, 1> th_LS,
-                        int timestep, const real_t dt, real_t dz)
+      void update_th_LS(blitz::Array<real_t, n_dims> th_LS, const real_t t, const real_t dx, const real_t dy, const real_t dz) override
       {
-        blitz::firstIndex k;
-        th_LS = th_LS_var_fctr(timestep * dt)(k * dz);
+        if(t>0) return; // th_LS is constant in time
+        std::conditional_t<n_dims == 3, blitz::thirdIndex, blitz::secondIndex> k;
+        th_LS = th_LS_fctr()(k * dz);
       };
-      */
 
       void init()
       {

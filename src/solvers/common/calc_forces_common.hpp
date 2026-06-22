@@ -37,7 +37,7 @@ void slvr_common<ct_params_t>::rv_src()
     alpha(ijk) += F(ijk);
 
     // large-scale horizontal advection
-    rv_LS();
+    calc_rv_LS();
     alpha(ijk) += F(ijk);
 
     // per-level nudging of the mean
@@ -103,7 +103,7 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
     nancheck(alpha(ijk), "alpha in th_src");
 
     // large-scale horizontal advection
-    th_LS();
+    calc_th_LS();
     alpha(ijk) += F(ijk);
 
     // per-level nudging of the mean
