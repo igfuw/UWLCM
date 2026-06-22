@@ -44,9 +44,6 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
 
     params.cloudph_opts.rlx = false;
 
-    // async does not make sense without CUDA
-    if (params.backend != libcloudphxx::lgrngn::CUDA && params.backend != libcloudphxx::lgrngn::multi_CUDA) params.async = false;
-
     params.cloudph_opts_init.dt = params.dt; // advection timestep = microphysics timestep
 
     params.cloudph_opts_init.nx = this->mem->grid_size[0].length();
