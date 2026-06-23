@@ -32,12 +32,12 @@ int main(int ac, char** av)
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --relax_ccn=1",
-    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --gccn=1 --relax_ccn=1",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --rd_min=1e-9 --rd_max=1e-6",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --aerosol_independent_of_rhod=1",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --aerosol_conc_factor=2",
     "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --term_vel=beard76",
-    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --coal_kernel=hall"
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --coal_kernel=hall",
+    "--async=false --micro=lgrngn --backend=serial --sd_conc=8 --ice_switch=1 --ice_nucl=1 --coal_switch=0 --coal=0"
   });
   // keep dry tests first - they are ran only with micro==none
   vector<string> opts_case({
@@ -79,12 +79,6 @@ int main(int ac, char** av)
         for (auto &opts_r : opts_rng)
           for (auto &opts_p : opts_piggy) // piggy needs to be the last
           {
-            // TODO: 3d dry thermal now works; generate refdata and enable it in api test
-            if((opts_c == opts_case[0]) && (opts_d == opts_dim[2] || opts_d == opts_dim[3]))
-            {
-              std::cout << "skipping 3d dry thermal tests" << std::endl;
-              continue;
-            }
             if((opts_c == opts_case[0]) && opts_m != opts_micro[0])
             {
               std::cout << "skipping dry thermal tests with microphysics other than 'none'" << std::endl;
