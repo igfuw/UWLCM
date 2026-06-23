@@ -79,6 +79,7 @@ int main(int ac, char** av)
         for (auto &opts_r : opts_rng)
           for (auto &opts_p : opts_piggy) // piggy needs to be the last
           {
+            // TODO: 3d dry thermal now works; generate refdata and enable it in api test
             if((opts_c == opts_case[0]) && (opts_d == opts_dim[2] || opts_d == opts_dim[3]))
             {
               std::cout << "skipping 3d dry thermal tests" << std::endl;

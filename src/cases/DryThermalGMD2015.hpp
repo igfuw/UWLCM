@@ -16,6 +16,7 @@ namespace cases
       X_def    = 2000 * si::metres;
   
     const real_t z_abs = 100000; // no absorber
+    const real_t r0 = 250; // radius of the thermal
 
     template<class case_ct_params_t, int n_dims>
     class DryThermalCommon : public CasesCommon<case_ct_params_t, n_dims>
@@ -139,7 +140,6 @@ namespace cases
         real_t dx = (this->X / si::metres) / (nx-1);
 
         // initial potential temperature
-        real_t r0 = 250;
         concurr.advectee(ix::th) = 300. + where(
           // if
           pow(blitz::tensor::i * dx - 4    * r0 , 2) + 
@@ -165,6 +165,7 @@ namespace cases
       using parent_t = DryThermalCommon<case_ct_params_t, 3>;
       using ix = typename case_ct_params_t::ix;
       using rt_params_t = typename case_ct_params_t::rt_params_t;
+
       // function expecting a libmpdata concurr parameters struct as argument
       void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params)
       {
@@ -190,7 +191,6 @@ namespace cases
         real_t dy = (this->Y / si::metres) / (ny-1);
 
         // initial potential temperature
-        real_t r0 = 250;
         concurr.advectee(ix::th) = 300. + where(
           // if
           pow(blitz::tensor::i * dx - 4    * r0 , 2) + 
