@@ -5,6 +5,17 @@
 
 namespace cases 
 {
+  /**
+ * \class Anelastic
+ * @brief Base class for anelastic cloud simulation cases.
+ *
+ * Provides initialization of environmental and reference profiles of potential
+ * temperature and water vapor, following the anelastic approximation. Designed
+ * to be extended by specific cases with defined theta and mixing ratio profiles.
+ *
+ * @tparam case_ct_params_t Compile-time parameters for the case
+ * @tparam n_dims Number of spatial dimensions (2 or 3)
+ */
   template<class case_ct_params_t, int n_dims>
   class Anelastic : public CasesCommon<case_ct_params_t, n_dims>
   {
@@ -14,14 +25,33 @@ namespace cases
     quantity<si::pressure, real_t> p_0 = -10 * si::pascals; 
     quantity<si::mass_density, real_t> rhod_0 = 0 * si::kilograms / si::cubic_meters; 
 
-    // liquid water potential temperature at height z
+    /**
+ * @brief Liquid water potential temperature at height z.
+ *
+ * Must be implemented in derived classes.
+ * @param z Height (m)
+ * @return Potential temperature (K)
+ */
     virtual quantity<si::temperature, real_t> th_l(const real_t &z) {throw std::runtime_error("UWLCM: base Anelastic class th_l called");}
 
-    // water mixing ratio at height z
+    /**
+  * @brief Total water mixing ratio at height z.
+  *
+  * Must be implemented in derived classes.
+  * @param z Height (m)
+  * @return Water mixing ratio (dimensionless)
+  */
     virtual quantity<si::dimensionless, real_t> r_t(const real_t &z) {throw std::runtime_error("UWLCM: base Anelastic class r_t called");}
 
-    // calculate the initial environmental theta and rv profiles
-    // like in Wojtek's BabyEulag
+    /**
+ * @brief Initialize environmental profiles of theta and water vapor.
+ *
+ * Calculates initial temperature, pressure, water vapor, and liquid water
+ * mixing ratios using a moist thermodynamic framework.
+ *
+ * @param profs Reference to profiles structure to populate
+ * @param nz Number of vertical levels
+ */
     void env_prof(detail::profiles_t &profs, int nz)
     {
       using libcloudphxx::common::moist_air::R_d_over_c_pd;
@@ -81,8 +111,16 @@ namespace cases
       lwp_env = lwp_env * 5  * 1e3;
     }
 
-    // calculate the initial reference theta and rv profiles
-    // like in Wojtek's BabyEulag
+
+    /**
+     * @brief Initialize reference profiles for theta and dry air density.
+     *
+     * Computes reference potential temperature and dry air density profiles based
+     * on environmental profiles. Used for stability and anelastic calculations.
+     *
+     * @param profs Reference to profiles structure to populate
+     * @param nz Number of vertical levels
+     */
     void ref_prof(detail::profiles_t &profs, int nz)
     {
       using libcloudphxx::common::moist_air::R_d_over_c_pd;

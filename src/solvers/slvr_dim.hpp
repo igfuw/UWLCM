@@ -25,7 +25,11 @@ using libmpdataxx::arakawa_c::h;
 using namespace libmpdataxx; // TODO: get rid of it?
 using namespace arakawa_c;
 
-// 2D version 
+/// \class slvr_dim_2D
+/// @brief 2D solver dimension specialization.
+/// @details Provides dimension-specific ranges, index slicing,
+/// horizontal averaging, vertical gradients, smoothing, and diagnostics.
+/// @tparam ct_params_t Compile-time parameters.
 template <class ct_params_t>
 class slvr_dim<
   ct_params_t,
@@ -140,7 +144,11 @@ class slvr_dim<
     {}
 };
 
-// 3D version
+/// \class slvr_dim_2D
+/// @brief 3D solver dimension specialization.
+/// @details Extends slvr_piggy for 3D with domain ranges, slicing,
+/// horizontal averaging, vertical gradients, smoothing, and diagnostics.
+/// @tparam ct_params_t Compile-time parameters.
 template <class ct_params_t>
 class slvr_dim<
   ct_params_t,

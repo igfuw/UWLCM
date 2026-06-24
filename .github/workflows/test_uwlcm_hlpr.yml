@@ -39,7 +39,7 @@ jobs:
 
     steps:
     - name: checkout libcloudph++ 
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         repository: igfuw/libcloudphxx
         ref: ${{ inputs.libcloudphxx_sha }}
@@ -52,6 +52,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: ${{matrix.threads}}
         path: ${{ github.workspace }}/libcloudphxx
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
         cxx: ${{ matrix.cxx }}
@@ -61,7 +62,7 @@ jobs:
       run: tar -cvf libcloudphxx.tar libcloudphxx/build libcloudphxx/include
 
     - name: Upload libcloudph++ dir
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
         path: libcloudphxx.tar
@@ -91,13 +92,13 @@ jobs:
           tar_name: "Dbg"
     steps:
     - name: checkout UWLCM 
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
 
     - name: Download libcloudph++ dir
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
 
@@ -109,7 +110,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         repository: igfuw/libmpdataxx
         ref: ${{ inputs.libmpdataxx_sha }}
@@ -121,6 +122,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: 4
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
         cxx: ${{ matrix.cxx }}
@@ -171,13 +173,13 @@ jobs:
 
     steps:
     - name: checkout UWLCM 
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         repository: igfuw/UWLCM
         ref: ${{ inputs.UWLCM_sha }}
 
     - name: Download libcloudph++ dir
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: libcloud_mpi_${{matrix.mpi}}_${{matrix.tar_name}}_tar
 
@@ -185,7 +187,7 @@ jobs:
       run: tar -xvf libcloudphxx.tar
 
 #    - name: checkout libcloudph++ 
-#      uses: actions/checkout@v5
+#      uses: actions/checkout@v7
 #      with:
 #        repository: igfuw/libcloudphxx
 #        ref: ${{ inputs.libcloudphxx_sha }}
@@ -207,7 +209,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout libmpdata++
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         repository: igfuw/libmpdataxx
         ref: ${{ inputs.libmpdataxx_sha }}
@@ -219,6 +221,7 @@ jobs:
         build_type: ${{matrix.build_type}}
         threads: 4
         path: ${{ github.workspace }}/libmpdataxx/libmpdata++
+        singularity_path: ${{ github.workspace }}/singularity_images
         install_prefix: ${{ github.workspace }}/installed
         tag: ${{ matrix.tag }}
         cxx: ${{ matrix.cxx }}
@@ -237,7 +240,7 @@ jobs:
       run: sudo cmake --install build
 
     - name: checkout UWLCM_plotting repo
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         repository: igfuw/UWLCM_plotting
         path: UWLCM_plotting

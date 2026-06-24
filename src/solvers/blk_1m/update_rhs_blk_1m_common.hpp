@@ -2,6 +2,23 @@
 #include <libcloudph++/blk_1m/rhs_cellwise.hpp>
 #include "../slvr_blk_1m.hpp"
 
+/**
+ * @brief Update the right-hand side (RHS) of prognostic equations for a time step
+ *
+ * This function computes the RHS of the single-moment bulk microphysics
+ * equations for temperature, water vapor, cloud water, and rain water. It
+ * includes:
+ * - storing total liquid water for buoyancy,
+ * - cell-wise microphysics updates via libcloudph++ `rhs_cellwise_nwtrph`,
+ * - large-scale forcing (subsidence, nudging) via `rc_src()` and `rr_src()`,
+ * - optional subgrid-scale (SGS) scalar forces if an SGS scheme is active.
+ *
+ * @param rhs Vector of RHS arrays for all prognostic variables
+ * @param dt Time step size
+ * @param at Step index:
+ *           - 0: first step of Euler or trapezoidal integration
+ *           - 1: second step of trapezoidal integration
+ */
 template <class ct_params_t>
 void slvr_blk_1m_common<ct_params_t>::update_rhs(
     libmpdataxx::arrvec_t<typename parent_t::arr_t> &rhs,

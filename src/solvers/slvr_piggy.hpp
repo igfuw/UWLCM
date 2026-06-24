@@ -14,6 +14,16 @@ using namespace libmpdataxx; // TODO: get rid of it?
 constexpr int minhalo = 1; 
 
 // driver
+/**
+ * \class slvr_piggy_driver
+ * @brief Solver class in driver mode (piggy == 0).
+ *
+ * This specialization of slvr_piggy handles running the simulation and storing velocity fields
+ * for piggybacking. It inherits from @ref output::hdf5_xdmf with
+ * @ref solvers::mpdata_rhs_vip_prs_sgs.
+ *
+ * @tparam ct_params_t Compile-time parameters.
+ */
 template <class ct_params_t>
 class slvr_piggy<
   ct_params_t,
@@ -116,6 +126,17 @@ class slvr_piggy<
 
 
 // piggybacker
+/**
+ * \class slvr_piggy_piggybacker
+ * @brief Solver class in piggybacker mode (piggy == 1).
+ *
+ * This specialization of slvr_piggy handles reading precomputed velocity
+ * fields from a driver run and using them in a piggyback simulation.
+ * It inherits from @ref output::hdf5_xdmf with
+ * @ref solvers::mpdata_rhs_vip.
+ *
+ * @tparam ct_params_t Compile-time parameters.
+ */
 template <class ct_params_t>
 class slvr_piggy<
   ct_params_t,

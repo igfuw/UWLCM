@@ -1,0 +1,23 @@
+spack:
+  # 1. The software requirements for UWLCM. Add %fj to force building it with Fujitsu compiler
+  specs:
+  - boost +mpi +program_options +filesystem +chrono +regex +serialization +atomic +thread +date_time +system +iostreams +timer
+  - blitz 
+  - cmake
+  - hdf5 +mpi +hl +cxx
+  - thrust
+
+  # 2. Fugaku-Specific Hardware & Compiler mapping
+  #  view: true
+  concretizer:
+    unify: true
+    reuse: true
+
+  # 3. Use Fugaku's pre-installed high-performance libraries
+  packages:
+    all:
+      require:
+        - "%gcc@12.2.0" 
+      target: [a64fx]
+      providers:
+        mpi: [fujitsu-mpi]

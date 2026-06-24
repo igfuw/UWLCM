@@ -20,6 +20,12 @@ struct uwlcm_dry_family_tag {};
 
 namespace cmn = libcloudphxx::common;
 
+/**
+ * \class slvr_common
+ * @brief Base solver class providing common functionality for all solver variants.
+ *
+ * @tparam ct_params_t Compile-time parameters struct controlling solver configuration.
+ */
 template <class ct_params_t>
 class slvr_common : public slvr_dim<ct_params_t>
 {
@@ -74,10 +80,22 @@ class slvr_common : public slvr_dim<ct_params_t>
   // precip output
   std::map<cmn::output_t, real_t> puddle;
   const int n_puddle_scalars = cmn::output_names.size();
+
+ /**
+ * @brief Retrieve precipitation (puddle) diagnostics.
+ */
   virtual void get_puddle() = 0;
 
-  // spinup stuff
+  /**
+ * @brief Query whether rain is active.
+ * @return true if rain is active.
+ */
   virtual bool get_rain() = 0;
+
+  /**
+ * @brief Enable or disable rain.
+ * @param active Whether rain should be active.
+ */
   virtual void set_rain(bool) = 0;
   
   virtual void sgs_scalar_forces(const std::vector<int>&) {}
@@ -85,6 +103,10 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   //void common_water_src(int, int);
 
+ /**
+ * @brief Called before the simulation time loop starts.
+ * @param nt Number of timesteps.
+ */
   void hook_ante_loop(int nt)
   {
     if (params.user_params.spinup > 0)
@@ -175,10 +197,12 @@ class slvr_common : public slvr_dim<ct_params_t>
       this->record_aux_const("sdev_rd1", "user_params", params.user_params.sdev_rd1);
       this->record_aux_const("n1_stp", "user_params", params.user_params.n1_stp * si::cubic_metres);
       this->record_aux_const("kappa1", "user_params", params.user_params.kappa1);
+      this->record_aux_const("soluble_fraction1", "user_params", params.user_params.soluble_fraction1);
       this->record_aux_const("mean_rd2", "user_params", params.user_params.mean_rd2 / si::metres);  
       this->record_aux_const("sdev_rd2", "user_params", params.user_params.sdev_rd2);
       this->record_aux_const("n2_stp", "user_params", params.user_params.n2_stp * si::cubic_metres);
       this->record_aux_const("kappa2", "user_params", params.user_params.kappa2);
+      this->record_aux_const("soluble_fraction2", "user_params", params.user_params.soluble_fraction2);
 
       // recording profiles
       this->record_prof_const("th_e", params.th_e->data()); 
@@ -236,6 +260,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
   }
 
+  /**
+ * @brief Called before each timestep.
+ */
   void hook_ante_step()
   {
     if (params.user_params.spinup != 0 && params.user_params.spinup == this->timestep)
@@ -287,6 +314,12 @@ class slvr_common : public slvr_dim<ct_params_t>
   void rv_LS();
   void th_LS();
 
+  /**
+ * @brief Update RHS terms.
+ * @param rhs Right-hand side arrays.
+ * @param dt Timestep.
+ * @param at Integration stage (0 for Euler, 1 for trapezoidal).
+ */
   void update_rhs(
     arrvec_t<typename parent_t::arr_t> &rhs,
     const typename parent_t::real_t &dt,
@@ -463,6 +496,9 @@ class slvr_common : public slvr_dim<ct_params_t>
   }
 */
 
+ /**
+ * @brief Called after each timestep.
+ */
   void hook_post_step()
   {
     negtozero(this->mem->advectee(ix::rv)(this->ijk), "rv at start of slvr_common::hook_post_step");
@@ -501,6 +537,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     negcheck2(this->mem->advectee(ix::rv)(this->ijk), this->rhs.at(ix::rv)(this->ijk), "rv after mixed_rhs_post_step apply rhs (+ output of rv rhs)");
   }
 
+  /**
+ * @brief Perform diagnostic output.
+ */
   virtual void diag()
   {
     assert(this->rank == 0);
@@ -525,6 +564,9 @@ class slvr_common : public slvr_dim<ct_params_t>
     }
   } 
 
+  /**
+ * @brief Record all output fields and diagnostics.
+ */
   void record_all()
   {
     assert(this->rank == 0);
@@ -538,6 +580,9 @@ class slvr_common : public slvr_dim<ct_params_t>
 
   public:
 
+  /**
+   * @brief Runtime parameters for the solver.
+   */
   // case-specific parameters
   // note dual inheritance to get profile pointers
   struct rt_params_t : parent_t::rt_params_t, detail::profile_ptrs_t

@@ -1,0 +1,2 @@
+To generate refdata: run the test (iles), rename the output directory to refdata_iles; repeat for smg; Copy hash_dict.txt to respective directories (the one from smg run needs to be renamed to hash_dict.txt)). Compress both directories with:
+$ tar --zstd -cf reference_data.tar.zst refdata_iles/ refdata_smg/  

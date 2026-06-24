@@ -3,6 +3,17 @@
 #include <libcloudph++/blk_1m/options.hpp>
 #include <libcloudph++/blk_1m/adj_cellwise.hpp>
 
+/**
+ * \class slvr_blk_1m_common
+ * @brief Single-moment bulk microphysics solver (common functionality)
+ *
+ * Template class implementing a common base for single-moment bulk microphysics
+ * schemes. Selects the parent solver depending on the SGS scheme (ILES vs SGS).
+ * Provides functions for condensation/evaporation adjustment, precipitation
+ * handling, and microphysics diagnostics.
+ *
+ * @tparam ct_params_t Compile-time parameters defining solver configuration
+ */
 template <class ct_params_t>
 class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == libmpdataxx::solvers::iles,
                                                      slvr_common<ct_params_t>,
@@ -28,6 +39,13 @@ class slvr_blk_1m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   typename parent_t::arr_t &p_e;
 
 
+
+  /**
+   * @brief Perform condensation/evaporation adjustment for the current cell
+   *
+   * Updates cloud water and rain water mixing ratios using the libcloudph++ blk_1m
+   * library routines.
+   */
   void condevap()
   {
     auto

@@ -10,7 +10,17 @@
 #include "../../forcings/surface_fluxes.hpp"
 #include "../../forcings/large_scales.hpp"
 
-// common forcing functions
+/**
+ * @brief Apply source term for water vapor (rv) due to surface fluxes, large-scale vertical motion,
+ * horizontal advection, and per-level nudging.
+ *
+ * If `params.rv_src` is true, the function sequentially applies:
+ *  - surface latent heat flux,
+ *  - subsidence (large-scale vertical wind),
+ *  - large-scale horizontal advection,
+ *  - nudging of the mean water vapor.
+ * The forcing coefficient `alpha` accumulates contributions from all sources, and `beta` is set to zero.
+ */
 // TODO: make functions return blitz arrays to avoid unnecessary copies
 template <class ct_params_t>
 void slvr_common<ct_params_t>::rv_src()
@@ -40,6 +50,24 @@ void slvr_common<ct_params_t>::rv_src()
   beta(ijk) = 0.;
 }
 
+
+/**
+ * @brief Apply source term for potential temperature (th) due to radiation, surface fluxes,
+ * large-scale motions, and per-level nudging.
+ *
+ * If `params.th_src` is true, the function sequentially applies:
+ *  - radiative heating,
+ *  - vertical flux divergence to compute local heating rate,
+ *  - surface sensible heat flux,
+ *  - subsidence (large-scale vertical wind),
+ *  - large-scale horizontal advection,
+ *  - nudging of the mean potential temperature.
+ *
+ * The forcing coefficient `alpha` accumulates contributions from all sources, corrected for
+ * specific heat and density. The `beta` coefficient is set to zero.
+ *
+ * @param rv Array of water vapor used for computing heat capacities and radiative effects.
+ */
 template <class ct_params_t>
 void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
 {
@@ -88,6 +116,18 @@ void slvr_common<ct_params_t>::th_src(typename parent_t::arr_t &rv)
   beta(ijk) = 0.;
 }
 
+
+/**
+ * @brief Apply source term for vertical velocity (w) due to buoyancy and optionally subsidence.
+ *
+ * The function computes buoyancy forcing based on `th` and `rv`, applies trapezoidal scaling
+ * (halving `alpha`), and optionally adds large-scale vertical motion if `at == 0` and
+ * `params.vel_subsidence` is true.
+ *
+ * @param th Array of potential temperature.
+ * @param rv Array of water vapor.
+ * @param at Integration stage (0 for first stage, 1 for trapezoidal second stage).
+ */
 template <class ct_params_t>
 void slvr_common<ct_params_t>::w_src(typename parent_t::arr_t &th, typename parent_t::arr_t &rv, const int at)
 {

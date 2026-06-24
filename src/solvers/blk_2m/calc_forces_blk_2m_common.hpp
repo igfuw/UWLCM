@@ -4,8 +4,13 @@
 #include "../common/calc_forces_common.hpp"
 #include "../slvr_blk_2m.hpp"
 
-// double-moment bulk forcing functions
-// rc_src
+/**
+ * @brief Apply cloud water (rc) source term due to large-scale vertical motion.
+ *
+ * If `params.rc_src` is true, the subsidence is applied and the forcing coefficient
+ * `alpha` is set from the large-scale forcing function `F()`. The `beta` coefficient
+ * is set to zero.
+ */
 template <class ct_params_t>
 void slvr_blk_2m_common<ct_params_t>::rc_src()
 {
@@ -23,7 +28,13 @@ void slvr_blk_2m_common<ct_params_t>::rc_src()
   this->beta(ijk) = 0.;
 }
 
-// nc_src
+/**
+ * @brief Apply cloud droplet number (nc) source term due to large-scale vertical motion.
+ *
+ * If `params.nc_src` is true, the subsidence is applied and the forcing coefficient
+ * `alpha` is set from the large-scale forcing function `F()`. The `beta` coefficient
+ * is set to zero.
+ */
 template <class ct_params_t>
 void slvr_blk_2m_common<ct_params_t>::nc_src()
 {
@@ -41,7 +52,13 @@ void slvr_blk_2m_common<ct_params_t>::nc_src()
   this->beta(ijk) = 0.;
 }
 
-// rr_src
+/**
+ * @brief Apply rain water (rr) source term due to large-scale vertical motion.
+ *
+ * If `params.rr_src` is true, the subsidence is applied and the forcing coefficient
+ * `alpha` is set from the large-scale forcing function `F()`. The `beta` coefficient
+ * is set to zero.
+ */
 template <class ct_params_t>
 void slvr_blk_2m_common<ct_params_t>::rr_src()
 {
@@ -59,7 +76,13 @@ void slvr_blk_2m_common<ct_params_t>::rr_src()
   this->beta(ijk) = 0.;
 }
 
-// nr_src
+/**
+ * @brief Apply rain droplet number (nr) source term due to large-scale vertical motion.
+ *
+ * If `params.nr_src` is true, the subsidence is applied and the forcing coefficient
+ * `alpha` is set from the large-scale forcing function `F()`. The `beta` coefficient
+ * is set to zero.
+ */
 template <class ct_params_t>
 void slvr_blk_2m_common<ct_params_t>::nr_src()
 {

@@ -1,0 +1,1 @@
+Spack simplifies dependency installation. See [fugaku/README_fugaku_spack.md](https://github.com/igfuw/UWLCM/blob/master/spack/fugaku/README_fugaku_spack.md) for instruction how to use spack on the RIKEN Fugaku cluster. It should be easy to adapt this instruction to different clusters.
