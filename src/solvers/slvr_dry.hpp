@@ -1,8 +1,6 @@
 #pragma once
 #include "slvr_sgs.hpp"
 
-struct uwlcm_dry_family_tag {};
-
 
 /// @brief Dry solver class (no condensation/evaporation).
 /// @details
