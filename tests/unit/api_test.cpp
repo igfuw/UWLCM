@@ -75,7 +75,7 @@ int main(int ac, char** av)
   // file with a dict translating hashed outdir into options
   std::ofstream ofdict("hash_dict"+opts_additional+".txt");
 
-  for (auto &opts_d : opts_dim)
+  for (auto opts_d : opts_dim)
     for (auto &opts_m : opts_micro)
       for (auto &opts_c : opts_case)
         for (auto &opts_r : opts_rng)
@@ -90,6 +90,13 @@ int main(int ac, char** av)
             {
               std::cout << "skipping dry pbl tests with microphysics other than 'none'" << std::endl;
               continue; 
+            }
+            if(opts_c == opts_case[14]) // daytime_convection_LBA
+            {
+              // we need larger nz for the LBA case
+              auto pos = opts_d.find("--nz=");
+              auto end = opts_d.find(' ', pos);
+              opts_d.replace(pos, end == string::npos ? string::npos : end - pos, "--nz=16");
             }
 
             ostringstream cmd, opts;
