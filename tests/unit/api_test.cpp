@@ -56,7 +56,7 @@ int main(int ac, char** av)
     "--case=cumulus_congestus_icmw20",
     "--case=cumulus_congestus_icmw24",
     "--case=bomex03",
-    "--case=daytime_convection_LBA"
+    "--case=daytime_convection_LBA --nz=16"
   });
   vector<string> opts_piggy({
     "--piggy=0",
@@ -90,13 +90,6 @@ int main(int ac, char** av)
             {
               std::cout << "skipping dry pbl tests with microphysics other than 'none'" << std::endl;
               continue; 
-            }
-            if(opts_c == opts_case[14]) // daytime_convection_LBA
-            {
-              // we need larger nz for the LBA case
-              auto pos = opts_d.find("--nz=");
-              auto end = opts_d.find(' ', pos);
-              opts_d.replace(pos, end == string::npos ? string::npos : end - pos, "--nz=16");
             }
 
             ostringstream cmd, opts;
