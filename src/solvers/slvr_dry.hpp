@@ -1,8 +1,6 @@
 #pragma once
 #include "slvr_sgs.hpp"
 
-struct uwlcm_dry_family_tag {};
-
 
 /// @brief Dry solver class (no condensation/evaporation).
 /// @details
@@ -30,8 +28,7 @@ class slvr_dry : public std::conditional_t<ct_params_t::sgs_scheme == libmpdatax
   bool rain_flag = false;
 
   public:
-  uwlcm_dry_family_tag solver_family;
-//  using solver_family = uwlcm_dry_family_tag;
+  using solver_family = uwlcm_dry_family_tag;
 
 
   protected:

@@ -45,10 +45,7 @@ void setopts_micro(
   typename solver_t::rt_params_t &rt_params, 
   const user_params_t &user_params,
   const case_ptr_t &case_ptr,
-  typename std::enable_if<std::is_same<
-    decltype(solver_t::rt_params_t::cloudph_opts),
-    libcloudphxx::lgrngn::opts_t<typename solver_t::real_t>
-  >::value>::type* = 0
+  uwlcm_lgrngn_family_tag
 )
 {
   using thrust_real_t = setup::real_t; // TODO: make it a choice?
