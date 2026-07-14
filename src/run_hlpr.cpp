@@ -10,14 +10,15 @@
 #include "detail/ct_params.hpp"
 #include "detail/panic.hpp"
 
-#include "cases/DYCOMS.hpp"
-#include "cases/RICO11.hpp"
-#include "cases/MoistThermalGrabowskiClark99.hpp"
-#include "cases/DryThermalGMD2015.hpp"
-#include "cases/CumulusCongestus_icmw20.hpp"
-#include "cases/CumulusCongestus_icmw24.hpp"
-#include "cases/DryPBL.hpp"
+//#include "cases/DYCOMS.hpp"
+//#include "cases/RICO11.hpp"
+//#include "cases/MoistThermalGrabowskiClark99.hpp"
+//#include "cases/DryThermalGMD2015.hpp"
+//#include "cases/CumulusCongestus_icmw20.hpp"
+//#include "cases/CumulusCongestus_icmw24.hpp"
+//#include "cases/DryPBL.hpp"
 #include "cases/BOMEX03.hpp"
+#include "cases/ContrailCLEAN.hpp"
 
 #include "opts/opts_common.hpp"
 #include "solvers/common/calc_forces_common.hpp"
@@ -72,6 +73,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   using concurr_openmp_rigid_t = typename concurr_openmp_rigid<solver_t, n_dims>::type;
   using concurr_openmp_cyclic_gndsky_t = typename concurr_openmp_cyclic_gndsky<solver_t, n_dims>::type;
   using concurr_openmp_rigid_gndsky_t = typename concurr_openmp_rigid_gndsky<solver_t, n_dims>::type;
+//  using concurr_openmp_open_fixed_open_t = typename concurr_openmp_open_fixed_open<solver_t, n_dims>::type;
+  using concurr_openmp_open_t = typename concurr_openmp_open<solver_t, n_dims>::type;
   
   using rt_params_t = typename solver_t::rt_params_t;
   using ix = typename solver_t::ix;
@@ -94,24 +97,27 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   case_ptr_t case_ptr; 
 
   // setup choice, NOTE: user_params.window only makes a difference if initial horizontal velocity is non-zero
-  if (user_params.model_case == "moist_thermal")
-    case_ptr.reset(new cases::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
-  else if (user_params.model_case == "dry_thermal")
-    case_ptr.reset(new cases::dry_thermal::DryThermal<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
-  else if (user_params.model_case == "dycoms_rf01")
-    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
-  else if (user_params.model_case == "dycoms_rf02")
-    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
-  else if (user_params.model_case == "cumulus_congestus_icmw20")
-    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw20<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
-  else if (user_params.model_case == "cumulus_congestus_icmw24")
-    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw24<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
-  else if (user_params.model_case == "rico11")
-    case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
-  else if (user_params.model_case == "dry_pbl")
-    case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
-  else if (user_params.model_case == "bomex03")
+//  if (user_params.model_case == "moist_thermal")
+//    case_ptr.reset(new cases::moist_thermal::MoistThermalGrabowskiClark99<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
+//  else if (user_params.model_case == "dry_thermal")
+//    case_ptr.reset(new cases::dry_thermal::DryThermal<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z)); 
+//  else if (user_params.model_case == "dycoms_rf01")
+//    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 1, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
+//  else if (user_params.model_case == "dycoms_rf02")
+//    case_ptr.reset(new cases::dycoms::Dycoms<case_ct_params_t, 2, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window)); 
+//  else if (user_params.model_case == "cumulus_congestus_icmw20")
+//    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw20<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
+//  else if (user_params.model_case == "cumulus_congestus_icmw24")
+//    case_ptr.reset(new cases::CumulusCongestus::CumulusCongestus_icmw24<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
+//  else if (user_params.model_case == "rico11")
+//    case_ptr.reset(new cases::rico::Rico11<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
+//  else if (user_params.model_case == "dry_pbl")
+//    case_ptr.reset(new cases::pbl::DryPBL<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
+//  else if (user_params.model_case == "bomex03")
+if (user_params.model_case == "bomex03")
     case_ptr.reset(new cases::bomex::Bomex03<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z, user_params.window));
+ else if (user_params.model_case == "contrail")
+   case_ptr.reset(new cases::contrail_CLEAN::ContrailCLEAN<case_ct_params_t, n_dims>(user_params.X, user_params.Y, user_params.Z));
   else
     throw std::runtime_error("UWLCM: wrong case choice");
 
@@ -126,8 +132,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   p.update_surf_flux_lat  = std::bind(&case_t::update_surf_flux_lat,  case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8);
   p.update_surf_flux_uv   = std::bind(&case_t::update_surf_flux_uv,   case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9);
   // copy functions used to update large-scale forcings
-  p.update_rv_LS = std::bind(&case_t::update_rv_LS, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-  p.update_th_LS = std::bind(&case_t::update_th_LS, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+  p.update_rv_LS = std::bind(&case_t::update_rv_LS, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+  p.update_th_LS = std::bind(&case_t::update_th_LS, case_ptr.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
   // copy user_params
   p.user_params = user_params;
@@ -180,6 +186,13 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   {
     //concurr.reset(new concurr_openmp_rigid_gndsky_t(p));     // rigid horizontal boundaries
     concurr.reset(new concurr_openmp_cyclic_gndsky_t(p)); // cyclic horizontal boundaries, as in the ICMW2020 case
+  }
+  else if(user_params.model_case == "contrail")
+  {
+    // concurr.reset(new concurr_openmp_cyclic_t(p));
+    // concurr.reset(new concurr_openmp_open_fixed_open_t(p));
+    concurr.reset(new concurr_openmp_open_t(p)); // open copies values from edges, so should work fine when exhaust speed is modeled using relaxation
+    //concurr.reset(new concurr_openmp_cyclic_t(p));
   }
   else
   {
