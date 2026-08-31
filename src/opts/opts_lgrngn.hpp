@@ -65,6 +65,7 @@ void setopts_micro(
     ("cond", po::value<bool>()->default_value(rt_params.cloudph_opts.cond) , "condensational growth  (1=on, 0=off)")
     ("rcyc", po::value<bool>()->default_value(false) , "SDs recycling  (1=on, 0=off)")
     ("coal", po::value<bool>()->default_value(rt_params.cloudph_opts.coal) , "collisional growth     (1=on, 0=off)")
+    ("depo", po::value<bool>()->default_value(rt_params.cloudph_opts.depo) , "deposition             (1=on, 0=off)")
     ("chem_dsl", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsl) , "dissolving trace gases (1=on, 0=off)")
     ("chem_dsc", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_dsc) , "dissociation           (1=on, 0=off)")
     ("chem_rct", po::value<bool>()->default_value(rt_params.cloudph_opts.chem_rct) , "aqueous chemistry      (1=on, 0=off)")
@@ -389,7 +390,8 @@ void setopts_micro(
         );
       }
     }
-   }
+  
+  }
 /*  else if(unit_test)
     boost::assign::ptr_map_insert<
       setup::log_dry_radii_unit_test<thrust_real_t> // value type
@@ -414,6 +416,7 @@ void setopts_micro(
   rt_params.cloudph_opts.sedi = vm["sedi"].as<bool>();
   rt_params.cloudph_opts.cond = vm["cond"].as<bool>();
   rt_params.cloudph_opts.coal = vm["coal"].as<bool>();
+  rt_params.cloudph_opts.depo = vm["depo"].as<bool>();
   rt_params.cloudph_opts.ice_nucl = vm["ice_nucl"].as<bool>();
 
   rt_params.cloudph_opts.rcyc = vm["rcyc"].as<bool>();

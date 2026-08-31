@@ -161,6 +161,11 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
     this->mem->barrier();
   }
 
+  void setopts_ante_step() override
+  {
+    params.setopts_ante_step(params, this->timestep);
+    parent_t::setopts_ante_step();
+  }
 
   void hook_post_step()
   {
@@ -173,6 +178,7 @@ class slvr_blk_2m_common : public std::conditional_t<ct_params_t::sgs_scheme == 
   {
     libcloudphxx::blk_2m::opts_t<real_t> cloudph_opts;
     bool flag_acnv; // do we want autoconversion after spinup
+    std::function<void(rt_params_t &, int)> setopts_ante_step;
   };
 
   protected:

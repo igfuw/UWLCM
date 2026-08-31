@@ -140,6 +140,11 @@ namespace cases
     virtual void setopts(rt_params_t &params, const int nps[], const user_params_t &user_params) {assert(false);};
 
     /**
+     * @brief Update case-specific runtime options before a timestep.
+     */
+    virtual void setopts(rt_params_t &params, const int timestep) {}
+
+    /**
      * @brief Virtual function to set case-specific initial conditions.
      */
     virtual void intcond(concurr_any_t &concurr, arr_1D_t &rhod, arr_1D_t &th_e, arr_1D_t &rv_e, arr_1D_t &rl_e, arr_1D_t &p_e, int rng_seed, const int nps[n_dims]) =0;

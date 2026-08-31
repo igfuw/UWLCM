@@ -107,6 +107,12 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
 
   protected:
 
+  void setopts_ante_step() override
+  {
+    params.setopts_ante_step(params, this->timestep);
+    parent_t::setopts_ante_step();
+  }
+
   bool get_rain() { return params.cloudph_opts.coal; }
   void set_rain(bool val) 
   { 
@@ -203,6 +209,7 @@ class slvr_lgrngn : public std::conditional_t<ct_params_t::sgs_scheme == libmpda
     bool flag_coal; // do we want coal after spinup
     real_t gccn; // multiplicity of gccn
     int outfreq_spec;
+    std::function<void(rt_params_t &, int)> setopts_ante_step;
   };
 
   private:

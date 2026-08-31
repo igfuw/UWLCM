@@ -259,12 +259,17 @@ class slvr_common : public slvr_dim<ct_params_t>
  */
   void hook_ante_step()
   {
+    setopts_ante_step();
+    parent_t::hook_ante_step();
+  }
+
+  virtual void setopts_ante_step()
+  {
     if (params.user_params.spinup != 0 && params.user_params.spinup == this->timestep)
     {
       // turn autoconversion on only after spinup (if spinup was specified)
       set_rain(true);
     }
-    parent_t::hook_ante_step();
   }
 
 

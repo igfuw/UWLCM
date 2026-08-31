@@ -39,8 +39,7 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     assert(params.backend != libcloudphxx::lgrngn::undefined);
     assert(params.dt != 0); 
 
-    if(params.gccn > 0)
-      params.cloudph_opts.src = true;
+    params.cloudph_opts.src = params.gccn > 0;
 
     params.cloudph_opts.rlx = false;
 
@@ -128,6 +127,9 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     int n_sd_from_rlx_dry_distros = params.cloudph_opts_init.rlx_sd_per_bin * params.cloudph_opts_init.rlx_bins * params.cloudph_opts_init.nz * 100; // room for 100 rounds of full relaxation... 
     params.cloudph_opts_init.n_sd_max += n_sd_from_rlx_dry_distros;
 
+    params.cloudph_opts_init.n_sd_max += 1e6; // temporary for source
+
+
     prtcls.reset(libcloudphxx::lgrngn::factory<real_t>(
       (libcloudphxx::lgrngn::backend_t)params.backend, 
       params.cloudph_opts_init
@@ -214,6 +216,11 @@ void slvr_lgrngn<ct_params_t>::hook_ante_loop(int nt)
     this->record_aux_const("chem_rho", "lgrngn", params.cloudph_opts_init.chem_rho);  
     this->record_aux_const("opts_init RH_max", "lgrngn", params.cloudph_opts_init.RH_max);
     this->record_aux_const("supstp_rlx", "lgrngn", params.cloudph_opts_init.supstp_rlx);
+    this->record_aux_const("src_x0", "lgrngn", params.cloudph_opts_init.src_x0);
+    this->record_aux_const("src_x1", "lgrngn", params.cloudph_opts_init.src_x1);
+    this->record_aux_const("src_y0", "lgrngn", params.cloudph_opts_init.src_y0);
+    this->record_aux_const("src_y1", "lgrngn", params.cloudph_opts_init.src_y1);
+    this->record_aux_const("src_z0", "lgrngn", params.cloudph_opts_init.src_z0);
     this->record_aux_const("src_z1", "lgrngn", params.cloudph_opts_init.src_z1);
     this->record_aux_const("rlx_bins", "lgrngn", params.cloudph_opts_init.rlx_bins);  
     this->record_aux_const("rlx_sd_per_bin", "lgrngn", params.cloudph_opts_init.rlx_sd_per_bin);  
