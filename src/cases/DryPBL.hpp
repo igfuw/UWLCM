@@ -224,12 +224,13 @@ namespace cases
         }
       }
   
-      void set_profs(detail::profiles_t &profs, int nz, const user_params_t &user_params)
+      void set_profs(detail::profiles_t &profs, const int nps[n_dims], const user_params_t &user_params)
       {
         blitz::firstIndex k;
+        const int nz = nps[n_dims - 1];
         real_t dz = (this->Z / si::metres) / (nz-1);
 
-        parent_t::set_profs(profs, nz, user_params);
+        parent_t::set_profs(profs, nps, user_params);
         parent_t::env_prof(profs, nz);
         parent_t::ref_prof(profs, nz);
   

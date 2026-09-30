@@ -149,7 +149,8 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
   detail::profiles_t profs(nz); 
   // rhod needs to be bigger, cause it divides vertical courant number, TODO: should have a halo both up and down, not only up like now; then it should be interpolated in courant calculation
   // assign their values
-  case_ptr->set_profs(profs, nz, user_params);
+  // case_ptr->set_profs(profs, nz, user_params);
+  case_ptr->set_profs(profs, nps, user_params);
   // pass them to rt_params
   detail::copy_profiles(profs, p);
 
@@ -206,7 +207,7 @@ void run(const int (&nps)[n_dims], const user_params_t &user_params)
 
 
 template<template<class...> class slvr, class ct_params_dim_micro, int n_dims>
-void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
+void run_hlpr(bool piggy, const std::string &sgs, const std::string &type, const int (&nps)[n_dims], const user_params_t &user_params)
 {
   if(piggy) // piggybacker
   {
@@ -219,23 +220,38 @@ void run_hlpr(bool piggy, bool sgs, const std::string &type, const int (&nps)[n_
   {
 #if !defined(UWLCM_DISABLE_DRIVER)
     struct ct_params_piggy : ct_params_dim_micro { enum { piggy = 0 }; };
-    if (sgs)
+    if (sgs == "smg")
     {
-  #if !defined(UWLCM_DISABLE_SGS)
-      struct ct_params_sgs : ct_params_piggy
+  #if !defined(UWLCM_DISABLE_SMG)
+      struct ct_params_smg : ct_params_piggy
       {
         enum { sgs_scheme = libmpdataxx::solvers::smg };
         enum { stress_diff = libmpdataxx::solvers::compact };
       };
-      run<timer<slvr<ct_params_sgs>>>(nps, user_params);
+      run<timer<slvr<ct_params_smg>>>(nps, user_params);
   #endif
     }
-    else
+    else if (sgs == "smgani")
+    {
+  #if !defined(UWLCM_DISABLE_SMGANI)
+      struct ct_params_smgani : ct_params_piggy
+      {
+        enum { sgs_scheme = libmpdataxx::solvers::smgani };
+        enum { stress_diff = libmpdataxx::solvers::compact };
+      };
+      run<timer<slvr<ct_params_smgani>>>(nps, user_params);
+  #endif
+    }
+    else if (sgs == "iles")
     {
   #if !defined(UWLCM_DISABLE_ILES)
       struct ct_params_iles : ct_params_piggy {};
       run<timer<slvr<ct_params_iles>>>(nps, user_params);
   #endif
+    }
+    else
+    {
+      throw std::runtime_error("UWLCM: unknown sgs option");
     }
 #endif
   }

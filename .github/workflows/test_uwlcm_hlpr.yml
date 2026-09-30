@@ -74,18 +74,21 @@ jobs:
       matrix:
         build_type: ["RelWithDebInfo", "Debug"]
         mpi: ["none"]
-        sgs: ["iles", "smg"]
+        sgs: ["iles", "smg", "smgani"]
         disable_cuda: ["true"]
         include:
         - mpi: "none"
           tag: "uwlcm_ubuntu_24_04_cuda_12_9_0"
           cxx: "g++"
         - sgs: "iles"
-          cmake_flags: "-DUWLCM_DISABLE='SGS'"
+          cmake_flags: "-DUWLCM_DISABLE='SMG;SMGANI'"
           ctests: "api_test_iles"
         - sgs: "smg"
-          cmake_flags: "-DUWLCM_DISABLE='ILES'"
+          cmake_flags: "-DUWLCM_DISABLE='ILES;SMGANI'"
           ctests: "api_test_smg"
+        - sgs: "smgani"
+          cmake_flags: "-DUWLCM_DISABLE='ILES;SMG'"
+          ctests: "api_test_smgani"
         - build_type: "RelWithDebInfo"
           tar_name: "RelDbgPort"
         - build_type: "Debug"
@@ -231,7 +234,7 @@ jobs:
     - name: configure and make UWLCM
       working-directory: ${{ github.workspace }}
       run: VERBOSE=1 OMP_NUM_THREADS=4 singularity exec $SI bash -c "
-           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++  -DUWLCM_DISABLE='3D_LGRNGN;3D_BLK_1M;3D_BLK_2M;PIGGYBACKER;SGS' -DMPDATA_OPTS='ABS' -DUWLCM_TIMING=1 -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed && 
+           cmake -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=${{matrix.cxx}} -Dlibcloudph++_DIR=${{ github.workspace }}/installed/share/libcloudph++ -Dlibmpdata++_DIR=${{ github.workspace }}/installed/share/libmpdata++  -DUWLCM_DISABLE='3D_LGRNGN;3D_BLK_1M;3D_BLK_2M;PIGGYBACKER;SMG;SMGANI' -DMPDATA_OPTS='ABS' -DUWLCM_TIMING=1 -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/installed && 
            cmake --build build --config ${{matrix.build_type}} -j2
            "
 
